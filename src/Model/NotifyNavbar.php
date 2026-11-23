@@ -29,6 +29,60 @@ class NotifyNavbar extends ModelBase
             return $builder->where('target_user_id', \Exment::getUserId())
                 ->orderBy('read_flg', 'asc')->orderBy('created_at', 'desc');
         });
+
+        // the bell of the target user answers fresh on their next poll (ISS02824)
+        static::saved(function ($model) {
+            static::navbarCacheForget($model->target_user_id);
+        });
+        static::deleted(function ($model) {
+            static::navbarCacheForget($model->target_user_id);
+        });
+    }
+
+    /**
+     * The cache key of the bell's answer (ApiController::notifyPage) for the login user.
+     * It carries a per-user version that navbarCacheForget() moves, so an answer made before
+     * a change is never read after it; the cache also ends after one poll interval.
+     *
+     * @return string|null null when there is no user to key on
+     */
+    public static function navbarCacheKey(): ?string
+    {
+        $userId = \Exment::getUserId();
+        if (is_nullorempty($userId)) {
+            return null;
+        }
+        $version = (int) \Cache::get(static::navbarVersionKey($userId), 0);
+        return 'exment_notify_nav_' . $userId . '_' . $version . '_' . app()->getLocale();
+    }
+
+    /**
+     * Make the next poll of these users answer fresh. Called when a notification is saved or
+     * deleted, and by the writes that skip the model events (bulk insert, "mark all", "delete all").
+     *
+     * @param mixed $userIds a user id, or a list of them
+     */
+    public static function navbarCacheForget($userIds): void
+    {
+        $userIds = array_unique(array_filter((array) $userIds, function ($id) {
+            return !is_nullorempty($id);
+        }));
+        foreach ($userIds as $userId) {
+            try {
+                $key = static::navbarVersionKey($userId);
+                \Cache::forever($key, (int) \Cache::get($key, 0) + 1);
+            } catch (\Throwable $ex) {
+                // the cache ends after one interval anyway
+            }
+        }
+    }
+
+    /**
+     * @param int|string $userId
+     */
+    protected static function navbarVersionKey($userId): string
+    {
+        return 'exment_notify_nav_ver_' . $userId;
     }
 
     /**

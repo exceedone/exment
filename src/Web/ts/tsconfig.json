@@ -1,0 +1,14 @@
+{
+    // Builds public/vendor/exment/js from these files. Compile them all together (they share the namespace Exment):
+    //   npx -y -p typescript@5.6.3 tsc -p src/Web/ts/tsconfig.json
+    // Type errors are expected (no type packages): the files are still written. CI checks that the
+    // committed js is what this build writes (.github/workflows/ts-js.yml).
+    "compilerOptions": {
+        "target": "ES2017",
+        "outDir": "../../../public/vendor/exment/js",
+        "skipLibCheck": true,
+        "noEmitOnError": false,
+        "newLine": "lf"
+    },
+    "include": ["*.ts"]
+}

@@ -431,6 +431,37 @@ class BundledPluginsTest extends FeatureTestBase
         \Exceedone\Exment\Services\Features::reset();
     }
 
+    public function testANewFeatureAlreadyOnAndTheCloseOfTheNotice(): void
+    {
+        System::features(['_since' => now()->subDay()->toIso8601String(), 'studio' => ['enabled' => true, 'role_groups' => null, 'menu' => true]]);
+        System::clearRequestSession();
+        \Exceedone\Exment\Services\Features::reset();
+        // on already (a feature a plugin had before): not told, the notice says it starts off
+        \Exceedone\Exment\Services\Features::register('exment_test.on', ['label' => 'Already On', 'existing' => true]);
+        \Exceedone\Exment\Services\Features::register('exment_test.off', ['label' => 'Starts Off']);
+        $this->assertTrue(\Exceedone\Exment\Services\Features::enabled('exment_test.on'));
+        $this->assertSame(['Starts Off'], array_values(array_intersect(['Already On', 'Starts Off'], AdminNotices::newFeatures())));
+
+        // the × of the notice: not told again
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->post(admin_url('feature/notices_known'), [], ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        System::clearRequestSession();
+        $this->assertNotContains('Starts Off', AdminNotices::newFeatures());
+        $this->assertFalse(\Exceedone\Exment\Services\Features::enabled('exment_test.off'), 'known, still off');
+
+        // opening Feature management does the same
+        \Exceedone\Exment\Services\Features::register('exment_test.later', ['label' => 'Came Later']);
+        $this->assertContains('Came Later', AdminNotices::newFeatures());
+        $this->get(admin_url('feature'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        System::clearRequestSession();
+        $this->assertNotContains('Came Later', AdminNotices::newFeatures());
+
+        // only the system administrators may close it for the site
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $this->post(admin_url('feature/notices_known'), [], ['X-Requested-With' => 'XMLHttpRequest'])->assertStatus(403);
+        \Exceedone\Exment\Services\Features::reset();
+    }
+
     public function testGoingBackBelowTheFirstSafeVersionIsMarked(): void
     {
         $this->makeRelease('1.0.0');

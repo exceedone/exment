@@ -19,7 +19,8 @@ class ValueUrl extends ItemBase
 
         //else, getting url
         $tag = array_key_value_exists('link', $this->matchOptions);
-        $str = $this->custom_value->getUrl(['tag' => $tag, 'modal' => false]) ?? '';
+        // a mail opens the record where people work on it: the plugin's screen, when one shows the table
+        $str = $this->custom_value->getUrl(['tag' => $tag, 'modal' => false, 'record_url' => true]) ?? '';
         array_forget($this->matchOptions, 'link');
 
         return $str;

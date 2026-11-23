@@ -14,6 +14,8 @@
         @foreach ($breadcrumbs as $i => $crumb)
             @if ($i === count($breadcrumbs) - 1)
                 <span>{{ $crumb['name'] }}</span>
+            @elseif (!isset($crumb['url']))
+                <span class="exm-fs-muted">{{ $crumb['name'] }}</span>
             @else
                 <a href="{{ $crumb['url'] }}">{{ $crumb['name'] }}</a>
             @endif
@@ -23,6 +25,16 @@
     <div class="exm-fs-toolbar">
         @if ($can_upload)
             <button type="button" class="btn btn-sm btn-default" data-fs="new-folder"><i class="fa fa-folder" aria-hidden="true"></i> {{ exmtrans('file_server.new_folder') }}</button>
+            @if ($can_edit)
+                <div class="btn-group">
+                    <button type="button" class="btn btn-sm btn-default dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa fa-file-text-o" aria-hidden="true"></i> {{ exmtrans('file_server.new_file') }} <span class="caret"></span></button>
+                    <ul class="dropdown-menu">
+                        @foreach (\Exceedone\Exment\Services\FileServer\TextFiles::NEW_TYPES as $type)
+                            <li><a href="#" class="dropdown-item" data-fs="new-text" data-type="{{ $type }}">{{ exmtrans('file_server.new_text_' . $type) }}</a></li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
             <label class="btn btn-sm btn-primary" style="margin:0"><i class="fa fa-upload" aria-hidden="true"></i> {{ exmtrans('file_server.upload_files') }}
                 <input type="file" multiple hidden data-fs="file-input"></label>
             <label class="btn btn-sm btn-default" style="margin:0"><i class="fa fa-folder-open" aria-hidden="true"></i> {{ exmtrans('file_server.upload_folder') }}
@@ -42,6 +54,7 @@
         @if (isset($quota))
             <span class="exm-fs-quota">{{ exmtrans('file_server.used') }}: <span data-fs-size="{{ $used_bytes }}"></span> / <span data-fs-size="{{ $quota }}"></span></span>
         @endif
+        <button type="button" class="btn btn-sm btn-default" data-fs-copy-link="{{ $link }}" data-fs-copy-name="{{ $link_name }}" title="{{ exmtrans('file_server.copy_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_link') }}</button>
         @if (isset($folder))
             <a href="{{ $base_url }}/nodes/{{ $folder->id }}" class="btn btn-sm btn-default"><i class="fa fa-info-circle" aria-hidden="true"></i> {{ exmtrans('file_server.folder_detail') }}</a>
         @endif
@@ -184,12 +197,14 @@
     var maxSize = Number(root.dataset.max) || 0;
     var t = {!! json_encode([
         'folder_name' => exmtrans('file_server.prompt_folder_name'),
+        'file_name' => exmtrans('file_server.prompt_file_name'),
         'new_name' => exmtrans('file_server.prompt_new_name'),
         'confirm_trash' => exmtrans('file_server.confirm_trash'),
         'move_to' => exmtrans('file_server.move_to'),
         'copy_to' => exmtrans('file_server.copy_to'),
         'too_large' => exmtrans('file_server.error_too_large'),
         'uploading' => exmtrans('file_server.uploading'),
+        'upload_failed_some' => exmtrans('file_server.upload_failed_some'),
     ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) !!};
 
     root.querySelectorAll('[data-fs-size]').forEach(function (el) { el.textContent = Fs.size(el.getAttribute('data-fs-size')); });
@@ -220,14 +235,18 @@
         var action = btn.getAttribute('data-fs');
         var row = btn.closest('tr[data-id]');
         if (action === 'new-folder') {
-            var name = prompt(t.folder_name);
-            if (name) { Fs.post(base + '/folders', { parent_id: parentId, name: name }).then(Fs.done, Fs.fail); }
+            Fs.ask(t.folder_name, '').then(function (name) {
+                if (name) { Fs.post(base + '/folders', { parent_id: parentId, name: name }).then(Fs.done, Fs.fail); }
+            });
         } else if (action === 'rename' && row) {
-            var newName = prompt(t.new_name, row.dataset.name);
-            if (newName && newName !== row.dataset.name) { Fs.post(base + '/nodes/' + row.dataset.id + '/rename', { name: newName }).then(Fs.done, Fs.fail); }
+            Fs.ask(t.new_name, row.dataset.name).then(function (newName) {
+                if (newName && newName !== row.dataset.name) { Fs.post(base + '/nodes/' + row.dataset.id + '/rename', { name: newName }).then(Fs.done, Fs.fail); }
+            });
         } else if (action === 'trash') {
-            if (!confirm(t.confirm_trash)) { return; }
-            sequence(selected(), function (id) { return Fs.post(base + '/nodes/' + id + '/trash', {}); });
+            var ids = selected();
+            Fs.confirm(t.confirm_trash).then(function (ok) {
+                if (ok) { sequence(ids, function (id) { return Fs.post(base + '/nodes/' + id + '/trash', {}); }); }
+            });
         } else if (action === 'zip') {
             var form = document.createElement('form');
             form.method = 'POST';
@@ -242,6 +261,17 @@
                 sequence(selected(), function (id) { return Fs.post(base + '/nodes/' + id + '/' + action, { target_id: target }); });
             });
         }
+    });
+
+    // "New": an empty text, Markdown or CSV file, opened in the editor (ISS00434)
+    root.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-fs="new-text"]');
+        if (!btn) { return; }
+        e.preventDefault();
+        var asked = Fs.ask ? Fs.ask(t.file_name, '') : Promise.resolve(prompt(t.file_name));
+        asked.then(function (fileName) {
+            if (fileName) { Fs.post(base + '/text_files', { parent_id: parentId, name: fileName, type: btn.dataset.type }).then(Fs.done, Fs.fail); }
+        });
     });
 
     function sequence(ids, fn) {
@@ -325,17 +355,25 @@
 
     function uploadAll(list) {
         if (!list.length) { return; }
-        var failed = 0;
+        // the files that could not be sent, told together at the end; the list is read
+        // again when some were sent (the ones sent are there)
+        var failed = [];
+        var sent = 0;
         var p = Promise.resolve();
         list.forEach(function (item) {
             p = p.then(function () {
-                var row = progressRow((item.dir ? item.dir + '/' : '') + item.file.name);
-                if (maxSize > 0 && item.file.size > maxSize) { row.error(t.too_large); failed++; return; }
+                var name = (item.dir ? item.dir + '/' : '') + item.file.name;
+                var row = progressRow(name);
+                if (maxSize > 0 && item.file.size > maxSize) { row.error(t.too_large); failed.push(name + ': ' + t.too_large); return; }
                 var job = item.file.size > chunkSize ? uploadChunked(item, row) : uploadSmall(item, row);
-                return job.then(function () { row.set(1); }, function (err) { failed++; row.error(err.message); });
+                return job.then(function () { row.set(1); sent++; }, function (err) { failed.push(name + ': ' + err.message); row.error(err.message); });
             });
         });
-        p.then(function () { if (failed === 0) { location.reload(); } });
+        p.then(function () {
+            if (failed.length === 0) { location.reload(); return; }
+            var title = t.upload_failed_some.replace(':failed', String(failed.length)).replace(':done', String(sent));
+            Fs.report(title, failed).then(function () { if (sent > 0) { location.reload(); } });
+        });
     }
 
     function uploadSmall(item, row) {
@@ -374,7 +412,11 @@
                     throw err;
                 });
             }
-            return sendFrom(0, 0);
+            // not finished: removed, so that it does not keep its space and its place
+            return sendFrom(0, 0).catch(function (err) {
+                Fs.send('DELETE', base + '/upload/' + session).catch(function () {});
+                throw err;
+            });
         });
     }
 })();

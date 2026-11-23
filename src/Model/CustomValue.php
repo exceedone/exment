@@ -26,6 +26,7 @@ use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\RecordUrl;
 use Exceedone\Exment\Services\Dashboard\SummaryCache;
 
 /**
@@ -1496,6 +1497,8 @@ abstract class CustomValue extends ModelBase
                 'only_avatar' => false,
                 'asApi' => false,
                 'blank' => false,
+                // the screen of the plugin that shows this table, when one does (RecordUrl)
+                'record_url' => false,
             ],
             $options
         );
@@ -1522,6 +1525,8 @@ abstract class CustomValue extends ModelBase
 
         if (isset($options['uri'])) {
             $url = url_join($url, $options['uri']);
+        } elseif (boolval($options['record_url']) && !boolval($options['list']) && !boolval($options['asApi'])) {
+            $url = RecordUrl::pluginUrl($this) ?? $url;
         }
         if (!$tag) {
             return $url;

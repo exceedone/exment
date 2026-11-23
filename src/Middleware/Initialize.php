@@ -116,6 +116,44 @@ class Initialize
         Config::set('admin.layout', $layout);
     }
 
+    /** The header logo of a site without its own (the logo of 2026-11, public/images). */
+    public const DEFAULT_LOGO = 'images/exment_logo.svg';
+
+    /** The same, for the side menu folded. */
+    public const DEFAULT_LOGO_MINI = 'images/exment_mark.svg';
+
+    /** The logo with light letters, for the colored bar of the classic design. */
+    public const DEFAULT_LOGO_DARK = 'images/exment_logo_dark.svg';
+
+    /** The class of the default logo: no plate behind it (modern.css). */
+    public const DEFAULT_LOGO_CLASS = 'exment-default-logo';
+
+    /**
+     * The default logo for the bar it sits on: the light bar of the modern design, or
+     * the white bar of the black skins of the classic one, take the colored letters;
+     * the colored bar of the other skins takes the light ones.
+     */
+    public static function defaultLogo(): string
+    {
+        try {
+            if (\Exment::isModernUi()) {
+                return static::DEFAULT_LOGO;
+            }
+            $skin = strval(System::site_skin() ?: config('admin.skin'));
+        } catch (\Throwable $e) {
+            return static::DEFAULT_LOGO;
+        }
+        if (strpos($skin, 'skin-black') === 0 || !static::defaultLogoExists(static::DEFAULT_LOGO_DARK)) {
+            return static::DEFAULT_LOGO;
+        }
+        return static::DEFAULT_LOGO_DARK;
+    }
+
+    protected static function defaultLogoExists(string $path): bool
+    {
+        return is_file(public_path($path));
+    }
+
     /**
      * @param bool $setDatabase
      * @return void
@@ -366,10 +404,14 @@ class Initialize
                 Config::set('admin.title', $val);
             }
 
-            // Logo
+            // Logo: the site's own; without one, the Exment logo (the site name is still
+            // the page title). The site name as text only when the logo is not there
+            // (public/images not published yet).
             $val = System::site_logo();
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo', html_image($val, 'header logo'));
+            } elseif (static::defaultLogoExists(static::DEFAULT_LOGO)) {
+                Config::set('admin.logo', html_image(static::defaultLogo(), esc_html(System::site_name() ?: 'Exment'), ['class' => static::DEFAULT_LOGO_CLASS]));
             } else {
                 $val = System::site_name();
                 if (!is_nullorempty($val)) {
@@ -377,10 +419,12 @@ class Initialize
                 }
             }
 
-            // Logo(Short)
+            // Logo(Short): the site's own; without one, the Exment mark
             $val = System::site_logo_mini();
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo-mini', html_image($val, 'header logo mini'));
+            } elseif (static::defaultLogoExists(static::DEFAULT_LOGO_MINI)) {
+                Config::set('admin.logo-mini', html_image(static::DEFAULT_LOGO_MINI, esc_html(System::site_name_short() ?: 'Exment'), ['class' => static::DEFAULT_LOGO_CLASS]));
             } else {
                 $val = System::site_name_short();
                 if (!is_nullorempty($val)) {

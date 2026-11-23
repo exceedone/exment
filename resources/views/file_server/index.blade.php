@@ -38,14 +38,15 @@
         @php $rows = ${$section[0]}; @endphp
         @if (count($rows) > 0)
             <div class="exm-fs-section box card">
-                <div class="box-header"><h4><i class="fa {{ $section[1] }}" aria-hidden="true"></i> {{ exmtrans('file_server.section_' . $section[0]) }}</h4></div>
+                <div class="box-header with-border"><h3 class="box-title"><i class="fa {{ $section[1] }}" aria-hidden="true"></i> {{ exmtrans('file_server.section_' . $section[0]) }}</h3></div>
                 <div class="box-body table-responsive p-0">
                     <table class="table exm-fs-table">
                         <thead><tr><th>{{ exmtrans('file_server.name') }}</th><th>{{ exmtrans('file_server.workspace') }}</th><th>{{ exmtrans('file_server.updated_at') }}</th></tr></thead>
                         <tbody>
                             @foreach ($rows as $row)
                                 <tr>
-                                    <td class="exm-fs-name"><a href="{{ $row['url'] }}"><i class="fa {{ $row['icon'] }}" aria-hidden="true"></i>{{ $row['name'] }}</a></td>
+                                    <td class="exm-fs-name"><a href="{{ $row['url'] }}"><i class="fa {{ $row['icon'] }}" aria-hidden="true"></i>{{ $row['name'] }}</a>
+                                        <button type="button" class="btn btn-xs btn-link" data-fs-copy-link="{{ $row['link'] }}" data-fs-copy-name="{{ $row['name'] }}" title="{{ exmtrans('file_server.copy_link_help') }}" aria-label="{{ exmtrans('file_server.copy_link') }}"><i class="fa fa-link" aria-hidden="true"></i></button></td>
                                     <td>{{ $row['workspace'] }}</td>
                                     <td class="exm-fs-muted">{{ optional($row['updated_at'])->format('Y/m/d H:i') }} {{ $row['updated_user'] }}</td>
                                 </tr>

@@ -624,6 +624,46 @@ class KanbanFixTest extends UnitTestBase
      * L4: per-value colors were looked up with a dotted path, so a value that
      * holds a dot ("v1.5") never got its color on the board.
      */
+    /**
+     * A board column that holds no record is not queried (a status of every project
+     * made a query each); the cards are the same as when every column is asked.
+     */
+    public function testEmptyBoardColumnsAreNotQueried(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $select = CustomColumn::getEloquent('select', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => $select->id,
+            'kanban_col_count' => 5,
+        ]);
+        $grid = $this->gridOf($view);
+        $keys = $this->invoke($grid, 'getBoardKeys', [$select, null, []]);
+        $kept = $this->invoke($grid, 'keysWithRecords', [$select, null, [], $keys]);
+        $this->assertSame(array_values(array_intersect($keys, $kept)), $kept, 'Only board columns of the board, in its order.');
+
+        $cards = function (array $ks) use ($grid, $select) {
+            $ids = [];
+            foreach ($ks as $key) {
+                foreach ($this->invoke($grid, 'buildColumnQuery', [$select, null, [], $key])->take(5)->get() as $record) {
+                    $ids[] = $key . ':' . $record->id;
+                }
+            }
+            sort($ids);
+            return $ids;
+        };
+        $this->assertSame($cards($keys), $cards($kept), 'The same cards as when every column is asked.');
+        foreach (array_diff($keys, $kept) as $skipped) {
+            $this->assertSame(0, $this->invoke($grid, 'buildColumnQuery', [$select, null, [], $skipped])->count(), "The column {$skipped} that is skipped holds nothing.");
+        }
+
+        // a column of several values keeps every board column
+        $multiple = CustomColumn::getEloquent('select_multiple', $table);
+        if (isset($multiple)) {
+            $all = $this->invoke($grid, 'getBoardKeys', [$multiple, null, []]);
+            $this->assertSame($all, $this->invoke($grid, 'keysWithRecords', [$multiple, null, [], $all]));
+        }
+    }
+
     public function testBoardValueColorsWorkForValuesWithADot(): void
     {
         $select = $this->selectWithDottedValueColor();

@@ -15,11 +15,14 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
 {
     use TestTrait;
     use DatabaseTransactions;
+    use OldAdminMenuTrait;
 
     protected function setUp(): void
     {
         parent::setUp();
         $this->initAllTest();
+        // these migrations are for the sites made before the menu was put in groups
+        $this->makeOldAdminMenu();
     }
 
     protected function migration(): mixed
@@ -137,5 +140,148 @@ class AdminSettingMenuOrderTest extends FeatureTestBase
         $this->assertSame($before, $this->names());
         // the titles and the parents are not touched
         $this->assertSame(1, DB::table('admin_menu')->where('menu_type', 'parent_node')->where('menu_name', 'admin')->count());
+    }
+
+    public function testASiteWithoutTheAdminParentGetsTheMenus(): void
+    {
+        // "Admin Setting" removed by an administrator: its menus at the top
+        $admin = $this->adminId();
+        DB::table('admin_menu')->where('parent_id', $admin)->update(['parent_id' => 0]);
+        DB::table('admin_menu')->where('id', $admin)->delete();
+        DB::table('admin_menu')->where('menu_type', 'system')->whereIn('menu_name', ['feature', 'tuning', 'studio'])->delete();
+        $system = DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'system')->first();
+        $this->assertNotNull($system);
+
+        $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_26_000000_add_admin_setting_menus_without_admin_parent.php');
+        $migration->up();
+        foreach (['feature', 'tuning', 'studio', 'login_setting', 'api_setting'] as $name) {
+            $rows = DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', $name)->get();
+            $this->assertCount(1, $rows, $name);
+            $this->assertSame(intval($system->parent_id), intval($rows->first()->parent_id), $name . ': next to the system setting');
+        }
+        // once only
+        $migration->up();
+        $this->assertSame(1, DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->count());
+    }
+
+    public function testASiteWithTheAdminParentIsNotChanged(): void
+    {
+        DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'tuning')->delete();
+        $before = DB::table('admin_menu')->count();
+        $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_26_000000_add_admin_setting_menus_without_admin_parent.php');
+        $migration->up();
+        // removed by an administrator: not made again
+        $this->assertSame($before, DB::table('admin_menu')->count());
+    }
+
+    public function testTheMenusOfFeaturesNotUsedAreEditedAndExported(): void
+    {
+        \Exceedone\Exment\Model\System::features(['studio' => ['enabled' => false, 'role_groups' => null, 'menu' => true]]);
+        \Exceedone\Exment\Model\System::clearRequestSession();
+        \Exceedone\Exment\Services\Features::reset();
+        $this->be(\Exceedone\Exment\Model\LoginUser::findOrFail(\Exceedone\Exment\Tests\TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        try {
+            $names = function (array $nodes): array {
+                return collect($nodes)->where('menu_type', 'system')->pluck('menu_name')->map('strval')->all();
+            };
+            // not in the menu of the pages
+            $this->assertNotContains('studio', $names((new \Exceedone\Exment\Model\Menu())->allNodes()));
+            // in the editing of the menus (marked) and in a template
+            $nodes = (new \Exceedone\Exment\Model\Menu())->withHidden()->allNodes();
+            $this->assertContains('studio', $names($nodes));
+            $this->assertTrue(boolval(collect($nodes)->firstWhere('menu_name', 'studio')['feature_hidden'] ?? false));
+            $page = $this->get(admin_url('auth/menu'));
+            $page->assertOk();
+            $page->assertSee(exmtrans('menu.feature_hidden'));
+
+            /** @var array<string, mixed> $config */
+            $config = [];
+            $method = new \ReflectionMethod(\Exceedone\Exment\Services\TemplateImportExport\TemplateExporter::class, 'setTemplateMenu');
+            $method->setAccessible(true);
+            $method->invokeArgs(null, [&$config, [], false]);
+            /** @var array<int, array<string, mixed>> $exported */
+            $exported = $config['admin_menu'] ?? [];
+            $this->assertContains('studio', array_map('strval', array_column($exported, 'menu_name')));
+        } finally {
+            \Exceedone\Exment\Services\Features::reset();
+        }
+    }
+
+    public function testAMenuOfTheSiteToThePageIsNotMadeAgain(): void
+    {
+        // no "Admin Setting"; the site made its own menu to Feature management (a custom menu to the URL)
+        $admin = $this->adminId();
+        DB::table('admin_menu')->where('parent_id', $admin)->update(['parent_id' => 0]);
+        DB::table('admin_menu')->where('id', $admin)->delete();
+        DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->delete();
+        DB::table('admin_menu')->insert([
+            'parent_id' => 0, 'order' => 99, 'title' => 'Features', 'icon' => 'fa-star',
+            'uri' => 'feature', 'menu_type' => 'custom', 'menu_name' => 'my_features', 'menu_target' => null,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        // and the two wrong rows of a new Japanese site of 7.1.0, out of "Admin Setting"
+        DB::table('admin_menu')->where('menu_type', 'system')->whereIn('menu_name', ['login_setting', 'api_setting'])->delete();
+        DB::table('admin_menu')->insert([
+            'parent_id' => 0, 'order' => 100, 'title' => 'ログイン設定', 'icon' => 'fa-sign-in',
+            'uri' => 'login_setting', 'menu_type' => 'system', 'menu_name' => 'login_setting', 'menu_target' => 'api_setting',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('admin_menu')->insert([
+            'parent_id' => 0, 'order' => 101, 'title' => 'メール送信履歴', 'icon' => 'fa-table',
+            'uri' => null, 'menu_type' => 'table', 'menu_name' => 'mail_send_log', 'menu_target' => null,
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_26_000000_add_admin_setting_menus_without_admin_parent.php');
+        $migration->up();
+        $this->assertFalse(DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->exists(), 'made again next to the menu of the site');
+        foreach (['login_setting', 'api_setting'] as $name) {
+            $rows = DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', $name)->get();
+            $this->assertCount(1, $rows, $name);
+            $this->assertSame($name, $rows->first()->menu_target);
+        }
+        $this->assertFalse(DB::table('admin_menu')->where('menu_type', 'table')->where('menu_name', 'mail_send_log')->whereNull('menu_target')->exists());
+    }
+
+    public function testAMenuWithoutANameInTheLanguageGetsAName(): void
+    {
+        // a menu without a name in any language: its own name, not the key
+        $this->assertSame('no_such_menu', \Exceedone\Exment\Model\Menu::systemTitle('no_such_menu'));
+        // a site in a language without the names
+        $before = config('exment.locale');
+        try {
+            config(['exment.locale' => 'xx']);
+            $title = \Exceedone\Exment\Model\Menu::systemTitle('feature');
+            $this->assertStringStartsNotWith('exment::', $title);
+            $this->assertNotSame('', $title);
+        } finally {
+            config(['exment.locale' => $before]);
+        }
+    }
+
+    public function testTheMenusAreNamedInTheLanguageOfTheSite(): void
+    {
+        $locale = app()->getLocale();
+        $before = config('exment.locale');
+        try {
+            // the site in Japanese, the update from the command line in English
+            config(['exment.locale' => 'ja']);
+            app()->setLocale('en');
+            $ja = strval(trans('exment::exment.menu.system_definitions.feature', [], 'ja'));
+            $en = strval(trans('exment::exment.menu.system_definitions.feature', [], 'en'));
+            $this->assertNotSame($ja, $en);
+            $this->assertSame($ja, \Exceedone\Exment\Model\Menu::systemTitle('feature'));
+
+            // named in English by the update: in Japanese; a name of the site stays
+            DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->update(['title' => $en]);
+            DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'tuning')->update(['title' => 'Speed']);
+            $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_26_000001_menu_titles_in_the_site_language.php');
+            $migration->up();
+            $this->assertSame($ja, DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'feature')->value('title'));
+            $this->assertSame('Speed', DB::table('admin_menu')->where('menu_type', 'system')->where('menu_name', 'tuning')->value('title'));
+        } finally {
+            config(['exment.locale' => $before]);
+            app()->setLocale($locale);
+        }
     }
 }

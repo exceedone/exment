@@ -11,13 +11,17 @@
         @if ($f['description'] !== '')<p class="exm-feature-help">{{ $f['description'] }}</p>@endif
         @if (!empty($f['note']))<p class="exm-feature-help">{{ $f['note'] }}</p>@endif
         @if (!empty($f['requires']))<p class="exm-feature-help">{{ exmtrans('feature.requires', ['name' => $f['requires']]) }}</p>@endif
+        @if (!empty($f['manual_url']))<p class="exm-feature-help"><a href="{{ $f['manual_url'] }}" target="_blank" rel="noopener noreferrer" data-feature-manual><i class="fa fa-book" aria-hidden="true"></i> {{ exmtrans('feature.manual') }}</a></p>@endif
+        @if (!empty($f['action']))<p><a class="btn btn-xs btn-primary" href="{{ $f['action']['url'] }}" data-feature-action>{{ $f['action']['label'] }}</a></p>@endif
         <input type="hidden" name="features[{{ $key }}][present]" value="1">
     </td>
     <td>
         @if ($disabled)
             {{ exmtrans('feature.state_locked') }}
         @else
-            <label style="font-weight:normal"><input type="checkbox" name="features[{{ $key }}][enabled]" value="1" data-feature-stop="{{ $f['label'] }}" @checked($s['enabled'])> {{ exmtrans('feature.use') }}</label>
+            {{-- not in a label: a label around bootstrap-switch takes the click of its knob --}}
+            <input type="checkbox" id="exm-feature-use-{{ md5($key) }}" name="features[{{ $key }}][enabled]" value="1" data-feature-stop="{{ $f['label'] }}" data-feature-switch aria-label="{{ exmtrans('feature.use') }}" @checked($s['enabled'])>
+            <label for="exm-feature-use-{{ md5($key) }}" style="font-weight:normal" data-feature-use-text>{{ exmtrans('feature.use') }}</label>
             @if ($f['reason'] === 'requires')<p class="exm-feature-help">{{ exmtrans('feature.state_requires') }}</p>@endif
             @if ($muted)<p class="exm-feature-help">{{ exmtrans('feature.state_plugin_off') }}</p>@endif
         @endif

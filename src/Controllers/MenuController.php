@@ -43,7 +43,7 @@ class MenuController extends AdminControllerBase
         $this->AdminContent($content);
         return
             $content->row(function (Row $row) {
-                $row->column(5, $this->treeView()->render());
+                $row->column(5, '<p class="exm-menu-arrange-link"><a class="btn btn-default btn-sm" href="' . esc_html(admin_url('auth/menu_arrange')) . '"><i class="fa fa-sort-amount-asc"></i> ' . esc_html(exmtrans('menu.arrange.button')) . '</a></p>' . $this->treeView()->render());
 
                 $row->column(7, function (Column $column) {
                     $form = new \ExmentAdminCore\Admin\Widgets\Form();
@@ -55,6 +55,64 @@ class MenuController extends AdminControllerBase
                     $column->append((new Box(trans('admin.new'), $form))->style('success'));
                 });
             });
+    }
+
+    /**
+     * "Arrange in the standard order": what changes, and the buttons to do it or undo it.
+     *
+     * @return Content
+     */
+    public function arrange(Request $request, Content $content)
+    {
+        $this->AdminContent($content);
+        $arranger = new \Exceedone\Exment\Services\MenuArranger();
+        $plan = $arranger->plan();
+
+        $html = '<p>' . esc_html(exmtrans('menu.arrange.description')) . '</p>';
+        if (count($plan) === 0) {
+            $html .= '<p class="text-muted">' . esc_html(exmtrans('menu.arrange.nothing')) . '</p>';
+        } else {
+            $html .= '<table class="table table-condensed"><thead><tr><th>' . esc_html(exmtrans('menu.title')) . '</th><th>' . esc_html(exmtrans('menu.arrange.from')) . '</th><th>' . esc_html(exmtrans('menu.arrange.to')) . '</th></tr></thead><tbody>';
+            foreach ($plan as $change) {
+                $html .= '<tr><td>' . esc_html($change['title']) . '</td><td>' . esc_html($change['from']) . '</td><td>' . esc_html($change['to']) . '</td></tr>';
+            }
+            $html .= '</tbody></table>';
+            $html .= '<form method="post" action="' . esc_html(admin_url('auth/menu_arrange')) . '" style="display:inline-block" onsubmit="return confirm(' . esc_html(strval(json_encode(exmtrans('menu.arrange.confirm')))) . ')">'
+                . '<input type="hidden" name="_token" value="' . esc_html(csrf_token()) . '">'
+                . '<button type="submit" class="btn btn-primary"><i class="fa fa-sort-amount-asc"></i> ' . esc_html(exmtrans('menu.arrange.run')) . '</button></form> ';
+        }
+        if ($arranger->canRestore()) {
+            $html .= '<form method="post" action="' . esc_html(admin_url('auth/menu_arrange/restore')) . '" style="display:inline-block" onsubmit="return confirm(' . esc_html(strval(json_encode(exmtrans('menu.arrange.restore_confirm')))) . ')">'
+                . '<input type="hidden" name="_token" value="' . esc_html(csrf_token()) . '">'
+                . '<button type="submit" class="btn btn-default"><i class="fa fa-undo"></i> ' . esc_html(exmtrans('menu.arrange.restore')) . '</button></form> ';
+        }
+        $html .= ' <a class="btn btn-default" href="' . esc_html(admin_url('auth/menu')) . '">' . esc_html(trans('admin.back')) . '</a>';
+
+        return $content->row((new Box(exmtrans('menu.arrange.button'), $html))->style('info'));
+    }
+
+    /**
+     * Arrange the menu in the standard order.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function arrangeRun(Request $request)
+    {
+        $count = (new \Exceedone\Exment\Services\MenuArranger())->arrange();
+        admin_toastr(exmtrans('menu.arrange.done', ['count' => $count]));
+        return redirect(admin_url('auth/menu'));
+    }
+
+    /**
+     * Put the menu back as it was before arranging it.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function arrangeRestore(Request $request)
+    {
+        $done = (new \Exceedone\Exment\Services\MenuArranger())->restore();
+        admin_toastr(exmtrans($done ? 'menu.arrange.restored' : 'menu.arrange.nothing_to_restore'), $done ? 'success' : 'warning');
+        return redirect(admin_url('auth/menu'));
     }
 
     /**
@@ -87,7 +145,8 @@ class MenuController extends AdminControllerBase
      */
     protected function treeView()
     {
-        return Menu::tree(function (Tree $tree) {
+        // with the menus of the features not used, to move or remove them
+        return new Tree((new Menu())->withHidden(), function (Tree $tree) {
             $tree->disableCreate();
 
             $tree->branch(function ($branch) {
@@ -117,6 +176,9 @@ class MenuController extends AdminControllerBase
                 // escape html
                 $branch['title'] = esc_html($branch['title']);
                 $payload = "<i class='fa {$icon}'></i>&nbsp;<strong>{$branch['title']}</strong>";
+                if (boolval($branch['feature_hidden'] ?? false)) {
+                    $payload .= '&nbsp;<span class="label label-default">' . esc_html(exmtrans('menu.feature_hidden')) . '</span>';
+                }
 
                 if (!isset($branch['children'])) {
                     if (!admin_is_valid_url($uri)) {
@@ -235,6 +297,13 @@ class MenuController extends AdminControllerBase
     }
     $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
     $form->icon('icon', trans('admin.icon'))->required()->default('');
+    // a parent menu (a group): the role groups it is shown to (empty: everyone)
+    $form->multipleSelect('visible_role_groups', exmtrans('menu.visible_role_groups'))
+        ->options(function () {
+            return \Exceedone\Exment\Model\RoleGroup::orderBy('role_group_order')->orderBy('id')->pluck('role_group_view_name', 'id')->toArray();
+        })
+        ->attribute(['data-filter' => json_encode(['key' => 'menu_type', 'value' => [MenuType::PARENT_NODE]])])
+        ->help(exmtrans('menu.visible_role_groups_help'));
     $form->hidden('order');
 
     $tableTypeValue = MenuType::TABLE;
@@ -321,6 +390,10 @@ class MenuController extends AdminControllerBase
 
         if (in_array($form->menu_type, [MenuType::CUSTOM, MenuType::PARENT_NODE])) {
             $form->menu_target = null;
+        }
+        // the role groups are for a parent menu only
+        if ($form->menu_type != MenuType::PARENT_NODE) {
+            $form->visible_role_groups = [];
         }
         // Whether set order
         $isset_order = false;

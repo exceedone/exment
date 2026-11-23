@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var Exment;
 (function (Exment) {
     class CommonEvent {
@@ -14,7 +5,7 @@ var Exment;
          * Call only once. It's $(document).on event.
          */
         static AddEventOnce() {
-            $(document).on('change', '[data-changedata]', {}, (ev) => __awaiter(this, void 0, void 0, function* () { yield CommonEvent.changeModelData($(ev.target)); }));
+            $(document).on('change', '[data-changedata]', {}, async (ev) => { await CommonEvent.changeModelData($(ev.target)); });
             $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
@@ -163,30 +154,28 @@ var Exment;
                 .removeData('lazy-relation-add-original-aria');
         }
         /** Fetch one relation fragment, then allow the next queued relation to load. */
-        static loadLazyRelation($button) {
-            return __awaiter(this, void 0, void 0, function* () {
-                const $tbody = $button.closest('tbody[data-lazy-relation-url]');
-                const $form = $tbody.closest('form');
-                const $block = $tbody.closest('.has-many-table-div');
-                const url = $tbody.data('lazy-relation-url');
-                if (!hasValue(url) || $button.data('lazy-relation-loading')) {
-                    return;
-                }
-                $button.data('lazy-relation-loading', true).prop('disabled', true);
-                try {
-                    const response = yield $.get(url);
-                    CommonEvent.hydrateLazyRelation($tbody, response);
-                    CommonEvent.unlockLazyRelationAdd($block);
-                }
-                catch (_error) {
-                    $button.data('lazy-relation-loading', false).prop('disabled', false);
-                    toastr.error($('#exment_lazy_relation_load_failed').val());
-                }
-                finally {
-                    CommonEvent.syncLazyRelationSubmitState($form);
-                    $(document).trigger('exment:lazy-relation:complete');
-                }
-            });
+        static async loadLazyRelation($button) {
+            const $tbody = $button.closest('tbody[data-lazy-relation-url]');
+            const $form = $tbody.closest('form');
+            const $block = $tbody.closest('.has-many-table-div');
+            const url = $tbody.data('lazy-relation-url');
+            if (!hasValue(url) || $button.data('lazy-relation-loading')) {
+                return;
+            }
+            $button.data('lazy-relation-loading', true).prop('disabled', true);
+            try {
+                const response = await $.get(url);
+                CommonEvent.hydrateLazyRelation($tbody, response);
+                CommonEvent.unlockLazyRelationAdd($block);
+            }
+            catch (_error) {
+                $button.data('lazy-relation-loading', false).prop('disabled', false);
+                toastr.error($('#exment_lazy_relation_load_failed').val());
+            }
+            finally {
+                CommonEvent.syncLazyRelationSubmitState($form);
+                $(document).trigger('exment:lazy-relation:complete');
+            }
         }
         /** Replace a placeholder with its relation rows and initialize fragment scripts. */
         static hydrateLazyRelation($tbody, response) {
@@ -281,7 +270,8 @@ var Exment;
                 }
                 if (isMatch) {
                     // set new url
-                    var help_url = URLJoin(manual_base_uri, help.help_uri);
+                    // a full URL (the manual of a plugin) as it is, a page of the manual after its base
+                    var help_url = /^https?:\/\//i.test(help.help_uri) ? help.help_uri : URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
                     // chenge color
                     //$manual.children('i').addClass('help_personal');
@@ -595,7 +585,6 @@ var Exment;
                     clearTimeout(rowClickTimer);
                     rowClickTimer = null;
                 }
-
                 // Excel-like keyboard mode (the toolbar switch, grid_tools.js):
                 // there a click selects a cell and does not leave the page.
                 // The row is opened by a double click on a cell that cannot
@@ -701,10 +690,10 @@ var Exment;
                 // set change event
                 let $targetBox = CommonEvent.getBlockElement(key.split('/')[0]);
                 let column_name = key.split('/')[1];
-                $targetBox.on('change', CommonEvent.getClassKey(column_name), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                $targetBox.on('change', CommonEvent.getClassKey(column_name), { data: data }, async (ev) => {
                     Exment.CalcEvent.resetLoopConnt();
-                    yield CommonEvent.changeModelData($(ev.target), ev.data.data);
-                }));
+                    await CommonEvent.changeModelData($(ev.target), ev.data.data);
+                });
                 // if hasvalue to_block, add event when click add button
                 for (let table_name in data) {
                     let target_table_data = data[table_name];
@@ -716,7 +705,7 @@ var Exment;
                         if (!hasValue(d.to_block)) {
                             continue;
                         }
-                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, async (ev) => {
                             // get target
                             let $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
                             let data = ev.data.data;
@@ -730,8 +719,8 @@ var Exment;
                             // create rensou array.
                             let modelArray = {};
                             modelArray[ev.data.table_name] = data;
-                            yield CommonEvent.changeModelData($target, modelArray);
-                        }));
+                            await CommonEvent.changeModelData($target, modelArray);
+                        });
                     }
                 }
             }
@@ -739,117 +728,111 @@ var Exment;
         /**
         * get model and change value
         */
-        static changeModelData($target_1) {
-            return __awaiter(this, arguments, void 0, function* ($target, data = null) {
-                var $d = $.Deferred();
-                // get parent element from the form field.
-                var $parent = CommonEvent.getParentRow($target);
-                // if has data, get from data object
-                if (hasValue(data)) {
-                    for (var table_name in data) {
-                        var target_table_data = data[table_name];
-                        if (!hasValue(target_table_data)) {
+        static async changeModelData($target, data = null) {
+            var $d = $.Deferred();
+            // get parent element from the form field.
+            var $parent = CommonEvent.getParentRow($target);
+            // if has data, get from data object
+            if (hasValue(data)) {
+                for (var table_name in data) {
+                    var target_table_data = data[table_name];
+                    if (!hasValue(target_table_data)) {
+                        continue;
+                    }
+                    // get selected model
+                    // get value.
+                    var value = $target.val();
+                    if (!hasValue(value)) {
+                        await CommonEvent.setModelItem(null, $parent, $target, target_table_data);
+                        continue;
+                    }
+                    const webapi = Exment.WebApi.make();
+                    webapi.findValue(table_name, value, {
+                        data: target_table_data,
+                    })
+                        .done(async function (modeldata, context) {
+                        await CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
+                        $d.resolve();
+                    })
+                        .fail(function (errordata) {
+                        console.log(errordata);
+                        $d.reject();
+                    });
+                }
+            }
+            // getItem
+            var changedata_data = $target.data('changedata');
+            if (hasValue(changedata_data)) {
+                var getitem = changedata_data.getitem;
+                if (hasValue(getitem)) {
+                    var send_data = {};
+                    send_data['value'] = $target.val();
+                    // get data-key
+                    for (var index in getitem.key) {
+                        var key = getitem.key[index];
+                        var $elem = $parent.find(CommonEvent.getClassKey(key));
+                        if ($elem.length == 0) {
                             continue;
                         }
-                        // get selected model
-                        // get value.
-                        var value = $target.val();
-                        if (!hasValue(value)) {
-                            yield CommonEvent.setModelItem(null, $parent, $target, target_table_data);
-                            continue;
-                        }
-                        const webapi = Exment.WebApi.make();
-                        webapi.findValue(table_name, value, {
-                            data: target_table_data,
-                        })
-                            .done(function (modeldata, context) {
-                            return __awaiter(this, void 0, void 0, function* () {
-                                yield CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
-                                $d.resolve();
-                            });
-                        })
-                            .fail(function (errordata) {
-                            console.log(errordata);
-                            $d.reject();
-                        });
+                        send_data[key] = $elem.val();
                     }
-                }
-                // getItem
-                var changedata_data = $target.data('changedata');
-                if (hasValue(changedata_data)) {
-                    var getitem = changedata_data.getitem;
-                    if (hasValue(getitem)) {
-                        var send_data = {};
-                        send_data['value'] = $target.val();
-                        // get data-key
-                        for (var index in getitem.key) {
-                            var key = getitem.key[index];
-                            var $elem = $parent.find(CommonEvent.getClassKey(key));
-                            if ($elem.length == 0) {
-                                continue;
-                            }
-                            send_data[key] = $elem.val();
+                    // send ajax
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('[name="_token"]').val()
                         }
-                        // send ajax
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('[name="_token"]').val()
-                            }
-                        });
-                        $.ajax({
-                            url: getitem.uri,
-                            type: 'POST',
-                            data: send_data,
-                            context: {
-                                target: $target,
-                                parent: $parent,
-                            }
-                        })
-                            .done(function (data) {
-                            CommonEvent.setModelItemKey(this.target, this.parent, data);
-                            $d.resolve();
-                        })
-                            .fail(function (data) {
-                            console.log(data);
-                            $d.reject();
-                        });
-                    }
+                    });
+                    $.ajax({
+                        url: getitem.uri,
+                        type: 'POST',
+                        data: send_data,
+                        context: {
+                            target: $target,
+                            parent: $parent,
+                        }
+                    })
+                        .done(function (data) {
+                        CommonEvent.setModelItemKey(this.target, this.parent, data);
+                        $d.resolve();
+                    })
+                        .fail(function (data) {
+                        console.log(data);
+                        $d.reject();
+                    });
                 }
-                return $d.promise();
-            });
+            }
+            return $d.promise();
         }
         /**
          * set getmodel or getitem data to form
          */
-        static setModelItem(modeldata, $changedata_target, $elem, options) {
-            return __awaiter(this, void 0, void 0, function* () {
-                // loop for options
-                for (let i = 0; i < options.length; i++) {
-                    let option = options[i];
-                    // if has changedata_to_block, get $elem using changedata_to_block
-                    if (hasValue(option.to_block)) {
-                        $changedata_target = $(option.to_block);
-                        // if has to_lastindex, get last children item
-                        if (hasValue(option.to_lastindex)) {
-                            $changedata_target = $changedata_target.find(option.to_block_form).last();
-                        }
+        static async setModelItem(modeldata, $changedata_target, $elem, options) {
+            // loop for options
+            for (let i = 0; i < options.length; i++) {
+                let option = options[i];
+                // if has changedata_to_block, get $elem using changedata_to_block
+                if (hasValue(option.to_block)) {
+                    $changedata_target = $(option.to_block);
+                    // if has to_lastindex, get last children item
+                    if (hasValue(option.to_lastindex)) {
+                        $changedata_target = $changedata_target.find(option.to_block_form).last();
                     }
-                    // get element
-                    let $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
-                    if (!hasValue(modeldata)) {
-                        yield CommonEvent.setValue($elem, null);
-                    }
-                    else {
-                        // get element value from model
-                        let from = modeldata['value'][option.from];
-                        yield CommonEvent.setValue($elem, from);
-                    }
-                    // view filter execute
-                    CommonEvent.setFormFilter($elem);
-                    // add $elem to option
-                    option['elem'] = $elem;
                 }
-            });
+                // get element
+                let $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
+                if (!hasValue(modeldata)) {
+                    await CommonEvent.setValue($elem, null);
+                }
+                else {
+                    // get element value from model
+                    let from = modeldata['value'][option.from];
+                    await CommonEvent.setValue($elem, from);
+                }
+                // view filter execute
+                CommonEvent.setFormFilter($elem);
+                // add $elem to option
+                option['elem'] = $elem;
+            }
         }
         /**
          * set getmodel or getitem data to form

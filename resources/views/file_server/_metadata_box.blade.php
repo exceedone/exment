@@ -3,7 +3,7 @@
 <div id="exm-fs-meta" data-url="{{ $node_url }}" data-lookup="{{ $data_lookup_url }}">
     @if (count($fields) > 0)
         <div class="exm-fs-section box card">
-            <div class="box-header"><h4><i class="fa fa-tags" aria-hidden="true"></i> {{ exmtrans('file_server.metadata') }}</h4></div>
+            <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-tags" aria-hidden="true"></i> {{ exmtrans('file_server.metadata') }}</h3></div>
             <div class="box-body">
                 @if ($can_edit_meta)
                     <form data-fs-meta-form>
@@ -64,7 +64,7 @@
 
     @if (count($data_links) > 0 || count($data_tables) > 0)
         <div class="exm-fs-section box card">
-            <div class="box-header"><h4><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.data_links') }}</h4></div>
+            <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.data_links') }}</h3></div>
             <div class="box-body">
                 @if (count($data_links) === 0)
                     <p class="exm-fs-muted">{{ exmtrans('file_server.data_links_none') }}</p>
@@ -121,8 +121,10 @@
 
     root.addEventListener('click', function (e) {
         var b = e.target.closest('[data-fs-unlink]');
-        if (b && confirm(@json(exmtrans('file_server.confirm_data_link_remove')))) {
-            Fs.post(b.getAttribute('data-fs-unlink'), {}).then(Fs.done, Fs.fail);
+        if (b) {
+            Fs.confirm(@json(exmtrans('file_server.confirm_data_link_remove'))).then(function (ok) {
+                if (ok) { Fs.post(b.getAttribute('data-fs-unlink'), {}).then(Fs.done, Fs.fail); }
+            });
         }
     });
 

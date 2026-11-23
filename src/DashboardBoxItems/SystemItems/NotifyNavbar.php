@@ -97,9 +97,10 @@ class NotifyNavbar
             }
 
             $linker = (new Linker())
-                ->url(admin_url("notify_navbar/{$item->id}"))
+                // the notification itself: notify_navbar/{id} alone opens the record
+                ->url(admin_url("notify_navbar/{$item->id}") . '?content=1')
                 ->icon('fa-eye')
-                ->tooltip(trans('admin.show'));
+                ->tooltip(exmtrans('notify_navbar.show_content'));
             $html .= $linker->render();
 
             $html .= '<input type="hidden" data-id="' . esc_html($item->id) . '">';

@@ -78,6 +78,9 @@ var Exment;
             }
         }
         /**
+         * Get Search Navi data for List
+         */
+        /**
          * Read a repeated query param in any shape: the sidebar form emits
          * facets[]=a, PHP http_build_query (chip remove / saved search) emits
          * facets[0]=a. Reading only 'facets[]' silently dropped the filter.
@@ -102,23 +105,30 @@ var Exment;
             const single = cur.get(name);
             return single ? single.split(',').filter(function (v) { return v !== ''; }) : [];
         }
-        /**
-         * Get Search Navi data for List
-         */
         static getListNaviData() {
             const tables = JSON.parse($('.tables').val());
             const search_execute_count = $('#search_execute_count');
             // forward the filter (date + creator + status + range) from the current URL into the AJAX request.
             const params = { query: $('.base_query').val() };
             const cur = new URLSearchParams(window.location.search);
-            ['date_from', 'date_to', 'sort'].forEach(function (k) { if (cur.get(k)) { params[k] = cur.get(k); } });
+            ['date_from', 'date_to', 'sort'].forEach(function (k) { if (cur.get(k)) {
+                params[k] = cur.get(k);
+            } });
             const users = SearchEvent.getArrayParam(cur, 'users');
-            if (users.length) { params.users = users.join(','); }
+            if (users.length) {
+                params.users = users.join(',');
+            }
             // forward facets (status/classification) — keep the facets[] array form.
             const facets = SearchEvent.getArrayParam(cur, 'facets');
-            if (facets.length) { params['facets'] = facets; }
+            if (facets.length) {
+                params['facets'] = facets;
+            }
             // forward range[n_col][from|to] (range filter).
-            for (const pair of cur.entries()) { if (pair[0].indexOf('range[') === 0 && pair[1]) { params[pair[0]] = pair[1]; } }
+            for (const pair of cur.entries()) {
+                if (pair[0].indexOf('range[') === 0 && pair[1]) {
+                    params[pair[0]] = pair[1];
+                }
+            }
             const url = admin_url('search/lists&' + $.param(params));
             // measure the total result count (permission-filtered) + load time, shown on the header.
             SearchEvent.meiliStart = new Date().getTime();

@@ -1008,5 +1008,12 @@ class Plugin extends ModelBase
             $model->prepareJson('options');
             $model->prepareJson('custom_options');
         });
+        // what the plugins registered as features is made again (the routes cached)
+        static::saved(function ($model) {
+            \Exceedone\Exment\Services\Features::forgetPluginsCache();
+        });
+        static::deleted(function ($model) {
+            \Exceedone\Exment\Services\Features::forgetPluginsCache();
+        });
     }
 }

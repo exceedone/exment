@@ -795,7 +795,8 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * A "back to the list" button on the right of the page title of the data show and edit pages.
+     * A "back to the list" button at the left of the page title of the data show and edit pages,
+     * where it is easy to reach.
      * It goes where the small "list" button of the box goes (the table's list).
      * Added by script: the page title is made by the admin layout, which has no place for buttons.
      */
@@ -811,7 +812,7 @@ class CustomValueController extends AdminControllerTableBase
     }
     var a = $('<a class="btn exm-back-to-list"><i class="fa fa-arrow-left"></i> </a>').attr('href', {$url});
     a.append(document.createTextNode({$label}));
-    h1.addClass('exm-has-back-to-list').append(a);
+    h1.addClass('exm-has-back-to-list').prepend(a);
 })();
 EOT);
     }

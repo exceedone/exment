@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Features;
+use Exceedone\Exment\Services\PluginDistribution\AdminNotices;
 use Exceedone\Exment\Services\PluginDistribution\BundledPlugins;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
@@ -40,6 +41,13 @@ class FeatureController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        // the new features are on this page: the notice of the dashboard has told its news
+        try {
+            AdminNotices::markKnown(AdminNotices::newFeatureKeys());
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the new features known: ' . $e->getMessage());
+        }
+
         $roleGroups = RoleGroup::query()->orderBy('role_group_order')->orderBy('id')->get(['id', 'role_group_view_name'])
             ->map(function ($group) {
                 return ['id' => intval($group->id), 'name' => strval($group->role_group_view_name)];
@@ -126,6 +134,17 @@ class FeatureController extends AdminControllerBase
     }
 
     /**
+     * The × of the notice of new features (the dashboard): not told of again.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function noticesKnown(Request $request)
+    {
+        AdminNotices::markKnown(AdminNotices::newFeatureKeys());
+        return response()->json(['result' => true]);
+    }
+
+    /**
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function store(Request $request)
@@ -209,6 +228,8 @@ class FeatureController extends AdminControllerBase
             'has_menu' => isset($definition['menu']),
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
             'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : null,
+            'manual_url' => Features::manualUrl($key),
+            'action' => Features::action($key),
         ];
     }
 
@@ -298,8 +319,10 @@ class FeatureController extends AdminControllerBase
 
     /**
      * Make the system menu of a feature when the site has none (it was
-     * removed to hide the feature): after the home for the file server, at
-     * the end of "Admin Setting" for the others.
+     * removed to hide the feature): in its group of a new site's menu when the
+     * site has it (the file server in "Groupware", Studio in "Settings: Data &
+     * Screens"), else after the home for the file server and at the end of
+     * "Admin Setting" for the others.
      */
     protected function ensureSystemMenu(string $menuName): void
     {
@@ -314,9 +337,14 @@ class FeatureController extends AdminControllerBase
         $parentId = 0;
         $order = 1;
         $home = DB::table($table)->where('menu_type', 'system')->where('menu_name', 'home')->first();
-        $admin = DB::table($table)->where('menu_name', 'admin')->where('menu_type', 'parent_node')->first();
-        if ($menuName !== 'file_server' && isset($admin)) {
-            $parentId = intval($admin->id);
+        // the group of a new site's menu (system_template) when the site has it, else "Admin Setting"
+        $group = array_get(['file_server' => 'groupware', 'studio' => 'admin_data'], $menuName);
+        $parent = isset($group) ? DB::table($table)->where('menu_name', $group)->where('menu_type', 'parent_node')->first() : null;
+        if (!isset($parent) && $menuName !== 'file_server') {
+            $parent = DB::table($table)->where('menu_name', 'admin')->where('menu_type', 'parent_node')->first();
+        }
+        if (isset($parent)) {
+            $parentId = intval($parent->id);
             $order = intval(DB::table($table)->where('parent_id', $parentId)->max('order')) + 1;
         } elseif (isset($home)) {
             $parentId = intval($home->parent_id);
@@ -325,7 +353,7 @@ class FeatureController extends AdminControllerBase
         DB::table($table)->insert([
             'parent_id' => $parentId,
             'order' => $order,
-            'title' => exmtrans('menu.system_definitions.' . $menuName),
+            'title' => \Exceedone\Exment\Model\Menu::systemTitle($menuName),
             'icon' => array_get($define, 'icon'),
             'uri' => array_get($define, 'uri'),
             'menu_type' => 'system',

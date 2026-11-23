@@ -40,6 +40,21 @@ class FileWorkspace extends ModelBase
         'download_level' => 'integer',
     ];
 
+    protected static function booted(): void
+    {
+        // the first part of the addresses (ISS02815): the old name leads to the workspace
+        static::updating(function (FileWorkspace $workspace) {
+            if ($workspace->isDirty('name')) {
+                \Exceedone\Exment\Services\FileServer\Paths::rememberWorkspace($workspace);
+            }
+        });
+        static::saved(function (FileWorkspace $workspace) {
+            if ($workspace->wasRecentlyCreated || $workspace->wasChanged('name')) {
+                \Exceedone\Exment\Services\FileServer\Paths::forgetWorkspace($workspace);
+            }
+        });
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany<FileNode, $this>
      */

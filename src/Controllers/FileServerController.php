@@ -19,8 +19,10 @@ use Exceedone\Exment\Services\FileServer\FileServerException;
 use Exceedone\Exment\Services\FileServer\Level;
 use Exceedone\Exment\Services\FileServer\Library;
 use Exceedone\Exment\Services\FileServer\Metadata;
+use Exceedone\Exment\Services\FileServer\Paths;
 use Exceedone\Exment\Services\FileServer\Preview;
 use Exceedone\Exment\Services\FileServer\ShareLinks;
+use Exceedone\Exment\Services\FileServer\TextFiles;
 use Exceedone\Exment\Model\FileShareLink;
 use Exceedone\Exment\Services\FileServer\Uploader;
 use ExmentAdminCore\Admin\Layout\Content;
@@ -74,7 +76,8 @@ class FileServerController extends AdminControllerBase
                 'description' => $workspace->description,
                 'level' => Level::label($access->level($workspace)),
                 'updated_at' => $workspace->updated_at,
-                'url' => $this->url($workspace),
+                'url' => $this->pageUrl($workspace),
+                'link' => (new Paths($this->library()->access()))->link($workspace),
             ];
         });
 
@@ -103,7 +106,14 @@ class FileServerController extends AdminControllerBase
         $this->AdminContent($content);
         $content->row(view('exment::file_server.settings', [
             'workspace' => null,
-            'members' => [],
+            // the user who makes it manages it (store keeps it so): shown, with the name
+            'members' => [[
+                'target_type' => FilePermission::TARGET_USER,
+                'target_id' => $this->library()->access()->userId(),
+                'name' => $this->userName($this->library()->access()->userId()),
+                'level' => Level::MANAGE,
+                'level_label' => Level::label(Level::MANAGE),
+            ]],
             'action' => admin_url('file_server'),
             'back_url' => admin_url('file_server'),
             'delete_url' => null,
@@ -123,11 +133,15 @@ class FileServerController extends AdminControllerBase
             $workspace = $this->library()->createWorkspace($this->workspaceInput($request));
             $members = $this->permissionInput($request);
             if (count($members) > 0) {
-                // the user who makes it stays a manager
-                $members[] = ['target_type' => FilePermission::TARGET_USER, 'target_id' => $this->library()->access()->userId(), 'level' => Level::MANAGE];
+                // the user who makes it stays a manager (once, at MANAGE)
+                $me = $this->library()->access()->userId();
+                $members = array_values(array_filter($members, function ($m) use ($me) {
+                    return !($m['target_type'] === FilePermission::TARGET_USER && intval($m['target_id']) === $me);
+                }));
+                $members[] = ['target_type' => FilePermission::TARGET_USER, 'target_id' => $me, 'level' => Level::MANAGE];
                 $this->library()->setPermissions($workspace, null, $members);
             }
-            return ['message' => exmtrans('common.message.success_execute'), 'redirect' => $this->url($workspace)];
+            return ['message' => exmtrans('common.message.success_execute'), 'redirect' => $this->pageUrl($workspace)];
         });
     }
 
@@ -145,6 +159,96 @@ class FileServerController extends AdminControllerBase
             if (isset($folder) && !$folder->isFolder()) {
                 return redirect($this->nodeUrl($ws, $folder));
             }
+        } catch (FileServerException $e) {
+            return $this->deny($e);
+        }
+        // the address with numbers: to the path (ISS02815)
+        $redirect = $this->toPath($request, $ws, $folder);
+        return $redirect ?? $this->folderPage($request, $content, $ws, $folder);
+    }
+
+    /**
+     * A folder (or the top) found by its path (ISS02815):
+     * /file_server/<workspace>/<folder>/.../<file>. ?n=<id> names the item for
+     * good. What the user may not see is not there (404, as a wrong path).
+     *
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    public function path(Request $request, Content $content, string $path)
+    {
+        $id = $request->query('n');
+        $id = is_scalar($id) && preg_match('/^[1-9][0-9]{0,9}$/', strval($id)) === 1 ? intval($id) : null;
+        if ($request->query->has('n') && !isset($id)) {
+            abort(404);
+        }
+        $paths = new Paths($this->library()->access());
+        try {
+            [$ws, $node] = $paths->resolve($this->library()->access(), $path, $id);
+        } catch (FileServerException $e) {
+            abort(404);
+        }
+        // not the path it has now (an old one, another case): to that one;
+        // no path for it (too long, a name another workspace has too): to the number
+        $url = $paths->url($ws, $node);
+        $asked = array_values(array_filter(explode('/', $path), function ($segment) {
+            return $segment !== '';
+        }));
+        $current = isset($url) ? array_merge([$paths->workspaceSegment($ws)], isset($node) ? $paths->names($node) : []) : null;
+        if ($asked !== $current) {
+            $query = $request->query();
+            if (!isset($url)) {
+                unset($query['n']);
+            }
+            return redirect($this->withQuery($url ?? Paths::numberUrl($ws, $node), $query), 302);
+        }
+        if (isset($node) && $node->isFile()) {
+            return $this->nodePage($request, $content, $ws, $node);
+        }
+        return $this->folderPage($request, $content, $ws, $node);
+    }
+
+    /**
+     * The address with numbers of a page, asked by the browser (not by fetch()):
+     * to the path, with the number of the item (so it opens it after a rename).
+     * 302, not 301: where it leads changes (the names, what the user may see),
+     * and the address with numbers always opens it.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response|null
+     */
+    protected function toPath(Request $request, FileWorkspace $ws, ?FileNode $node)
+    {
+        if (!$request->isMethod('GET') || ($request->ajax() && !$request->pjax())) {
+            return null;
+        }
+        if (!$this->library()->access()->can($ws, $node, Level::VIEW)) {
+            return null;
+        }
+        $url = (new Paths($this->library()->access()))->url($ws, $node);
+        if (!isset($url)) {
+            return null;
+        }
+        $query = $request->query();
+        if (isset($node)) {
+            $query = ['n' => $node->id] + array_diff_key($query, ['n' => true]);
+        }
+        return redirect($this->withQuery($url, $query), 302);
+    }
+
+    /**
+     * @param array<mixed> $query
+     */
+    protected function withQuery(string $url, array $query): string
+    {
+        return count($query) > 0 ? $url . '?' . http_build_query($query) : $url;
+    }
+
+    /**
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    protected function folderPage(Request $request, Content $content, FileWorkspace $ws, ?FileNode $folder)
+    {
+        $library = $this->library();
+        try {
             $sort = strval($request->get('sort', 'name'));
             $direction = strval($request->get('direction', 'asc'));
             $children = $library->children($ws, $folder, $sort, $direction);
@@ -182,7 +286,7 @@ class FileServerController extends AdminControllerBase
         $content->row(view('exment::file_server.folder', [
             'workspace' => $ws,
             'folder' => $folder,
-            'breadcrumbs' => $this->breadcrumbs($ws, $folder),
+            'breadcrumbs' => $this->breadcrumbs($ws, $folder, $this->library()->access()),
             'items' => $this->nodeRows($children, $ws, $fields),
             'groups' => $groups,
             'group' => isset($groupField) ? $groupField->name : null,
@@ -204,7 +308,10 @@ class FileServerController extends AdminControllerBase
             'sort' => $sort,
             'direction' => $direction,
             'base_url' => $this->url($ws),
-            'folder_url' => isset($folder) ? $this->url($ws, 'folder', $folder->id) : $this->url($ws),
+            'folder_url' => $this->pageUrl($ws, $folder),
+            // "リンクをコピー" (ISS02815)
+            'link' => (new Paths($this->library()->access()))->link($ws, $folder),
+            'link_name' => isset($folder) ? $folder->name : $ws->name,
             'parent_id' => isset($folder) ? $folder->id : null,
             'chunk_size' => Uploader::CHUNK_SIZE,
             'max_file_size' => Uploader::maxFileSize(),
@@ -224,11 +331,22 @@ class FileServerController extends AdminControllerBase
     {
         try {
             $ws = $this->workspace($workspace);
-            $library = $this->library();
-            $item = $library->findNode($ws, intval($node));
+            $item = $this->library()->findNode($ws, intval($node));
         } catch (FileServerException $e) {
             return $this->deny($e);
         }
+        // a file: its page is at its path (ISS02815). A folder: this is the page of
+        // its details and permissions; its path is the list of what is in it
+        $redirect = $item->isFile() ? $this->toPath($request, $ws, $item) : null;
+        return $redirect ?? $this->nodePage($request, $content, $ws, $item);
+    }
+
+    /**
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    protected function nodePage(Request $request, Content $content, FileWorkspace $ws, FileNode $item)
+    {
+        $library = $this->library();
         $access = $library->access();
         $level = $access->level($ws, $item);
         $version = $item->isFile() ? $item->current_version : null;
@@ -237,13 +355,7 @@ class FileServerController extends AdminControllerBase
         }
         $collaboration = new Collaboration($library);
         $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
-        // a file from a request link: its preview is made now that someone inside opens it (ISS00410)
-        if (isset($version) && $version->rendition_status === FileNodeVersion::RENDITION_HELD) {
-            $version->rendition_status = null;
-            $version->save();
-            Preview::queueRenditions($version);
-            FileSearch::queueText($version);
-        }
+        // a file from a request link: its preview and text are made when a manager asks (ISS00410, ISS00433)
 
         $text = null;
         if ($kind === Preview::KIND_TEXT && isset($version) && $version->size <= Preview::TEXT_PREVIEW_BYTES) {
@@ -262,10 +374,12 @@ class FileServerController extends AdminControllerBase
         $content->row(view('exment::file_server.show', [
             'workspace' => $ws,
             'node' => $item,
-            'breadcrumbs' => $this->breadcrumbs($ws, $item),
+            'breadcrumbs' => $this->breadcrumbs($ws, $item, $access),
             'base_url' => $this->url($ws),
             'node_url' => $this->nodeUrl($ws, $item),
-            'parent_url' => isset($item->parent_id) ? $this->url($ws, 'folder', $item->parent_id) : $this->url($ws),
+            'parent_url' => $this->pageUrl($ws, isset($item->parent_id) ? FileNode::find($item->parent_id) : null),
+            'page_url' => $this->pageUrl($ws, $item),
+            'link' => (new Paths($this->library()->access()))->link($ws, $item),
             'level' => $level,
             'level_label' => Level::label($level),
             'kind' => $kind,
@@ -288,8 +402,10 @@ class FileServerController extends AdminControllerBase
             'checked_out_by' => isset($item->checked_out_user_id) ? $this->userName($item->checked_out_user_id) : null,
             'checked_out_by_me' => isset($item->checked_out_user_id) && intval($item->checked_out_user_id) === $access->userId(),
             'favorite' => $library->isFavorite($item),
+            'can_edit_text' => TextFiles::isEditable($item) && $library->canAddVersion($ws, $item) && Governance::canDownload($access, $ws, $item),
             'openers' => $item->isFile() ? Preview::openers($item) : [],
-            'permissions' => $this->permissionRows($library->effectivePermissions($ws, $item)),
+            // who else may see it: for those who manage it (ISS00433)
+            'permissions' => $level >= Level::MANAGE ? $this->permissionRows($library->effectivePermissions($ws, $item)) : [],
             'chunk_size' => Uploader::CHUNK_SIZE,
             'created_user' => $this->userName($item->created_user_id),
             'updated_user' => $this->userName($item->updated_user_id),
@@ -297,7 +413,8 @@ class FileServerController extends AdminControllerBase
             'share_max_days' => ShareLinks::maxDays(),
             'links' => $this->linkRows($ws, $item),
             'can_share' => ShareLinks::enabled() && $level >= Level::EDIT,
-            'can_request' => ShareLinks::enabled() && $item->isFolder() && $level >= Level::UPLOAD,
+            // as ShareLinks::create: a request link needs EDIT
+            'can_request' => ShareLinks::enabled() && $item->isFolder() && $level >= Level::EDIT,
             'fields' => $this->fieldRows(Metadata::fields($ws), (array)($item->metadata ?? [])),
             'data_links' => DataLinks::dataOf($item),
             'data_tables' => $level >= Level::EDIT ? DataLinks::tables()->map(function ($table) {
@@ -333,7 +450,7 @@ class FileServerController extends AdminControllerBase
             'rules_url' => $this->nodeUrl($ws, $item, 'rules'),
             'held' => Governance::isHeld($ws, $item),
             'retained_until' => $item->isFile() ? Governance::retainedUntil($ws, $item) : null,
-        ] + $this->pickerData()));
+        ] + ($level >= Level::MANAGE ? $this->pickerData($ws, $item) : ['picker_url' => null, 'picker_orgs' => false, 'levels' => Level::options()])));
         return $content;
     }
 
@@ -395,7 +512,7 @@ class FileServerController extends AdminControllerBase
             'fields' => $this->fieldRows(Metadata::fields($ws)),
             'fields_url' => $this->url($ws, 'metadata_fields'),
             'audit_url' => $this->url($ws, 'audit'),
-        ] + $this->pickerData()));
+        ] + $this->pickerData($ws)));
         return $content;
     }
 
@@ -661,6 +778,157 @@ class FileServerController extends AdminControllerBase
     }
 
     /**
+     * "New": an empty text, Markdown or CSV file in the folder (ISS00434). It
+     * opens in the editor.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function createTextFile(Request $request, string $workspace)
+    {
+        return $this->run(function () use ($request, $workspace) {
+            $ws = $this->workspace($workspace);
+            $parent = $this->parentFolder($ws, $request->input('parent_id'));
+            $type = $this->stringInput($request, 'type');
+            $node = (new TextFiles($this->library()))->create($ws, $parent, $this->stringInput($request, 'name'), $type);
+            // a text opens in the editor; an Office file on its page (its preview, and its editor when there is one)
+            $redirect = TextFiles::isOffice($type) ? $this->pageUrl($ws, $node) : $this->nodeUrl($ws, $node, 'edit');
+            return ['message' => exmtrans('file_server.text_created', ['name' => $node->name]), 'id' => $node->id, 'version' => $node->current_version_id, 'redirect' => $redirect];
+        });
+    }
+
+    /**
+     * The page to write a text, Markdown or CSV file in the browser. Those who
+     * may not add a version now (no permission to edit, checked out by another
+     * user, an approved file in a folder that needs an approval) read it only.
+     * Those who may not download it see it in the file page (its watermark).
+     *
+     * @return Content|\Symfony\Component\HttpFoundation\Response
+     */
+    public function editText(Request $request, Content $content, string $workspace, string $node)
+    {
+        try {
+            $ws = $this->workspace($workspace);
+            $library = $this->library();
+            $item = $library->findNode($ws, intval($node));
+        } catch (FileServerException $e) {
+            return $this->deny($e);
+        }
+        $access = $library->access();
+        if (!Governance::canDownload($access, $ws, $item)) {
+            return redirect($this->pageUrl($ws, $item));
+        }
+        try {
+            $file = (new TextFiles($library))->read($ws, $item);
+        } catch (FileServerException $e) {
+            // too large, another encoding or another kind: the file page, with the reason
+            admin_error(exmtrans('common.error'), $e->getMessage());
+            return redirect($this->nodeUrl($ws, $item));
+        }
+        $lockedByOther = isset($item->checked_out_user_id) && intval($item->checked_out_user_id) !== $access->userId();
+        $canEdit = $library->canAddVersion($ws, $item);
+        Audit::log(Audit::VIEW, $ws, $item, $access->userId());
+
+        $this->setPageInfo(exmtrans('file_server.header'), $item->name, $ws->name, 'fa-pencil');
+        $this->AdminContent($content);
+        $content->row(view('exment::file_server.edit', [
+            'workspace' => $ws,
+            'node' => $item,
+            'breadcrumbs' => $this->breadcrumbs($ws, $item),
+            'node_url' => $this->nodeUrl($ws, $item),
+            'text' => $file['text'],
+            'version' => $file['version'],
+            'version_no' => optional($item->current_version)->version_no,
+            'markdown' => $item->extension() === 'md',
+            'can_edit' => $canEdit,
+            'checked_out_by' => $lockedByOther ? $this->userName($item->checked_out_user_id) : null,
+            'needs_manager' => !$canEdit && !$lockedByOther && $library->versionNeedsManager($ws, $item),
+            'max_bytes' => TextFiles::TEXT_EDIT_BYTES,
+            'preview_bytes' => TextFiles::PREVIEW_BYTES,
+            'watermark' => $ws->watermark ? trim($this->userName($access->userId()) . ' ' . now()->format('Y/m/d H:i')) : null,
+            'new_file_url' => $this->url($ws, 'text_files'),
+            'parent_id' => $item->parent_id,
+        ]));
+        return $content;
+    }
+
+    /**
+     * Save the text written in the browser as a new version. "base_version"
+     * is the version the editor opened: a save after someone else saved is
+     * refused. The same text adds no version.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function saveText(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) use ($request) {
+            $base = $this->stringInput($request, 'base_version');
+            if (preg_match('/^[0-9]+$/', $base) !== 1) {
+                throw new FileServerException(exmtrans('file_server.error_version_conflict'), 409);
+            }
+            $comment = $this->stringInput($request, 'comment');
+            $result = (new TextFiles($this->library()))->save($ws, $item, $this->postedText($request), intval($base), $comment === '' ? null : $comment);
+            $item = $result['node'];
+            return [
+                'message' => exmtrans($result['changed'] ? 'file_server.version_added' : 'file_server.text_unchanged'),
+                'changed' => $result['changed'],
+                'version' => $item->current_version_id,
+                'version_no' => optional($item->current_version)->version_no,
+            ];
+        });
+    }
+
+    /**
+     * The text the editor sends. It comes as a file part, so that its bytes are
+     * kept as they are: a form field would have its line breaks made CRLF by
+     * the browser and its last line break trimmed by the server.
+     */
+    protected function postedText(Request $request): string
+    {
+        $file = $request->file('text');
+        if ($file instanceof \Illuminate\Http\UploadedFile) {
+            if (!$file->isValid()) {
+                throw new FileServerException(exmtrans('file_server.error_upload'));
+            }
+            if (intval($file->getSize()) > TextFiles::TEXT_EDIT_BYTES) {
+                throw new FileServerException(exmtrans('file_server.error_text_too_large', ['size' => round(TextFiles::TEXT_EDIT_BYTES / 1048576, 1)]), 413);
+            }
+            return strval(file_get_contents(strval($file->getRealPath())));
+        }
+        return $this->stringInput($request, 'text');
+    }
+
+    /**
+     * A text input; anything else (an array) is refused, not a server error.
+     */
+    protected function stringInput(Request $request, string $key): string
+    {
+        $value = $request->input($key);
+        if ($value === null) {
+            return '';
+        }
+        if (!is_string($value) && !is_int($value)) {
+            throw new FileServerException(exmtrans('file_server.error_input'), 422);
+        }
+        return strval($value);
+    }
+
+    /**
+     * The preview of a Markdown text being written (for those who may see the
+     * file; the route limits how often it is asked).
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function markdownPreview(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) use ($request) {
+            if (!TextFiles::isEditable($item) || $item->extension() !== 'md') {
+                throw FileServerException::notFound();
+            }
+            return ['html' => TextFiles::markdownHtml($this->stringInput($request, 'text'))];
+        });
+    }
+
+    /**
      * What an editor needs to know of a file (the Office of the Groupware, ISS00233):
      * its name, the current version, what the user may do and the addresses to use.
      *
@@ -714,6 +982,24 @@ class FileServerController extends AdminControllerBase
             }
             $this->library()->restoreVersion($ws, $item, $v);
             return ['message' => exmtrans('file_server.version_restored', ['no' => $v->version_no])];
+        });
+    }
+
+    /**
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function makePreview(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) {
+            $this->library()->access()->authorize($ws, $item, Level::MANAGE);
+            $version = $item->isFile() ? $item->current_version : null;
+            if (isset($version) && $version->rendition_status === FileNodeVersion::RENDITION_HELD) {
+                $version->rendition_status = null;
+                $version->save();
+                Preview::queueRenditions($version);
+                FileSearch::queueText($version);
+            }
+            return ['message' => exmtrans('file_server.preview_requested')];
         });
     }
 
@@ -937,6 +1223,25 @@ class FileServerController extends AdminControllerBase
     }
 
     /**
+     * The preview of an Office file opened (ISS01704): its PDF is made now by
+     * the converter when it is not made yet (one request makes it; the page
+     * asks again until it is there). For those who may see the file.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function previewNow(Request $request, string $workspace, string $node)
+    {
+        return $this->nodeAction($workspace, $node, function (FileWorkspace $ws, FileNode $item) {
+            $version = $this->library()->version($ws, $item);
+            $status = Preview::makeOnView($version);
+            return [
+                'status' => $status,
+                'pdf_url' => $status === FileNodeVersion::RENDITION_DONE && isset($version->preview_path) ? $this->nodeUrl($ws, $item, 'content') . '?rendition=pdf' : null,
+            ];
+        });
+    }
+
+    /**
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function thumbnail(Request $request, string $workspace, string $node)
@@ -1101,6 +1406,15 @@ class FileServerController extends AdminControllerBase
         return admin_urls('file_server', $ws->id, ...$parts);
     }
 
+    /**
+     * The page of a folder (its list), a file or the top: at its path (ISS02815),
+     * or with numbers when the name of the workspace cannot be in an address.
+     */
+    protected function pageUrl(FileWorkspace $ws, ?FileNode $node = null): string
+    {
+        return (new Paths($this->library()->access()))->url($ws, $node) ?? Paths::numberUrl($ws, $node);
+    }
+
     protected function nodeUrl(FileWorkspace $ws, FileNode $node, ?string $action = null): string
     {
         $url = $this->url($ws, 'nodes', $node->id);
@@ -1110,14 +1424,20 @@ class FileServerController extends AdminControllerBase
     /**
      * @return array<int, array{name: string, url: string}>
      */
-    protected function breadcrumbs(FileWorkspace $ws, ?FileNode $node): array
+    protected function breadcrumbs(FileWorkspace $ws, ?FileNode $node, ?\Exceedone\Exment\Services\FileServer\Access $access = null): array
     {
-        $list = [['name' => $ws->name, 'url' => $this->url($ws)]];
+        $paths = new Paths($access ?? $this->library()->access());
+        $list = [['name' => $ws->name, 'url' => $paths->url($ws) ?? $this->url($ws)]];
         if (!isset($node)) {
             return $list;
         }
         foreach ($node->ancestorsAndSelf() as $item) {
-            $list[] = ['name' => $item->name, 'url' => $item->isFolder() ? $this->url($ws, 'folder', $item->id) : $this->nodeUrl($ws, $item)];
+            // a folder above that the user may not see: not its name (ISS00433)
+            if (isset($access) && !$access->can($ws, $item, Level::VIEW)) {
+                $list[] = ['name' => strval(exmtrans('file_server.path_hidden')), 'url' => null];
+                continue;
+            }
+            $list[] = ['name' => $item->name, 'url' => $paths->url($ws, $item) ?? Paths::numberUrl($ws, $item)];
         }
         return $list;
     }
@@ -1130,12 +1450,14 @@ class FileServerController extends AdminControllerBase
     protected function nodeRows(iterable $nodes, ?FileWorkspace $ws = null, ?\Illuminate\Support\Collection $fields = null): array
     {
         $rows = [];
+        $paths = new Paths($this->library()->access());
         foreach ($nodes as $node) {
             $workspace = $ws ?? $node->workspace;
             if (!isset($workspace)) {
                 continue;
             }
             $version = $node->isFile() ? $node->current_version : null;
+            $path = $paths->url($workspace, $node);
             $rows[] = [
                 'id' => $node->id,
                 'name' => $node->name,
@@ -1146,7 +1468,8 @@ class FileServerController extends AdminControllerBase
                 'updated_at' => $node->updated_at,
                 'updated_user' => $this->userName($node->updated_user_id),
                 'workspace' => $workspace->name,
-                'url' => $node->isFolder() ? $this->url($workspace, 'folder', $node->id) : $this->nodeUrl($workspace, $node),
+                'url' => $path ?? Paths::numberUrl($workspace, $node),
+                'link' => $paths->link($workspace, $node, $path),
                 'detail_url' => $this->nodeUrl($workspace, $node),
                 'download_url' => $this->nodeUrl($workspace, $node, 'download'),
                 'thumbnail_url' => isset($version) && isset($version->thumbnail_path) ? $this->nodeUrl($workspace, $node, 'thumbnail') . '?v=' . $version->id : null,
@@ -1260,22 +1583,81 @@ class FileServerController extends AdminControllerBase
     }
 
     /**
-     * The users and organizations to choose from, and the levels.
+     * Where the editor of the permissions finds the users and organizations
+     * (searched, a page at a time: a site may have more than can be listed),
+     * and the levels.
      *
      * @return array<string, mixed>
      */
-    protected function pickerData(): array
+    protected function pickerData(?FileWorkspace $ws = null, ?FileNode $node = null): array
     {
-        $users = getModelName(SystemTableName::USER)::query()->limit(2000)->get()->map(function ($user) {
-            return ['id' => intval($user->id), 'name' => strval($user->getLabel())];
-        })->sortBy('name')->values()->all();
-        $orgs = [];
-        if (\Exceedone\Exment\Model\System::organization_available()) {
-            $orgs = getModelName(SystemTableName::ORGANIZATION)::query()->limit(2000)->get()->map(function ($org) {
-                return ['id' => intval($org->id), 'name' => strval($org->getLabel())];
-            })->sortBy('name')->values()->all();
+        $query = array_filter(['workspace' => optional($ws)->id, 'node' => optional($node)->id]);
+        return [
+            'picker_url' => admin_url('file_server/picker') . (count($query) > 0 ? '?' . http_build_query($query) : ''),
+            'picker_orgs' => boolval(\Exceedone\Exment\Model\System::organization_available()),
+            'levels' => Level::options(),
+        ];
+    }
+
+    /** The users or organizations of one page of the picker. */
+    public const PICKER_PAGE = 20;
+
+    /** The columns the picker searches: the names and codes (ISS00433). */
+    public const PICKER_COLUMNS = [
+        SystemTableName::USER => ['user_name', 'user_code'],
+        SystemTableName::ORGANIZATION => ['organization_name', 'organization_code'],
+    ];
+
+    /**
+     * The users or organizations for the editor of the permissions (select2):
+     * ?type=user|organization&q=words&page=n. For who may make a workspace,
+     * or manage the workspace (or the node) given.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function picker(Request $request)
+    {
+        $access = $this->library()->access();
+        $allowed = $access->canCreateWorkspace();
+        if (!$allowed && $request->filled('workspace')) {
+            $ws = FileWorkspace::find(intval($request->query('workspace')));
+            $node = $request->filled('node') ? FileNode::query()->where('workspace_id', optional($ws)->id)->find(intval($request->query('node'))) : null;
+            $allowed = isset($ws) && (!$request->filled('node') || isset($node)) && $access->level($ws, $node) >= Level::MANAGE;
         }
-        return ['picker_users' => $users, 'picker_orgs' => $orgs, 'levels' => Level::options()];
+        if (!$allowed) {
+            return response()->json(['results' => [], 'pagination' => ['more' => false]], 403);
+        }
+        $organization = $request->query('type') === FilePermission::TARGET_ORGANIZATION;
+        if ($organization && !\Exceedone\Exment\Model\System::organization_available()) {
+            return response()->json(['results' => [], 'pagination' => ['more' => false]]);
+        }
+        $tableName = $organization ? SystemTableName::ORGANIZATION : SystemTableName::USER;
+        $q = $request->query('q', '');
+        $words = is_string($q) ? trim($q) : '';
+        $page = max(1, intval(is_string($request->query('page')) ? $request->query('page') : 1));
+        $modelName = getModelName($tableName);
+        // the users the user may see (the permissions of the table), as the list was
+        $query = $modelName::query();
+        if ($words !== '') {
+            // by the names and codes only (not by the e-mail or the other columns)
+            $columns = [];
+            foreach (static::PICKER_COLUMNS[$tableName] as $columnName) {
+                $column = \Exceedone\Exment\Model\CustomColumn::getEloquent($columnName, $tableName);
+                if (isset($column)) {
+                    $columns[] = $column;
+                }
+            }
+            if (count($columns) === 0) {
+                return response()->json(['results' => [], 'pagination' => ['more' => false]]);
+            }
+            (new $modelName())->setSearchQueryOrWhere($query, $words, ['searchColumns' => $columns, 'isLike' => true]);
+        }
+        $paginator = $query->orderBy('id')->paginate(static::PICKER_PAGE, ['*'], 'page', $page);
+        $results = [];
+        foreach ($paginator->items() as $value) {
+            $results[] = ['id' => intval($value->id), 'text' => strval($value->getLabel())];
+        }
+        return response()->json(['results' => $results, 'pagination' => ['more' => $paginator->hasMorePages()]]);
     }
 
     /**

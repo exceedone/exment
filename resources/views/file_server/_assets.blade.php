@@ -47,6 +47,10 @@
 .exm-fs-snippet { font-size: .85rem; opacity: .85; margin-top: 2px; overflow-wrap: anywhere; }
 .exm-fs-field-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.4fr 1fr auto auto auto; gap: 6px; align-items: start; margin-bottom: 6px; }
 @media (max-width: 900px) { .exm-fs-field-row { grid-template-columns: 1fr 1fr; } }
+/* admin-core's select.input-sm has a line of 30px in a box of 30px with padding: the text was cut
+   at the bottom, and a list (size="5") was one line high */
+select.form-control.input-sm { line-height: 1.5; }
+select.form-control.input-sm[size], select.form-control.input-sm[multiple] { height: auto; }
 </style>
 <script>
 window.ExmFs = window.ExmFs || (function () {
@@ -104,6 +108,37 @@ window.ExmFs = window.ExmFs || (function () {
 
     function fail(err) { notify(err.message, false); }
 
+    // the questions of the pages in the dialogs of the admin pages (SweetAlert2 v7;
+    // the title is HTML, so the texts are escaped), with the browser's own when it is not there
+    var buttons = { ok: @json(trans('admin.confirm')), cancel: @json(trans('admin.cancel')) };
+    function confirmIt(text) {
+        if (typeof window.swal !== 'function') { return Promise.resolve(window.confirm(text)); }
+        return window.swal({ title: escape(text), type: 'warning', showCancelButton: true,
+            confirmButtonText: escape(buttons.ok), cancelButtonText: escape(buttons.cancel) })
+            .then(function (r) { return !!(r && r.value); });
+    }
+    // the text typed, or null when cancelled
+    function ask(text, value) {
+        if (typeof window.swal !== 'function') { return Promise.resolve(window.prompt(text, value || '')); }
+        return window.swal({ title: escape(text), input: 'text', inputValue: value || '', showCancelButton: true,
+            confirmButtonText: escape(buttons.ok), cancelButtonText: escape(buttons.cancel) })
+            .then(function (r) { return r && !r.dismiss && r.value !== undefined ? String(r.value) : null; });
+    }
+    // a message with a list (as the files that could not be sent); resolved when closed
+    function report(title, lines) {
+        var text = lines.join('\n');
+        if (typeof window.swal !== 'function') { window.alert(title + '\n\n' + text); return Promise.resolve(); }
+        var html = '<ul style="text-align:left;max-height:40vh;overflow:auto;margin:0;padding-left:1.2em">'
+            + lines.map(function (line) { return '<li style="overflow-wrap:anywhere">' + escape(line) + '</li>'; }).join('') + '</ul>';
+        return window.swal({ title: escape(title), html: html, type: 'error', confirmButtonText: escape(buttons.ok) }).then(function () {});
+    }
+    // a text to copy by hand (the clipboard is not there)
+    function show(title, text) {
+        if (typeof window.swal !== 'function') { window.prompt(title, text); return; }
+        window.swal({ title: escape(title), input: 'text', inputValue: text, confirmButtonText: escape(buttons.ok),
+            onOpen: function () { var i = document.querySelector('.swal2-input'); if (i) { i.select(); } } });
+    }
+
     function size(bytes) {
         bytes = Number(bytes) || 0;
         var units = ['B', 'KB', 'MB', 'GB', 'TB'];
@@ -112,6 +147,41 @@ window.ExmFs = window.ExmFs || (function () {
         return (i === 0 ? bytes : bytes.toFixed(1)) + ' ' + units[i];
     }
 
-    return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token, escape: escape };
+    return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token, escape: escape, confirm: confirmIt, ask: ask, show: show, report: report };
 })();
+</script>
+<script>
+// "リンクをコピー" (ISS02815): the name as a link (HTML: a paste into Teams, OneNote,
+// Outlook or Word is a link with the name) and the address as text, as the copy
+// button of the issues of ExmentPM. Plain text where the browser has no ClipboardItem.
+if (!window.ExmFsCopyLink) {
+    window.ExmFsCopyLink = function (url, name) {
+        var copied = @json(exmtrans('file_server.link_copied'));
+        var ok = function () { window.ExmFs.notify(copied, true); };
+        var plain = function () {
+            if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(ok, function () { prompt('URL', url); });
+            } else {
+                prompt('URL', url);
+            }
+        };
+        var html = '<a href="' + window.ExmFs.escape(url) + '">' + window.ExmFs.escape(name || url) + '</a>';
+        try {
+            if (window.ClipboardItem && navigator.clipboard && navigator.clipboard.write && window.isSecureContext) {
+                navigator.clipboard.write([new window.ClipboardItem({
+                    'text/plain': new Blob([url], { type: 'text/plain' }),
+                    'text/html': new Blob([html], { type: 'text/html' })
+                })]).then(ok, plain);
+                return;
+            }
+        } catch (e) { /* plain text below */ }
+        plain();
+    };
+    document.addEventListener('click', function (e) {
+        var b = e.target && e.target.closest ? e.target.closest('[data-fs-copy-link]') : null;
+        if (!b) { return; }
+        e.preventDefault();
+        window.ExmFsCopyLink(b.getAttribute('data-fs-copy-link'), b.getAttribute('data-fs-copy-name'));
+    });
+}
 </script>

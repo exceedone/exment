@@ -1,0 +1,227 @@
+{
+    "template_view_name": "Asset pack",
+    "description": "Assets (with QR codes), asset requests (buy, move, dispose, with approval), stocktaking (with lines) and lending, asset role groups and an \"Assets\" menu.",
+    "custom_tables": [
+        {
+            "table_name": "asset_item",
+            "table_view_name": "Assets",
+            "description": "PCs, furniture, equipment and supplies. Put a QR code on each and scan it to open the record.",
+            "custom_columns": [
+                {
+                    "column_name": "asset_no",
+                    "column_view_name": "Asset no."
+                },
+                {
+                    "column_name": "asset_name",
+                    "column_view_name": "Name"
+                },
+                {
+                    "column_name": "category",
+                    "column_view_name": "Category",
+                    "options": {
+                        "select_item_valtext": "it,PCs & IT\nfurniture,Furniture & fixtures\nequipment,Equipment & machines\nvehicle,Vehicles\nsupply,Supplies\nother,Other"
+                    }
+                },
+                {
+                    "column_name": "location",
+                    "column_view_name": "Location"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Managing department"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "User"
+                },
+                {
+                    "column_name": "purchase_date",
+                    "column_view_name": "Purchase date"
+                },
+                {
+                    "column_name": "purchase_price",
+                    "column_view_name": "Purchase price"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "select_item_valtext": "in_use,In use\nstock,In stock\nlending,Lent out\nrepair,Under repair\ndisposed,Disposed"
+                    }
+                },
+                {
+                    "column_name": "photo",
+                    "column_view_name": "Photo"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_request",
+            "table_view_name": "Asset requests",
+            "description": "Requests to buy, move or dispose of assets, approved with a workflow.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Subject"
+                },
+                {
+                    "column_name": "request_type",
+                    "column_view_name": "Type",
+                    "options": {
+                        "select_item_valtext": "purchase,Purchase\ntransfer,Transfer\ndisposal,Disposal"
+                    }
+                },
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Asset"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Amount"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Desired date"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Reason"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake",
+            "table_view_name": "Stocktaking",
+            "description": "Stocktakes. The result for each asset goes in the lines.",
+            "custom_columns": [
+                {
+                    "column_name": "stocktake_name",
+                    "column_view_name": "Stocktake"
+                },
+                {
+                    "column_name": "stocktake_date",
+                    "column_view_name": "Date"
+                },
+                {
+                    "column_name": "staff",
+                    "column_view_name": "Staff"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake_detail",
+            "table_view_name": "Stocktake lines",
+            "description": "The result for each asset checked.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Asset"
+                },
+                {
+                    "column_name": "result",
+                    "column_view_name": "Result",
+                    "options": {
+                        "select_item_valtext": "found,Found\nmissing,Missing\ndamaged,Damaged"
+                    }
+                },
+                {
+                    "column_name": "location_found",
+                    "column_view_name": "Found at"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_lending",
+            "table_view_name": "Lending",
+            "description": "Assets lent and returned.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Asset"
+                },
+                {
+                    "column_name": "borrower",
+                    "column_view_name": "Borrower"
+                },
+                {
+                    "column_name": "lend_date",
+                    "column_view_name": "Lent on"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Due"
+                },
+                {
+                    "column_name": "return_date",
+                    "column_view_name": "Returned on"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "afef91701db2db9db4cd",
+            "form_view_name": "Form"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Assets",
+            "menu_type": "parent_node",
+            "menu_name": "asset"
+        },
+        {
+            "title": "Assets",
+            "menu_type": "table",
+            "menu_name": "asset_item"
+        },
+        {
+            "title": "Asset requests",
+            "menu_type": "table",
+            "menu_name": "asset_request"
+        },
+        {
+            "title": "Stocktaking",
+            "menu_type": "table",
+            "menu_name": "asset_stocktake"
+        },
+        {
+            "title": "Lending",
+            "menu_type": "table",
+            "menu_name": "asset_lending"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "asset_admin_group",
+            "role_group_view_name": "Asset managers",
+            "description": "People who see, make and edit assets, requests, stocktakes and lending."
+        },
+        {
+            "role_group_name": "asset_member_group",
+            "role_group_view_name": "Asset users",
+            "description": "People who see assets and lending, and make asset requests."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Asset requests (standard)"
+        }
+    ]
+}

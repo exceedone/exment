@@ -518,6 +518,26 @@ class ApiController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function notifyPage(Request $request)
     {
+        // Cached per user for one poll interval (ISS02824): every open browser asks this on a
+        // timer. NotifyNavbar moves the user's cache version whenever one of their notifications
+        // is made, read or deleted, so the next poll is fresh.
+        $cacheKey = NotifyNavbar::navbarCacheKey();
+        if (is_null($cacheKey)) {
+            return $this->buildNotifyPage();
+        }
+
+        return \Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\NotifyNav::interval(), function () {
+            return $this->buildNotifyPage();
+        });
+    }
+
+    /**
+     * The payload notifyPage() serves and caches: the unread count and the newest five.
+     *
+     * @return array<string, mixed>
+     */
+    protected function buildNotifyPage(): array
+    {
         // get notify NotifyNavbar list
         $query = NotifyNavbar::where('target_user_id', \Exment::getUserId())
             ->where('read_flg', false);
@@ -543,7 +563,7 @@ class ApiController extends AdminControllerBase
                     'label' => array_get($l, 'notify_subject'),
                     'href' => admin_urls('notify_navbar', $l->id)
                 ];
-            }),
+            })->values()->all(),
             'noItemMessage' => exmtrans('notify_navbar.message.no_newitem')
         ];
     }

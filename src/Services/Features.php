@@ -48,6 +48,9 @@ class Features
     public const FILE_SERVER = 'file_server';
     public const STUDIO = 'studio';
     public const TUNING = 'tuning';
+    public const API_KEYS = 'api_keys';
+    public const MCP = 'mcp';
+    public const SAFETY_CHECK = 'safety_check';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -96,6 +99,13 @@ class Features
     /** Whether the classes of the plugin pages were made here (the routes cached). */
     protected static bool $pluginsBooted = false;
 
+    /** The cache of what the plugins registered (the routes cached). */
+    public const PLUGINS_CACHE_KEY = 'exment_features_plugins_';
+
+    public const PLUGINS_CACHE_SECONDS = 3600;
+
+    protected static ?bool $routesCachedForTests = null;
+
     /**
      * The features of Exment itself (the file server when Exment has it).
      *
@@ -114,6 +124,7 @@ class Features
                 'description' => 'exment::exment.feature.features.file_server_help',
                 'endpoints' => ['file_server'],
                 'menu' => 'file_server',
+                'manual' => 'file_server',
             ]);
         }
         $core[static::STUDIO] = static::definition([
@@ -123,6 +134,31 @@ class Features
             'endpoints' => ['studio', 'app'],
             'api' => ['studio'],
             'menu' => 'studio',
+            'manual' => 'studio',
+        ]);
+        // the API keys of the users (Services\UserApiKeys, ISS00437): off until an administrator
+        // turns it on and chooses the role groups whose users may make keys
+        $core[static::API_KEYS] = static::definition([
+            'label' => 'exment::exment.feature.features.api_keys',
+            'description' => 'exment::exment.feature.features.api_keys_help',
+            'endpoints' => ['auth/api_keys'],
+        ]);
+        // the MCP server (api/mcp, ISS00439): off until an administrator turns it on and
+        // chooses the role groups whose users may use it from an AI
+        $core[static::MCP] = static::definition([
+            'label' => 'exment::exment.feature.features.mcp',
+            'description' => 'exment::exment.feature.features.mcp_help',
+            'api' => ['mcp'],
+        ]);
+        // the safety check: its page, the answer page (SafetyCheckAnswerController),
+        // the automatic sending (exment:safetywatch) and its LINE answers. Every
+        // site it was on before keeps it on (the migration keep_safety_check_feature);
+        // a new site starts with it off. The LINE link stays: the notifications use LINE too.
+        $core[static::SAFETY_CHECK] = static::definition([
+            'label' => 'exment::exment.feature.features.safety_check',
+            'description' => 'exment::exment.feature.features.safety_check_help',
+            'endpoints' => ['safety_check'],
+            'manual' => 'safety_check',
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
@@ -132,10 +168,19 @@ class Features
             'description' => 'exment::exment.feature.features.tuning_help',
             'endpoints' => ['tuning'],
             'menu' => 'tuning',
+            'manual' => 'tuning',
             // who is not asked here: Auth\Permission keeps the page to the system administrators
             'who' => false,
             // it was there before Feature management: on until it is turned off
             'default' => true,
+        ]);
+        // maintenance mode (Services\MaintenanceMode): the system administrators only
+        $core[MaintenanceMode::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.maintenance_mode',
+            'description' => 'exment::exment.feature.features.maintenance_mode_help',
+            'endpoints' => ['maintenance'],
+            'menu' => 'maintenance',
+            'who' => false,
         ]);
         return $core;
     }
@@ -159,6 +204,13 @@ class Features
      *   - who: whether "who may use it" is asked here (default true; false: all who may use the plugin)
      *   - requires: the key of another feature it needs (off when that one is)
      *   - plugin: the uri or the name of the plugin (default: the key before the first ".")
+     *   - manual: its manual, a page of the Exment manual ("file_server", "file_server?id=share")
+     *     or a full https:// URL (the plugin's own). The help button of its pages and the
+     *     row of Feature management open it.
+     *   - action: a button in its row of Feature management, ['label' => ..., 'url' => ...]: what
+     *     the feature needs done before it can work (as "install the editor"). The URL is an
+     *     http(s) URL or a path of the site; anything else drops the button. A plugin registers
+     *     on every request, so it gives the button only while there is something to do.
      */
     public static function register(string $key, array $definition): void
     {
@@ -196,7 +248,98 @@ class Features
             'default' => boolval(array_get($definition, 'default', false)),
             'who' => boolval(array_get($definition, 'who', true)),
             'requires' => is_string($requires) && $requires !== '' ? $requires : null,
+            'manual' => static::manualOf(array_get($definition, 'manual')),
+            'action' => static::actionOf(array_get($definition, 'action')),
         ];
+    }
+
+    /**
+     * An action of a definition as it may be kept: a label and an http(s) URL or a path of
+     * the site (no "javascript:", no quotes). Null otherwise.
+     *
+     * @return array{label: string, url: string}|null
+     */
+    protected static function actionOf(mixed $action): ?array
+    {
+        if (!is_array($action)) {
+            return null;
+        }
+        $label = trim(strval($action['label'] ?? ''));
+        $url = trim(strval($action['url'] ?? ''));
+        if ($label === '' || $url === '' || mb_strlen($label) > 100) {
+            return null;
+        }
+        if (preg_match('#\Ahttps?://[^\s"\'<>]+\z#i', $url) !== 1 && preg_match('#\A/(?!/)[^\s"\'<>]*\z#', $url) !== 1) {
+            return null;
+        }
+        return ['label' => $label, 'url' => $url];
+    }
+
+    /**
+     * The button of a feature in Feature management, its label translated (null: none).
+     *
+     * @return array{label: string, url: string}|null
+     */
+    public static function action(string $key): ?array
+    {
+        $action = static::attribute($key, 'action');
+        if (!is_array($action)) {
+            return null;
+        }
+        return ['label' => static::translated(strval($action['label'])), 'url' => strval($action['url'])];
+    }
+
+    /**
+     * A manual of a definition as it may be kept: a page of the Exment manual (letters,
+     * numbers, "_", "-", "/", a query and an anchor), or an http(s) URL. Anything else
+     * (as "javascript:") is dropped.
+     */
+    protected static function manualOf(mixed $manual): ?string
+    {
+        if (!is_string($manual)) {
+            return null;
+        }
+        $manual = trim($manual);
+        if (preg_match('#\Ahttps?://[^\s"\'<>]+\z#i', $manual) === 1) {
+            return $manual;
+        }
+        if (preg_match('#\A[A-Za-z0-9_\-]+(/[A-Za-z0-9_\-]+)*(\?[A-Za-z0-9_\-=&%]*)?(\#[A-Za-z0-9_\-%]*)?\z#', $manual) === 1) {
+            return $manual;
+        }
+        return null;
+    }
+
+    /**
+     * The URL of the manual of a feature (null: it has none).
+     */
+    public static function manualUrl(string $key): ?string
+    {
+        $manual = static::attribute($key, 'manual');
+        if (!is_string($manual) || $manual === '') {
+            return null;
+        }
+        return preg_match('#\Ahttps?://#i', $manual) === 1 ? $manual : getManualUrl($manual);
+    }
+
+    /**
+     * The entries of the help button (as Define::HELP_URLS) for the pages of the features
+     * that have a manual. They come before Define::HELP_URLS: the first that matches is used.
+     *
+     * @return array<int, array{uri: string, help_uri: string}>
+     */
+    public static function helpUrls(): array
+    {
+        $urls = [];
+        foreach (static::definitions() as $definition) {
+            $manual = $definition['manual'] ?? null;
+            if (!is_string($manual) || $manual === '') {
+                continue;
+            }
+            foreach ($definition['endpoints'] as $endpoint) {
+                $urls[] = ['uri' => $endpoint, 'help_uri' => $manual];
+            }
+        }
+        return $urls;
     }
 
     /**
@@ -213,8 +356,15 @@ class Features
     /**
      * The plugins register their features when their classes are made: when
      * the routes are made (PluginServiceProvider::map). With the routes cached
-     * (php artisan route:cache) they are not made there, so they are made
-     * here, once, when the features are first asked for.
+     * (php artisan route:cache) they are not made there, so what they register
+     * is kept in the cache, for the plugins as they are: the classes are made
+     * once, not on each request.
+     *
+     * A feature not known is not stopped, so what is kept must be all: it is
+     * kept only when the class of every active page plugin was made, it is
+     * forgotten when a plugin is installed, changed or removed
+     * (forgetPluginsCache), and it is kept for an hour at most. When the cache
+     * cannot be read or written, the classes are made (as without the cache).
      */
     protected static function bootPlugins(): void
     {
@@ -223,12 +373,119 @@ class Features
         }
         static::$pluginsBooted = true;
         try {
-            if (app()->routesAreCached() && canConnection() && hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
-                Plugin::getPluginPages();
+            if (!static::routesAreCached() || !canConnection() || !hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
+                return;
             }
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
+            return;
         }
+
+        $cacheKey = null;
+        try {
+            $cacheKey = static::pluginsCacheKey();
+            $kept = \Cache::get($cacheKey);
+            if (is_array($kept)) {
+                static::$registered += $kept;
+                static::$definitions = null;
+                return;
+            }
+        } catch (\Throwable $e) {
+            // the cache cannot be read: made as without the cache
+            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+            $cacheKey = null;
+        }
+
+        try {
+            $built = Plugin::getPluginPages()->count();
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
+            return;
+        }
+        static::$definitions = null;
+        if ($cacheKey === null || $built < static::activePagePluginCount()) {
+            // a class could not be made (its files not there yet, an error): not kept
+            return;
+        }
+        try {
+            // all that is registered (also what was registered before in this
+            // request, as by the scripts of the plugins in admin.bootstrap)
+            \Cache::put($cacheKey, static::$registered, static::PLUGINS_CACHE_SECONDS);
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * The active plugins that have pages (their classes register the features).
+     */
+    protected static function activePagePluginCount(): int
+    {
+        return Plugin::query()->where('active_flg', true)->get()->filter(function ($plugin) {
+            return $plugin->matchPluginType(\Exceedone\Exment\Enums\PluginType::PLUGIN_TYPE_PLUGIN_PAGE());
+        })->count();
+    }
+
+    /**
+     * Forget what the plugins registered (a plugin was installed, changed,
+     * turned on or off, or removed): the next request makes the classes again.
+     */
+    public static function forgetPluginsCache(): void
+    {
+        try {
+            \Cache::forever(static::pluginsGenerationKey(), uniqid('', true));
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+        }
+        static::$pluginsBooted = false;
+        static::$definitions = null;
+    }
+
+    /**
+     * Whether the routes are cached (php artisan route:cache); a test may say.
+     */
+    protected static function routesAreCached(): bool
+    {
+        return static::$routesCachedForTests ?? app()->routesAreCached();
+    }
+
+    /**
+     * For the tests: as if the routes were cached (true), or not (false),
+     * or as they are (null).
+     */
+    public static function routesCachedForTests(?bool $cached): void
+    {
+        static::$routesCachedForTests = $cached;
+    }
+
+    /**
+     * The key of the cache of what the plugins registered: it changes when a
+     * plugin is added, removed, turned on or off, or changed, and when the
+     * cache is forgotten (forgetPluginsCache). The database and the URL of the
+     * site are in it, so sites that share a cache store (a SaaS) do not share
+     * the key.
+     */
+    public static function pluginsCacheKey(): string
+    {
+        $sign = Plugin::query()->orderBy('id')->get()->map(function ($plugin) {
+            $row = $plugin->getAttributes();
+            return [$row['id'] ?? null, $row['plugin_name'] ?? null, $row['plugin_types'] ?? $row['plugin_type'] ?? null,
+                $row['version'] ?? null, $row['active_flg'] ?? null, strval($row['updated_at'] ?? '')];
+        })->toJson();
+        $generation = strval(\Cache::get(static::pluginsGenerationKey(), ''));
+        return static::PLUGINS_CACHE_KEY . md5(static::siteSign() . "\n" . $generation . "\n" . $sign);
+    }
+
+    /** The site (its database and URL), for the keys of a cache store shared by sites. */
+    protected static function siteSign(): string
+    {
+        $connection = strval(config('database.default'));
+        return implode('|', [$connection, strval(config('database.connections.' . $connection . '.database')), strval(config('app.url'))]);
+    }
+
+    protected static function pluginsGenerationKey(): string
+    {
+        return static::PLUGINS_CACHE_KEY . 'generation_' . md5(static::siteSign());
     }
 
     /**
@@ -393,6 +650,12 @@ class Features
         }
         System::features($settings);
         static::$userRoleGroups = [];
+
+        // maintenance mode turned off: a maintenance of the site ends now (and does not come back)
+        $maintenance = $values[MaintenanceMode::FEATURE] ?? null;
+        if (is_array($maintenance) && !boolval(array_get($maintenance, 'enabled', false))) {
+            MaintenanceMode::featureTurnedOff(\Exment::user());
+        }
     }
 
     // ---------------------------------------------------------------- the checks

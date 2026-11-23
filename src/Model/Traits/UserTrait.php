@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Model\Traits;
 
 use Exceedone\Exment\Model;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
@@ -160,8 +159,8 @@ trait UserTrait
             return $login_user->display_avatar;
         }
 
-        // get default avatar
-        return asset(Define::USER_IMAGE_LINK);
+        // without one: the initials of the name, as ExmentPM draws them
+        return \Exceedone\Exment\Services\InitialsAvatar::url(strval($this->getLabel()));
     }
 
     public function isAdministrator()
