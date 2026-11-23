@@ -63,6 +63,7 @@ return [
         ],
         'separate_word' => ',',
         'format_keyvalue' => '%s : %s',
+        'site_timezone_label' => ':label (site time: :timezone)',
         'yes' => 'Yes',
         'no' => 'No',
         'row' => 'Row',

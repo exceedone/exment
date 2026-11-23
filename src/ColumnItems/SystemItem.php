@@ -533,6 +533,14 @@ class SystemItem implements ItemInterface
     }
 
 
+    /**
+     * Whether this is a date and time of the system (created_at, updated_at, deleted_at).
+     */
+    public function isSystemDatetime(): bool
+    {
+        return array_get($this->getSystemColumnOption(), 'type') == 'datetime';
+    }
+
     // @phpstan-ignore-next-line
     protected function getSystemColumnOption()
     {

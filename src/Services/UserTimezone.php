@@ -186,6 +186,85 @@ class UserTimezone
     }
 
     /**
+     * A date and time of the database for a screen (comments, histories, lists, logs ...).
+     * Without a format: the value as it is when nothing converts (as the screens printed it before),
+     * else "Y-m-d H:i:s" in the time zone of the display. With a format: always that format.
+     *
+     * @param mixed $value string, DateTimeInterface or null
+     * @param string|null $format
+     * @return mixed
+     */
+    public static function display($value, ?string $format = null)
+    {
+        if (is_nullorempty($value)) {
+            return $value;
+        }
+        if (!static::differs()) {
+            if (is_null($format)) {
+                return $value;
+            }
+            $carbon = static::parse($value, static::site());
+            return $carbon ? $carbon->format($format) : $value;
+        }
+        $carbon = static::toUser($value);
+        return $carbon ? $carbon->format($format ?? static::DB_FORMAT) : $value;
+    }
+
+    /**
+     * A date (Y-m-d) of a date and time of the database in the time zone of the display;
+     * a date as it is (a date is never converted).
+     *
+     * @param mixed $value
+     * @param bool $isDatetime whether the value is a date and time (else only a date)
+     */
+    public static function displayDate($value, bool $isDatetime = true): ?string
+    {
+        if (is_nullorempty($value)) {
+            return null;
+        }
+        if ($isDatetime && static::differs()) {
+            $carbon = static::toUser($value);
+            if ($carbon) {
+                return $carbon->format('Y-m-d');
+            }
+        }
+        $date = substr(($value instanceof \DateTimeInterface) ? $value->format('Y-m-d') : strval($value), 0, 10);
+        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) ? $date : null;
+    }
+
+    /**
+     * The label of a date and time grouped by the database (a summary view, a chart): the groups are
+     * the days, months ... of the site, so the time zone of the site is shown when the user's differs.
+     *
+     * @param mixed $label
+     * @param mixed $column_item
+     * @return mixed
+     */
+    public static function siteGroupLabel($label, $column_item)
+    {
+        if (!static::differs() || !static::isDatetimeItem($column_item)) {
+            return $label;
+        }
+        return exmtrans('common.site_timezone_label', ['label' => $label, 'timezone' => static::site()]);
+    }
+
+    /**
+     * Whether a column item holds a date and time (a column of a date and time, created_at etc.).
+     *
+     * @param mixed $column_item
+     */
+    public static function isDatetimeItem($column_item): bool
+    {
+        if (!is_object($column_item)) {
+            return false;
+        }
+        if ($column_item instanceof \Exceedone\Exment\ColumnItems\SystemItem) {
+            return $column_item->isSystemDatetime();
+        }
+        return method_exists($column_item, 'isDateTime') && boolval($column_item->isDateTime());
+    }
+
+    /**
      * Format a date and time the user typed for the database. The value as it is when nothing converts.
      *
      * @param mixed $value
