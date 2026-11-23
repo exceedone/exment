@@ -488,13 +488,6 @@ class SystemController extends AdminControllerBase
     // }
 
     /**
-     * Send data
-     *
-     * @param Request $request
-     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|true
-     * @throws \Throwable
-     */
-    /**
      * The values of the settings whose change reloads the whole page ('reload' => true in
      * their definition, CoreExtensions::addSystemSettings()).
      *
@@ -511,6 +504,13 @@ class SystemController extends AdminControllerBase
         return $values;
     }
 
+    /**
+     * Send data
+     *
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|true
+     * @throws \Throwable
+     */
     public function post(Request $request)
     {
         $advanced = $request->has('advanced');
