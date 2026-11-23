@@ -27,13 +27,14 @@ class UserLocaleTest extends FeatureTestBase
         $this->initAllTest();
         $this->localeBefore = config('exment.locale');
         // (the language of the browser is not used in the tests unless asked)
-        config(['exment.locale' => 'ja', 'exment.locale_from_browser' => true]);
+        // (the system setting, on by default, decides)
+        config(['exment.locale' => 'ja', 'exment.locale_from_browser' => null, 'exment.locale_from_browser_in_tests' => true]);
         System::clearRequestSession();
     }
 
     protected function tearDown(): void
     {
-        config(['exment.locale' => $this->localeBefore, 'exment.locale_from_browser' => null]);
+        config(['exment.locale' => $this->localeBefore, 'exment.locale_from_browser_in_tests' => false]);
         UserTimezone::setCurrent(null);
         parent::tearDown();
     }
@@ -56,6 +57,15 @@ class UserLocaleTest extends FeatureTestBase
         $this->get(admin_url('auth/login'), ['Accept-Language' => 'ja'])
             ->assertOk()
             ->assertSee(trans('admin.login', [], 'ja'));
+
+        // the setting off (System → Advanced): an English browser gets the language of the site
+        System::locale_from_browser(false);
+        System::clearCache();
+        $this->get(admin_url('auth/login'), ['Accept-Language' => 'en-US,en;q=0.9'])
+            ->assertOk()
+            ->assertSee(trans('admin.login', [], 'ja'));
+        System::locale_from_browser(true);
+        System::clearCache();
 
         // the choice of the login page: a cookie
         $this->post(admin_url('auth/login_locale'), ['locale' => 'en'])

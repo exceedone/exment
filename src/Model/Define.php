@@ -82,6 +82,8 @@ class Define
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
         // the languages the users can choose (ISS02835). Empty: all the installed languages
         'allowed_locales' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
+        // the language of the browser for a user who has not chosen one (ISS02835). On by default
+        'locale_from_browser' => ['type' => 'boolean', 'default' => '1', 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
         'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,
