@@ -6,6 +6,7 @@ use Exceedone\Exment\Database\Query\Grammars\SqlServerGrammar;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateImportResult;
+use Exceedone\Exment\Services\MenuVisibility;
 use ExmentAdminCore\Admin\Auth\Database\Menu as AdminMenu;
 use Illuminate\Support\Facades\DB;
 
@@ -312,11 +313,30 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     }
 
     /**
+     * The menus the login user has (Services\MenuVisibility decides: Feature
+     * management, demo mode). The permissions are checked when the tree is
+     * shown (MenuVisibility::tree()).
+     *
      * @return array
      */
 
     // @phpstan-ignore-next-line
     public function allNodes(): array
+    {
+        $rows = MenuVisibility::rows(function () {
+            return $this->getAllNodesFromDatabase();
+        });
+        return MenuVisibility::nodes($rows, $this->withHidden);
+    }
+
+    /**
+     * The menus as the database has them, with their uri and icon: the same
+     * for every user (MenuVisibility::rows() may cache them). A menu of a
+     * table or a plugin that is not there any more is left out.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function getAllNodesFromDatabase(): array
     {
         $grammar = DB::getQueryGrammar();
         $orderColumn = $grammar->wrap($this->orderColumn);
@@ -368,7 +388,6 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         $results = [];
         foreach ($rows as &$row) {
             $result = true;
-            $hidden = false;
             if (isset($row['options'])) {
                 $row['options'] = json_decode_ex($row['options'], true);
             }
@@ -380,10 +399,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         break;
                     }
                     $row['uri'] = $plugin->getRouteUri();
-                    // its menu turned off (Admin setting → Feature management)
-                    if (\Exceedone\Exment\Services\Features::hidesPluginMenu($plugin->plugin_name)) {
-                        $hidden = true;
-                    }
+                    // for MenuVisibility::hiddenByFeatures(): the menu switch of the plugin
+                    $row['plugin_name'] = $plugin->plugin_name;
                     break;
                 case MenuType::TABLE:
                     if (!isset($row['table_name'])) {
@@ -413,14 +430,6 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         $row['icon'] = array_get($defines, 'icon');
                     }
                     $row['uri'] = array_get($defines, "uri");
-                    // demo mode: the menu of a refused page
-                    if (\Exceedone\Exment\Services\DemoMode::hidesMenuUri($row['uri'])) {
-                        $result = false;
-                    }
-                    // a feature not used, or that the user may not use (Admin setting → Feature management)
-                    if (\Exceedone\Exment\Services\Features::hidesSystemMenu(strval($row['menu_target']))) {
-                        $hidden = true;
-                    }
                     break;
                 case MenuType::PARENT_NODE:
                     $row['uri'] = null;
@@ -431,16 +440,6 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     // database-row has icon column, set icon
             }
 
-            // a page of a feature the user may not use: its menu goes too, of
-            // any kind (a plugin's own feature, a custom menu to its URL)
-            if ($result && !$hidden && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
-                $hidden = true;
-            }
-            if ($hidden) {
-                // the menu of a feature not used: kept for editing and the templates
-                $row['feature_hidden'] = true;
-                $result = $result && $this->withHidden;
-            }
             if (!$result) {
                 continue;
             }
@@ -610,5 +609,13 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected static function boot()
     {
         static::treeBoot();
+
+        // the rows of the menu, when a site caches them (MenuVisibility::cacheRowsWith())
+        static::saved(function ($model) {
+            MenuVisibility::forgetRows();
+        });
+        static::deleted(function ($model) {
+            MenuVisibility::forgetRows();
+        });
     }
 }
