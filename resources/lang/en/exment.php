@@ -954,6 +954,12 @@ return [
         'warning_confirm' => 'Some items are warning. Are you sure you want to install?',
 
         'type' => [
+            'php_version' => [
+                'label' => 'PHP version',
+                'explain' => 'The version of PHP the installed packages need. Use the same version of PHP on the web and for the commands (cron, php artisan): on a rental server the command php may be an older one.',
+                'result' => ':version (needed: :minimum or later)',
+                'ng' => 'The version of PHP is too old. Switch to PHP :minimum or later (in the control panel of the server, for example).',
+            ],
             'memory' => [
                 'label' => 'Memory usage limit',
                 'explain' => 'The upper limit of memory usage allocated to run PHP.(Recommended value: 512MB or more)',
