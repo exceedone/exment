@@ -25,7 +25,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        db: ["mysql", "mariadb"]
+        # a pull request to master is most often the copy of one to 7.2, which runs both
+        # databases: master runs MySQL only (fewer jobs waiting for a runner)
+        db: ${{ github.base_ref == 'master' && fromJSON('["mysql"]') || fromJSON('["mysql", "mariadb"]') }}
         test: ["feature", "unit", "browser"]
     steps:
       - uses: actions/checkout@v4
