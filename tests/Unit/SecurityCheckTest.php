@@ -137,6 +137,47 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertFalse($check->storageOpen());
     }
 
+    public function testLogsAndSessionsReadableByOthers(): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $this->markTestSkipped('no POSIX permissions here');
+        }
+        $dir = sys_get_temp_dir() . '/exment_security_' . uniqid('', true);
+        mkdir($dir . '/logs', 0750, true);
+        mkdir($dir . '/framework/sessions', 0750, true);
+        chmod($dir, 0750);
+        chmod($dir . '/logs', 0750);
+        chmod($dir . '/framework/sessions', 0750);
+        file_put_contents($dir . '/framework/sessions/abc', 'a session');
+        chmod($dir . '/framework/sessions/abc', 0600);
+        file_put_contents($dir . '/logs/laravel.log', 'a log');
+        chmod($dir . '/logs/laravel.log', 0644);
+
+        $check = new Security\FilePermissionSecurity();
+        $check->files = new FilePermissionTuningNone();
+        $check->storage = $dir;
+        $this->assertSame(['logs/*' => '644'], $check->storageReadable());
+        $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
+        $this->assertStringContainsString('storage/logs/* (644)', strval($check->getResultText()));
+        $this->assertStringContainsString('chmod -R o-rwx storage', strval($check->getFixText()));
+
+        // a folder open to the others (755) with the files closed
+        chmod($dir . '/logs/laravel.log', 0640);
+        chmod($dir . '/framework/sessions', 0755);
+        $this->assertSame(['framework/sessions' => '755'], $check->storageReadable());
+
+        chmod($dir . '/framework/sessions', 0750);
+        $this->assertSame([], $check->storageReadable());
+        $this->assertSame(SystemRequireResult::OK, $check->checkResult());
+
+        @unlink($dir . '/framework/sessions/abc');
+        @unlink($dir . '/logs/laravel.log');
+        @rmdir($dir . '/framework/sessions');
+        @rmdir($dir . '/framework');
+        @rmdir($dir . '/logs');
+        @rmdir($dir);
+    }
+
     public function testASaasSiteSeesOnlyWhatItCanFix(): void
     {
         config(['exment.features_locked' => '']);
@@ -260,5 +301,17 @@ class SecurityItemRecorder extends Security\SecurityBase
     public function fix(): void
     {
         $this->fixed++;
+    }
+}
+
+/** The tuning's file check with nothing open (.env and the config cache are not looked at). */
+class FilePermissionTuningNone extends \Exceedone\Exment\Services\SystemRequire\Tuning\FilePermissionTuning
+{
+    /**
+     * @return array<string, string>
+     */
+    public function openFiles(): array
+    {
+        return [];
     }
 }
