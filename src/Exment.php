@@ -256,12 +256,6 @@ class Exment
 
 
     /**
-     * getExmentVersion using session and composer
-     *
-     * @return array $latest: new version in package, $current: this version in server
-     */
-    // @phpstan-ignore-next-line
-    /**
      * fn(): array{0: ?string, 1: ?string}|null — [latest, current], or null for Exment's own
      * reading (composer and packagist).
      *
@@ -293,6 +287,12 @@ class Exment
         return admin_url('system');
     }
 
+    /**
+     * getExmentVersion using session and composer
+     *
+     * @return array $latest: new version in package, $current: this version in server
+     */
+    // @phpstan-ignore-next-line
     public function getExmentVersion($getFromComposer = true)
     {
         // an application that knows its version itself (resolveVersionUsing())

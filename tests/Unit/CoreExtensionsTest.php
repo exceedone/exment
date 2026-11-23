@@ -51,7 +51,7 @@ class CoreExtensionsTest extends UnitTestBase
 
         CoreExtensions::addTablePage(['name' => 'sample-setting', 'href' => 'sample-setting/:table_name', 'icon' => 'fa-star', 'roles' => []], 'column');
         $names = collect(CoreExtensions::tablePages())->pluck('name')->toArray();
-        $this->assertSame(array_search('column', $names, true) + 1, array_search('sample-setting', $names, true), 'after the columns');
+        $this->assertSame(intval(array_search('column', $names, true)) + 1, array_search('sample-setting', $names, true), 'after the columns');
         $this->assertContains('sample-setting', CoreExtensions::customTableEndpoints());
     }
 

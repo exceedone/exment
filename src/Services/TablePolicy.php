@@ -79,7 +79,7 @@ abstract class TablePolicy
     /**
      * The options of a select column (CustomColumn::createSelectOptions()), null for its own.
      *
-     * @return array<mixed>|\Illuminate\Support\Collection<int|string, mixed>|null
+     * @return array<int|string, string|null>|null
      */
     public function selectOptions(CustomColumn $column)
     {
