@@ -186,10 +186,12 @@ class DataMaintenanceAttachmentsTest extends FeatureTestBase
 
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2));
         System::clearRequestSession();
+        // sent as ajax: for a page request, the error of the permission (Permission::error())
+        // sends the page and ends the process with exit, which ends PHPUnit too
         $this->post(admin_urls('data_maintenance', static::TABLE, 'attachments'), [
             'kinds' => ['document'],
             'confirm_table_name' => static::TABLE,
-        ]);
+        ], ['X-Requested-With' => 'XMLHttpRequest'])->assertForbidden();
         System::clearRequestSession();
         $this->assertNotNull(ExmentFile::getData($file->uuid));
     }
