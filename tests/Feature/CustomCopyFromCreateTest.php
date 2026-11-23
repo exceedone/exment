@@ -79,22 +79,25 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         $copy = $this->copy(static::FROM, static::TO, true);
         $record = $this->record(static::FROM, 'copy me 1828');
         $label = exmtrans('custom_copy.copy_from.button', $this->table(static::FROM)->table_view_name);
+        $search = admin_urls_query('data', static::FROM, ['modalframe' => 1]);
 
+        // the button opens the search dialog of the copy-from table
         $this->get(admin_urls('data', static::TO, 'create'))
             ->assertStatus(200)
-            ->assertSee($label, false);
+            ->assertSee($label, false)
+            ->assertSee($search)
+            ->assertSee('copy_from_target_' . $copy->suuid, false);
 
-        $this->get(admin_urls_query('data', static::TO, 'copyFromModal', ['uuid' => $copy->suuid]), static::AJAX)
+        $this->get($search . '&' . http_build_query([
+            'target_column_class' => 'copy_from_target_' . $copy->suuid,
+            'target_column_multiple' => 0,
+            'display_table_id' => $this->table(static::TO)->id,
+        ]), static::AJAX)
             ->assertStatus(200)
-            ->assertJsonStructure(['body', 'script', 'title']);
-
-        $redirect = admin_urls_query('data', static::TO, 'create', ['copy_from' => $copy->suuid, 'copy_from_id' => $record->id]);
-        $this->post(admin_urls('data', static::TO, 'copyFromClick'), ['uuid' => $copy->suuid, 'copy_from_id' => $record->id], static::AJAX)
-            ->assertStatus(200)
-            ->assertJson(['result' => true, 'redirect' => $redirect]);
+            ->assertJsonStructure(['title', 'body']);
 
         $before = $this->rows(static::TO);
-        $this->get($redirect)
+        $this->get(admin_urls_query('data', static::TO, 'create', ['copy_from' => $copy->suuid, 'copy_from_id' => $record->id]))
             ->assertStatus(200)
             ->assertSee('copy me 1828', false);
         $this->assertSame($before, $this->rows(static::TO), 'opening the form saves nothing');
@@ -109,8 +112,6 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         $this->get(admin_urls('data', static::TO, 'create'))
             ->assertStatus(200)
             ->assertDontSee($label, false);
-        $this->get(admin_urls_query('data', static::TO, 'copyFromModal', ['uuid' => $copy->suuid]), static::AJAX)
-            ->assertStatus(404);
         $this->get(admin_urls_query('data', static::TO, 'create', ['copy_from' => $copy->suuid, 'copy_from_id' => $record->id]))
             ->assertStatus(200)
             ->assertDontSee('not on the form 1828', false);
@@ -122,8 +123,6 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         $copy = $this->copy(static::TO, static::FROM, true);
         $record = $this->record(static::TO, 'other table 1828');
 
-        $this->get(admin_urls_query('data', static::TO, 'copyFromModal', ['uuid' => $copy->suuid]), static::AJAX)
-            ->assertStatus(404);
         $this->get(admin_urls_query('data', static::TO, 'create', ['copy_from' => $copy->suuid, 'copy_from_id' => $record->id]))
             ->assertStatus(200)
             ->assertDontSee('other table 1828', false);
@@ -139,23 +138,44 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         $this->get(admin_urls('data', static::TO, 'create'))
             ->assertStatus(200)
             ->assertDontSee($label, false);
-        $this->get(admin_urls_query('data', static::TO, 'copyFromModal', ['uuid' => $copy->suuid]), static::AJAX)
-            ->assertStatus(404);
-        $this->post(admin_urls('data', static::TO, 'copyFromClick'), ['uuid' => $copy->suuid, 'copy_from_id' => $record->id], static::AJAX)
-            ->assertStatus(404);
         $this->get(admin_urls_query('data', static::TO, 'create', ['copy_from' => $copy->suuid, 'copy_from_id' => $record->id]))
             ->assertStatus(200)
             ->assertDontSee('secret 1828', false);
     }
 
-    public function testAUserWhoMayNotCreateInTheTableGetsNoDialog(): void
+    public function testANewSettingCanStartWithTheColumnsOfTheSameNamePaired(): void
     {
-        // user2 may only read custom_value_view_all
-        $copy = $this->copy(static::TO, static::FROM, true);
+        $from = $this->table(static::FROM);
+        $to = $this->table(static::TO);
+        $options = ['append_table' => true, 'include_system' => false, 'ignore_attachment' => true];
 
-        $this->actAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
-        $this->get(admin_urls_query('data', static::FROM, 'copyFromModal', ['uuid' => $copy->suuid]), static::AJAX)
-            ->assertStatus(404);
+        $pairs = \Exceedone\Exment\Controllers\CustomCopyController::getSameNameColumnPairs(
+            $from->getColumnsSelectOptions($options),
+            $to->getColumnsSelectOptions($options)
+        );
+        $this->assertNotEmpty($pairs);
+
+        $names = [];
+        foreach ($pairs as $pair) {
+            $from_column = CustomColumn::getEloquent(explode('?', $pair['from_column_target'])[0]);
+            $to_column = CustomColumn::getEloquent(explode('?', $pair['to_column_target'])[0]);
+            $this->assertInstanceOf(CustomColumn::class, $from_column);
+            $this->assertInstanceOf(CustomColumn::class, $to_column);
+            $this->assertSame($from->id, $from_column->custom_table_id);
+            $this->assertSame($to->id, $to_column->custom_table_id);
+            $this->assertSame($from_column->column_name, $to_column->column_name);
+            $this->assertNotSame(\Exceedone\Exment\Enums\ColumnType::AUTO_NUMBER, $from_column->column_type);
+            $this->assertSame(CopyColumnType::DEFAULT, $pair['copy_column_type']);
+            $names[] = $from_column->column_name;
+        }
+        $this->assertContains('text', $names);
+
+        $this->get(admin_urls_query('copy', static::FROM, 'create', ['to_custom_table' => $to->suuid, 'match_columns' => 1]))
+            ->assertStatus(200)
+            ->assertSee(exmtrans('custom_copy.match_columns.message', count($pairs)), false);
+        $this->get(admin_urls_query('copy', static::FROM, 'create', ['to_custom_table' => $to->suuid]))
+            ->assertStatus(200)
+            ->assertDontSee(exmtrans('custom_copy.match_columns.message', count($pairs)), false);
     }
 
     public function testTheCopyButtonOfTheRecordPageStillSavesTheCopy(): void
