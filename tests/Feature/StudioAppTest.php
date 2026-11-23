@@ -63,7 +63,7 @@ class StudioAppTest extends FeatureTestBase
     {
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $page = $this->get(admin_url('app'));
-        $page->assertSee(strval(json_encode(asset('vendor/exment/js/zxing.js'))), false);
+        $page->assertSee(strval(json_encode(admin_asset('vendor/exment/js/zxing.js'))), false);
         $page->assertSee(strval(json_encode(admin_url('app/code'))), false);
     }
 
@@ -75,7 +75,8 @@ class StudioAppTest extends FeatureTestBase
             $page = $this->get(admin_url('app'));
             // the drafts and the kept screens are in the store of the phone, under the user
             $page->assertSee("indexedDB.open('exment-app'", false);
-            $page->assertSee('var userKey = ' . json_encode(strval($user->getUserId())) . ';', false);
+            // the key of the navbar (NotifyNav::userKey): the site and the user
+            $page->assertSee('var userKey = ' . json_encode(md5(admin_url() . '|' . strval($user->getUserId()))) . ';', false);
             // (the texts are in the script as JSON)
             $page->assertSee(trim(strval(json_encode(exmtrans('studio.app_draft_saved'))), '"'), false);
         }

@@ -13,6 +13,13 @@ class PluginDiskService extends DiskServiceBase
     // @phpstan-ignore-next-line
     protected $now;
 
+    /**
+     * Whether this service copied the plugin from the cloud disk
+     *
+     * @var bool
+     */
+    protected $downloaded = false;
+
     // @phpstan-ignore-next-line
     public function __construct(...$args)
     {
@@ -80,6 +87,16 @@ class PluginDiskService extends DiskServiceBase
     }
 
     /**
+     * Whether the plugin is on a cloud disk and its local copy was up to date, so it was not copied.
+     * Then the local copy is read, and the cloud disk need not be asked whether the plugin is there:
+     * each question is a request to the cloud, several times per plugin per page (ISS00413).
+     */
+    public function isLocalCopyCurrent(): bool
+    {
+        return !static::isLocalDriverSetting() && !$this->downloaded && !$this->isNeedDownload();
+    }
+
+    /**
      * Whether the plugins are set to be kept on the local disk (EXMENT_DRIVER_PLUGIN, local by default).
      * Another setting is a cloud disk, whose files are copied to the local disk.
      */
@@ -139,6 +156,7 @@ class PluginDiskService extends DiskServiceBase
 
         // create updated_at file
         $localSyncDisk->put(path_join($localSyncDirName, 'updated_at.txt'), $this->plugin->updated_at->format('YmdHis'));
+        $this->downloaded = true;
 
         return true;
     }
