@@ -75,7 +75,21 @@ class ShareLinks
 
     public static function maxDays(): int
     {
-        return max(0, intval(config('exment.file_server_share_max_days', 0)));
+        return max(0, intval(config('exment.file_server_share_max_days', 90)));
+    }
+
+    /**
+     * The days until the end of a new link given no end (and the date the dialog starts
+     * with): file_server_share_default_days, within file_server_share_max_days. 0: no end.
+     */
+    public static function defaultDays(): int
+    {
+        $days = max(0, intval(config('exment.file_server_share_default_days', 30)));
+        $max = static::maxDays();
+        if ($max > 0) {
+            return $days > 0 ? min($days, $max) : $max;
+        }
+        return $days;
     }
 
     public static function basePath(): string
@@ -151,10 +165,9 @@ class ShareLinks
     {
         $max = static::maxDays();
         if ($value === null || $value === '') {
-            if ($max > 0) {
-                throw new FileServerException(exmtrans('file_server.error_share_expiry_needed', ['days' => $max]));
-            }
-            return null;
+            // no end given: the end a new link has by default
+            $days = static::defaultDays();
+            return $days > 0 ? now()->addDays($days)->endOfDay() : null;
         }
         try {
             $date = \Carbon\Carbon::parse(strval($value))->endOfDay();
