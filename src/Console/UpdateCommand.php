@@ -17,7 +17,8 @@ class UpdateCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:update';
+    protected $signature = 'exment:update
+        {--force : On a production site, update the database without asking (a pipe, cron, the update from the screen)}';
 
     /**
      * The console command description.
@@ -32,6 +33,13 @@ class UpdateCommand extends Command
      * @var string
      */
     protected $directory = '';
+
+    /**
+     * The exit code of "migrate".
+     *
+     * @var int
+     */
+    protected $migrateExitCode = 0;
 
     /**
      * Create a new command instance.
@@ -52,6 +60,10 @@ class UpdateCommand extends Command
      */
     public function handle()
     {
+        if (!$this->confirmMigrations()) {
+            return 1;
+        }
+
         // a site that had a config cache gets it again at the end (ISS02831)
         $configCached = $this->configCached();
 
@@ -60,6 +72,11 @@ class UpdateCommand extends Command
         $this->createExmentBootstrapFile();
 
         $this->initDatabase();
+        if ($this->migrateExitCode !== 0) {
+            $this->error('The database was not updated (migrate ended with ' . $this->migrateExitCode . ').');
+            $this->restoreConfigCache($configCached);
+            return $this->migrateExitCode;
+        }
 
         // the features the site has not decided on yet (they are off): told at the end
         try {
@@ -117,7 +134,13 @@ class UpdateCommand extends Command
 
         $this->prepareSkeletonMigrations();
 
-        $this->call('migrate');
+        // asked once before (confirmMigrations): "migrate" would ask again on a production
+        // site, and without a terminal its answer is "no", so the update ended with the
+        // database not updated
+        $this->migrateExitCode = intval($this->call('migrate', ['--force' => true]));
+        if ($this->migrateExitCode !== 0) {
+            return;
+        }
 
         // Remove template import if update
         // $importer = new TemplateImporter;
@@ -129,6 +152,25 @@ class UpdateCommand extends Command
         // the cache of Exment (EXMENT_USE_CACHE) may hold the settings of before the update
         \Exceedone\Exment\Model\System::clearCache();
 
+    }
+
+    /**
+     * On a production site (APP_ENV=production), the database is updated only when the
+     * person running the command says so: --force, or "yes" at the question. Without a
+     * terminal (a pipe such as "yes | php artisan exment:update", ssh without a terminal,
+     * cron) nothing can be asked: the command stops before it changes anything, and says
+     * to add --force.
+     */
+    protected function confirmMigrations(): bool
+    {
+        if (boolval($this->option('force')) || !$this->laravel->environment('production')) {
+            return true;
+        }
+        if (!$this->input->isInteractive()) {
+            $this->error('This site is in production (APP_ENV=production). To update its database without a terminal, run: php artisan exment:update --force');
+            return false;
+        }
+        return $this->confirm('This site is in production (APP_ENV=production). Update its database now?');
     }
 
     /**

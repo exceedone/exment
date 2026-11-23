@@ -19,6 +19,7 @@ class SecurityCheck
     public const ITEMS = [
         FilePermissionSecurity::class,
         AppDebugSecurity::class,
+        DisplayErrorsSecurity::class,
         AppKeySecurity::class,
         AppEnvSecurity::class,
         HttpsSecurity::class,
@@ -116,7 +117,7 @@ class SecurityCheck
     }
 
     /** The items asked on the install screen: the server's, without the database. */
-    public const INSTALL_ITEMS = ['file_permission', 'app_debug', 'app_key', 'app_env', 'https', 'headers', 'exposed_path', 'session_cookie'];
+    public const INSTALL_ITEMS = ['file_permission', 'app_debug', 'display_errors', 'app_key', 'app_env', 'https', 'headers', 'exposed_path', 'session_cookie'];
 
     /**
      * The problems shown on the install screen.
