@@ -4,6 +4,12 @@
         <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('plugin_distribution.header') }}</h3></div>
         <div class="box-body table-responsive">
             <p class="help-block">{{ exmtrans('plugin_distribution.help') }}</p>
+            <ul class="help-block" style="padding-left:20px">
+                <li>{{ exmtrans('plugin_distribution.help_plugin_page') }} (<a href="{{ admin_url('plugin') }}">{{ exmtrans('plugin.header') }}</a>)</li>
+                <li>{{ exmtrans('plugin_distribution.help_updates') }}</li>
+                <li>{{ exmtrans('plugin_distribution.help_upload') }} (<a href="https://github.com/exceedone/exment-plugins-release/tree/main/releases" target="_blank" rel="noopener">{{ exmtrans('plugin_distribution.help_release_link') }}</a>)</li>
+                <li>{{ exmtrans('plugin_distribution.help_upload_plugin_page') }}</li>
+            </ul>
             <table class="table table-condensed">
                 <thead><tr>
                     <th>{{ exmtrans('feature.name') }}</th><th class="exm-feature-col" style="width:170px">{{ exmtrans('plugin_distribution.version') }}</th>
@@ -59,6 +65,19 @@
                     @endforeach
                 </tbody>
             </table>
+            @if (!$read_only && $bundled_updates)
+                {{-- a release downloaded by hand: its zip and its signed record (the button sends the page's form as multipart to its own action) --}}
+                <div class="exm-bundled-upload" style="margin-top:10px">
+                    <h4 style="font-size:14px">{{ exmtrans('plugin_distribution.upload_header') }}</h4>
+                    <div class="form-inline">
+                        <label style="font-weight:normal;margin-right:12px">{{ exmtrans('plugin_distribution.upload_zip') }}
+                            <input type="file" name="bundled_zip" accept=".zip,application/zip" style="display:inline-block"></label>
+                        <label style="font-weight:normal;margin-right:12px">{{ exmtrans('plugin_distribution.upload_json') }}
+                            <input type="file" name="bundled_json" accept=".json,application/json" style="display:inline-block"></label>
+                        <button type="submit" class="btn btn-sm btn-default" formaction="{{ $bundled_url }}_upload" formenctype="multipart/form-data" data-feature-confirm="{{ exmtrans('plugin_distribution.confirm_upload') }}">{{ exmtrans('plugin_distribution.upload_button') }}</button>
+                    </div>
+                </div>
+            @endif
         </div>
     </div>
 @endif

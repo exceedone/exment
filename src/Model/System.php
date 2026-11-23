@@ -263,8 +263,8 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
-                $val = Cache::get($key);
+            // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -275,8 +275,8 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
-                $val = Cache::get($key);
+            // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -293,13 +293,145 @@ class System extends ModelBase
 
             // set cache
             if (boolval(config('exment.use_cache', false))) {
-                Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
+                static::store()->put(static::storeKey($key), $val, Define::CACHE_CLEAR_MINUTE);
             }
             return $val;
         }
 
         static::setRequestSession($key, $value);
-        Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
+        static::store()->put(static::storeKey($key), $value, Define::CACHE_CLEAR_MINUTE);
+    }
+
+    /** @var string|null the generation of the cache last read from the database */
+    protected static $cacheGeneration;
+
+    /** @var float when it was read (microtime) */
+    protected static $cacheGenerationReadAt = 0.0;
+
+    /**
+     * The generation of the cache: a value kept in the database (table systems) that changes
+     * each time the cache is cleared. What is kept in the cache store is kept under it, so a
+     * server whose store was not cleared (two web servers with a file cache each, a worker of
+     * the queue) no longer reads what it kept before: it sees the new generation and works the
+     * values out again. Read once for a request (again after a second, for a process that
+     * runs long).
+     */
+    public static function cacheGeneration(): string
+    {
+        $now = microtime(true);
+        if (isset(static::$cacheGeneration) && $now - static::$cacheGenerationReadAt < 1.0) {
+            return static::$cacheGeneration;
+        }
+        try {
+            $value = \DB::table((new static())->getTable())
+                ->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION)->value('system_value');
+        } catch (\Throwable $e) {
+            // no database yet (the install): nothing is shared with another server
+            $value = null;
+        }
+        static::$cacheGenerationReadAt = $now;
+        return static::$cacheGeneration = strval($value ?? '0');
+    }
+
+    /**
+     * A new generation of the cache, for every server of the site (see cacheGeneration).
+     * Inside a transaction that is rolled back, the generation of before stays.
+     */
+    public static function renewCacheGeneration(): string
+    {
+        $generation = dechex(time()) . bin2hex(random_bytes(4));
+        try {
+            \DB::table((new static())->getTable())->updateOrInsert(
+                ['system_name' => Define::SYSTEM_KEY_CACHE_GENERATION],
+                ['system_value' => $generation]
+            );
+        } catch (\Throwable $e) {
+            // no database yet (the install)
+            return static::cacheGeneration();
+        }
+        static::$cacheGenerationReadAt = microtime(true);
+        return static::$cacheGeneration = $generation;
+    }
+
+    /**
+     * The key of a value in the cache store: under the generation of the cache. Without the
+     * cache of Exment (EXMENT_USE_CACHE) nothing is read from the store, and the generation
+     * is not asked.
+     *
+     * @param string $key
+     */
+    protected static function storeKey($key): string
+    {
+        if (!boolval(config('exment.use_cache', false))) {
+            return strval($key);
+        }
+        return static::STORE_KEY_PREFIX . static::cacheGeneration() . ':' . $key;
+    }
+
+    /** what every key of the cache of Exment starts with in the cache store */
+    public const STORE_KEY_PREFIX = 'exm:';
+
+    /** the name of the store made for the cache of Exment when the cache of the site is in files */
+    public const FILE_STORE = 'exment_kept';
+
+    /**
+     * The driver of the cache store of the site (file, redis, database, array...).
+     */
+    protected static function storeDriver(): string
+    {
+        $default = strval(config('cache.default'));
+        return strval(config("cache.stores.{$default}.driver", $default));
+    }
+
+    /**
+     * Where the cache of Exment is kept: the cache store of the site. When that is files,
+     * a folder of its own inside it ("exment"), so that it can be emptied alone (the files of
+     * a store are never removed when their time is over, only when they are read).
+     *
+     * @return \Illuminate\Contracts\Cache\Repository
+     */
+    protected static function store()
+    {
+        if (static::storeDriver() !== 'file') {
+            return Cache::store();
+        }
+        if (is_null(config('cache.stores.' . static::FILE_STORE))) {
+            $default = strval(config('cache.default'));
+            $settings = (array) config("cache.stores.{$default}");
+            $path = strval($settings['path'] ?? storage_path('framework/cache/data'));
+            config(['cache.stores.' . static::FILE_STORE => array_merge($settings, [
+                'driver' => 'file',
+                'path' => $path . DIRECTORY_SEPARATOR . 'exment',
+            ])]);
+        }
+        return Cache::store(static::FILE_STORE);
+    }
+
+    /**
+     * Remove what the cache of Exment kept on this server, and only that: the rest of the
+     * cache store (the count of wrong passwords, the signal to restart the queue, the locks)
+     * is not Exment's to clear. A store that drops what is past its time itself (Redis,
+     * Memcached) needs nothing: the values of the generation before are no longer read, and
+     * go when their time is over (an hour).
+     */
+    protected static function dropKept(): void
+    {
+        try {
+            $driver = static::storeDriver();
+            if ($driver === 'file') {
+                static::store()->getStore()->flush();
+            } elseif ($driver === 'database') {
+                $default = strval(config('cache.default'));
+                $prefix = strval(Cache::store()->getStore()->getPrefix()) . static::STORE_KEY_PREFIX;
+                \DB::connection(config("cache.stores.{$default}.connection"))
+                    ->table(strval(config("cache.stores.{$default}.table", 'cache')))
+                    ->where('key', 'like', addcslashes($prefix, '%_\\') . '%')
+                    ->delete();
+            }
+        } catch (\Throwable $e) {
+            // the values of the generation before are not read in any case
+            \Log::debug('[Exment] the kept cache was not removed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -316,9 +448,12 @@ class System extends ModelBase
         }
 
         if (!isset($key)) {
-            Cache::flush();
+            // a new generation: no server of the site reads what it kept before. Then what
+            // this server kept is removed (only what is Exment's, see dropKept).
+            static::renewCacheGeneration();
+            static::dropKept();
         } else {
-            Cache::forget($key);
+            static::store()->forget(static::storeKey($key));
         }
     }
 
@@ -408,9 +543,8 @@ class System extends ModelBase
     {
         $key = static::getConfigKey($name);
         return static::cache($key, function () use ($name, $setting) {
-            $system = static::allRecordsCache(function ($record) use ($name) {
-                return $record->system_name == $name;
-            }, false)->first();
+            // by the index of system_name: a scan of every row was run for each setting (ISS00413)
+            $system = static::recordsCacheBy(['system_name'], [$name])->first();
 
             $type = array_get($setting, 'type');
             $value = null;

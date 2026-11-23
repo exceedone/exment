@@ -136,19 +136,67 @@ trait OrganizationTrait
     public function getOrganizationIdsForQuery($filterType = JoinedOrgFilterType::ALL)
     {
         return System::requestSession(sprintf(Define::SYSTEM_KEY_SESSION_ORGANIZATION_IDS_ORG, $this->id, $filterType), function () use ($filterType) {
-            $orgs = collect();
+            // only the ids are needed: they are read from the parents of all organizations, kept
+            // for the request. (The relations read the children of each organization with a query
+            // of its own: 253 queries on a form of a site with 253 organizations, GitHub #1346.)
+            $parents = static::parentIdsOfOrganizations();
+            $deeps = intval(config('exment.organization_deeps', 4));
+            $ids = [];
             if (JoinedOrgFilterType::isGetUpper($filterType)) {
-                $orgs = $orgs->merge($this->all_children_organizations());
+                $children = [];
+                foreach ($parents as $id => $parentId) {
+                    if (isset($parentId)) {
+                        $children[$parentId][] = $id;
+                    }
+                }
+                // the same order and the same depth as all_children_organizations()
+                $walk = function ($id, $deep) use (&$walk, &$ids, $children, $deeps) {
+                    if ($deep > $deeps) {
+                        return;
+                    }
+                    foreach ($children[$id] ?? [] as $childId) {
+                        $ids[] = $childId;
+                        $walk($childId, $deep + 1);
+                    }
+                };
+                $walk($this->id, 1);
             }
             if (JoinedOrgFilterType::isGetDowner($filterType)) {
-                $orgs = $orgs->merge($this->all_parent_organizations());
+                // the same as all_parent_organizations()
+                $targetId = $this->id;
+                for ($i = 0; $i < $deeps; $i++) {
+                    $parentId = $parents[$targetId] ?? null;
+                    if (!isset($parentId) || !array_key_exists($parentId, $parents)) {
+                        break;
+                    }
+                    $ids[] = $parentId;
+                    $targetId = $parentId;
+                }
             }
 
-            $orgs->push($this);
+            $ids[] = $this->id;
 
-            return $orgs->map(function ($org) {
-                return $org->id;
-            })->sort()->unique()->toArray();
+            return collect($ids)->sort()->unique()->toArray();
+        });
+    }
+
+    /**
+     * The parent of every organization the query of the model gives (id => id of the parent,
+     * or null), read once for the request. Saving or deleting an organization clears it
+     * (System::clearCache, see clearCacheTrait).
+     *
+     * @return array<int, int|null>
+     */
+    protected static function parentIdsOfOrganizations(): array
+    {
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_IDS, function () {
+            $indexName = static::getParentOrgIndexName();
+            $parents = [];
+            foreach (static::query()->orderBy('id')->toBase()->get(['id', $indexName]) as $row) {
+                $parentId = $row->{$indexName};
+                $parents[intval($row->id)] = is_numeric($parentId) ? intval($parentId) : null;
+            }
+            return $parents;
         });
     }
 

@@ -719,6 +719,12 @@ return [
                 'explain' => 'In debug mode the details of an error are shown on the page. Turn it off on a live site.',
                 'warning' => 'Debug mode is on.',
             ],
+            'display_errors' => [
+                'label' => 'PHP error display (display_errors)',
+                'explain' => 'A PHP error that happens before Exment gets it is shown on the page, with the paths of the files. Turn it off on a live site. Some rental servers turn it on in the php.ini of the domain.',
+                'warning' => 'PHP display_errors is On.',
+                'fix' => "Write this line in php.ini (on a rental server, its php.ini setting in the control panel) or in :public/.user.ini:\ndisplay_errors = Off",
+            ],
             'app_key' => [
                 'label' => 'Application key (APP_KEY)',
                 'explain' => 'The key for encryption and for signing the session. Each site needs its own.',
@@ -846,7 +852,7 @@ return [
             'config_cache' => [
                 'label' => 'Config cache (config:cache)',
                 'explain' => 'Puts the config files into one file, read once per request. When Exment writes .env (install, restore), it removes the cache itself. The route cache (route:cache) is not used: the pages of plugins would not open.',
-                'warning' => 'There is no config cache. Make it with the button below or with this command. After changing .env by hand, make it again.',
+                'warning' => 'There is no config cache. Make it with this command or with the button of the Tuning page (at the setup, also with the checkbox of "Settings Exment can make by itself"). After changing .env by hand, make it again.',
             ],
             'composer_autoload' => [
                 'label' => 'Optimized class loading (composer)',
@@ -899,7 +905,8 @@ return [
             'php_fpm' => [
                 'label' => 'PHP-FPM processes',
                 'explain' => 'With pm = ondemand and a short pm.process_idle_timeout, the first request after a quiet time waits for a new process. pm.max_children should fit the memory of the server.',
-                'not_found' => 'No file of PHP-FPM was found (nothing to do when PHP-FPM is not used)',
+                'not_read' => 'Could not read the PHP-FPM settings (on a rental server, see its control panel or ask the server administrator)',
+                'not_used' => 'The PHP of this site is not PHP-FPM (nothing to do)',
                 'memory' => 'memory :memory MB, max_children in all :children',
                 'warning_idle' => 'Some pools stop their processes soon (:pools). For a site used often, use dynamic or a longer idle time.',
                 'warning_many' => 'max_children in all is too many for the memory of the server; it runs out of memory when busy.',
@@ -951,6 +958,12 @@ return [
         'warning_confirm' => 'Some items are warning. Are you sure you want to install?',
 
         'type' => [
+            'php_version' => [
+                'label' => 'PHP version',
+                'explain' => 'The version of PHP the installed packages need. Use the same version of PHP on the web and for the commands (cron, php artisan): on a rental server the command php may be an older one.',
+                'result' => ':version (needed: :minimum or later)',
+                'ng' => 'The version of PHP is too old. Switch to PHP :minimum or later (in the control panel of the server, for example).',
+            ],
             'memory' => [
                 'label' => 'Memory usage limit',
                 'explain' => 'The upper limit of memory usage allocated to run PHP.(Recommended value: 512MB or more)',
@@ -3098,6 +3111,7 @@ return [
         'share_max_days' => 'within :days days',
         'share_message_placeholder' => 'A message to them (shown on the upload page)',
         'share_no_expiry' => 'none',
+        'share_no_end' => 'No end',
         'share_password_placeholder' => 'Password (empty: none)',
         'share_password_title' => 'Enter the password',
         'share_password_wrong' => 'The password is wrong.',
@@ -3192,6 +3206,7 @@ return [
         'rules' => 'Rules',
         'rules_none' => 'No special rules.',
         'legal_hold' => 'Legal hold (cannot be deleted)',
+        'hold_admin_only' => 'Only system administrators change the legal hold and the retention.',
         'legal_hold_workspace' => 'Put the whole workspace on legal hold (nothing can be deleted)',
         'held_help' => 'This is on legal hold: it cannot be deleted, and old versions are kept.',
         'error_legal_hold' => 'This is on legal hold and cannot be deleted.',
@@ -3888,13 +3903,39 @@ return [
         'dialog_description' => "Based on this data of %s, we will create the %s data. - Register in the data of the %s to be created, please fill in the value.",
 
         'options' => [
+            'use_on_create' => 'Button on the create form',
+            'create_label_type' => 'Brackets of the button on the create form',
+            'create_label' => 'Label of the button on the create form',
             'child_copy' => 'Child Table Setting',
             'child_copy_format' => '%s（%s → %s）',
         ],
 
         'help' => [
             'to_custom_table_view_name' => 'Please select copy target table.',
+            'use_on_create' => 'When on, the create form of the copy-to table has a "Copy from" button. With it the user searches the list of this table, picks a record, and starts from its values. Nothing is saved until the user saves.',
+            'create_label_type' => 'What the brackets of the "Copy from" button say. Auto: "Copy from" ("Copy from (copy-from table name)" when two or more settings put this button on the same table). Copy-from table name: always "Copy from (copy-from table name)". Label: "Copy from (the label below)".',
+            'create_label' => 'The text in the brackets. For example "Last year" makes "Copy from (Last year)".',
             'child_copy' => 'Copy the child table data linked to the target data together. Data copy settings between child tables registered in advance (those without input dialog settings) are displayed as candidates.',
+        ],
+
+        'create_label_type_options' => [
+            'auto' => 'Auto',
+            'table' => 'Copy-from table name',
+            'label' => 'Label',
+        ],
+
+        'match_columns' => [
+            'button' => 'Pair the columns of the same name',
+            'help' => 'When on, the columns whose name (column_name) is the same in both tables are put in "Copy column settings" from the start. You can change them afterwards.',
+            'confirm' => 'This screen opens again with the columns of the same name paired. What you have typed is lost. Continue?',
+            'message' => '%s pairs of columns of the same name were put in the copy column settings. Check them, then save.',
+            'message_none' => 'No columns have the same name. Add the copy column settings by hand.',
+        ],
+
+        'copy_from' => [
+            'button' => 'Copy from',
+            'button_table' => 'Copy from %s',
+            'message' => 'The values of "%2$s" of %1$s were copied. Change what you need, then save.',
         ],
 
         'message' => [
@@ -4908,6 +4949,18 @@ return [
         'security_badge' => 'Security fix',
         'header' => 'Free official plugins (bundled with Exment)',
         'help' => 'The official plugins that come with Exment. Nothing is installed or loaded (no tables are made) until you press "Use". When a newer version is there, it is only shown (never installed by itself).',
+        'help_plugin_page' => 'After you press "Use", the plugin is also shown in the Plugins page. Its settings are made there.',
+        'help_updates' => 'Newer versions come when Exment is updated.',
+        'help_upload' => 'To get the newest version at once, download the zip and the .json of the same name (the release information) from the place where it is published, and upload them in "Install a downloaded version" below. The signature is checked first, and the previous version is kept.',
+        'help_upload_plugin_page' => 'You can also upload the zip in the Plugins page, but then the signature is not checked and the previous version is not kept.',
+        'upload_header' => 'Install a downloaded version',
+        'upload_zip' => 'The zip of the plugin',
+        'upload_json' => 'The release information (.json)',
+        'upload_button' => 'Check and install',
+        'confirm_upload' => 'Check the signature and install this plugin?',
+        'error_upload_files' => 'Choose both the zip and the .json.',
+        'error_not_newer' => 'It is not newer than the installed version (:detail). To go back, use "Back to the previous version".',
+        'help_release_link' => 'Where it is published',
         'version' => 'Version',
         'installed_version' => 'This site: :version',
         'status_not_installed' => 'Not used yet.',

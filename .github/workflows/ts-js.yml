@@ -9,6 +9,11 @@ on:
       - 'src/Web/ts/**'
       - 'public/vendor/exment/js/**'
 
+# a newer push to the pull request stops the run of the push before (fewer runs waiting for a runner)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   ts-js:
     runs-on: ubuntu-24.04

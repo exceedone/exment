@@ -29,6 +29,9 @@ class SystemRequireForm
     // @phpstan-ignore-next-line
     public function post()
     {
+        // the installer does not run again on an installed site
+        InstalledState::refuseIfInstalled();
+
         if (boolval(request()->get('refresh'))) {
             return redirect(admin_url('install'));
         }

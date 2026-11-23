@@ -16,6 +16,7 @@ class SystemRequireList
 
     // @phpstan-ignore-next-line
     protected static $requireClassesCommand = [
+        PhpVersion::class,
         MemorySize::class,
         MaxInputVars::class,
         FileUploadSize::class,
@@ -27,6 +28,7 @@ class SystemRequireList
 
     // @phpstan-ignore-next-line
     protected static $requireClassesWeb = [
+        PhpVersion::class,
         MemorySize::class,
         MaxInputVars::class,
         FileUploadSize::class,
@@ -38,6 +40,7 @@ class SystemRequireList
 
     // @phpstan-ignore-next-line
     protected static $requireClassesInstallWeb = [
+        PhpVersion::class,
         MemorySize::class,
         MaxInputVars::class,
         FileUploadSize::class,

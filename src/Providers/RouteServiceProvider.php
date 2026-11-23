@@ -231,6 +231,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('feature', 'FeatureController@store');
             $router->post('feature/notices_known', 'FeatureController@noticesKnown');
             $router->post('feature/bundled/{uuid}/{action}', 'FeatureController@bundled')->where('action', 'install|rollback');
+            $router->post('feature/bundled_upload', 'FeatureController@bundledUpload');
             $router->get('studio', 'StudioController@index');
             $router->get('studio/create', 'StudioController@create');
             $router->post('studio', 'StudioController@store');

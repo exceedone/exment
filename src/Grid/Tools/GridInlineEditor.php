@@ -704,6 +704,48 @@ HTML;
     }
 
     /**
+     * For a list: what isFormEditableColumn() answers, with the part of the
+     * row (whether it can be changed from a screen, and the columns of the
+     * form it opens with) worked out once per row, not once per cell. Only
+     * for showing the list: a write asks isFormEditableColumn().
+     *
+     * @var \WeakMap<CustomValue, array<int|string, bool>|false>|null
+     */
+    protected static ?\WeakMap $listRows = null;
+
+    /**
+     * @var \WeakMap<CustomColumn, bool>|null
+     */
+    protected static ?\WeakMap $listInitOnly = null;
+
+    public static function isFormEditableColumnInList(CustomTable $custom_table, CustomValue $custom_value, CustomColumn $custom_column): bool
+    {
+        if ($custom_column->custom_table_id != $custom_table->id) {
+            return false;
+        }
+        static::$listRows ??= new \WeakMap();
+        static::$listInitOnly ??= new \WeakMap();
+        if (!isset(static::$listRows[$custom_value])) {
+            static::$listRows[$custom_value] = static::isScreenEditableRecord($custom_value)
+                ? static::getFormEditableColumns(static::getRecordForm($custom_table, $custom_value))
+                : false;
+        }
+        $columns = static::$listRows[$custom_value];
+        if ($columns === false) {
+            return false;
+        }
+        if (isset($custom_value->id)) {
+            if (!isset(static::$listInitOnly[$custom_column])) {
+                static::$listInitOnly[$custom_column] = boolval($custom_column->getOption('init_only'));
+            }
+            if (static::$listInitOnly[$custom_column]) {
+                return false;
+            }
+        }
+        return array_key_exists($custom_column->id, $columns);
+    }
+
+    /**
      * Whether at least one form a record of this table can open with offers
      * an input for the column: the default form or a form some priority
      * picks. This is the column-wide answer - the pen in the header, the
