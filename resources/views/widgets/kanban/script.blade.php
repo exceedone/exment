@@ -358,7 +358,7 @@ $(function () {
         $.each(D.assignees, function (i, o) { if (o.key === key) { text = o.label; } });
         if (text) { return text; }
         $.each(D.cards, function (i, c) {
-            if (!text && c.values[D.assignee_column] === key) { text = c.texts[D.assignee_column]; }
+            if (!text && c.values[D.assignee_column] === key) { text = textOf(c, D.assignee_column); }
         });
         return text || key;
     }
@@ -488,7 +488,7 @@ $(function () {
             '<span class="kb-progress-txt">' + Math.round(pct) + '%</span></div>';
     }
     function badgeHTML(c) {
-        var text = D.badge_column ? c.texts[D.badge_column] : '';
+        var text = D.badge_column ? textOf(c, D.badge_column) : '';
         if (!text) { return ''; }
         return '<span class="kb-badge" title="' + esc(D.badge_label) + '">' + esc(text) + '</span>';
     }
@@ -568,7 +568,7 @@ $(function () {
             // the chip is red. Both on the card is one line more than it needs
             // seconds on a deadline are never read, and on a card they cost a
             // whole line once the assignee is beside them
-            var dueText = ((D.limit_column && c.texts[D.limit_column]) || '')
+            var dueText = ((D.limit_column && textOf(c, D.limit_column)) || '')
                 .replace(/(\d{1,2}:\d{2}):\d{2}(\D*)$/, '$1$2');
             due = '<span class="kb-sla ' + sla.cls + '" title="' + esc(sla.txt) + '">' +
                 '<i class="fa fa-clock-o"></i>' + esc(dueText || sla.txt) + '</span>';
@@ -587,7 +587,7 @@ $(function () {
         var who = '';
         if (D.assignee_column && !assigneeInFields) {
             if (c.values[D.assignee_column]) {
-                who = avatarHTML(c.texts[D.assignee_column]);
+                who = avatarHTML(textOf(c, D.assignee_column));
             } else {
                 who = '<span class="kb-unassigned"><i class="fa fa-user-plus"></i>' + esc(L.unassigned) + '</span>';
                 var ai = aiMap[c.id];
@@ -702,7 +702,14 @@ $(function () {
         if (keyword) {
             var q = keyword.toLowerCase();
             var hay = (c.label + ' ' + c.title);
-            $.each(c.texts, function (k, v) { hay += ' ' + v; });
+            // every column of the card, its text or the label put back from its value,
+            // and every value of a column of several
+            $.each(c.values, function (k) { hay += ' ' + textOf(c, k); });
+            $.each(c.multi || {}, function (k, list) {
+                if (c.texts[k] === undefined) {
+                    $.each(list || [], function (i, v) { hay += ' ' + labelOfValue(k, v); });
+                }
+            });
             if (hay.toLowerCase().indexOf(q) < 0) { return false; }
         }
         var ok = true;
@@ -2580,6 +2587,13 @@ $(function () {
     var navigating = false;
     $(document).off('pjax:send.kblane').on('pjax:send.kblane', function () { navigating = true; });
 
+    // the text of a column of a card: sent only when it differs from the value and
+    // the board cannot put the label back from its lists (KanbanGrid::buildCards)
+    function textOf(c, name) {
+        if (!name || !c) { return ''; }
+        if (c.texts && c.texts[name] !== undefined) { return c.texts[name]; }
+        return labelOfValue(name, (c.values || {})[name]);
+    }
     function labelOfValue(name, value) {
         if (value === '' || value == null) { return ''; }
         var label = value;
@@ -2656,7 +2670,7 @@ $(function () {
         if (tags) { b += '<div class="kb-drawer-tags">' + tags + '</div>'; }
         b += '<dl class="kb-fields">';
         b += '<dt>' + esc(labelOfColumn(D.group_column)) + '</dt><dd>' +
-            esc(card.texts[D.group_column] || D.empty_label) + '</dd>';
+            esc(textOf(card, D.group_column) || D.empty_label) + '</dd>';
         $.each(card.fields, function (i, f) {
             // the drawer already prints the column name next to the value, so
             // an unstyled field shows the value alone rather than the

@@ -62,8 +62,10 @@ class File extends CustomItem
         // get image url
         $url = ExmentFile::getUrl($this->fileValue($v));
         $file = ExmentFile::getData($this->fileValue($v));
-        if (!isset($url)) {
-            return $url;
+        if (!isset($url) || !isset($file)) {
+            // the value points at a file that is gone (as in the data change history after the
+            // data maintenance deleted it, #1829)
+            return is_nullorempty($this->fileValue($v)) ? null : esc_html(exmtrans('common.file_deleted'));
         }
 
         return \Exment::getUrlTag($url, $file->filename, UrlTagType::BLANK, [], [

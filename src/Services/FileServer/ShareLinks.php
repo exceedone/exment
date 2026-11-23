@@ -75,7 +75,21 @@ class ShareLinks
 
     public static function maxDays(): int
     {
-        return max(0, intval(config('exment.file_server_share_max_days', 0)));
+        return max(0, intval(config('exment.file_server_share_max_days', 90)));
+    }
+
+    /**
+     * The days until the end of a new link given no end (and the date the dialog starts
+     * with): file_server_share_default_days, within file_server_share_max_days. 0: no end.
+     */
+    public static function defaultDays(): int
+    {
+        $days = max(0, intval(config('exment.file_server_share_default_days', 30)));
+        $max = static::maxDays();
+        if ($max > 0) {
+            return $days > 0 ? min($days, $max) : $max;
+        }
+        return $days;
     }
 
     public static function basePath(): string
@@ -127,7 +141,8 @@ class ShareLinks
         $message = trim(strval(array_get($options, 'message', '')));
 
         $link = new FileShareLink([
-            'token' => Str::random(static::TOKEN_LENGTH),
+            'token' => FileShareLink::hashToken($token = Str::random(static::TOKEN_LENGTH)),
+            'token_encrypted' => \Illuminate\Support\Facades\Crypt::encryptString($token),
             'workspace_id' => $workspace->id,
             'node_id' => $node->id,
             'created_user_id' => $access->userId(),
@@ -151,10 +166,9 @@ class ShareLinks
     {
         $max = static::maxDays();
         if ($value === null || $value === '') {
-            if ($max > 0) {
-                throw new FileServerException(exmtrans('file_server.error_share_expiry_needed', ['days' => $max]));
-            }
-            return null;
+            // no end given: the end a new link has by default
+            $days = static::defaultDays();
+            return $days > 0 ? now()->addDays($days)->endOfDay() : null;
         }
         try {
             $date = \Carbon\Carbon::parse(strval($value))->endOfDay();
@@ -221,7 +235,7 @@ class ShareLinks
         if (!static::enabled() || strlen($token) !== static::TOKEN_LENGTH || preg_match('/\A[A-Za-z0-9]+\z/', $token) !== 1) {
             return null;
         }
-        $link = FileShareLink::query()->where('token', $token)->first();
+        $link = FileShareLink::query()->where('token', FileShareLink::hashToken($token))->first();
         if (!isset($link) || isset($link->revoked_at) || $link->isExpired()) {
             return null;
         }
@@ -229,6 +243,7 @@ class ShareLinks
         if ($link->isUsedUp() && !static::isCounted($link)) {
             return null;
         }
+        $link->setPlainToken($token);
         $node = $link->node;
         $workspace = $link->workspace;
         if (!isset($node) || !isset($workspace) || $node->isTrashed()) {

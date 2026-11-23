@@ -12,6 +12,11 @@ env:
   PHP_CS_FIXER_VERSION: 3.94.2
   PHP_CS_FIXER_SHA256: aaafc3a53b877c6741ddccac0a783f0fb73fff5f84fba5870d5dd306ee22dde0
 
+# a newer push to the pull request stops the run of the push before (fewer runs waiting for a runner)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   php-cs-fixer:
     runs-on: ubuntu-24.04
