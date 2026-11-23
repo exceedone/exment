@@ -548,6 +548,56 @@ class KanbanGrid extends GridBase
      *        may write, see getWritableColumns()
      * @return array<int, array<string, mixed>>
      */
+    /**
+     * The records the cards point to (a status, a parent issue, a user...), read at
+     * once for each table they are in. Each card asked for its own, one query per
+     * value not read yet: 174 queries on a board of 1,300 issues.
+     *
+     * @param \Illuminate\Support\Collection<int, mixed> $records
+     * @param array<string, CustomColumn> $value_columns
+     * @param array<int, array<string, mixed>> $card_fields
+     */
+    protected function prefetchLinkedRecords($records, array $value_columns, array $card_fields): void
+    {
+        $columns = $value_columns;
+        foreach ($card_fields as $card_field) {
+            $column = $card_field['custom_column'] ?? null;
+            if ($column instanceof CustomColumn && intval($column->custom_table_id) === intval($this->custom_table->id)) {
+                $columns[$column->column_name] = $column;
+            }
+        }
+        $ids = [];
+        $tables = [];
+        foreach ($columns as $column) {
+            if (!ColumnType::isSelectTable($column->column_type)) {
+                continue;
+            }
+            $target = $column->select_target_table;
+            if (!isset($target)) {
+                continue;
+            }
+            $tables[$target->id] = $target;
+            foreach ($records as $record) {
+                $value = array_get($record, 'value.' . $column->column_name);
+                if (is_nullorempty($value)) {
+                    continue;
+                }
+                foreach ((array) toArray($value) as $id) {
+                    if (is_numeric($id)) {
+                        $ids[$target->id][] = $id;
+                    }
+                }
+            }
+        }
+        foreach ($ids as $tableId => $list) {
+            try {
+                $tables[$tableId]->setCustomValueModels(array_values(array_unique($list)));
+            } catch (\Throwable $e) {
+                // the cards read them one by one, as before
+            }
+        }
+    }
+
     protected function buildCards($records, array $value_columns, array $card_fields, $title_column, $workflow = null, array $statuses = [], $cover_column = null, $labels_column = null, array $writable_columns = [])
     {
         // the moves are only ever used by drag and drop and by the drawer
@@ -590,6 +640,8 @@ class KanbanGrid extends GridBase
                 $multiple_columns[$column_name] = true;
             }
         }
+
+        $this->prefetchLinkedRecords($records, $value_columns, $card_fields);
 
         $cards = [];
         foreach ($records as $record) {
