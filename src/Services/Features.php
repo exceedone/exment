@@ -107,6 +107,13 @@ class Features
     protected static ?bool $routesCachedForTests = null;
 
     /**
+     * The stored settings and their decoded array (settings())
+     *
+     * @var array{0: mixed, 1: array<string, mixed>}|null
+     */
+    protected static ?array $settingsMemo = null;
+
+    /**
      * The features of Exment itself (the file server when Exment has it).
      *
      * - endpoints: the first part of the URL after the prefix of the admin
@@ -551,10 +558,16 @@ class Features
      */
     public static function settings(): array
     {
-        $value = System::features();
+        $raw = System::features();
+        // asked several times for each row of the menu: decoded once while the stored value is the same (ISS00413)
+        if (static::$settingsMemo !== null && static::$settingsMemo[0] === $raw) {
+            return static::$settingsMemo[1];
+        }
         // json_decode_ex may give objects
-        $value = json_decode(strval(json_encode($value ?? [])), true);
-        return is_array($value) ? $value : [];
+        $value = json_decode(strval(json_encode($raw ?? [])), true);
+        $value = is_array($value) ? $value : [];
+        static::$settingsMemo = [$raw, $value];
+        return $value;
     }
 
     /**
@@ -930,5 +943,6 @@ class Features
         static::$plugins = null;
         static::$definitions = null;
         static::$pluginsBooted = false;
+        static::$settingsMemo = null;
     }
 }

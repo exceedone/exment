@@ -50,6 +50,18 @@ class SiteProbe
         }
     }
 
+    /**
+     * A path of the admin pages, with the prefix of this site (ADMIN_ROUTE_PREFIX; empty,
+     * the default of a new site from 7.2.1: none), from the address of the site:
+     * "admin/auth/login", or "auth/login" without a prefix.
+     */
+    public static function adminPath(string $path): string
+    {
+        $prefix = trim(strval(config('admin.route.prefix')), '/');
+        $path = ltrim($path, '/');
+        return $prefix === '' ? $path : $prefix . '/' . $path;
+    }
+
     public static function clear(): void
     {
         static::$cache = [];

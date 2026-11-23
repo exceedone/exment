@@ -16,6 +16,9 @@ class TuningServerChecksTest extends UnitTestBase
     /** @var array<string> */
     protected $tempFiles = [];
 
+    /** @var array<string> */
+    protected $tempDirs = [];
+
     /**
      * @return void
      */
@@ -30,6 +33,11 @@ class TuningServerChecksTest extends UnitTestBase
             @unlink($file);
         }
         Tuning\ScheduleStatus::$path = null;
+        Tuning\CliPhp::$binary = null;
+        Tuning\CliPhp::$sapi = null;
+        foreach (array_reverse($this->tempDirs) as $dir) {
+            @rmdir($dir);
+        }
         parent::tearDown();
     }
 
@@ -55,7 +63,7 @@ class TuningServerChecksTest extends UnitTestBase
         $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
         $this->assertSame(exmtrans('tuning.item.schedule.never'), $check->getResultText());
         $this->assertSame(exmtrans('tuning.item.schedule.warning'), $check->getMessage());
-        $this->assertStringContainsString('nice -n 15 php artisan schedule:run', (string) $check->getFixText());
+        $this->assertStringContainsString('nice -n 15 ' . Tuning\CliPhp::path() . ' artisan schedule:run', (string) $check->getFixText());
 
         $now = time();
         Tuning\ScheduleStatus::record('exment:maintenance tick', 0.5, $now - Tuning\ScheduleTuning::STALE_SECONDS - 60);
@@ -63,6 +71,46 @@ class TuningServerChecksTest extends UnitTestBase
         $check->now = $now;
         $this->assertFalse($check->alive());
         $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
+    }
+
+    /**
+     * The cron line has the command line PHP of the site's version: the "php" of cron may
+     * be another (an older one on a rental server). From the web (php-fpm), it is the php
+     * next to it; not found: "php".
+     *
+     * @return void
+     */
+    public function testTheCronLineHasThePhpOfTheSite()
+    {
+        if (DIRECTORY_SEPARATOR !== '/') {
+            $this->markTestSkipped('the paths of php-fpm are of Linux');
+        }
+        $root = sys_get_temp_dir() . '/exment_clip_' . uniqid();
+        foreach ([$root, $root . '/sbin', $root . '/bin'] as $dir) {
+            mkdir($dir);
+            $this->tempDirs[] = $dir;
+        }
+        $fpm = $this->tempFiles[] = $root . '/sbin/php-fpm';
+        $cli = $this->tempFiles[] = $root . '/bin/php';
+        touch($fpm);
+        touch($cli);
+        chmod($cli, 0755);
+
+        Tuning\CliPhp::$binary = $fpm;
+        Tuning\CliPhp::$sapi = 'fpm-fcgi';
+        $this->assertSame($cli, Tuning\CliPhp::path());
+        $this->assertStringContainsString("nice -n 15 {$cli} artisan schedule:run", (string) (new Tuning\ScheduleTuning())->getFixText());
+        $this->assertStringContainsString("{$cli} artisan queue:work --stop-when-empty", (string) (new Tuning\QueueTuning())->getFixText());
+
+        // on the command line: the PHP running it
+        Tuning\CliPhp::$sapi = 'cli';
+        $this->assertSame($fpm, Tuning\CliPhp::path());
+
+        // nothing next to it
+        unlink($cli);
+        Tuning\CliPhp::$sapi = 'fpm-fcgi';
+        $this->assertSame('php', Tuning\CliPhp::path());
+        $this->assertStringContainsString('nice -n 15 php artisan schedule:run', (string) (new Tuning\ScheduleTuning())->getFixText());
     }
 
     /**
@@ -145,11 +193,20 @@ class TuningServerChecksTest extends UnitTestBase
         $this->assertSame(3600, Tuning\PhpFpmTuning::seconds('60m'));
         $this->assertSame(3600, Tuning\PhpFpmTuning::seconds('1h'));
 
-        // no PHP-FPM: nothing to advise
+        // no pool read: nothing to advise; "not used" only when the PHP of the site is not PHP-FPM
         $check = new Tuning\PhpFpmTuning();
         $check->files = [];
+        $check->sapi = 'apache2handler';
         $this->assertSame(SystemRequireResult::OK, $check->checkResult());
-        $this->assertSame(exmtrans('tuning.item.php_fpm.not_found'), $check->getResultText());
+        $this->assertSame(exmtrans('tuning.item.php_fpm.not_used'), $check->getResultText());
+        // PHP-FPM whose files cannot be read (a rental server): not "not relevant"
+        $check = new Tuning\PhpFpmTuning();
+        $check->files = [];
+        $check->sapi = 'fpm-fcgi';
+        $this->assertSame(SystemRequireResult::OK, $check->checkResult());
+        $this->assertSame(exmtrans('tuning.item.php_fpm.not_read'), $check->getResultText());
+        $check->sapi = 'cli';
+        $this->assertSame(exmtrans('tuning.item.php_fpm.not_read'), $check->getResultText(), 'the command cannot tell');
 
         // ondemand with FPM's default idle (10s): the first request after a quiet time waits
         $check = new Tuning\PhpFpmTuning();
