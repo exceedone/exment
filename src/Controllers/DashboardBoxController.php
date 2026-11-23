@@ -13,9 +13,11 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\DashboardBoxType;
+use Exceedone\Exment\Enums\DashboardBoxSystemPage;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\DashboardBoxItems\SystemItems;
 use Exceedone\Exment\DashboardBoxItems\ChartItem;
 use Exceedone\Exment\Services\Dashboard\ChartColors;
 use Exceedone\Exment\Services\Dashboard\DashboardFilter;
@@ -26,6 +28,36 @@ class DashboardBoxController extends AdminControllerBase
     use HasResourceActions {
         destroy as resourceDestroy;
     }
+
+    /**
+     * How long the browser may reuse a cached dashboard box body, in seconds.
+     *
+     * Every call to getHtml() pays the full framework boot cost (~0.19s measured on the
+     * multi-tenant host) before a single query runs, and a dashboard fires one call per box
+     * in parallel on every page load. Letting the browser reuse a recent answer removes that
+     * cost entirely for boxes whose content barely changes.
+     *
+     * Kept deliberately short: the user can still be looking at content up to this many
+     * seconds old, and the only way to force a refresh is the reload button on the box.
+     */
+    public const SYSTEM_BOX_CACHE_SECONDS = 60;
+
+    /**
+     * System box kinds whose body is safe to cache.
+     *
+     * Whitelist, not blacklist: a new system item added later must be reviewed before it
+     * gets caching, rather than silently inheriting it.
+     *
+     * Excluded on purpose:
+     *   - NotifyNavbar: the notification list, changes as soon as anything happens.
+     *   - Barcode: an interactive scanning tool, not a rendered document.
+     */
+    protected const CACHEABLE_SYSTEM_ITEMS = [
+        SystemItems\Guideline::class,
+        SystemItems\News::class,
+        SystemItems\Editor::class,
+        SystemItems\Html::class,
+    ];
     // @phpstan-ignore-next-line
     protected $dashboard;
     // @phpstan-ignore-next-line
@@ -221,12 +253,51 @@ class DashboardBoxController extends AdminControllerBase
         }
 
         // get dashboard box
-        return [
+        $result = [
             'header' => $header ?? null,
             'body' => $body ?? null,
             'footer' => $footer ?? null,
             'suuid' => $suuid,
         ];
+
+        // Let the browser reuse near-static boxes instead of rebooting the framework for them.
+        // "private" is mandatory: the body is rendered for one signed-in user and must never be
+        // stored by the load balancer or any shared proxy sitting in front of the tenant.
+        if (isset($box) && $this->isCacheableBox($box)) {
+            return response()->json($result)
+                ->header('Cache-Control', 'private, max-age=' . self::SYSTEM_BOX_CACHE_SECONDS);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Whether this box's body may be cached by the browser.
+     *
+     * Only "system" boxes qualify, and only those listed in CACHEABLE_SYSTEM_ITEMS. Boxes that
+     * show live business data (list, chart, calendar, plugin) are never cached: showing stale
+     * records is far worse than paying for a fresh request.
+     *
+     * @param  \Exceedone\Exment\Model\DashboardBox  $box
+     * @return bool
+     */
+    protected function isCacheableBox($box)
+    {
+        if (DashboardBoxType::getEnumValue($box->dashboard_box_type) != DashboardBoxType::SYSTEM) {
+            return false;
+        }
+
+        // Resolve the concrete system item the same way SystemItem::__construct does, by looking
+        // up target_system_id. Do NOT use the DashboardBoxSystemPage constants here: HTML and
+        // NOTIFY_NAVBAR are both declared as 4 while the options array gives notify_navbar id 5,
+        // so the constants would match the wrong item.
+        $target_system_id = array_get($box, 'options.target_system_id');
+        // @phpstan-ignore-next-line
+        $item = collect(DashboardBoxSystemPage::options())->first(function ($value) use ($target_system_id) {
+            return array_get($value, 'id') == $target_system_id;
+        });
+
+        return in_array(array_get($item, 'class'), self::CACHEABLE_SYSTEM_ITEMS, true);
     }
 
     /**

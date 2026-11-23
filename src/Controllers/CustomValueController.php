@@ -2096,8 +2096,19 @@ EOT);
             System::setRequestSession(Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, $form_data_type);
         }
 
-        // set form
-        $this->custom_form = $this->custom_table->getPriorityForm($id);
+        // set form. getPriorityForm() loads a record + evaluates form-priority conditions; it is
+        // only needed for form pages (create/edit/show/delete/import) and for one-record-table grids
+        // (which render a form). Skip it for plain list/export pages where custom_form is never
+        // dereferenced — see the only $this->custom_form usages (show_item / form_item).
+        $skipForm = in_array($formActionType, [
+            CustomValuePageType::GRID,
+            CustomValuePageType::GRIDMODAL,
+            CustomValuePageType::EXPORT,
+        ], true) && !$this->custom_table->isOneRecord();
+
+        if (!$skipForm) {
+            $this->custom_form = $this->custom_table->getPriorityForm($id);
+        }
     }
 
     /**
