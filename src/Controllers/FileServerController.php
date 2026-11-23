@@ -416,6 +416,7 @@ class FileServerController extends AdminControllerBase
             'updated_user' => $this->userName($item->updated_user_id),
             'share_enabled' => ShareLinks::enabled(),
             'share_max_days' => ShareLinks::maxDays(),
+            'share_default_days' => ShareLinks::defaultDays(),
             'links' => $this->linkRows($ws, $item),
             'can_share' => ShareLinks::enabled() && $level >= Level::EDIT,
             // as ShareLinks::create: a request link needs EDIT
@@ -1120,6 +1121,8 @@ class FileServerController extends AdminControllerBase
                     : ($link->isExpired() ? exmtrans('file_server.share_state_expired')
                     : ($link->isUsedUp() ? exmtrans('file_server.share_state_used_up') : exmtrans('file_server.share_state_active'))),
                 'expires_at' => $link->expires_at,
+                // a link with no end (made before the end was needed): marked for who manages it
+                'no_expiry' => !isset($link->expires_at) && $manages,
                 'password' => $link->hasPassword(),
                 'allow_download' => $link->allow_download,
                 'access' => $link->access_count . (isset($link->max_access) ? ' / ' . $link->max_access : ''),

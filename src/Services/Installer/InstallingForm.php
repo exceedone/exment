@@ -17,6 +17,23 @@ class InstallingForm
         return view('exment::install.installing');
     }
 
+    /**
+     * SESSION_PATH: the folder of the site when it is under one (https://example.com/exment),
+     * so that its cookie is not sent to the other sites of the domain. Kept when .env has it.
+     *
+     * @return array<string, string>
+     */
+    public static function sessionPath(?string $basePath = null): array
+    {
+        // the install: the config is not cached yet, .env is read
+        // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
+        if (!is_null(env('SESSION_PATH'))) {
+            return [];
+        }
+        $basePath = rtrim($basePath ?? request()->getBasePath(), '/');
+        return $basePath === '' ? [] : ['SESSION_PATH' => $basePath];
+    }
+
     // @phpstan-ignore-next-line
     public function post()
     {
@@ -34,7 +51,7 @@ class InstallingForm
             $merged = array_merge(InstallService::getInputParams(), [
                 'APP_DEBUG' => boolval(request()->get('APP_DEBUG')) ? 'true' : 'false',
                 'ADMIN_ROUTE_PREFIX' => $prefix,
-            ]);
+            ], static::sessionPath());
             $this->setEnv($merged);
             // with a config cache (php artisan config:cache), .env is not read: the
             // database and the URL prefix just written would not apply
@@ -57,7 +74,8 @@ class InstallingForm
         }
 
         try {
-            \Artisan::call('key:generate');
+            // --force: on a production site key:generate asks, and stops without a terminal
+            \Artisan::call('key:generate', ['--force' => true]);
             \Artisan::call('passport:keys');
             $exitCode = \Artisan::call('exment:install');
             if ($exitCode !== 0) {
