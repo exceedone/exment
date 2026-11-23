@@ -692,7 +692,7 @@ class DashboardController extends AdminControllerBase
         $versionCheck = \Exment::checkLatestVersion();
         if ($versionCheck === SystemVersion::HAS_NEXT) {
             list($latest, $current) = \Exment::getExmentVersion();
-            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. admin_url('system').'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
+            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. esc_html(\Exment::versionUpdateUrl()).'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
         }
     }
 

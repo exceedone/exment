@@ -439,6 +439,8 @@ class PluginInstaller
             $plugin->{$key} = array_get($json, $key);
         }
         $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
+        // an application sets its own (ScreenExtensions plugin.installing)
+        \Exceedone\Exment\Services\ScreenExtensions::call('plugin.installing', $plugin, $json);
 
         // set options
         $options = array_get($plugin, 'options', []);
