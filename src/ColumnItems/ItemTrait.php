@@ -190,7 +190,12 @@ trait ItemTrait
     protected function _getMultipleValue($singleValueCallback)
     {
         $isList = is_list($this->value);
-        $values = $isList ? $this->value : [$this->value];
+        if (!$isList) {
+            // one value (most cells of a list or a board): the same answer without a collection
+            $item = $singleValueCallback($this->value);
+            return is_nullorempty($item) ? null : $item;
+        }
+        $values = $this->value;
 
         $items = [];
         foreach ($values as $value) {
@@ -405,12 +410,12 @@ trait ItemTrait
     protected function getTargetCustomValue($custom_value)
     {
         // if summary, cannot get view_pivot_column, so return $custom_value.
-        if (array_boolval($this->options, 'summary')) {
+        if (!empty($this->options['summary'])) {
             return $custom_value;
         }
 
         // if options has "view_pivot_column", get select_table's custom_value first
-        if (!is_nullorempty($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+        if (!is_nullorempty($this->options['view_pivot_column'] ?? null) && !is_nullorempty($custom_value)) {
             return $this->getViewPivotCustomValue($custom_value, $this->options);
         }
 

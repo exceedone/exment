@@ -681,6 +681,12 @@ class KanbanGrid extends GridBase
 
         $this->prefetchLinkedRecords($records, $value_columns, $card_fields);
 
+        // the address of a record is the address of its table and its id (CustomValue::getUrl
+        // without options): the address of the table is worked out once, not for each card.
+        // A document has an address of its own.
+        $url_base = $this->custom_table->table_name == SystemTableName::DOCUMENT
+            ? null : admin_urls('data', $this->custom_table->table_name);
+
         $cards = [];
         foreach ($records as $record) {
             $values = [];
@@ -784,7 +790,7 @@ class KanbanGrid extends GridBase
                 // has already been read once for this record
                 'title' => isset($title_column)
                     ? strval(array_get($texts, $title_column->column_name, '')) : '',
-                'url' => $record->getUrl(),
+                'url' => isset($url_base) ? url_join($url_base, $record->id) : $record->getUrl(),
                 'values' => $values,
                 // only the columns that carry more than one value, so a board
                 // of single-value columns pays nothing for this
