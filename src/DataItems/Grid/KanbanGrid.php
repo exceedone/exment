@@ -185,12 +185,16 @@ class KanbanGrid extends GridBase
             // leaves whole lanes empty when the data is lopsided - and the
             // lane that holds 2,000 finished records would eat the budget of
             // the lanes that hold the work.
-            $records = collect();
             $keys = $this->keysWithRecords($group_column, $workflow, $hide_keys, $this->getBoardKeys($group_column, $workflow, $hide_keys));
-            foreach ($keys as $key) {
-                $records = $records->merge(
-                    $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key)->take($col_count)->get()
-                );
+            // the first rows of every column in one query, where the database can
+            $records = $this->windowedColumnRecords($group_column, $workflow, $hide_keys, $keys, $col_count);
+            if (!isset($records)) {
+                $records = collect();
+                foreach ($keys as $key) {
+                    $records = $records->merge(
+                        $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key)->take($col_count)->get()
+                    );
+                }
             }
             $over_limit = false;
         } else {
@@ -568,6 +572,56 @@ class KanbanGrid extends GridBase
     }
 
     /**
+     * The records the cards point to (a status, a parent issue, a user...), read at
+     * once for each table they are in. Each card asked for its own, one query per
+     * value not read yet: 174 queries on a board of 1,300 issues.
+     *
+     * @param \Illuminate\Support\Collection<int, mixed> $records
+     * @param array<string, CustomColumn> $value_columns
+     * @param array<int, array<string, mixed>> $card_fields
+     */
+    protected function prefetchLinkedRecords($records, array $value_columns, array $card_fields): void
+    {
+        $columns = $value_columns;
+        foreach ($card_fields as $card_field) {
+            $column = $card_field['custom_column'] ?? null;
+            if ($column instanceof CustomColumn && intval($column->custom_table_id) === intval($this->custom_table->id)) {
+                $columns[$column->column_name] = $column;
+            }
+        }
+        $ids = [];
+        $tables = [];
+        foreach ($columns as $column) {
+            if (!ColumnType::isSelectTable($column->column_type)) {
+                continue;
+            }
+            $target = $column->select_target_table;
+            if (!isset($target)) {
+                continue;
+            }
+            $tables[$target->id] = $target;
+            foreach ($records as $record) {
+                $value = array_get($record, 'value.' . $column->column_name);
+                if (is_nullorempty($value)) {
+                    continue;
+                }
+                foreach ((array) toArray($value) as $id) {
+                    if (is_numeric($id)) {
+                        $ids[$target->id][] = $id;
+                    }
+                }
+            }
+        }
+        foreach ($ids as $tableId => $list) {
+            try {
+                $tables[$tableId]->setCustomValueModels(array_values(array_unique($list)));
+            } catch (\Throwable $e) {
+                // the cards read them one by one, as before
+            }
+        }
+    }
+
+    /**
      * Build every card shown on the board.
      *
      * @param \Illuminate\Support\Collection<int, mixed> $records
@@ -624,6 +678,8 @@ class KanbanGrid extends GridBase
                 $multiple_columns[$column_name] = true;
             }
         }
+
+        $this->prefetchLinkedRecords($records, $value_columns, $card_fields);
 
         $cards = [];
         foreach ($records as $record) {
@@ -1342,6 +1398,112 @@ class KanbanGrid extends GridBase
         }));
     }
 
+
+    /** @var bool|null whether the database numbers rows per group (window functions) */
+    protected static $windowFunctions;
+
+    /**
+     * Whether the database has window functions: MySQL 8.0, MariaDB 10.2, SQL Server.
+     * MySQL 5.7, which Exment still takes, has not.
+     */
+    public static function supportsWindowFunctions(): bool
+    {
+        if (isset(static::$windowFunctions)) {
+            return static::$windowFunctions;
+        }
+        try {
+            $connection = \DB::connection();
+            $driver = $connection->getDriverName();
+            if ($driver === 'sqlsrv') {
+                return static::$windowFunctions = true;
+            }
+            if (!in_array($driver, ['mysql', 'mariadb'], true)) {
+                return static::$windowFunctions = false;
+            }
+            $version = strval($connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION));
+            if (stripos($version, 'mariadb') !== false || $driver === 'mariadb') {
+                preg_match('/(\d+\.\d+\.\d+)-mariadb/i', $version, $m);
+                return static::$windowFunctions = version_compare($m[1] ?? $version, '10.2.0', '>=');
+            }
+            return static::$windowFunctions = version_compare($version, '8.0.0', '>=');
+        } catch (\Throwable $e) {
+            return static::$windowFunctions = false;
+        }
+    }
+
+    /**
+     * The first $count records of each board column in one query, each column in its
+     * own order (the view's sort, then the id): the rows of the board query numbered
+     * per column - ROW_NUMBER() OVER (PARTITION BY the column ORDER BY the sort) - and
+     * the first $count of each kept. The same records as a query per column, without a
+     * round trip each. Null (ask column by column) on a database without window
+     * functions, for a workflow or a column of several values, or a sort it cannot copy.
+     *
+     * @param CustomColumn|null $group_column
+     * @param Workflow|null $workflow
+     * @param array<int, string> $hide_keys
+     * @param array<int, string> $keys
+     * @return \Illuminate\Support\Collection<int, mixed>|null
+     */
+    protected function windowedColumnRecords($group_column, $workflow, array $hide_keys, array $keys, int $count)
+    {
+        if (count($keys) < 2 || isset($workflow) || !isset($group_column) || boolval($group_column->isMultipleEnabled())
+            || !static::supportsWindowFunctions()) {
+            return null;
+        }
+        try {
+            $query = $this->newBoardQuery($group_column, $workflow, $hide_keys);
+            $this->applyBoardKeys($query, $group_column, $workflow, $keys, false);
+            $base = $query->toBase();
+            if (!empty($base->bindings['order']) || !empty($base->unions) || isset($base->limit) || isset($base->offset)) {
+                return null;
+            }
+            $grammar = \DB::connection()->getQueryGrammar();
+            $orders = [];
+            foreach ($base->orders ?? [] as $order) {
+                if (isset($order['column'])) {
+                    $orders[] = $grammar->wrap($order['column']) . ' ' . (strtolower(strval($order['direction'] ?? 'asc')) === 'desc' ? 'desc' : 'asc');
+                } elseif (($order['type'] ?? null) === 'Raw' && isset($order['sql'])) {
+                    $orders[] = strval($order['sql']);
+                } else {
+                    return null;
+                }
+            }
+            if (empty($orders)) {
+                return null;
+            }
+
+            // the board column of a row, the way the board names it: a choice, or
+            // the empty column (no value, or a value that is not a choice)
+            $expr = $grammar->wrap($this->columnKey($group_column));
+            $real = $this->getRealBoardKeys($group_column);
+            $partition = empty($real)
+                ? "''"
+                : 'case when ' . $expr . ' in (' . implode(', ', array_fill(0, count($real), '?')) . ') then ' . $expr . " else '' end";
+
+            $db_table = getDBTableName($this->custom_table);
+            if (empty($base->columns)) {
+                $base->columns = [$db_table . '.*'];
+            }
+            $base->selectRaw('row_number() over (partition by ' . $partition . ' order by ' . implode(', ', $orders) . ') as kb_rn', $real);
+            // the order is the one of each column now (SQL Server takes no order in a derived table)
+            $base->orders = null;
+
+            $model = $this->custom_table->getValueModel();
+            $records = $model->newModelQuery()
+                ->fromSub($base, $db_table)
+                ->where('kb_rn', '<=', $count)
+                ->orderBy('kb_rn')
+                ->get();
+            foreach ($records as $record) {
+                unset($record->kb_rn);
+            }
+            return $records;
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] kanban: one query for the columns: ' . $e->getMessage());
+            return null;
+        }
+    }
 
     /**
      * The board query narrowed to one board column.

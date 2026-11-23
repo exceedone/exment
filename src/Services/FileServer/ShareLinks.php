@@ -127,7 +127,8 @@ class ShareLinks
         $message = trim(strval(array_get($options, 'message', '')));
 
         $link = new FileShareLink([
-            'token' => Str::random(static::TOKEN_LENGTH),
+            'token' => FileShareLink::hashToken($token = Str::random(static::TOKEN_LENGTH)),
+            'token_encrypted' => \Illuminate\Support\Facades\Crypt::encryptString($token),
             'workspace_id' => $workspace->id,
             'node_id' => $node->id,
             'created_user_id' => $access->userId(),
@@ -221,7 +222,7 @@ class ShareLinks
         if (!static::enabled() || strlen($token) !== static::TOKEN_LENGTH || preg_match('/\A[A-Za-z0-9]+\z/', $token) !== 1) {
             return null;
         }
-        $link = FileShareLink::query()->where('token', $token)->first();
+        $link = FileShareLink::query()->where('token', FileShareLink::hashToken($token))->first();
         if (!isset($link) || isset($link->revoked_at) || $link->isExpired()) {
             return null;
         }
@@ -229,6 +230,7 @@ class ShareLinks
         if ($link->isUsedUp() && !static::isCounted($link)) {
             return null;
         }
+        $link->setPlainToken($token);
         $node = $link->node;
         $workspace = $link->workspace;
         if (!isset($node) || !isset($workspace) || $node->isTrashed()) {
