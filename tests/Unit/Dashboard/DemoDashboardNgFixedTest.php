@@ -131,7 +131,8 @@ class DemoDashboardNgFixedTest extends SecurityRegressionTestCase
                 'custom_view_id' => $viewId, 'view_column_type' => 0, 'view_column_table_id' => $tableId, 'view_column_target_id' => $columnId, 'order' => $i + 1, 'options' => '{}',
             ]);
         }
-        System::clearRequestSession();
+        // written straight to the database: what Exment kept of the views is cleared too
+        System::clearCache();
         return $viewId;
     }
 
