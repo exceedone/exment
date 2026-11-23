@@ -22,6 +22,7 @@ class InstallForceAndKeyTest extends UnitTestBase
 
     /**
      * @param array<string, int> $codes the exit code of each command
+     * @param array<int, array{0: string, 1: array<string, mixed>}> $calls
      */
     private function command(array $codes, array &$calls): InstallCommand
     {
@@ -43,6 +44,10 @@ class InstallForceAndKeyTest extends UnitTestBase
                 $this->calls = &$calls;
             }
 
+            /**
+             * @param mixed $command
+             * @param array<string, mixed> $arguments
+             */
             public function call($command, array $arguments = [])
             {
                 $this->calls[] = [strval($command), $arguments];
