@@ -93,11 +93,11 @@ class CustomCopyFromCreateTest extends FeatureTestBase
             ->assertStatus(200)
             ->assertJson(['result' => true, 'redirect' => $redirect]);
 
-        $before = $this->count(static::TO);
+        $before = $this->rows(static::TO);
         $this->get($redirect)
             ->assertStatus(200)
             ->assertSee('copy me 1828', false);
-        $this->assertSame($before, $this->count(static::TO), 'opening the form saves nothing');
+        $this->assertSame($before, $this->rows(static::TO), 'opening the form saves nothing');
     }
 
     public function testASettingNotOnTheCreateFormGivesNoButton(): void
@@ -163,10 +163,10 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         $copy = $this->copy(static::FROM, static::TO, true);
         $record = $this->record(static::FROM, 'saved copy 1828');
 
-        $before = $this->count(static::TO);
+        $before = $this->rows(static::TO);
         $response = $copy->execute($record);
         $this->assertTrue($response['result']);
-        $this->assertSame($before + 1, $this->count(static::TO));
+        $this->assertSame($before + 1, $this->rows(static::TO));
 
         $made = $copy->makeNewModel($record);
         $this->assertFalse($made->exists);
@@ -217,7 +217,7 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         return $row;
     }
 
-    protected function count(string $table_name): int
+    protected function rows(string $table_name): int
     {
         return getModelName($this->table($table_name))::query()->withoutGlobalScopes()->count();
     }

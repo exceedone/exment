@@ -173,7 +173,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
      * cannot open.
      *
      * @param CustomTable $to_custom_table
-     * @return \Illuminate\Support\Collection<int, CustomCopy>
+     * @return \Illuminate\Database\Eloquent\Collection<int, static>
      */
     public static function getCreateSources(CustomTable $to_custom_table)
     {
