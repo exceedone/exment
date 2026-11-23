@@ -495,6 +495,42 @@ class FileShareTest extends FeatureTestBase
         $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertStatus(403);
     }
 
+    /**
+     * Two requests at the same time, each with the link as it was read before the
+     * other counted: the database decides in one UPDATE, so only one takes the last place.
+     */
+    public function testTheCountersHoldWhenTwoRequestsComeAtOnce(): void
+    {
+        [$ws, $folder, $file] = $this->sample();
+
+        // the last opening of a share link
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['max_access' => 1]);
+        $first = FileShareLink::query()->findOrFail($link->id);
+        $second = FileShareLink::query()->findOrFail($link->id);
+        session()->forget(ShareLinks::COUNTED_KEY);
+        $this->assertTrue(ShareLinks::countAccess($first));
+        session()->forget(ShareLinks::COUNTED_KEY);
+        $this->assertFalse(ShareLinks::countAccess($second), 'the second, read before the first counted, does not pass');
+        $this->assertSame(1, $link->refresh()->access_count);
+
+        // the last file of a request link
+        config(['exment.file_server_request_max_files' => 1, 'exment.file_server_request_max_bytes' => 0, 'exment.file_server_request_max_file_size' => 0]);
+        $request = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $a = FileShareLink::query()->findOrFail($request->id);
+        $b = FileShareLink::query()->findOrFail($request->id);
+        ShareLinks::receive($a, 'one.txt', $this->local('one'));
+        try {
+            ShareLinks::receive($b, 'two.txt', $this->local('two'));
+            $this->fail('the second file must not pass the limit');
+        } catch (FileServerException $e) {
+            $this->assertSame(413, $e->status());
+        }
+        $request->refresh();
+        $this->assertSame(1, $request->received_count);
+        $this->assertSame(3, $request->received_bytes);
+        $this->assertFalse(FileNode::query()->where('parent_id', $folder->id)->where('name', 'two.txt')->exists());
+    }
+
     public function testALinkWithoutDownloadGivesNoBytesOfTheFile(): void
     {
         [$ws, , $file] = $this->sample();
