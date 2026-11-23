@@ -51,6 +51,7 @@ class Features
     public const API_KEYS = 'api_keys';
     public const MCP = 'mcp';
     public const SAFETY_CHECK = 'safety_check';
+    public const DATA_MAINTENANCE = 'data_maintenance';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -166,6 +167,16 @@ class Features
             'description' => 'exment::exment.feature.features.safety_check_help',
             'endpoints' => ['safety_check'],
             'manual' => 'safety_check',
+        ]);
+        // data maintenance of a table (#1829): delete the attachments of a table at once.
+        // It deletes files for good, so it is off until an administrator turns it on; who may
+        // use it is the permission to change the table (Permission::CUSTOM_TABLE).
+        $core[static::DATA_MAINTENANCE] = static::definition([
+            'label' => 'exment::exment.feature.features.data_maintenance',
+            'description' => 'exment::exment.feature.features.data_maintenance_help',
+            'endpoints' => ['data_maintenance'],
+            'manual' => 'data_maintenance',
+            'who' => false,
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)

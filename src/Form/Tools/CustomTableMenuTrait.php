@@ -26,6 +26,10 @@ trait CustomTableMenuTrait
             if (is_callable($visible = array_get($menu, 'visible')) && !$visible($this->custom_table)) {
                 continue;
             }
+            // a page of a feature that is not used
+            if (array_has($menu, 'feature') && !\Exceedone\Exment\Services\Features::allowed(strval(array_get($menu, 'feature')))) {
+                continue;
+            }
             // if same page, skip
             // if ($this->page_name == array_get($menu, 'name') && !array_has($menu, 'buttons')) {
             //     continue;
