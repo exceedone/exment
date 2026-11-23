@@ -14,8 +14,8 @@ return new class extends Migration
      * - a feature the site has used stays on. That is decided by its data,
      *   not by its menu (an update adds menus; a menu may be removed while its
      *   pages are still used): the file server when the site has a workspace,
-     *   Studio when someone has opened its pages or the phone app (the
-     *   operation log)
+     *   Studio when it has an app made with it, or when someone has opened its
+     *   pages or the phone app (the operation log)
      * - the features the plugins had before stay on (Features::register()
      *   with "existing"): the time of this update is kept ("_since"), and a
      *   plugin installed before it keeps them
@@ -75,10 +75,16 @@ return new class extends Migration
     }
 
     /**
-     * Whether someone has opened the pages of Studio or the phone app.
+     * Whether the site has used Studio: what it made first (the data stays when the
+     * operation log is cleared or reset, as on a demo site), then whether someone has
+     * opened the pages of Studio or the phone app.
      */
     protected function studioUsed(): bool
     {
+        // the apps made with Studio (ScreenBundle) have a dashboard "studio_..."
+        if (Schema::hasTable('dashboards') && DB::table('dashboards')->where('dashboard_name', 'like', 'studio_%')->exists()) {
+            return true;
+        }
         $table = config('admin.database.operation_log_table', 'admin_operation_log');
         if (!Schema::hasTable($table) || !Schema::hasColumn($table, 'path')) {
             return false;

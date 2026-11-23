@@ -1102,11 +1102,14 @@ class FileServerController extends AdminControllerBase
         if (!ShareLinks::enabled()) {
             return [];
         }
-        return (new ShareLinks($this->library()))->linksOf($ws, $item)->map(function (FileShareLink $link) use ($ws, $item) {
+        $access = $this->library()->access();
+        $manages = $access->can($ws, $item, \Exceedone\Exment\Services\FileServer\Level::MANAGE);
+        return (new ShareLinks($this->library()))->linksOf($ws, $item)->map(function (FileShareLink $link) use ($ws, $item, $access, $manages) {
             return [
                 'id' => $link->id,
                 'kind' => $link->kind,
-                'url' => $link->url(),
+                // the url again: to its maker and to who manages the folder or file
+                'url' => $manages || intval($link->created_user_id) === $access->userId() ? $link->url() : null,
                 'active' => $link->isActive(),
                 'state' => isset($link->revoked_at) ? exmtrans('file_server.share_state_revoked')
                     : ($link->isExpired() ? exmtrans('file_server.share_state_expired')
