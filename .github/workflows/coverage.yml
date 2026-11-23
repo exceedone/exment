@@ -60,6 +60,25 @@ jobs:
       - name: Composer uses the kept downloads
         run: printf '\nCOMPOSER_CACHE_DIR=/var/www/exment/.composer-cache\n' >> docker-exment/.env
 
+      # the php image of docker-exment, built with its layers kept between runs (the OS packages
+      # and the SQL Server drivers are not made again each time). Tagged with the name docker
+      # compose gives it (docker-exment-php), so "up" uses it and does not build it again.
+      - name: The PHP version of docker-exment
+        id: php
+        run: echo "version=$(grep -E '^EXMENT_DOCKER_PHP_VERSION=' docker-exment/.env | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the php image (kept layers)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker-exment/docker/php
+          build-args: PHP_VERSION=${{ steps.php.outputs.version }}
+          tags: docker-exment-php:latest
+          load: true
+          cache-from: type=gha,scope=docker-exment-php-${{ steps.php.outputs.version }}
+          cache-to: type=gha,mode=max,scope=docker-exment-php-${{ steps.php.outputs.version }}
+
       - name: Docker Compose Version
         run: docker compose --version
 
