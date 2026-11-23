@@ -5,8 +5,9 @@ namespace Exceedone\Exment\Services\SystemRequire\Security;
 use Exceedone\Exment\Enums\SystemRequireResult;
 
 /**
- * The headers for safety on the site's pages (read from the login page).
- * HSTS only when the site is on https.
+ * The headers for safety on the site's pages (read from the login page, with the admin
+ * prefix of the site). HSTS only when the site is on https. The lines to add are shown
+ * for Apache (.htaccess: rental servers) and nginx.
  */
 class HeadersSecurity extends SecurityBase
 {
@@ -16,6 +17,14 @@ class HeadersSecurity extends SecurityBase
         'x-content-type-options' => 'add_header X-Content-Type-Options "nosniff" always;',
         'referrer-policy' => 'add_header Referrer-Policy "strict-origin-when-cross-origin" always;',
         'strict-transport-security' => 'add_header Strict-Transport-Security "max-age=31536000" always;',
+    ];
+
+    /** header => the line to add (Apache, mod_headers: public/.htaccess) */
+    public const APACHE_HEADERS = [
+        'x-frame-options' => 'Header always set X-Frame-Options "SAMEORIGIN"',
+        'x-content-type-options' => 'Header always set X-Content-Type-Options "nosniff"',
+        'referrer-policy' => 'Header always set Referrer-Policy "strict-origin-when-cross-origin"',
+        'strict-transport-security' => 'Header always set Strict-Transport-Security "max-age=31536000"',
     ];
 
     protected function key(): string
@@ -28,8 +37,13 @@ class HeadersSecurity extends SecurityBase
      */
     public function missing(): ?array
     {
-        $page = SiteProbe::get('admin/auth/login');
+        $page = SiteProbe::get(SiteProbe::adminPath('auth/login'));
         if (!isset($page)) {
+            return null;
+        }
+        // only the login page itself tells: a 401 (Basic auth in front of the site), a
+        // redirect or an error is the answer of something else ("could not check")
+        if ($page['status'] !== 200) {
             return null;
         }
         $missing = [];
@@ -67,14 +81,23 @@ class HeadersSecurity extends SecurityBase
     public function getFixText(): ?string
     {
         if (!$this->checked()) {
-            return SiteProbe::base() . '/admin/auth/login';
+            return SiteProbe::base() . '/' . SiteProbe::adminPath('auth/login');
         }
         $missing = $this->missing();
         if (empty($missing)) {
             return null;
         }
-        return "# nginx (server { ... })\n" . implode("\n", array_map(function ($header) {
+        $apache = array_map(function ($header) {
+            return '    ' . static::APACHE_HEADERS[$header];
+        }, $missing);
+        $nginx = array_map(function ($header) {
             return static::HEADERS[$header];
-        }, $missing));
+        }, $missing);
+        return implode("\n", array_merge(
+            ['# Apache (public/.htaccess)', '<IfModule mod_headers.c>'],
+            $apache,
+            ['</IfModule>', '# nginx (server { ... })'],
+            $nginx
+        ));
     }
 }

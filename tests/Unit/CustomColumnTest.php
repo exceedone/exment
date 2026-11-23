@@ -1180,6 +1180,33 @@ class CustomColumnTest extends UnitTestBase
         $this->_testYesNo(ValueType::HTML, 'YES');
     }
 
+    /**
+     * A column shown as a checkbox keeps the checkbox in the form, but the value of a condition is a
+     * switch: an unchecked checkbox posts nothing, so "= NO" could not be saved (#1716).
+     *
+     * @return void
+     */
+    public function testYesNoCheckboxFilterFieldIsSwitch()
+    {
+        $custom_column = $this->getCustomColumnModel(ColumnType::YESNO, ['checkbox_enabled' => '1']);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, 0);
+
+        $this->assertInstanceOf(\Exceedone\Exment\Form\Field\Checkboxone::class, $column_item->getAdminField());
+        $this->assertInstanceOf(\Exceedone\Exment\Form\Field\SwitchBoolField::class, $column_item->getFilterField());
+    }
+
+    /**
+     * @return void
+     */
+    public function testYesNoSwitchFilterFieldIsSwitch()
+    {
+        $custom_column = $this->getCustomColumnModel(ColumnType::YESNO);
+        list($custom_value, $column_item) = $this->getCustomValueAndColumnItem($custom_column, 0);
+
+        $this->assertInstanceOf(\Exceedone\Exment\Form\Field\SwitchBoolField::class, $column_item->getAdminField());
+        $this->assertInstanceOf(\Exceedone\Exment\Form\Field\SwitchBoolField::class, $column_item->getFilterField());
+    }
+
 
 
 
