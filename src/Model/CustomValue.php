@@ -67,6 +67,34 @@ abstract class CustomValue extends ModelBase
     use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
+
+    /** @var string|null the json of "value" last decoded (castAttribute) */
+    protected $valueJson;
+
+    /** @var mixed what it decoded to */
+    protected $valueDecoded;
+
+    /**
+     * "value" is read for every column of every row (the grid, the board, the label, the
+     * linked records), and Laravel decodes the json each time. Keep what it decoded to,
+     * with the json it came from: a write changes the json, so a stale copy is never given.
+     * The array is given as a copy, so whoever changes it changes only its own.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function castAttribute($key, $value)
+    {
+        if ($key !== 'value' || !is_string($value)) {
+            return parent::castAttribute($key, $value);
+        }
+        if ($this->valueJson !== $value) {
+            $this->valueDecoded = parent::castAttribute($key, $value);
+            $this->valueJson = $value;
+        }
+        return $this->valueDecoded;
+    }
     // protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
 
