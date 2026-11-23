@@ -1105,7 +1105,7 @@ class FileServerController extends AdminControllerBase
         }
         $access = $this->library()->access();
         $manages = $access->can($ws, $item, \Exceedone\Exment\Services\FileServer\Level::MANAGE);
-        return (new ShareLinks($this->library()))->linksOf($ws, $item)->map(function (FileShareLink $link) use ($ws, $item, $access, $manages) {
+        return (new ShareLinks($this->library()))->linksOf($ws, $item)->map(function (FileShareLink $link) use ($ws, $item, $manages) {
             return [
                 'id' => $link->id,
                 'kind' => $link->kind,
