@@ -17,7 +17,7 @@ class WebhookUrlGuard
     /**
      * Whether Exment may post to the URL.
      */
-    public static function isAllowed(?string $url): bool
+    public static function isAllowed(?string $url, ?bool $denyPrivate = null): bool
     {
         if (is_nullorempty($url)) {
             return false;
@@ -46,7 +46,7 @@ class WebhookUrlGuard
             return false;
         }
 
-        $denyPrivate = boolval(config('exment.notify_webhook_deny_private', false));
+        $denyPrivate = $denyPrivate ?? boolval(config('exment.notify_webhook_deny_private', false));
         foreach ($ips as $ip) {
             if (!static::isAllowedIp($ip, $denyPrivate)) {
                 return false;
