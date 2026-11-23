@@ -228,7 +228,7 @@ class FileShareController extends \App\Http\Controllers\Controller
 
     protected function url(FileShareLink $link, ?string $path = null): string
     {
-        return url()->to(url_join(ShareLinks::basePath(), $link->token, $path ?? ''));
+        return url()->to(url_join(ShareLinks::basePath(), strval($link->plainToken()), $path ?? ''));
     }
 
     /**

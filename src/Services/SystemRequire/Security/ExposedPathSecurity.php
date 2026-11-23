@@ -24,8 +24,12 @@ class ExposedPathSecurity extends SecurityBase
         return 'exposed_path';
     }
 
+    /** The answers that tell: 200 served, the others refused. A 401 (Basic auth in front of
+     * the site), a redirect or an error tells nothing about the file. */
+    public const TELLING = [200, 403, 404, 410];
+
     /**
-     * @return array<string>|null what is served, null when the site did not answer
+     * @return array<string>|null what is served, null when no answer told
      */
     public function exposed(): ?array
     {
@@ -33,7 +37,7 @@ class ExposedPathSecurity extends SecurityBase
         $answered = false;
         foreach (static::PATHS as $name => $path) {
             $page = SiteProbe::get($path);
-            if (!isset($page)) {
+            if (!isset($page) || !in_array($page['status'], static::TELLING, true)) {
                 continue;
             }
             $answered = true;
