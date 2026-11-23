@@ -39,7 +39,7 @@ return [
     | Whether use exment cache.
     |
     */
-    'use_cache' => env('EXMENT_USE_CACHE', false),
+    'use_cache' => env('EXMENT_USE_CACHE', true),
 
     /*
     |--------------------------------------------------------------------------
