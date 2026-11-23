@@ -232,6 +232,11 @@ class SystemController extends AdminControllerBase
             ->disableClear()
             ->help(exmtrans("system.help.data_submit_redirect"));
 
+        // the languages the users can choose (ISS02835)
+        $form->multipleSelect('allowed_locales', exmtrans('system.allowed_locales'))
+            ->options(\Exceedone\Exment\Services\UserLocale::options())
+            ->help(exmtrans('system.help.allowed_locales'));
+
         $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
             ->help(exmtrans('system.help.header_user_info'))
             ->config('maximumSelectionLength', 2)

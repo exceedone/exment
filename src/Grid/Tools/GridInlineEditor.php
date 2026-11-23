@@ -467,6 +467,12 @@ HTML;
             return true;
         }
 
+        // A date and time is shown in the time zone of the user, but the cell is saved as typed:
+        // not inline for a user in another time zone than the site (the edit form converts it). ISS02835
+        if ($type === ColumnType::DATETIME && \Exceedone\Exment\Services\UserTimezone::differs()) {
+            return false;
+        }
+
         if (in_array($type, [ColumnType::TEXT, ColumnType::EMAIL, ColumnType::URL,
             ColumnType::DATE, ColumnType::DATETIME, ], true)) {
             return true;

@@ -15,22 +15,7 @@ class SystemLocale extends EnumBase
     // @phpstan-ignore-next-line
     public static function getLocaleOptions()
     {
-        // get expand system locale
-        $system_locales = config('exment.system_locale_options');
-        if (isset($system_locales)) {
-            $system_locales = explode(',', $system_locales);
-        } else {
-            $system_locales = [];
-        }
-        $system_locales[] = 'ja';
-        $system_locales[] = 'en';
-
-        // get label name
-        $options = [];
-        foreach ($system_locales as $system_locale) {
-            $options[$system_locale] = \Lang::get('exment::exment.label', [], $system_locale);
-        }
-
-        return $options;
+        // the installed languages (the folders of resources/lang, and EXMENT_SYSTEM_LOCALE_OPTIONS), with their names
+        return \Exceedone\Exment\Services\UserLocale::options();
     }
 }
