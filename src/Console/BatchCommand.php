@@ -68,15 +68,24 @@ class BatchCommand extends Command
         $batch = $plugin->getClass(PluginType::BATCH, [
             'command_options' => $this->options()
         ]);
-        $result = $batch->execute();
+        return static::exitCode($batch->execute());
+    }
 
+    /**
+     * The exit code of what a batch plugin returns: false is a failure; true, null and
+     * nothing are a success (true was cast to 1); a number is kept.
+     *
+     * @param mixed $result
+     */
+    public static function exitCode($result): int
+    {
         if ($result === false) {
             return 1;
         }
-        if (is_null($result)) {
+        if ($result === true || is_null($result)) {
             return 0;
         }
-        return $result;
+        return intval($result);
     }
 
     /**
