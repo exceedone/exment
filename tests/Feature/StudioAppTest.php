@@ -63,7 +63,7 @@ class StudioAppTest extends FeatureTestBase
     {
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $page = $this->get(admin_url('app'));
-        $page->assertSee(strval(json_encode(asset('vendor/exment/js/zxing.js'))), false);
+        $page->assertSee(strval(json_encode(admin_asset('vendor/exment/js/zxing.js'))), false);
         $page->assertSee(strval(json_encode(admin_url('app/code'))), false);
     }
 
