@@ -59,7 +59,9 @@ class QrCodeBuilderTest extends UnitTestBase
     {
         // code written for simplesoftwareio/simple-qrcode
         $png = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(80)->generate('old');
-        $this->assertSame(80, imagesx(imagecreatefromstring(strval($png))));
+        $image = imagecreatefromstring(strval($png));
+        $this->assertNotFalse($image);
+        $this->assertSame(80, imagesx($image));
     }
 
     public function testLineRenderer(): void
