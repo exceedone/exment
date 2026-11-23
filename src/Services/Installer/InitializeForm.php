@@ -96,6 +96,7 @@ class InitializeForm
             catch (\Exception $ex) {
             } catch (\Throwable $ex) {
             }
+            InstalledState::markInstalled();
 
             \DB::commit();
 
