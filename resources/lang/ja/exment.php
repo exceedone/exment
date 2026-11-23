@@ -715,6 +715,12 @@ return [
                 'explain' => 'デバッグモードでは、エラーの詳しい中身が画面に出ます。本番では OFF にします。',
                 'warning' => 'デバッグモードが ON です。',
             ],
+            'display_errors' => [
+                'label' => 'PHP のエラー表示（display_errors）',
+                'explain' => 'Exment が受け取る前に起きた PHP のエラーが、ファイルの場所といっしょに画面に出ます。本番では Off にします。レンタルサーバーでは、ドメインの php.ini で On になっていることがあります。',
+                'warning' => 'PHP の display_errors が On です。',
+                'fix' => "php.ini（レンタルサーバーでは、管理画面の「php.ini 設定」）か、:public/.user.ini に次の行を書いてください。\ndisplay_errors = Off",
+            ],
             'app_key' => [
                 'label' => 'アプリケーションキー（APP_KEY）',
                 'explain' => '暗号化とセッションの署名に使うキーです。サイトごとに作った値が要ります。',
