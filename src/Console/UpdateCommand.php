@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
 use Exceedone\Exment\Services\Installer\SkeletonMigrationReconciler;
+use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Exceedone\Exment\Services\TemplateImportExport\TemplateImporter;
 
 class UpdateCommand extends Command
@@ -63,6 +64,9 @@ class UpdateCommand extends Command
             return 1;
         }
 
+        // a site that had a config cache gets it again at the end (ISS02831)
+        $configCached = $this->configCached();
+
         $this->publishStaticFiles();
 
         $this->createExmentBootstrapFile();
@@ -70,6 +74,7 @@ class UpdateCommand extends Command
         $this->initDatabase();
         if ($this->migrateExitCode !== 0) {
             $this->error('The database was not updated (migrate ended with ' . $this->migrateExitCode . ').');
+            $this->restoreConfigCache($configCached);
             return $this->migrateExitCode;
         }
 
@@ -83,7 +88,34 @@ class UpdateCommand extends Command
             // not told
         }
 
+        $this->restoreConfigCache($configCached);
+
         return 0;
+    }
+
+    /**
+     * Whether the site has a config cache (before the update clears it).
+     */
+    public function configCached(): bool
+    {
+        return is_file($this->laravel->getCachedConfigPath());
+    }
+
+    /**
+     * Make the config cache again when there was one: the same routine as the tuning
+     * (readable by the owner and the group only). A site without one gets none.
+     */
+    public function restoreConfigCache(bool $configCached): void
+    {
+        if (!$configCached) {
+            return;
+        }
+        try {
+            AutoTuning::cacheConfig();
+            $this->info('config:cache (the site had a config cache)');
+        } catch (\Throwable $e) {
+            $this->warn('config:cache failed: ' . $e->getMessage());
+        }
     }
 
     /**
