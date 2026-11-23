@@ -222,6 +222,7 @@ class MenuVisibilityTest extends FeatureTestBase
      */
     protected function exported(array $targetTables = []): array
     {
+        /** @var array<string, mixed> $config */
         $config = [];
         $method = new \ReflectionMethod(\Exceedone\Exment\Services\TemplateImportExport\TemplateExporter::class, 'setTemplateMenu');
         $method->setAccessible(true);
@@ -471,6 +472,7 @@ class MenuVisibilityTest extends FeatureTestBase
 
     public function testACacheHoldsOnlyTheRows(): void
     {
+        /** @var array<string, mixed> $cache */
         $cache = [];
         $loads = 0;
         MenuVisibility::cacheRowsWith(function ($key, $load) use (&$cache, &$loads) {

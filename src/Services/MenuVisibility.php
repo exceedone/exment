@@ -67,14 +67,14 @@ class MenuVisibility
     }
 
     /**
-     * @param LoginUser|null $user the login user when not given
+     * @param mixed $user a LoginUser; the login user when not given
      */
     public static function forUser($user = null): self
     {
         if (!isset($user)) {
             $user = \Exment::user();
         }
-        return new static($user instanceof LoginUser ? $user : null);
+        return new self($user instanceof LoginUser ? $user : null);
     }
 
     // The rows -----------------------------------------------------------------
@@ -260,7 +260,7 @@ class MenuVisibility
      * Whether the user sees a menu (a node of the tree, with its children) or
      * a page (its uri).
      *
-     * @param array<string, mixed>|string|null $item
+     * @param mixed $item
      * @param array<int, string> $targetTables for a template: only the menus of these tables
      */
     public function isVisible($item, array $targetTables = []): bool
@@ -319,7 +319,7 @@ class MenuVisibility
         $children = null;
         if (array_key_exists('children', $item)) {
             $children = [];
-            foreach (collect($item['children'])->all() as $child) {
+            foreach (static::children($item) as $child) {
                 $children[] = is_array($child) ? static::signature($child) : $child;
             }
         }
@@ -332,6 +332,19 @@ class MenuVisibility
             array_get($item, 'options'),
             $children,
         ];
+    }
+
+    /**
+     * @param array<string, mixed> $item
+     * @return array<int|string, mixed>
+     */
+    protected static function children(array $item): array
+    {
+        $children = $item['children'] ?? [];
+        if ($children instanceof \Illuminate\Support\Collection) {
+            return $children->all();
+        }
+        return is_array($children) ? $children : [];
     }
 
     /**
@@ -376,10 +389,12 @@ class MenuVisibility
         // if $item has children, get children's visible result.
         // if children have true result, return true;
         if (array_key_exists('children', $item)) {
-            $first = collect($item['children'])->first(function ($child) use ($targetTables) {
-                return $this->isVisible($child, $targetTables);
-            });
-            return !is_null($first);
+            foreach (static::children($item) as $child) {
+                if ($this->isVisible($child, $targetTables)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         // if has target tables.
