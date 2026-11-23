@@ -48,6 +48,9 @@
         "google/recaptcha": "Required to use Google reCAPTCHA (v2 or v3) on public forms. Install with: composer require google/recaptcha",
         "meilisearch/meilisearch-php": "Enable Meilisearch-powered global search (config('meilisearch.global_search')). Requires a guzzlehttp/guzzle compatible HTTP client."
     },
+    "replace": {
+        "simplesoftwareio/simple-qrcode": "*"
+    },
     "require-dev": {
         "fzaninotto/faker": "~1.4",
         "intervention/image": "~2.3",
@@ -60,7 +63,8 @@
     "autoload": {
         "psr-4": {
             "Exceedone\\Exment\\": "src/",
-            "Exceedone\\Exment\\Tests\\": "tests/"
+            "Exceedone\\Exment\\Tests\\": "tests/",
+            "SimpleSoftwareIO\\QrCode\\": "src/Compat/SimpleQrCode/"
         }
     },
     "extra": {

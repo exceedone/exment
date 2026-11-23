@@ -55,6 +55,13 @@ class QrCodeBuilderTest extends UnitTestBase
         $this->assertStringContainsString('<svg', \QrCode::format('svg')->generate('alias'));
     }
 
+    public function testTheOldClassNameStillWorks(): void
+    {
+        // code written for simplesoftwareio/simple-qrcode
+        $png = \SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(80)->generate('old');
+        $this->assertSame(80, imagesx(imagecreatefromstring(strval($png))));
+    }
+
     public function testLineRenderer(): void
     {
         $this->assertStringStartsWith('data:image/svg+xml;base64,', QrRenderer::svgDataUri('https://line.me/'));
