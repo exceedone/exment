@@ -60,6 +60,11 @@ class InstallCommand extends AdminInstallCommand
 
         $this->initAdminDirectory();
 
+        // installed: the web installer is closed from now on, even while the database is down
+        if (hasTable(\Exceedone\Exment\Enums\SystemTableName::SYSTEM)) {
+            \Exceedone\Exment\Services\Installer\InstalledState::markInstalled();
+        }
+
         //$this->call('passport:keys');
         return 0;
     }
