@@ -126,6 +126,9 @@ class UpdateCommand extends Command
         // (otherwise it is made when someone turns the log on in the system setting)
         TemplateImporter::importSystemLogsTemplateIfEnabled();
 
+        // the cache of Exment (EXMENT_USE_CACHE) may hold the settings of before the update
+        \Exceedone\Exment\Model\System::clearCache();
+
     }
 
     /**
