@@ -333,7 +333,7 @@ abstract class CustomItem implements ItemInterface
     protected function getTargetValue($custom_value)
     {
         // if options has "summary" (for summary view)
-        if (boolval(array_get($this->options, 'summary'))) {
+        if (!empty($this->options['summary'])) {
             $v = array_get($custom_value, $this->sqlAsName());
             if (array_get($this->options, 'group_condition') == 'w') {
                 return $this->getWeekdayFormat($v);
@@ -341,18 +341,18 @@ abstract class CustomItem implements ItemInterface
             return $v;
         }
         // if options has "summary_child" (for not only summary view, but also default view)
-        if (isset($custom_value) && boolval(array_get($this->options, 'summary_child'))) {
+        if (isset($custom_value) && !empty($this->options['summary_child'])) {
             return $custom_value->getSum($this->custom_column);
         }
 
         // if options has "view_pivot_column", get select_table's custom_value first
-        if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+        if (isset($custom_value) && !is_nullorempty($this->options['view_pivot_column'] ?? null)) {
             return $this->getViewPivotValue($custom_value, $this->options);
         }
 
         // a record: its value straight (the same as array_get, without walking the model as an array)
         if ($custom_value instanceof CustomValue) {
-            $values = $custom_value->value;
+            $values = $custom_value->decodedValue();
             return is_array($values) ? ($values[$this->custom_column->column_name] ?? null) : null;
         }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
