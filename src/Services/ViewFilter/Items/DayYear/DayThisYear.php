@@ -14,7 +14,7 @@ class DayThisYear extends DayYearBase
     // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
-        return new \Carbon\Carbon('first day of this year');
+        return \Exceedone\Exment\Services\UserTimezone::relative('first day of this year');
     }
 
 
@@ -27,6 +27,6 @@ class DayThisYear extends DayYearBase
      */
     protected function _compareValue($value, $conditionValue): bool
     {
-        return \Carbon\Carbon::parse($value)->isCurrentYear();
+        return \Carbon\Carbon::parse($value)->year == \Exceedone\Exment\Services\UserTimezone::today()->year;
     }
 }

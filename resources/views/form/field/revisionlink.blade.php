@@ -1,6 +1,6 @@
 <p style="padding-top:7px;margin-bottom:0px">
 <a href="{{$link}}">
-    {{$revision->updated_at}}
+    {{ \Exceedone\Exment\Services\UserTimezone::display($revision->updated_at) }}
 </a>
     <small>
         &nbsp;({{ exmtrans("common.updated_user") }}&nbsp;:&nbsp;{{ $revision->user }})

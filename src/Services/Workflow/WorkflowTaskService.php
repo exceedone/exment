@@ -743,7 +743,8 @@ class WorkflowTaskService
         // them - its datetime starts in 1753, and the list answered 500 (found in review).
         [$updatedAt, $bindings] = self::taskUpdatedAt($tableName);
         if (!is_null($this->filter['from']) && (int)substr($this->filter['from'], 0, 4) >= self::FIRST_YEAR) {
-            $query->whereRaw($updatedAt . ' >= ?', array_merge($bindings, [$this->filter['from'] . ' 00:00:00']));
+            // the days of the user: from 00:00 of the user, in the time of the site (ISS02835)
+            $query->whereRaw($updatedAt . ' >= ?', array_merge($bindings, [self::dayStart($this->filter['from'])]));
         }
         if (!is_null($this->filter['to'])) {
             // The end date is inclusive, so the bound is the start of the following day. The last
@@ -755,7 +756,7 @@ class WorkflowTaskService
                 // and none lies before FIRST_YEAR
                 $query->whereRaw('1 = 0');
             } elseif ($next->year <= 9999) {
-                $query->whereRaw($updatedAt . ' < ?', array_merge($bindings, [$next->format('Y-m-d') . ' 00:00:00']));
+                $query->whereRaw($updatedAt . ' < ?', array_merge($bindings, [self::dayStart($next->format('Y-m-d'))]));
             }
         }
 
@@ -1383,6 +1384,20 @@ class WorkflowTaskService
         $updatedAt = $value->getAttribute(self::UPDATED_AT);
 
         return is_nullorempty($updatedAt) ? null : \Carbon\Carbon::parse($updatedAt);
+    }
+
+    /**
+     * 00:00 of a day (Y-m-d) of the filter for the SQL: the day of the user, in the time of the site
+     * (ISS02835). "Y-m-d 00:00:00" as before when the time zones are the same.
+     *
+     * @param string $date
+     * @return string
+     */
+    private static function dayStart(string $date): string
+    {
+        $start = \Exceedone\Exment\Services\UserTimezone::dayStartForQuery($date);
+
+        return strlen($start) === 10 ? $start . ' 00:00:00' : $start;
     }
 
     /**

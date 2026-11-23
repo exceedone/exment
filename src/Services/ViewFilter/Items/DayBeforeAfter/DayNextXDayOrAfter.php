@@ -15,7 +15,7 @@ class DayNextXDayOrAfter extends DayBeforeAfterBase
     // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
-        $today =  Carbon::today();
+        $today =  \Exceedone\Exment\Services\UserTimezone::today();
         return $today->addDays(intval($query_value));
     }
 
@@ -34,7 +34,7 @@ class DayNextXDayOrAfter extends DayBeforeAfterBase
      */
     protected function _compareValue($value, $conditionValue): bool
     {
-        $today = \Carbon\Carbon::today();
+        $today = \Exceedone\Exment\Services\UserTimezone::today();
         $target_day = $today->addDays(intval($conditionValue));
         return \Exment::getCarbonOnlyDay($value)->gte($target_day);
     }

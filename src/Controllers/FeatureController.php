@@ -366,7 +366,7 @@ class FeatureController extends AdminControllerBase
         if ($this->systemMenuExists($menuName)) {
             return;
         }
-        $define = array_get(Define::MENU_SYSTEM_DEFINITION, $menuName);
+        $define = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), $menuName);
         if (!is_array($define)) {
             return;
         }

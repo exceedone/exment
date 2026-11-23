@@ -232,6 +232,14 @@ class SystemController extends AdminControllerBase
             ->disableClear()
             ->help(exmtrans("system.help.data_submit_redirect"));
 
+        // the languages the users can choose (ISS02835)
+        $form->multipleSelect('allowed_locales', exmtrans('system.allowed_locales'))
+            ->options(\Exceedone\Exment\Services\UserLocale::options())
+            ->help(exmtrans('system.help.allowed_locales'));
+        $form->switchbool('locale_from_browser', exmtrans('system.locale_from_browser'))
+            ->default(1)
+            ->help(exmtrans('system.help.locale_from_browser'));
+
         $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
             ->help(exmtrans('system.help.header_user_info'))
             ->config('maximumSelectionLength', 2)
@@ -357,6 +365,8 @@ class SystemController extends AdminControllerBase
 
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
+
+        \Exceedone\Exment\Services\ScreenExtensions::call('system.advanced', $form);
 
         return $form;
     }
@@ -486,6 +496,23 @@ class SystemController extends AdminControllerBase
     // }
 
     /**
+     * The values of the settings whose change reloads the whole page ('reload' => true in
+     * their definition, CoreExtensions::addSystemSettings()).
+     *
+     * @return array<string, mixed>
+     */
+    protected static function reloadSettingValues(): array
+    {
+        $values = [];
+        foreach (\Exceedone\Exment\Services\CoreExtensions::systemSettings() as $name => $setting) {
+            if (boolval(array_get($setting, 'reload'))) {
+                $values[$name] = System::{$name}();
+            }
+        }
+        return $values;
+    }
+
+    /**
      * Send data
      *
      * @param Request $request
@@ -496,6 +523,7 @@ class SystemController extends AdminControllerBase
     {
         $advanced = $request->has('advanced');
         $lookBefore = static::screenLook();
+        $reloadBefore = static::reloadSettingValues();
 
         // validation
         $form = $advanced ? $this->formAdvanced($request) : $this->formBasic($request);
@@ -523,7 +551,7 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             System::clearCache();
-            if (static::screenLook() !== $lookBefore) {
+            if (static::screenLook() !== $lookBefore || static::reloadSettingValues() !== $reloadBefore) {
                 session()->flash(static::SESSION_KEY_RELOAD_PAGE, true);
             }
 

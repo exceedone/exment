@@ -15,7 +15,7 @@ class DayTodayOrBefore extends DayBeforeAfterBase
     // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
-        return Carbon::today();
+        return \Exceedone\Exment\Services\UserTimezone::today();
     }
 
     protected function getMark(): string
@@ -33,7 +33,7 @@ class DayTodayOrBefore extends DayBeforeAfterBase
      */
     protected function _compareValue($value, $conditionValue): bool
     {
-        $today = \Carbon\Carbon::today();
+        $today = \Exceedone\Exment\Services\UserTimezone::today();
         return \Exment::getCarbonOnlyDay($value)->lte($today);
     }
 }
