@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Exceedone\Exment\Services\Mcp\McpGuide;
 use Exceedone\Exment\Controllers\McpController;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -354,5 +355,37 @@ class McpServerTest extends ApiTestBase
         $response = $this->mcp($key, ['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']);
         $response->assertStatus(500)->assertJsonPath('error.code', -32603)->assertJsonPath('error.message', 'Internal error.');
         $this->assertStringNotContainsString('secret detail', (string)$response->getContent());
+    }
+
+    /**
+     * The scopes the pages name for each tool (McpGuide, ISS02879) are the ones the tools ask:
+     * without its scope a tool says which one it needs, and a key "for MCP" runs every tool.
+     */
+    public function testTheScopesOfTheGuideAreTheOnesTheToolsAsk(): void
+    {
+        $this->assertSame(McpTools::names(), array_keys(McpGuide::TOOL_SCOPES), 'every tool has its scope, in the same order');
+        $record = CustomTable::getEloquent('custom_value_edit')->getValueModel()->newQueryWithoutScopes()->first();
+        $this->assertNotNull($record);
+        $args = [
+            'list_tables' => [],
+            'get_table' => ['table' => 'custom_value_edit'],
+            'search_data' => ['table' => 'custom_value_edit'],
+            'get_data' => ['table' => 'custom_value_edit', 'id' => $record->id],
+            'list_attachments' => ['table' => 'custom_value_edit', 'id' => $record->id],
+            'get_workflow_status' => ['table' => 'custom_value_edit', 'id' => $record->id],
+        ];
+        $all = UserApiKeys::readOnlyScopes();
+        foreach (McpGuide::TOOL_SCOPES as $tool => $scope) {
+            $token = $this->getUser1AccessToken(array_values(array_diff($all, [$scope])));
+            $denied = $this->tool($token, $tool, $args[$tool]);
+            $this->assertTrue($denied['isError'], "$tool without $scope");
+            $this->assertStringContainsString('"' . $scope . '"', $denied['content'][0]['text'], "$tool names $scope");
+        }
+        $base = (int)LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1)->base_user_id;
+        $key = UserApiKeys::create($base, 'for mcp', McpGuide::scopes())[1];
+        foreach ($args as $tool => $arguments) {
+            $result = $this->tool($key, $tool, $arguments);
+            $this->assertStringNotContainsString('does not have the scope', (string)($result['content'][0]['text'] ?? ''), "$tool with a key for MCP");
+        }
     }
 }
