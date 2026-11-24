@@ -6,7 +6,7 @@ use Exceedone\Exment\Model\Define;
 
 /**
  * Additions to the lists of Define, for an application built on Exment (registered from its
- * service provider): system settings, system menus, the pages of a table and help links.
+ * service provider): system settings, system menus, the pages of a table, help links and scheduled jobs.
  * Nothing is added by Exment itself, so the lists are Define's as they are.
  */
 class CoreExtensions
@@ -22,6 +22,12 @@ class CoreExtensions
 
     /** @var array<int, array<string, mixed>> */
     protected static $helpUrls = [];
+
+    /** @var array<int, \Closure> */
+    protected static $schedules = [];
+
+    /** @var array<string, string> command => name (scheduled_jobs.jobs.<name>) */
+    protected static $scheduledJobNames = [];
 
     /**
      * System settings, as Define::SYSTEM_SETTING_NAME_VALUE (name => definition).
@@ -124,6 +130,36 @@ class CoreExtensions
     }
 
     /**
+     * Scheduled jobs (php artisan schedule:run, and the page "Scheduled jobs"): $schedule is called
+     * with the Illuminate\Console\Scheduling\Schedule, after the jobs of Exment. $names gives each
+     * command its name on the page, as ScheduledJobs::JOBS: the text scheduled_jobs.jobs.<name>.
+     *
+     * @param \Closure $schedule function (Schedule $schedule): void
+     * @param array<string, string> $names command => name
+     */
+    public static function addSchedule(\Closure $schedule, array $names = []): void
+    {
+        static::$schedules[] = $schedule;
+        static::$scheduledJobNames = array_merge(static::$scheduledJobNames, $names);
+    }
+
+    /**
+     * @return array<int, \Closure>
+     */
+    public static function schedules(): array
+    {
+        return static::$schedules;
+    }
+
+    /**
+     * @return array<string, string> command => name, Exment's first
+     */
+    public static function scheduledJobNames(): array
+    {
+        return array_merge(static::$scheduledJobNames, \Exceedone\Exment\Services\ScheduledJobs\ScheduledJobs::JOBS);
+    }
+
+    /**
      * Forget the additions (tests).
      */
     public static function reset(): void
@@ -132,5 +168,7 @@ class CoreExtensions
         static::$systemMenus = [];
         static::$tablePages = [];
         static::$helpUrls = [];
+        static::$schedules = [];
+        static::$scheduledJobNames = [];
     }
 }
