@@ -22,11 +22,13 @@
                 </p>
                 @endif
                 
+                @if(!is_null($settingUrl = $check->getSettingUrl()))
                 <p>
-                    <a style="background-color: #3c8dbc;border-color: #367fa9;" href="{{$check->getSettingUrl()}}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
+                    <a style="background-color: #3c8dbc;border-color: #367fa9;" href="{{ $settingUrl }}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-primary">
                         {{ exmtrans('system_require.check_setting') }}
                     </a>
                 </p>
+                @endif
             </div>
         </div>
         @endforeach

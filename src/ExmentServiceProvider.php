@@ -74,9 +74,11 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\MeiliSettingsCommand::class,
         \Exceedone\Exment\Console\MeiliHealthCommand::class,
         \Exceedone\Exment\Console\MeiliReconcileCommand::class,
+        \Exceedone\Exment\Console\MeiliSetupCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
+        \Exceedone\Exment\Console\CacheClearCommand::class,
         \Exceedone\Exment\Console\PublishCommand::class,
         \Exceedone\Exment\Console\ScheduleCommand::class,
         \Exceedone\Exment\Console\NotifyScheduleCommand::class,
@@ -171,6 +173,8 @@ class ExmentServiceProvider extends ServiceProvider
         'admin.feature' => \Exceedone\Exment\Middleware\FeatureGuard::class,
         // maintenance mode (Services\MaintenanceMode), with the kind of the pages
         'exment.maintenance' => \Exceedone\Exment\Middleware\MaintenanceGuard::class,
+        // the language and the time zone of the user (ISS02835)
+        'exment.user-locale' => \Exceedone\Exment\Middleware\UserLocaleTimezone::class,
     ];
 
     /**
@@ -187,6 +191,8 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.auth',
+            // the language and the time zone of the user: after the login is known
+            'exment.user-locale',
             // maintenance mode: after the login is known
             'exment.maintenance:web',
             'log.exec.time',
@@ -211,6 +217,8 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.web-ipfilter',
             'admin.initialize',
             'exment.maintenance:anonymous',
+            // the language of the login page (cookie, browser)
+            'exment.user-locale',
             'admin.login',
             'admin.morph',
             'admin.bootstrap2',
@@ -253,6 +261,7 @@ class ExmentServiceProvider extends ServiceProvider
         'adminapi' => [
             'admin.api-ipfilter',
             'adminapi.auth',
+            'exment.user-locale:api',
             'exment.maintenance:api',
             'admin.morph',
             'admin.log',
@@ -316,6 +325,11 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        // a site not installed yet without APP_KEY: made before the cookies need it
+        if (!$this->app->runningInConsole()) {
+            Services\Installer\AppKey::ensure();
+        }
+
         // Re-register route middleware aliases.
         // The auto-discovered AdminServiceProvider runs register() after this provider,
         // and re-aliases names like "admin.log" or "admin.auth" back to the core classes.
@@ -337,7 +351,11 @@ class ExmentServiceProvider extends ServiceProvider
             \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
         });
 
-        $this->publish();
+        // Perf: publishes() only feeds the `vendor:publish` console command; running it on
+        // every web request is pure waste (matches open-admin-core's console-guarded publishing).
+        if ($this->app->runningInConsole()) {
+            $this->publish();
+        }
         $this->load();
 
         $this->registerPolicies();
@@ -772,6 +790,10 @@ class ExmentServiceProvider extends ServiceProvider
             }
             if ($m == 'adminapi.auth') {
                 $m = 'adminwebapi.auth';
+            }
+            // the web API of the pages: the time zone of the user too
+            if ($m == 'exment.user-locale:api') {
+                $m = 'exment.user-locale';
             }
             // the web API of the pages: as the pages
             if ($m == 'exment.maintenance:api') {

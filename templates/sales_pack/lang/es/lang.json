@@ -1,0 +1,281 @@
+{
+    "template_view_name": "Paquete de ventas",
+    "description": "Clientes (con contactos), oportunidades, presupuestos (con líneas) y contratos, un grupo de roles de ventas y un menú \"Ventas y clientes\".",
+    "custom_tables": [
+        {
+            "table_name": "sales_customer",
+            "table_view_name": "Clientes",
+            "description": "Clientes y clientes potenciales. Sus contactos se registran en las líneas.",
+            "custom_columns": [
+                {
+                    "column_name": "customer_name",
+                    "column_view_name": "Cliente"
+                },
+                {
+                    "column_name": "customer_type",
+                    "column_view_name": "Tipo",
+                    "options": {
+                        "select_item_valtext": "prospect,Cliente potencial\ncustomer,Cliente\nformer,Antiguo cliente"
+                    }
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "Código postal"
+                },
+                {
+                    "column_name": "address",
+                    "column_view_name": "Dirección"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Teléfono"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Correo electrónico"
+                },
+                {
+                    "column_name": "url",
+                    "column_view_name": "Sitio web"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Responsable"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_customer_contact",
+            "table_view_name": "Contactos del cliente",
+            "description": "Las personas de contacto en el cliente.",
+            "custom_columns": [
+                {
+                    "column_name": "contact_name",
+                    "column_view_name": "Nombre"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Departamento"
+                },
+                {
+                    "column_name": "title",
+                    "column_view_name": "Cargo"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Teléfono"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Correo electrónico"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_deal",
+            "table_view_name": "Oportunidades",
+            "description": "Haga el seguimiento de cada oportunidad por etapa e importe previsto.",
+            "custom_columns": [
+                {
+                    "column_name": "deal_name",
+                    "column_view_name": "Oportunidad"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Cliente"
+                },
+                {
+                    "column_name": "stage",
+                    "column_view_name": "Etapa",
+                    "options": {
+                        "select_item_valtext": "lead,Contacto inicial\nproposal,Propuesta\nquote,Presupuesto\nwon,Ganada\nlost,Perdida"
+                    }
+                },
+                {
+                    "column_name": "expected_amount",
+                    "column_view_name": "Importe previsto"
+                },
+                {
+                    "column_name": "expected_date",
+                    "column_view_name": "Fecha prevista de cierre"
+                },
+                {
+                    "column_name": "probability",
+                    "column_view_name": "Probabilidad",
+                    "options": {
+                        "select_item_valtext": "a,A (casi segura)\nb,B (50 %)\nc,C (baja)"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Responsable"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Detalles"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote",
+            "table_view_name": "Presupuestos",
+            "description": "Presupuestos y sus líneas.",
+            "custom_columns": [
+                {
+                    "column_name": "quote_title",
+                    "column_view_name": "Asunto"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Cliente"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Oportunidad"
+                },
+                {
+                    "column_name": "quote_date",
+                    "column_view_name": "Fecha del presupuesto"
+                },
+                {
+                    "column_name": "valid_until",
+                    "column_view_name": "Válido hasta"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Total"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_quote_detail",
+            "table_view_name": "Líneas de presupuesto",
+            "description": "Una línea de un presupuesto.",
+            "custom_columns": [
+                {
+                    "column_name": "item_name",
+                    "column_view_name": "Artículo"
+                },
+                {
+                    "column_name": "quantity",
+                    "column_view_name": "Cantidad"
+                },
+                {
+                    "column_name": "unit",
+                    "column_view_name": "Unidad"
+                },
+                {
+                    "column_name": "unit_price",
+                    "column_view_name": "Precio unitario"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Importe"
+                }
+            ]
+        },
+        {
+            "table_name": "sales_contract",
+            "table_view_name": "Contratos",
+            "description": "Contratos y sus condiciones.",
+            "custom_columns": [
+                {
+                    "column_name": "contract_name",
+                    "column_view_name": "Contrato"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Cliente"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Oportunidad"
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "Fecha de contrato"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Fecha de inicio"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Fecha de fin"
+                },
+                {
+                    "column_name": "auto_renewal",
+                    "column_view_name": "Renovación automática"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Importe"
+                },
+                {
+                    "column_name": "document",
+                    "column_view_name": "Documento del contrato"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0858ef1666946ae5f31e",
+            "form_view_name": "Formulario"
+        },
+        {
+            "suuid": "1e9cf01d6433f6d1e818",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Ventas y clientes",
+            "menu_type": "parent_node",
+            "menu_name": "sales"
+        },
+        {
+            "title": "Clientes",
+            "menu_type": "table",
+            "menu_name": "sales_customer"
+        },
+        {
+            "title": "Oportunidades",
+            "menu_type": "table",
+            "menu_name": "sales_deal"
+        },
+        {
+            "title": "Presupuestos",
+            "menu_type": "table",
+            "menu_name": "sales_quote"
+        },
+        {
+            "title": "Contratos",
+            "menu_type": "table",
+            "menu_name": "sales_contract"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "sales_member_group",
+            "role_group_view_name": "Ventas",
+            "description": "Personas que ven, crean y editan clientes, oportunidades, presupuestos y contratos."
+        }
+    ]
+}

@@ -14,6 +14,7 @@ use Exceedone\Exment\Model\CustomViewSummary;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Workflow;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\UserTimezone;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemColumn;
 use Exceedone\Exment\Enums\SummaryCondition;
@@ -249,6 +250,12 @@ class SummaryGrid extends GridBase
             if (!is_nullorempty($summary_condition)) {
                 $column_item->setLabel(exmtrans('common.format_keyvalue', exmtrans("custom_view.summary_condition_options.{$summary_condition}"), $column_item->label()));
             }
+        }
+
+        // a date and time is grouped by the database in the time of the site: say so to a user in
+        // another time zone (ISS02835)
+        if ($column instanceof CustomViewColumn) {
+            $column_item->setLabel(UserTimezone::siteGroupLabel($column_item->label(), $column_item));
         }
 
         return $this;

@@ -370,6 +370,40 @@ class FeatureManagementTest extends FeatureTestBase
         }
     }
 
+    public function testTheActionOfAFeature(): void
+    {
+        try {
+            Features::register('exment_test.editor', ['label' => 'Editor', 'action' => ['label' => 'Install the editor', 'url' => '/admin/plugins/exment_test']]);
+            Features::register('exment_test.away', ['label' => 'Away', 'action' => ['label' => 'Go', 'url' => 'https://example.com/setup']]);
+            Features::register('exment_test.script', ['label' => 'Script', 'action' => ['label' => 'Run', 'url' => 'javascript:alert(1)']]);
+            Features::register('exment_test.quote', ['label' => 'Quote', 'action' => ['label' => 'Q', 'url' => '/x" onmouseover="y']]);
+            Features::register('exment_test.other', ['label' => 'Other', 'action' => ['label' => 'Other site', 'url' => '//evil.example.com/']]);
+            Features::register('exment_test.empty', ['label' => 'Empty', 'action' => ['label' => '', 'url' => '/admin']]);
+            Features::register('exment_test.none', ['label' => 'None']);
+            $this->assertSame(['label' => 'Install the editor', 'url' => '/admin/plugins/exment_test'], Features::action('exment_test.editor'));
+            $this->assertSame(['label' => 'Go', 'url' => 'https://example.com/setup'], Features::action('exment_test.away'));
+            foreach (['script', 'quote', 'other', 'empty', 'none'] as $name) {
+                $this->assertNull(Features::action('exment_test.' . $name), $name);
+            }
+
+            // its row shows it as a button (the page lists a plugin's features under the plugin,
+            // and there is no plugin exment_test: the row is drawn as the page draws it)
+            $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+            $controller = app(\Exceedone\Exment\Controllers\FeatureController::class);
+            $method = new \ReflectionMethod($controller, 'featureRow');
+            $method->setAccessible(true);
+            $draw = function (string $key) use ($controller, $method) {
+                $row = $method->invoke($controller, $key, Features::definitions()[$key]);
+                return view('exment::feature._row', ['f' => $row, 'child' => false, 'muted' => false, 'role_groups' => [], 'menu_url' => admin_url('menu')])->render();
+            };
+            $this->assertStringContainsString('href="/admin/plugins/exment_test" data-feature-action>Install the editor</a>', $draw('exment_test.editor'));
+            $this->assertStringNotContainsString('data-feature-action', $draw('exment_test.script'));
+            $this->assertStringNotContainsString('javascript:alert(1)', $draw('exment_test.script'));
+        } finally {
+            Features::reset();
+        }
+    }
+
     public function testRequiresAndWho(): void
     {
         Features::register('exment_test.desk', ['label' => 'Desk', 'endpoints' => ['plugins/exment_test']]);

@@ -223,7 +223,7 @@ class DefaultGrid extends GridBase
                     // server refuses the write either way. ($this is the
                     // row's model here: the grid binds it to this closure.)
                     // @phpstan-ignore-next-line
-                    if (!GridTools\GridInlineEditor::isFormEditableColumn($custom_table, $this, $item->getCustomColumn())) {
+                    if (!GridTools\GridInlineEditor::isFormEditableColumnInList($custom_table, $this, $item->getCustomColumn())) {
                         return (string)$html . GridTools\GridInlineEditor::LOCKED_MARKER;
                     }
                     // A long value is shown shortened ('...'), a formatted
@@ -678,6 +678,9 @@ class DefaultGrid extends GridBase
                     $tools->append((new Tools\PluginMenuButton($listButton, $this->custom_table))->gridTool());
                 }
             }
+
+            // the buttons of an application (ScreenExtensions data_grid.tools)
+            \Exceedone\Exment\Services\ScreenExtensions::call('data_grid.tools', $tools, $this->custom_table, $this->custom_view);
 
             if ($this->custom_table->enableViewMenuButton()) {
                 /** @phpstan-ignore-next-line append() expects ExmentAdminCore\Admin\Grid\Tools\AbstractTool|string, Exceedone\Exment\Form\Tools\CustomViewMenuButton given */

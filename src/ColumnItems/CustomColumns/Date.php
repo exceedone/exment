@@ -267,7 +267,8 @@ class Date extends CustomItem
     {
         list($default_type, $default) = $this->getDefaultSetting();
         if (isMatchString($default_type, ColumnDefaultType::EXECUTING_DATE)) {
-            return \Carbon\Carbon::now()->format($this->format);
+            // today of the user (ISS02835); the date itself is never converted
+            return \Exceedone\Exment\Services\UserTimezone::today()->format($this->format);
         }
 
         return null;

@@ -1,0 +1,141 @@
+{
+    "template_view_name": "고객 관리",
+    "description": "간단한 고객 관리입니다. 대상 고객의 대분류와 소분류를 등록하면 분류별로 고객을 검색할 수 있습니다.",
+    "custom_tables": [
+        {
+            "table_name": "major_class",
+            "table_view_name": "대분류",
+            "description": "대분류",
+            "custom_columns": [
+                {
+                    "column_name": "major_class_code",
+                    "column_view_name": "대분류 코드"
+                },
+                {
+                    "column_name": "major_class_name",
+                    "column_view_name": "대분류 이름"
+                }
+            ]
+        },
+        {
+            "table_name": "minor_class",
+            "table_view_name": "소분류",
+            "description": "소분류",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "대분류"
+                },
+                {
+                    "column_name": "minor_class_code",
+                    "column_view_name": "소분류 코드"
+                },
+                {
+                    "column_name": "minor_class_name",
+                    "column_view_name": "소분류 이름"
+                }
+            ]
+        },
+        {
+            "table_name": "client_manage",
+            "table_view_name": "고객 정보",
+            "description": "고객 정보",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "대분류"
+                },
+                {
+                    "column_name": "minor_class",
+                    "column_view_name": "소분류"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "고객명"
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "우편번호"
+                },
+                {
+                    "column_name": "street_address",
+                    "column_view_name": "주소"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "전화번호"
+                },
+                {
+                    "column_name": "fax",
+                    "column_view_name": "팩스"
+                },
+                {
+                    "column_name": "mail",
+                    "column_view_name": "이메일 주소"
+                },
+                {
+                    "column_name": "hp",
+                    "column_view_name": "홈페이지"
+                },
+                {
+                    "column_name": "available_flg",
+                    "column_view_name": "사용 여부"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "9b7cdef69121669e53f3",
+            "form_view_name": "폼"
+        },
+        {
+            "suuid": "874049a23fa54616587e",
+            "form_view_name": "폼"
+        },
+        {
+            "suuid": "d72abe95f6a2bd472bee",
+            "form_view_name": "폼"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "901117b47cad43291ed6",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "58c28b1a750f81b6621a",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "1e425a576a67c5d993f2",
+            "view_view_name": "전체 고객 정보"
+        },
+        {
+            "suuid": "bc5692520c4d124b4815",
+            "view_view_name": "유효한 고객 정보"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "고객 관리",
+            "menu_type": "parent_node",
+            "menu_name": "client_manage_parent"
+        },
+        {
+            "title": "대분류",
+            "menu_type": "table",
+            "menu_name": "major_class"
+        },
+        {
+            "title": "소분류",
+            "menu_type": "table",
+            "menu_name": "minor_class"
+        },
+        {
+            "title": "고객 정보",
+            "menu_type": "table",
+            "menu_name": "client_manage"
+        }
+    ]
+}

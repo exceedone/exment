@@ -149,19 +149,23 @@ class TemplateImporter
     // @phpstan-ignore-next-line
     public function deleteTemplate($teplate_name)
     {
-        $isUserTemplate = collect($this->getUserTemplates())
-            ->contains(function ($template) use ($teplate_name) {
-                return array_get($template, 'template_type') === 'user'
-                    && array_get($template, 'template_name') === $teplate_name;
-            });
-        if (!$isUserTemplate) {
+        // one folder name: no separator, not "." or ".."
+        if (!is_string($teplate_name)
+            || $teplate_name === ''
+            || $teplate_name === '.'
+            || $teplate_name === '..'
+            || strpos($teplate_name, '/') !== false
+            || strpos($teplate_name, '\\') !== false) {
             return;
         }
 
+        // a folder of the user template disk (the system templates are not on it). Matched
+        // with the folders, not the names in config.json, so that an upload whose
+        // config.json is broken can be removed too.
         $diskItem = $this->diskService->diskItem();
         $disk = $diskItem->disk();
 
-        if (!$disk->exists($teplate_name)) {
+        if (!in_array($teplate_name, $disk->directories(), true)) {
             return;
         }
 

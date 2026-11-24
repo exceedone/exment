@@ -224,6 +224,35 @@ class ExportImportButton extends ModalTileMenuButton
             ];
         }
 
+        ///// the date and times in the time zone of the user (the others are in the time zone of the site). ISS02835
+        if (\Exceedone\Exment\Services\UserTimezone::differs() && ($this->export_flg || $this->view_flg)) {
+            $items = [];
+            if ($this->export_flg) {
+                $items[] = [
+                    'icon' => 'fa-clock-o',
+                    'header' => exmtrans("$base_key.default_export") . ' - ' . $all,
+                    'description' => exmtrans('custom_value.help.export_user_timezone'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&timezone=user&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+            if ($this->view_flg) {
+                $items[] = [
+                    'icon' => 'fa-clock-o',
+                    'header' => exmtrans('custom_value.view_export') . ' - ' . $all,
+                    'description' => exmtrans('custom_value.help.export_user_timezone'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=view_export&timezone=user&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+            $groups[] = [
+                'header' => exmtrans('custom_value.export_user_timezone', ['timezone' => \Exceedone\Exment\Services\UserTimezone::user()]),
+                'items' => $items,
+            ];
+        }
+
         $plugins = $this->getPluginExports();
         // todo 通常ビューの場合のみプラグインエクスポートを有効にするための修正です
         if ($this->total_export_flg && $this->plugin_flg && !is_nullorempty($plugins)) {
@@ -265,33 +294,36 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         if ($this->import_flg) {
+            $items = [
+                [
+                    'icon' => 'fa-download',
+                    'header' => exmtrans('custom_value.template'),
+                    'description' => exmtrans('custom_value.help.template'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => $this->endpoint . "?_export_=all&temp=1&format=$key"], $format);
+                    })->toArray(),
+                ],
+                [
+                    'icon' => 'fa-upload',
+                    'header' => exmtrans('common.import'),
+                    'description' => exmtrans("$base_key.help.import"),
+                    'buttons' => [
+                        [
+                            'label' => exmtrans('common.import'),
+                            'icon' => 'fa-upload',
+                            'url' => '#',
+                            'attributes' => \Exment::formatAttributes([
+                                'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                            ]),
+                        ]
+                    ],
+                ],
+            ];
+            // the import items of an application (ScreenExtensions import.items)
+            $items = \Exceedone\Exment\Services\ScreenExtensions::filter('import.items', $items, $this->custom_table);
             $groups[] = [
                 'header' => exmtrans('common.import'),
-                'items' => [
-                    [
-                        'icon' => 'fa-download',
-                        'header' => exmtrans('custom_value.template'),
-                        'description' => exmtrans('custom_value.help.template'),
-                        'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href' => $this->endpoint . "?_export_=all&temp=1&format=$key"], $format);
-                        })->toArray(),
-                    ],
-                    [
-                        'icon' => 'fa-upload',
-                        'header' => exmtrans('common.import'),
-                        'description' => exmtrans("$base_key.help.import"),
-                        'buttons' => [
-                            [
-                                'label' => exmtrans('common.import'),
-                                'icon' => 'fa-upload',
-                                'url' => '#',
-                                'attributes' => \Exment::formatAttributes([
-                                    'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
-                                ]),
-                            ]
-                        ],
-                    ],
-                ]
+                'items' => $items,
             ];
         }
 

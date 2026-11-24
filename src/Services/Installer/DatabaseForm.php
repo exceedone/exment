@@ -16,6 +16,13 @@ class DatabaseForm
     // @phpstan-ignore-next-line
     protected $database_default = null;
 
+    /**
+     * The reason of the last failed connection (InstallService::connectionErrorReason), or null.
+     *
+     * @var string|null
+     */
+    protected $connection_error = null;
+
     public const settings = [
         'connection',
         'host',
@@ -46,6 +53,9 @@ class DatabaseForm
     // @phpstan-ignore-next-line
     public function post()
     {
+        // the installer does not run again on an installed site
+        InstalledState::refuseIfInstalled();
+
         $request = request();
 
         $rules = [];
@@ -69,8 +79,12 @@ class DatabaseForm
         }
 
         if (!$this->canDatabaseConnection($request)) {
+            $message = exmtrans('install.error.database_canconnection');
+            if (!is_nullorempty($this->connection_error)) {
+                $message .= ' (' . $this->connection_error . ')';
+            }
             return back()->withInput()->withErrors([
-                'database_canconnection' => exmtrans('install.error.database_canconnection'),
+                'database_canconnection' => $message,
             ]);
         }
 
@@ -131,7 +145,12 @@ class DatabaseForm
         try {
             $this->connection()->disconnect();
             $this->connection()->reconnect();
-        } catch (\Exception $exception) {
+            if (!$this->connection()->canConnection()) {
+                $this->connection()->getPdo();
+            }
+        } catch (\Throwable $exception) {
+            $this->connection_error = InstallService::connectionErrorReason($exception, array_get($inputs, 'password'));
+            \Log::warning('Exment install: the database connection failed: ' . $this->connection_error);
             return false;
         }
 

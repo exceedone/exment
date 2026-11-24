@@ -47,6 +47,10 @@
 .exm-fs-snippet { font-size: .85rem; opacity: .85; margin-top: 2px; overflow-wrap: anywhere; }
 .exm-fs-field-row { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1.4fr 1fr auto auto auto; gap: 6px; align-items: start; margin-bottom: 6px; }
 @media (max-width: 900px) { .exm-fs-field-row { grid-template-columns: 1fr 1fr; } }
+/* admin-core's select.input-sm has a line of 30px in a box of 30px with padding: the text was cut
+   at the bottom, and a list (size="5") was one line high */
+select.form-control.input-sm { line-height: 1.5; }
+select.form-control.input-sm[size], select.form-control.input-sm[multiple] { height: auto; }
 </style>
 <script>
 window.ExmFs = window.ExmFs || (function () {

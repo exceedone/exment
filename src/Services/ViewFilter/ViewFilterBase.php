@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Services\UserTimezone;
 
 abstract class ViewFilterBase
 {
@@ -224,6 +225,15 @@ abstract class ViewFilterBase
             }
             return true;
         });
+
+        // a date and time is compared as a time of the user ("today" etc. are the days of the user, ISS02835)
+        // (some conditions, the workflow ones, have no column item)
+        // @phpstan-ignore-next-line
+        if (isset($this->column_item) && $this->column_item->isDateTime() && UserTimezone::differs()) {
+            $value = $value->map(function ($value) {
+                return UserTimezone::localString($value);
+            });
+        }
 
         return collect($conditionValue)->contains(function ($conditionValue) use ($value) {
             if (static::$isConditionPassAsArray) {

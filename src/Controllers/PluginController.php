@@ -134,6 +134,11 @@ class PluginController extends AdminControllerBase
     //Function use to upload file and update or add new record
     public function store(Request $request)
     {
+        // Installing a plugin executes arbitrary PHP on the server. In shared /
+        // multi-tenant deployments this is disabled via config.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         // Uploading installs or replaces a plugin, that is PHP code. The route lets
         // in the setting permission of a single plugin too, so check it here: the
         // upload form itself is shown only with PLUGIN_ALL (index()).
@@ -189,6 +194,9 @@ class PluginController extends AdminControllerBase
         }
     }
 
+    /** The uri of a page or API plugin (a new or changed one). */
+    public const URI_PATTERN = '/^[a-z0-9][a-z0-9_\-]*$/';
+
     //Check request when edit record to delete null values in event_triggers
     public function update(Request $request, $id)
     {
@@ -196,6 +204,29 @@ class PluginController extends AdminControllerBase
         if (!$plugin || !$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
             Checker::notFoundOrDeny();
             return false;
+        }
+
+        // a changed uri of a page or API plugin: lower case letters, digits, _ and - (it is a
+        // part of the url). An uri saved before this rule (with capital letters) can stay.
+        if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL()) && $request->has('options')) {
+            $uri = array_get((array)$request->get('options'), 'uri');
+            if ($uri !== $plugin->getOption('uri')) {
+                $validator = \Validator::make(
+                    ['uri' => $uri],
+                    ['uri' => ['required', 'regex:' . static::URI_PATTERN, 'max:100']]
+                );
+                if ($validator->fails()) {
+                    // a form sent by pjax is answered with a redirect (the Pjax middleware does not
+                    // take a JSON answer of an error)
+                    if ($request->pjax()) {
+                        return back()->withErrors(['options.uri' => $validator->errors()->first('uri')])->withInput();
+                    }
+                    return getAjaxResponse([
+                        'result' => false,
+                        'errors' => ['options.uri' => $validator->errors()->first('uri')],
+                    ]);
+                }
+            }
         }
 
         if (isset($request->get('options')['event_triggers']) === true) {
@@ -276,7 +307,7 @@ class PluginController extends AdminControllerBase
             }
 
             if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL())) {
-                $form->text('uri', exmtrans("plugin.options.uri"))->required();
+                $form->text('uri', exmtrans("plugin.options.uri"))->required()->rules(['regex:/^[A-Za-z0-9][A-Za-z0-9_\-]*$/', 'max:100']);
 
                 if ($plugin->matchPluginType(PluginType::PAGE)) {
                     $form->display('endpoint_page', exmtrans("plugin.options.endpoint_page"))->default($plugin->getRootUrl(PluginType::PAGE))->help(exmtrans("plugin.help.endpoint"));

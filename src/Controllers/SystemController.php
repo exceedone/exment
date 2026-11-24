@@ -23,10 +23,10 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Update\UpdateService;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\SystemInfo;
 use Exceedone\Exment\Services\SystemRequire;
-use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
-use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -91,15 +91,8 @@ class SystemController extends AdminControllerBase
 
         $content->row($box);
 
-        if (System::outside_api()) {
-            // Version infomation
-            $infoBox = $this->getVersionBox();
-            $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
-        }
-
-        // Append system require box
-        $box = $this->getSystemRequireBox();
-        $content->row(new Box(exmtrans("install.system_require.header"), $box->render()));
+        // Version infomation: always (ISS02828). The system requirements are on the tuning page.
+        $content->row(new Box(exmtrans("system.version_header"), $this->getVersionInfo()));
 
         return $content;
     }
@@ -239,6 +232,14 @@ class SystemController extends AdminControllerBase
             ->disableClear()
             ->help(exmtrans("system.help.data_submit_redirect"));
 
+        // the languages the users can choose (ISS02835)
+        $form->multipleSelect('allowed_locales', exmtrans('system.allowed_locales'))
+            ->options(\Exceedone\Exment\Services\UserLocale::options())
+            ->help(exmtrans('system.help.allowed_locales'));
+        $form->switchbool('locale_from_browser', exmtrans('system.locale_from_browser'))
+            ->default(1)
+            ->help(exmtrans('system.help.locale_from_browser'));
+
         $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
             ->help(exmtrans('system.help.header_user_info'))
             ->config('maximumSelectionLength', 2)
@@ -365,7 +366,23 @@ class SystemController extends AdminControllerBase
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
+        \Exceedone\Exment\Services\ScreenExtensions::call('system.advanced', $form);
+
         return $form;
+    }
+
+    /**
+     * The versions of Exment, PHP, the web server, the database and the OS, with a copy
+     * button (ISS02828); the latest version when the server may ask outside; a link to tuning.
+     */
+    protected function getVersionInfo(): string
+    {
+        return view('exment::widgets.version-info', [
+            'items' => SystemInfo::items(),
+            'text' => SystemInfo::text(),
+            'latestForm' => System::outside_api() ? $this->getVersionBox()->render() : null,
+            'tuningUrl' => Features::enabled(Features::TUNING) ? admin_url('tuning') : null,
+        ])->render();
     }
 
     /**
@@ -382,8 +399,6 @@ class SystemController extends AdminControllerBase
         $form = new WidgetForm();
         $form->disableReset()->disableSubmit();
 
-        $form->display('version_current', exmtrans('system.version_current_label'))
-            ->default($current);
         $form->display('version_latest', exmtrans('system.version_latest_label'))
             ->default($latest);
 
@@ -481,17 +496,20 @@ class SystemController extends AdminControllerBase
     // }
 
     /**
-     * get system require box.
+     * The values of the settings whose change reloads the whole page ('reload' => true in
+     * their definition, CoreExtensions::addSystemSettings()).
      *
-     * @return bool|\Illuminate\Auth\Access\Response|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|mixed
+     * @return array<string, mixed>
      */
-    protected function getSystemRequireBox()
+    protected static function reloadSettingValues(): array
     {
-        $checkResult = SystemRequireList::make(SystemRequireCalledType::WEB);
-        $view = view('exment::widgets.system-require', [
-            'checkResult' => $checkResult,
-        ]);
-        return $view;
+        $values = [];
+        foreach (\Exceedone\Exment\Services\CoreExtensions::systemSettings() as $name => $setting) {
+            if (boolval(array_get($setting, 'reload'))) {
+                $values[$name] = System::{$name}();
+            }
+        }
+        return $values;
     }
 
     /**
@@ -505,6 +523,7 @@ class SystemController extends AdminControllerBase
     {
         $advanced = $request->has('advanced');
         $lookBefore = static::screenLook();
+        $reloadBefore = static::reloadSettingValues();
 
         // validation
         $form = $advanced ? $this->formAdvanced($request) : $this->formBasic($request);
@@ -532,7 +551,7 @@ class SystemController extends AdminControllerBase
             admin_toastr(trans('admin.save_succeeded'));
 
             System::clearCache();
-            if (static::screenLook() !== $lookBefore) {
+            if (static::screenLook() !== $lookBefore || static::reloadSettingValues() !== $reloadBefore) {
                 session()->flash(static::SESSION_KEY_RELOAD_PAGE, true);
             }
 

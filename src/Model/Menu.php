@@ -6,6 +6,7 @@ use Exceedone\Exment\Database\Query\Grammars\SqlServerGrammar;
 use Exceedone\Exment\Enums\DatabaseDataType;
 use Exceedone\Exment\Enums\MenuType;
 use Exceedone\Exment\Enums\TemplateImportResult;
+use Exceedone\Exment\Services\MenuVisibility;
 use ExmentAdminCore\Admin\Auth\Database\Menu as AdminMenu;
 use Illuminate\Support\Facades\DB;
 
@@ -261,6 +262,27 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
      * The title of a system menu in the language of the site, for a menu an
      * update adds.
      */
+    /**
+     * Put a system menu right after another one under the same parent (the security check
+     * after Tuning): the ones after it move down by one. Nothing when either is missing or
+     * they are under different parents (an administrator moved one).
+     */
+    public static function placeSystemMenuAfter(string $menuName, string $afterName): void
+    {
+        $table = config('admin.database.menu_table', 'admin_menu');
+        $menu = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $menuName)->first();
+        $after = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $afterName)->first();
+        if (!isset($menu, $after) || intval($menu->parent_id) !== intval($after->parent_id)) {
+            return;
+        }
+        $order = intval($after->order);
+        if (intval($menu->order) === $order + 1) {
+            return;
+        }
+        \DB::table($table)->where('parent_id', $after->parent_id)->where('id', '<>', $menu->id)->where('order', '>', $order)->increment('order');
+        \DB::table($table)->where('id', $menu->id)->update(['order' => $order + 1]);
+    }
+
     public static function systemTitle(string $menuName): string
     {
         // a language without the name: the one of Laravel, then English, then the name of the menu
@@ -291,11 +313,30 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     }
 
     /**
+     * The menus the login user has (Services\MenuVisibility decides: Feature
+     * management, demo mode). The permissions are checked when the tree is
+     * shown (MenuVisibility::tree()).
+     *
      * @return array
      */
 
     // @phpstan-ignore-next-line
     public function allNodes(): array
+    {
+        $rows = MenuVisibility::rows(function () {
+            return $this->getAllNodesFromDatabase();
+        });
+        return MenuVisibility::nodes($rows, $this->withHidden);
+    }
+
+    /**
+     * The menus as the database has them, with their uri and icon: the same
+     * for every user (MenuVisibility::rows() may cache them). A menu of a
+     * table or a plugin that is not there any more is left out.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    protected function getAllNodesFromDatabase(): array
     {
         $grammar = DB::getQueryGrammar();
         $orderColumn = $grammar->wrap($this->orderColumn);
@@ -324,7 +365,9 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 $join->whereRaw("m.menu_target = " . $pluginQuery);
             })
             ->orderByRaw("CASE WHEN m.$orderColumn = 0 THEN 1 ELSE 0 END")
-            ->orderByRaw("m.$orderColumn");
+            ->orderByRaw("m.$orderColumn")
+            // the same order: as they were made (the database may answer the ties in any order)
+            ->orderBy('m.id');
 
             //->map(function ($item, $key) {
             //    return (array) $item;
@@ -347,7 +390,6 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         $results = [];
         foreach ($rows as &$row) {
             $result = true;
-            $hidden = false;
             if (isset($row['options'])) {
                 $row['options'] = json_decode_ex($row['options'], true);
             }
@@ -359,10 +401,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                         break;
                     }
                     $row['uri'] = $plugin->getRouteUri();
-                    // its menu turned off (Admin setting → Feature management)
-                    if (\Exceedone\Exment\Services\Features::hidesPluginMenu($plugin->plugin_name)) {
-                        $hidden = true;
-                    }
+                    // for MenuVisibility::hiddenByFeatures(): the menu switch of the plugin
+                    $row['plugin_name'] = $plugin->plugin_name;
                     break;
                 case MenuType::TABLE:
                     if (!isset($row['table_name'])) {
@@ -386,20 +426,13 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $defines = array_get(Define::MENU_SYSTEM_DEFINITION, $row['menu_target']);
+                    // a system menu row may have only its menu_name
+                    $defines = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), array_get($row, 'menu_target') ?: $row['menu_name']);
                     // if not set menu icon, set Define's default icon.
                     if (is_nullorempty($row['icon'])) {
                         $row['icon'] = array_get($defines, 'icon');
                     }
                     $row['uri'] = array_get($defines, "uri");
-                    // demo mode: the menu of a refused page
-                    if (\Exceedone\Exment\Services\DemoMode::hidesMenuUri($row['uri'])) {
-                        $result = false;
-                    }
-                    // a feature not used, or that the user may not use (Admin setting → Feature management)
-                    if (\Exceedone\Exment\Services\Features::hidesSystemMenu(strval($row['menu_target']))) {
-                        $hidden = true;
-                    }
                     break;
                 case MenuType::PARENT_NODE:
                     $row['uri'] = null;
@@ -410,16 +443,6 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     // database-row has icon column, set icon
             }
 
-            // a page of a feature the user may not use: its menu goes too, of
-            // any kind (a plugin's own feature, a custom menu to its URL)
-            if ($result && !$hidden && \Exceedone\Exment\Services\Features::hidesMenuUri(isset($row['uri']) ? strval($row['uri']) : null)) {
-                $hidden = true;
-            }
-            if ($hidden) {
-                // the menu of a feature not used: kept for editing and the templates
-                $row['feature_hidden'] = true;
-                $result = $result && $this->withHidden;
-            }
             if (!$result) {
                 continue;
             }
@@ -478,7 +501,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use (&$json) {
+                    $menus = collect(\Exceedone\Exment\Services\CoreExtensions::systemMenus())->filter(function ($system_menu, $key) use (&$json) {
                         return $key == $json['menu_target_name'];
                     })->each(function ($system_menu, $key) use (&$json) {
                         $json['menu_target'] = $key;
@@ -497,7 +520,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         if (!isset($json['icon'])) {
             switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $json['icon'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'] . ".icon");
+                    $json['icon'] = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), $json['menu_name'] . ".icon");
                     break;
                 case MenuType::TABLE:
                     $json['icon'] = array_get(CustomTable::getEloquent($json['menu_name']), 'options.icon');
@@ -512,7 +535,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         if (!isset($json['uri'])) {
             switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $json['uri'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'] . ".uri");
+                    $json['uri'] = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), $json['menu_name'] . ".uri");
                     break;
                 case MenuType::TABLE:
                     $json['uri'] = $json['menu_name'];
@@ -589,5 +612,13 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     protected static function boot()
     {
         static::treeBoot();
+
+        // the rows of the menu, when a site caches them (MenuVisibility::cacheRowsWith())
+        static::saved(function ($model) {
+            MenuVisibility::forgetRows();
+        });
+        static::deleted(function ($model) {
+            MenuVisibility::forgetRows();
+        });
     }
 }

@@ -676,6 +676,40 @@ class FileServerTest extends FeatureTestBase
         $this->assertSame(0, FileNode::query()->where('workspace_id', $ws->id)->where('name', 'uploader.txt')->count());
     }
 
+    public function testNewMakesAnEmptyOfficeFileThatOpensOnItsPage(): void
+    {
+        $ws = $this->workspace();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::EDIT);
+        $url = admin_urls('file_server', $ws->id, 'text_files');
+
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $page = $this->followingRedirects()->get(admin_urls('file_server', $ws->id))->assertOk();
+        foreach (['docx', 'xlsx', 'pptx'] as $type) {
+            $page->assertSee('data-fs="new-text" data-type="' . $type . '"', false);
+        }
+
+        foreach (['docx' => 'report', 'xlsx' => 'budget', 'pptx' => 'deck'] as $type => $name) {
+            $json = $this->post($url, ['name' => $name, 'type' => $type], $this->ajax)->assertOk()->assertJson(['result' => true])->json();
+            $node = $this->node($json['id']);
+            $this->assertSame($name . '.' . $type, $node->name);
+            // the blank document, a zip (Office Open XML) Office opens as an empty file
+            $blank = strval(file_get_contents(exment_package_path('resources/file_server/blank.' . $type)));
+            $this->assertSame($blank, $this->bytes($node));
+            $this->assertStringStartsWith("PK\x03\x04", $blank);
+            if ($type === 'docx') {
+                // a body with no paragraph leaves an editor nowhere to put the cursor (no typing)
+                $zip = new \ZipArchive();
+                $this->assertTrue($zip->open(exment_package_path('resources/file_server/blank.docx')) === true);
+                $this->assertMatchesRegularExpression('#<w:body>.*<w:p[ />]#s', strval($zip->getFromName('word/document.xml')));
+                $zip->close();
+            }
+            $this->assertSame(Preview::KIND_OFFICE, Preview::kind($node->mime_type, $node->name));
+            // opened on its page, not in the text editor
+            $this->assertStringNotContainsString('/edit', strval($json['redirect']));
+            $this->assertFalse(TextFiles::isEditable($node));
+        }
+    }
+
     public function testTheNamesThatCannotBeKeptAreRefused(): void
     {
         $ws = $this->workspace();

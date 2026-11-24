@@ -418,6 +418,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
+            if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($model->custom_table?->table_name))) {
+                $policy->savingColumn($model);
+            }
             // The name goes into SQL (JSON paths, generated index columns). The
             // screens check it; a template or an import saves without them, so
             // a new or changed name is checked here too.
@@ -703,6 +706,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function createSelectOptions()
     {
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->custom_table?->table_name)) && !is_null($options = $policy->selectOptions($this))) {
+            return $options;
+        }
         // get value
         $column_type = array_get($this, 'column_type');
         $column_options = array_get($this, 'options');
@@ -712,6 +718,30 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $select_item = array_get($column_options, $array_get_key);
         $isValueText = ($column_type == 'select_valtext');
 
+        // the choices are read for every row of a list or a board: made once per
+        // column object, again only when its choices or its type change
+        $memoKey = $column_type . "
+" . (is_string($select_item) ? $select_item : json_encode($select_item));
+        if ($this->selectOptionsKey === $memoKey) {
+            return $this->selectOptionsMemo;
+        }
+        $this->selectOptionsKey = $memoKey;
+        $this->selectOptionsMemo = $this->makeSelectOptions($select_item, $isValueText);
+        return $this->selectOptionsMemo;
+    }
+
+    /** @var string|null the choices createSelectOptions() last made its list from */
+    protected $selectOptionsKey;
+
+    /** @var array<mixed> that list */
+    protected $selectOptionsMemo = [];
+
+    /**
+     * @param mixed $select_item
+     * @return array<mixed>
+     */
+    protected function makeSelectOptions($select_item, bool $isValueText): array
+    {
         $options = [];
         if (is_null($select_item)) {
             return $options;

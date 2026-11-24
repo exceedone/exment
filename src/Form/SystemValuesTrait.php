@@ -87,6 +87,11 @@ trait SystemValuesTrait
                 continue;
             }
 
+            // created_at etc. in the time zone of the user (ISS02835)
+            if ($value instanceof \DateTimeInterface && \Exceedone\Exment\Services\UserTimezone::differs()) {
+                $value = \Exceedone\Exment\Services\UserTimezone::formatToUser($value, config('admin.datetime_format') ?: 'Y-m-d H:i:s');
+            }
+
             $result[] = [
                 /** @phpstan-ignore-next-line */
                 'label' => exmtrans("common.$key"),

@@ -16,6 +16,7 @@ use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
+use Exceedone\Exment\Services\Installer\InstalledState;
 use ExmentAdminCore\Admin\Form;
 use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use ExmentAdminCore\Admin\Grid;
@@ -36,22 +37,33 @@ class Initialize
     public function handle(Request $request, \Closure $next)
     {
         if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
-            // Check install directory
-            if (!$this->isInstallPath($request)) {
-                // check has 'EXMENT_INITIALIZE' on .env directly
-                // if true, already installed but DB is unreachable — return 503 instead of redirecting to install
-                if (boolval(env('EXMENT_INITIALIZE', false))) {
-                    \Log::error('Database connection failed during initialization. EXMENT_INITIALIZE is set to true, but DB is unreachable.');
-                    abort(503, 'Database connection failed. Please check your database settings in .env');
-                }
+            // An installed site whose database cannot be reached (or is empty) is
+            // down: 503 for every path, the install pages too. "Installed" is read
+            // from the marker file and from .env itself, not from the database nor
+            // from env() (with a config cache, env() does not read .env).
+            if (InstalledState::isInstalled()) {
+                \Log::error('Database connection failed during initialization. Exment is installed, but the database is unreachable or has no system table.');
+                abort(503, 'Database connection failed. Please check your database settings in .env');
+            }
 
-                // If not initialized, return to install path
+            // Not installed yet: only the install pages
+            if (!$this->isInstallPath($request)) {
                 return redirect()->guest(admin_base_path('install'));
             }
 
             static::initializeConfig(false);
         } else {
             $initialized = System::initialized();
+
+            if ($initialized) {
+                // a site set up before the marker existed gets it here
+                InstalledState::markInstalled();
+            }
+
+            // the install pages are closed on an installed site
+            if ($this->isInstallPath($request) && InstalledState::isInstalled()) {
+                return redirect()->guest(admin_base_path($initialized ? 'auth/login' : 'initialize'));
+            }
 
             // if path is not "initialize" and not installed, then redirect to initialize
             if (!shouldPassThrough(true) && !$initialized) {
@@ -114,6 +126,44 @@ class Initialize
             $layout[] = 'sidebar-collapse';
         }
         Config::set('admin.layout', $layout);
+    }
+
+    /** The header logo of a site without its own (the logo of 2026-11, public/images). */
+    public const DEFAULT_LOGO = 'images/exment_logo.svg';
+
+    /** The same, for the side menu folded. */
+    public const DEFAULT_LOGO_MINI = 'images/exment_mark.svg';
+
+    /** The logo with light letters, for the colored bar of the classic design. */
+    public const DEFAULT_LOGO_DARK = 'images/exment_logo_dark.svg';
+
+    /** The class of the default logo: no plate behind it (modern.css). */
+    public const DEFAULT_LOGO_CLASS = 'exment-default-logo';
+
+    /**
+     * The default logo for the bar it sits on: the light bar of the modern design, or
+     * the white bar of the black skins of the classic one, take the colored letters;
+     * the colored bar of the other skins takes the light ones.
+     */
+    public static function defaultLogo(): string
+    {
+        try {
+            if (\Exment::isModernUi()) {
+                return static::DEFAULT_LOGO;
+            }
+            $skin = strval(System::site_skin() ?: config('admin.skin'));
+        } catch (\Throwable $e) {
+            return static::DEFAULT_LOGO;
+        }
+        if (strpos($skin, 'skin-black') === 0 || !static::defaultLogoExists(static::DEFAULT_LOGO_DARK)) {
+            return static::DEFAULT_LOGO;
+        }
+        return static::DEFAULT_LOGO_DARK;
+    }
+
+    protected static function defaultLogoExists(string $path): bool
+    {
+        return is_file(public_path($path));
     }
 
     /**
@@ -292,15 +342,25 @@ class Initialize
 
         // mysql setting
         if (defined('PDO::MYSQL_ATTR_LOCAL_INFILE')) {
-            Config::set('database.connections.mysql.strict', false);
-            Config::set('database.connections.mysql.options', [
+            $options = [
                 PDO::ATTR_CASE => PDO::CASE_LOWER,
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
                 PDO::ATTR_STRINGIFY_FETCHES => true,
                 PDO::ATTR_EMULATE_PREPARES => true,
                 PDO::MYSQL_ATTR_LOCAL_INFILE => true,
-            ]);
+            ];
+            // Preserve the TLS CA that config/database.php already set. This
+            // Config::set replaces the WHOLE options array, so without this the
+            // MYSQL_ATTR_SSL_CA is dropped and connections to a server with
+            // require_secure_transport=ON (e.g. AWS RDS) are rejected.
+            $currentOptions = Config::get('database.connections.mysql.options', []);
+            $sslCa = $currentOptions[PDO::MYSQL_ATTR_SSL_CA] ?? env('MYSQL_ATTR_SSL_CA');
+            if (!empty($sslCa)) {
+                $options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
+            }
+            Config::set('database.connections.mysql.strict', false);
+            Config::set('database.connections.mysql.options', $options);
         }
 
         // mariadb setting
@@ -366,10 +426,14 @@ class Initialize
                 Config::set('admin.title', $val);
             }
 
-            // Logo
+            // Logo: the site's own; without one, the Exment logo (the site name is still
+            // the page title). The site name as text only when the logo is not there
+            // (public/images not published yet).
             $val = System::site_logo();
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo', html_image($val, 'header logo'));
+            } elseif (static::defaultLogoExists(static::DEFAULT_LOGO)) {
+                Config::set('admin.logo', html_image(static::defaultLogo(), esc_html(System::site_name() ?: 'Exment'), ['class' => static::DEFAULT_LOGO_CLASS]));
             } else {
                 $val = System::site_name();
                 if (!is_nullorempty($val)) {
@@ -377,10 +441,12 @@ class Initialize
                 }
             }
 
-            // Logo(Short)
+            // Logo(Short): the site's own; without one, the Exment mark
             $val = System::site_logo_mini();
             if (!is_nullorempty($val)) {
                 Config::set('admin.logo-mini', html_image($val, 'header logo mini'));
+            } elseif (static::defaultLogoExists(static::DEFAULT_LOGO_MINI)) {
+                Config::set('admin.logo-mini', html_image(static::DEFAULT_LOGO_MINI, esc_html(System::site_name_short() ?: 'Exment'), ['class' => static::DEFAULT_LOGO_CLASS]));
             } else {
                 $val = System::site_name_short();
                 if (!is_nullorempty($val)) {

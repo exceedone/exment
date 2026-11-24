@@ -280,9 +280,10 @@ class CustomTableController extends AdminControllerBase
 
         $form->exmheader(exmtrans('common.detail_setting'))->hr();
 
-        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($has_parent) {
+        $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($has_parent, $id) {
             $form->color('color', exmtrans("custom_table.color"))->help(exmtrans("custom_table.help.color"));
             $form->icon('icon', exmtrans("custom_table.icon"))->help(exmtrans("custom_table.help.icon"));
+            \Exceedone\Exment\Services\ScreenExtensions::call('custom_table.options', $form, $id);
             $form->switchbool('search_enabled', exmtrans("custom_table.search_enabled"))->help(exmtrans("custom_table.help.search_enabled"))->default("1")
             ;
             $form->switchbool('use_label_id_flg', exmtrans("custom_table.use_label_id_flg"))
@@ -415,6 +416,7 @@ class CustomTableController extends AdminControllerBase
                 return redirect($custom_column_url);
             }
         });
+        \Exceedone\Exment\Services\ScreenExtensions::call('custom_table.form', $form, $id);
 
         return $form;
     }

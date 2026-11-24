@@ -1,7 +1,7 @@
 {!! $document->tag_url !!}
 &nbsp;
 <small>
-    ({{exmtrans("common.created_at")}}&nbsp;:&nbsp;{{$document->created_at}}
+    ({{exmtrans("common.created_at")}}&nbsp;:&nbsp;{{ \Exceedone\Exment\Services\UserTimezone::display($document->created_at) }}
     &nbsp;{{ exmtrans("common.created_user") }}&nbsp;:&nbsp;{{ $document->created_user }})
 </small>
 

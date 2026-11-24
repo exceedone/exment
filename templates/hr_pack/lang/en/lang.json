@@ -1,0 +1,162 @@
+{
+    "template_view_name": "HR pack",
+    "description": "Staff list and joining & leaving procedures (with tasks), HR and staff role groups and an \"HR & general affairs\" menu.",
+    "custom_tables": [
+        {
+            "table_name": "hr_employee",
+            "table_view_name": "Staff",
+            "description": "The staff list, linked to the login users.",
+            "custom_columns": [
+                {
+                    "column_name": "employee_no",
+                    "column_view_name": "Staff no."
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "User"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Department"
+                },
+                {
+                    "column_name": "position",
+                    "column_view_name": "Position"
+                },
+                {
+                    "column_name": "employment_type",
+                    "column_view_name": "Employment type",
+                    "options": {
+                        "select_item_valtext": "regular,Regular\ncontract,Contract\npart_time,Part-time\ndispatch,Agency staff\nofficer,Officer"
+                    }
+                },
+                {
+                    "column_name": "join_date",
+                    "column_view_name": "Joined on"
+                },
+                {
+                    "column_name": "extension",
+                    "column_view_name": "Extension"
+                },
+                {
+                    "column_name": "work_location",
+                    "column_view_name": "Work location"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "select_item_valtext": "active,Active\nleave,On leave\nretired,Left"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure",
+            "table_view_name": "Joining & leaving",
+            "description": "Procedures for joining, leaving and transfers. Put the tasks in the lines and mark them done.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Subject"
+                },
+                {
+                    "column_name": "procedure_type",
+                    "column_view_name": "Type",
+                    "options": {
+                        "select_item_valtext": "join,Joining\nleave,Leaving\ntransfer,Transfer"
+                    }
+                },
+                {
+                    "column_name": "person_name",
+                    "column_view_name": "Person"
+                },
+                {
+                    "column_name": "employee",
+                    "column_view_name": "Staff"
+                },
+                {
+                    "column_name": "scheduled_date",
+                    "column_view_name": "Date"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "select_item_valtext": "todo,To do\ndoing,In progress\ndone,Done"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Owner"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Note"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure_task",
+            "table_view_name": "Tasks",
+            "description": "A task of a procedure.",
+            "custom_columns": [
+                {
+                    "column_name": "task",
+                    "column_view_name": "Task"
+                },
+                {
+                    "column_name": "assignee",
+                    "column_view_name": "Assignee"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Due"
+                },
+                {
+                    "column_name": "done",
+                    "column_view_name": "Done"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0748bf896060b0c25e21",
+            "form_view_name": "Form"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "HR & general affairs",
+            "menu_type": "parent_node",
+            "menu_name": "hr"
+        },
+        {
+            "title": "Staff",
+            "menu_type": "table",
+            "menu_name": "hr_employee"
+        },
+        {
+            "title": "Joining & leaving",
+            "menu_type": "table",
+            "menu_name": "hr_procedure"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "hr_admin_group",
+            "role_group_view_name": "HR & general affairs",
+            "description": "People who see, make and edit the staff list and the procedures."
+        },
+        {
+            "role_group_name": "hr_member_group",
+            "role_group_view_name": "Staff",
+            "description": "People who see the staff list."
+        }
+    ]
+}

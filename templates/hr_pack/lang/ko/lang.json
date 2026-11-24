@@ -1,0 +1,162 @@
+{
+    "template_view_name": "인사 팩",
+    "description": "직원 목록과 입사·퇴사 절차(작업 포함), 인사 및 직원 역할 그룹, \"인사·총무\" 메뉴가 포함됩니다.",
+    "custom_tables": [
+        {
+            "table_name": "hr_employee",
+            "table_view_name": "직원",
+            "description": "로그인 사용자와 연결된 직원 목록입니다.",
+            "custom_columns": [
+                {
+                    "column_name": "employee_no",
+                    "column_view_name": "직원 번호"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "사용자"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "부서"
+                },
+                {
+                    "column_name": "position",
+                    "column_view_name": "직위"
+                },
+                {
+                    "column_name": "employment_type",
+                    "column_view_name": "고용 형태",
+                    "options": {
+                        "select_item_valtext": "regular,정규직\ncontract,계약직\npart_time,파트타임\ndispatch,파견직\nofficer,임원"
+                    }
+                },
+                {
+                    "column_name": "join_date",
+                    "column_view_name": "입사일"
+                },
+                {
+                    "column_name": "extension",
+                    "column_view_name": "내선 번호"
+                },
+                {
+                    "column_name": "work_location",
+                    "column_view_name": "근무지"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "상태",
+                    "options": {
+                        "select_item_valtext": "active,재직\nleave,휴직\nretired,퇴사"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure",
+            "table_view_name": "입사·퇴사",
+            "description": "입사, 퇴사, 이동 절차입니다. 작업을 명세에 입력하고 완료로 표시합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "제목"
+                },
+                {
+                    "column_name": "procedure_type",
+                    "column_view_name": "유형",
+                    "options": {
+                        "select_item_valtext": "join,입사\nleave,퇴사\ntransfer,이동"
+                    }
+                },
+                {
+                    "column_name": "person_name",
+                    "column_view_name": "대상자"
+                },
+                {
+                    "column_name": "employee",
+                    "column_view_name": "직원"
+                },
+                {
+                    "column_name": "scheduled_date",
+                    "column_view_name": "날짜"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "상태",
+                    "options": {
+                        "select_item_valtext": "todo,미착수\ndoing,진행 중\ndone,완료"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "담당자"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure_task",
+            "table_view_name": "작업",
+            "description": "절차의 작업입니다.",
+            "custom_columns": [
+                {
+                    "column_name": "task",
+                    "column_view_name": "작업"
+                },
+                {
+                    "column_name": "assignee",
+                    "column_view_name": "담당자"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "기한"
+                },
+                {
+                    "column_name": "done",
+                    "column_view_name": "완료"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0748bf896060b0c25e21",
+            "form_view_name": "폼"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "인사·총무",
+            "menu_type": "parent_node",
+            "menu_name": "hr"
+        },
+        {
+            "title": "직원",
+            "menu_type": "table",
+            "menu_name": "hr_employee"
+        },
+        {
+            "title": "입사·퇴사",
+            "menu_type": "table",
+            "menu_name": "hr_procedure"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "hr_admin_group",
+            "role_group_view_name": "인사·총무",
+            "description": "직원 목록과 절차를 조회·작성·편집할 수 있는 사람입니다."
+        },
+        {
+            "role_group_name": "hr_member_group",
+            "role_group_view_name": "직원",
+            "description": "직원 목록을 조회할 수 있는 사람입니다."
+        }
+    ]
+}

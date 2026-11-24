@@ -8,7 +8,8 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use Exceedone\Exment\Services\EnvService;
+use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
+use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +36,16 @@ class InitializeForm
         $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));
         $form->password('password', exmtrans('user.password'))->required()->help(\Exment::get_password_help());
         $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
+
+        // the tuning Exment can do by itself: chosen here, done after the setup is saved
+        $autoItems = (new AutoTuning(true))->available();
+        if (count($autoItems) > 0) {
+            $form->exmheader(exmtrans('tuning.install_header'))->hr();
+            $form->checkbox('auto_tuning', exmtrans('tuning.auto.header'))
+                ->options($autoItems)
+                ->default(array_keys($autoItems))
+                ->help(exmtrans('tuning.auto.install_help'));
+        }
         return view('exment::initialize.content', [
             'content'=> $form->render(),
             'header' => exmtrans('system.initialize_header'),
@@ -59,7 +70,16 @@ class InitializeForm
             }
 
             // add user table
-            $user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
+            // A half-installed tenant (migrated but never seeded) has no "user" table
+            // definition yet — fail with guidance instead of a fatal on null.
+            $userTable = CustomTable::getEloquent(SystemTableName::USER);
+            if (is_null($userTable)) {
+                DB::rollback();
+                return back()->withErrors([
+                    'initialize_error' => exmtrans('install.error.system_not_installed'),
+                ]);
+            }
+            $user = $userTable->getValueModel();
             $user->value = [
                 'user_code' => $request->get('user_code'),
                 'user_name' => $request->get('user_name'),
@@ -77,21 +97,49 @@ class InitializeForm
             // add system initialized flg.
             System::initialized(1);
 
-            // write env
+            // write env: initialized, production, .env not readable by others
             try {
-                EnvService::setEnv(['EXMENT_INITIALIZE' => 1]);
+                AutoTuning::installedEnv();
             }
             // if cannot write, nothing do
             catch (\Exception $ex) {
             } catch (\Throwable $ex) {
             }
+            InstalledState::markInstalled();
 
             \DB::commit();
+
+            // the tuning chosen on the screen; a failure does not stop the setup (it is logged)
+            try {
+                (new AutoTuning(true))->apply((array) $request->get('auto_tuning', []), intval($loginuser->id));
+            } catch (\Throwable $ex) {
+                \Log::error($ex);
+            }
+
             admin_toastr(trans('admin.save_succeeded'));
             $this->guard()->login($loginuser);
 
             // set session for 2factor
             session([Define::SYSTEM_KEY_SESSION_AUTH_2FACTOR => true]);
+
+            // the security check (ISS02833): something of a high risk opens its page (with
+            // the fixes); the rest (two-step sign-in...) is told on the dashboard
+            try {
+                $after = (new SecurityCheck())->afterInitialize();
+                if ($after['page']) {
+                    admin_toastr(exmtrans('security_check.after_initialize_high', ['count' => $after['high']]), 'warning');
+                    return redirect(admin_url('security_check'));
+                }
+                if ($after['other'] > 0) {
+                    admin_warning(
+                        exmtrans('security_check.header'),
+                        e(exmtrans('security_check.after_initialize', ['count' => $after['other']]))
+                            . ' <a href="' . e(admin_url('security_check')) . '">' . e(exmtrans('security_check.open')) . '</a>'
+                    );
+                }
+            } catch (\Throwable $ex) {
+                \Log::error($ex);
+            }
 
             return redirect(admin_url('/'));
         } catch (InvalidZipEntryException $exception) {
@@ -100,8 +148,11 @@ class InitializeForm
             // without this the installer would swallow it below and answer with a blank page.
             DB::rollback();
             return back()->withInput()->withErrors(['upload_template' => $exception->getMessage()]);
-        } catch (\Exception $exception) {
+        } catch (\Throwable $exception) {
+            // \Throwable, not \Exception: a TypeError/Error here must roll back and show
+            // the friendly message too, not white-screen. Keep the cause in the log.
             DB::rollback();
+            \Log::error($exception);
             return back()->withErrors([
                 'initialize_error' => exmtrans('install.error.initialize_error'),
             ]);

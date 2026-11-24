@@ -1,0 +1,188 @@
+{
+    "template_view_name": "Quản lý nhật ký IoT",
+    "description": "Mẫu dùng để thu thập và phân tích nhật ký IoT.",
+    "custom_tables": [
+        {
+            "table_name": "logcode",
+            "table_view_name": "Danh mục mã nhật ký",
+            "description": "Danh mục mã nhật ký",
+            "custom_columns": [
+                {
+                    "column_name": "log_code",
+                    "column_view_name": "Mã nhật ký"
+                },
+                {
+                    "column_name": "log_name",
+                    "column_view_name": "Tên nhật ký"
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "Mô tả"
+                }
+            ]
+        },
+        {
+            "table_name": "hardware",
+            "table_view_name": "Danh mục phần cứng",
+            "description": "Thông tin danh mục phần cứng.",
+            "custom_columns": [
+                {
+                    "column_name": "hardware_code",
+                    "column_view_name": "Mã phần cứng"
+                },
+                {
+                    "column_name": "hardware_name",
+                    "column_view_name": "Tên phần cứng"
+                },
+                {
+                    "column_name": "uuid",
+                    "column_view_name": "UUID phần cứng"
+                }
+            ]
+        },
+        {
+            "table_name": "hardware-serial",
+            "table_view_name": "Thông tin phần cứng - số sê-ri",
+            "description": "Thông tin số sê-ri được cấp dựa trên thông tin danh mục phần cứng.",
+            "custom_columns": [
+                {
+                    "column_name": "memo",
+                    "column_view_name": "Ghi chú",
+                    "options": {
+                        "help": "Nếu có ghi chú, vui lòng nhập vào đây."
+                    }
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "Phần cứng"
+                },
+                {
+                    "column_name": "serial_no",
+                    "column_view_name": "Số sê-ri",
+                    "options": {
+                        "help": "Đây là số sê-ri được cấp cho từng thiết bị đầu cuối."
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "log_history",
+            "table_view_name": "Lịch sử nhật ký",
+            "description": "Quản lý nhật ký được gửi từ các thiết bị đầu cuối IoT.",
+            "custom_columns": [
+                {
+                    "column_name": "logcode",
+                    "column_view_name": "Mã nhật ký"
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "Phần cứng - số sê-ri"
+                },
+                {
+                    "column_name": "occurrence_datetime",
+                    "column_view_name": "Ngày giờ phát sinh"
+                },
+                {
+                    "column_name": "lat",
+                    "column_view_name": "Vĩ độ"
+                },
+                {
+                    "column_name": "lng",
+                    "column_view_name": "Kinh độ"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "c03e6c34df112ebd302e",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "9eb9f3c99e115882f4a7",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "465c8b6dcd419e8f03b0",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "68c35937eb03daa535bf",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "191b41ce150b891f1755",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "0a25c546e8469d710ffe",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "e21ec506aef176e138b9",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "b6510c5fa37b7f7a7a45",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "42edfad1fd3e209edf04",
+            "view_view_name": "Tổng hợp theo mã nhật ký",
+            "custom_view_summaries": [
+                {
+                    "view_column_name": "Số lượng bản ghi",
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "id"
+                }
+            ]
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "iotlog_dashboard",
+            "dashboard_view_name": "Bảng điều khiển quản lý nhật ký IoT",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Danh sách tin tức"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Danh sách nhật ký"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Quản lý nhật ký IoT",
+            "menu_type": "parent_node",
+            "menu_name": "iot"
+        },
+        {
+            "title": "Danh mục mã nhật ký",
+            "menu_type": "table",
+            "menu_name": "logcode"
+        },
+        {
+            "title": "Danh mục phần cứng",
+            "menu_type": "table",
+            "menu_name": "hardware"
+        },
+        {
+            "title": "Thông tin phần cứng - số sê-ri",
+            "menu_type": "table",
+            "menu_name": "hardware-serial"
+        },
+        {
+            "title": "Lịch sử nhật ký",
+            "menu_type": "table",
+            "menu_name": "log_history"
+        }
+    ]
+}

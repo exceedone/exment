@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Services\UserTimezone;
 use Carbon\Carbon;
 use Validator;
 
@@ -404,6 +405,9 @@ class ApiDataController extends AdminControllerTableBase
         if ($screenWrite && ($response = $this->validateScreenWrite($request, null)) instanceof Response) {
             return $response;
         }
+        if ($screenWrite) {
+            $this->screenWriteFromUser($request);
+        }
 
         return $this->saveData($request);
     }
@@ -438,8 +442,45 @@ class ApiDataController extends AdminControllerTableBase
         if ($screenWrite && ($response = $this->validateScreenWrite($request, $custom_value)) instanceof Response) {
             return $response;
         }
+        if ($screenWrite) {
+            $this->screenWriteFromUser($request);
+        }
 
         return $this->saveData($request, $custom_value);
+    }
+
+    /**
+     * A write from a list screen (the inline edit of the grid, the kanban board) types a date and time
+     * in the time zone of the user, as the edit page: saved in the time zone of the site (ISS02835).
+     * A plain API call stays in the time zone of the site.
+     *
+     * @param Request $request
+     * @return void
+     */
+    protected function screenWriteFromUser(Request $request): void
+    {
+        $values = $request->get('value');
+        if (!UserTimezone::differs() || !is_array($values)) {
+            return;
+        }
+
+        $changed = false;
+        foreach ($this->custom_table->custom_columns_cache as $custom_column) {
+            $column_name = $custom_column->column_name;
+            if ($custom_column->column_type != ColumnType::DATETIME || !array_key_exists($column_name, $values)) {
+                continue;
+            }
+            $value = $values[$column_name];
+            if (!is_string($value) || is_nullorempty($value)) {
+                continue;
+            }
+            $values[$column_name] = UserTimezone::formatFromUser($value);
+            $changed = true;
+        }
+
+        if ($changed) {
+            $request->merge(['value' => $values]);
+        }
     }
 
     /**
@@ -1022,6 +1063,23 @@ class ApiDataController extends AdminControllerTableBase
                     ];
                 }
             }
+
+            // Validate the requested parent linkage. parent_id / parent_type are taken
+            // straight from the request and assigned to the model below; without this
+            // check a caller could attach the record to a parent row they have no
+            // permission on (IDOR). Errors are collected per-item so the existing
+            // all-or-nothing batch response (early return below) handles them.
+            $parentError = $this->validateParentPermission($rootValue, $custom_value);
+            if ($parentError !== null) {
+                if ($is_single) {
+                    $validates[] = $parentError;
+                } else {
+                    $validates[] = [
+                        'line_no' => $index,
+                        'error' => $parentError,
+                    ];
+                }
+            }
         }
 
         if (count($validates) > 0) {
@@ -1063,6 +1121,55 @@ class ApiDataController extends AdminControllerTableBase
         } else {
             return $response;
         }
+    }
+
+    /**
+     * Validate the parent linkage (parent_id / parent_type) supplied in an API payload.
+     * Prevents an IDOR where a caller attaches a record to a parent row they cannot access.
+     *
+     * Returns null when the linkage is valid or absent; otherwise an associative array of
+     * field => message describing the rejection (to be merged into the validation errors).
+     *
+     * @param array<string, mixed> $rootValue
+     * @param \Exceedone\Exment\Model\CustomValue|null $custom_value existing record on update
+     * @return array<string, string>|null
+     */
+    protected function validateParentPermission($rootValue, $custom_value = null)
+    {
+        $hasParentId = array_key_exists('parent_id', $rootValue);
+        $hasParentType = array_key_exists('parent_type', $rootValue);
+
+        // No parent fields supplied -> the request does not touch the parent linkage.
+        if (!$hasParentId && !$hasParentType) {
+            return null;
+        }
+
+        // Resolve the effective linkage. A request may set only one of the pair (e.g. an
+        // update that changes parent_id while keeping the record's existing parent_type),
+        // so fall back to the existing record's value for the field that was omitted.
+        $parent_id = $hasParentId ? array_get($rootValue, 'parent_id') : (isset($custom_value) ? $custom_value->parent_id : null);
+        $parent_type = $hasParentType ? array_get($rootValue, 'parent_type') : (isset($custom_value) ? $custom_value->parent_type : null);
+
+        // No effective parent at all -> standalone record, nothing to authorize.
+        if (is_nullorempty($parent_id) && is_nullorempty($parent_type)) {
+            return null;
+        }
+        // Linkage that cannot be fully resolved -> cannot safely attach.
+        if (is_nullorempty($parent_id) || is_nullorempty($parent_type)) {
+            return ['parent' => 'Both parent_id and parent_type are required to set a parent.'];
+        }
+
+        $parent_table = CustomTable::getEloquent($parent_type);
+        if (!isset($parent_table)) {
+            return ['parent_type' => 'Invalid parent_type.'];
+        }
+
+        // Require access to the specific parent row (same check FileController uses).
+        if (!$parent_table->hasPermissionData($parent_id)) {
+            return ['parent_id' => 'No permission for the specified parent data.'];
+        }
+
+        return null;
     }
 
     /**
@@ -1174,6 +1281,11 @@ class ApiDataController extends AdminControllerTableBase
 
         $start = Carbon::parse($start);
         $end = Carbon::parse($end);
+        // the days of the calendar are the days of the user: a day more on each side for the date and times (ISS02835)
+        if (UserTimezone::differs()) {
+            $start->subDay();
+            $end->addDay();
+        }
 
         $table_name = $this->custom_table->table_name;
         // get paginate
@@ -1323,9 +1435,10 @@ class ApiDataController extends AdminControllerTableBase
         // set
         $allDayBetween = $dtType == ColumnType::DATE && $dtEndType == ColumnType::DATE;
 
-        $task['start'] = $dt;
+        // a date and time in the time zone of the user; a date as it is (ISS02835)
+        $task['start'] = $dtType == ColumnType::DATETIME ? UserTimezone::formatToUser($dt) : $dt;
         if (isset($dtEnd)) {
-            $task['end'] = $dtEnd;
+            $task['end'] = $dtEndType == ColumnType::DATETIME ? UserTimezone::formatToUser($dtEnd) : $dtEnd;
         }
         $task['allDayBetween'] = $allDayBetween;
     }

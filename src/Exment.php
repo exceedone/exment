@@ -27,6 +27,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\ErrorCode;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
 use League\Flysystem\PathPrefixer;
@@ -76,7 +77,57 @@ class Exment
     // @phpstan-ignore-next-line
     public function menu()
     {
-        return (new Menu())->toTree();
+        // the menus the login user sees (Services\MenuVisibility)
+        $user = \Admin::user();
+        if (!isset($user)) {
+            return (new Menu())->toTree();
+        }
+        return \Exceedone\Exment\Services\MenuVisibility::forUser($user)->tree();
+    }
+
+    /**
+     * Render the left sidebar menu to HTML, cached per user.
+     *
+     * The rendered markup is identical for any request by the same user until the menu or the
+     * user's permissions change, so it is cached instead of re-rendering the recursive blade +
+     * per-node visible() permission check on every page load.
+     *
+     * Cache key is fail-safe (not flush-dependent): it embeds a hash of the menu tree (changes when
+     * any menu/table/plugin/view that feeds it changes — allNodes is rebuilt), the user id, the
+     * permission/organization/api availability flags, the locale, and the request host (admin_url is
+     * absolute). A coarse 30-minute time bucket bounds staleness if a rare role/membership change
+     * misses the model-save cache flush — page-level authority is enforced independently, so a stale
+     * menu can at worst show a link that then 403s, never grant access.
+     *
+     * @return string
+     */
+    public function sidebarMenuHtml()
+    {
+        $user = $this->user();
+        if (is_null($user)) {
+            return '';
+        }
+
+        $tree = $this->menu();
+
+        $key = 'exment_sidebar_menu_html_' . md5(strval(json_encode([
+            $tree,
+            $user instanceof \Exceedone\Exment\Model\LoginUser ? $user->getUserId() : array_get($user, 'id'),
+            System::permission_available(),
+            System::organization_available(),
+            System::api_available(),
+            app()->getLocale(),
+            request()->getSchemeAndHttpHost(),
+            floor(time() / 1800),
+        ])));
+
+        return System::cache($key, function () use ($tree) {
+            $html = '';
+            foreach ($tree as $item) {
+                $html .= view('admin::partials.menu', ['item' => $item])->render();
+            }
+            return $html;
+        });
     }
 
 
@@ -135,9 +186,27 @@ class Exment
                         'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
                     ]);
                 }
+                if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+                    return getAjaxResponse([
+                        'result' => false,
+                        'toastr' => $exception->getMessage(),
+                        'errors' => [
+                            'import_error_message' => [
+                                'type' => 'input',
+                                'message' => $exception->getMessage(),
+                            ],
+                        ],
+                    ]);
+                }
 
                 // @phpstan-ignore-next-line
                 return $callback($request, $exception);
+            }
+
+            // a refusal for the user (ErrorCode::ERROR_CODE_VALIDATION_FAILED): its message, back
+            if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+                admin_toastr($exception->getMessage(), 'error');
+                return redirect($request->header('referer', '/'))->withInput();
             }
 
             // whether has User
@@ -232,6 +301,38 @@ class Exment
 
 
     /**
+     * fn(): array{0: ?string, 1: ?string}|null — [latest, current], or null for Exment's own
+     * reading (composer and packagist).
+     *
+     * @var callable|null
+     */
+    protected static $versionResolver;
+
+    /** @var callable|null fn(): string — the page where the site is updated */
+    protected static $versionUpdateUrlResolver;
+
+    public static function resolveVersionUsing(?callable $resolver): void
+    {
+        static::$versionResolver = $resolver;
+    }
+
+    public static function versionUpdateUrlUsing(?callable $resolver): void
+    {
+        static::$versionUpdateUrlResolver = $resolver;
+    }
+
+    /**
+     * The page where the site is updated (the system settings, or the application's).
+     */
+    public function versionUpdateUrl(): string
+    {
+        if (!is_null(static::$versionUpdateUrlResolver)) {
+            return strval(call_user_func(static::$versionUpdateUrlResolver));
+        }
+        return admin_url('system');
+    }
+
+    /**
      * getExmentVersion using session and composer
      *
      * @return array $latest: new version in package, $current: this version in server
@@ -239,6 +340,14 @@ class Exment
     // @phpstan-ignore-next-line
     public function getExmentVersion($getFromComposer = true)
     {
+        // an application that knows its version itself (resolveVersionUsing())
+        if (!is_null(static::$versionResolver)) {
+            $resolved = call_user_func(static::$versionResolver);
+            if (is_array($resolved)) {
+                return $resolved;
+            }
+        }
+
         try {
             try {
                 $version_json = Cache::get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);

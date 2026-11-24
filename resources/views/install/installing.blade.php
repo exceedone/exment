@@ -25,8 +25,20 @@
                     </p>
                 </div>
 
+                <div class="col-xs-12 col-sm-10 col-sm-offset-1 ps-5" style="margin-bottom:2em;">
+                    @if($errors->has('ADMIN_ROUTE_PREFIX')) @foreach($errors->get('ADMIN_ROUTE_PREFIX') as $message)
+                    <label class="control-label text-danger" for="inputError"><i class="fa fa-times-circle-o"></i>{{$message}}</label></br>
+                    @endforeach @endif
+
+                    <label class=" fw-bold" for="ADMIN_ROUTE_PREFIX">{{exmtrans('install.installing.admin_route_prefix')}}:</label>
+                    <input type="text" class="form-control" id="ADMIN_ROUTE_PREFIX" name="ADMIN_ROUTE_PREFIX" maxlength="64" placeholder="admin" value="{{ old('ADMIN_ROUTE_PREFIX', '') }}" />
+                    <p class="small">
+                        <i class="fa fa-info-circle"></i>&nbsp;{{exmtrans('install.help.admin_route_prefix', ['url' => url('/')])}}
+                    </p>
+                </div>
+
                 <!-- /.col -->
-                <p class="col-xs-12 col-sm-10 col-sm-offset-1 ps-5">{{ exmtrans('install.help.installing') }}</p>
+                <p class="col-xs-12 col-sm-10 col-sm-offset-1 ps-5">{{ exmtrans('install.help.installing') }}<br><span class="small">{{ exmtrans('install.help.installing_timeout') }}</span></p>
             </div>
             
             <div class="row">

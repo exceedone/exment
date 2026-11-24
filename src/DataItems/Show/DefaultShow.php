@@ -625,6 +625,11 @@ EOT;
     {
         $documents = $this->getDocuments();
         $useFileUpload = $this->useFileUpload();
+        // an application may show the files only, under its own title (ScreenExtensions data_show.attachment)
+        $attachment = ['uploader' => true, 'title' => exmtrans("common.attachment")];
+        foreach (\Exceedone\Exment\Services\ScreenExtensions::call('data_show.attachment', $this->custom_table) as $changed) {
+            $attachment = array_merge($attachment, (array) $changed);
+        }
 
         if (count($documents) == 0 && !$useFileUpload) {
             return;
@@ -665,7 +670,7 @@ EOT;
         }
 
         // add file uploader
-        if ($useFileUpload) {
+        if ($useFileUpload && boolval($attachment['uploader'])) {
             $max_count = config('exment.document_upload_max_count', 5);
             $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
@@ -705,7 +710,7 @@ EOT;
 
             Admin::script($script);
         }
-        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(strval($attachment['title']), $form))->style('info'));
     }
 
     /**
@@ -929,7 +934,12 @@ EOT;
         }
 
         // file put(store)
-        foreach (toArray($httpfiles) as $httpfile) {
+        // A single upload arrives as one UploadedFile. toArray() would cast that
+        // object into an array of its own properties instead of wrapping it, so the
+        // loop below would iterate over strings. Normalize first, the same way
+        // fileuploadTemp() does.
+        $files_array = is_array($httpfiles) ? $httpfiles : [$httpfiles];
+        foreach (toArray($files_array) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
             $custom_value = $this->custom_value;
             $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
