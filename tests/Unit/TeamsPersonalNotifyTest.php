@@ -69,6 +69,17 @@ class TeamsPersonalNotifyTest extends UnitTestBase
         $this->assertStringNotContainsString('TOPSECRET', strval(json_encode($payload)), 'the address is not in what is sent');
     }
 
+    public function testAnHtmlMailHasAReadableTextPart(): void
+    {
+        $html = '<p><strong>課題が更新されました（ISS00423）</strong></p><p><a href="https://exment.example.com/i/423">https://exment.example.com/i/423</a></p>'
+            . '<ol><li>状態：対応中</li><li>期日：12/5</li></ol><p>野呂 &amp; 開発<br>以上</p>';
+        $this->assertSame(
+            "課題が更新されました（ISS00423）\n\nhttps://exment.example.com/i/423\n\n1. 状態：対応中\n2. 期日：12/5\n\n野呂 & 開発\n以上",
+            \Exceedone\Exment\Notifications\Mail\MailChannel::htmlToText($html)
+        );
+        $this->assertSame('開く (https://e.example.com/x?a=1&b=2)', \Exceedone\Exment\Notifications\Mail\MailChannel::htmlToText('<a href="https://e.example.com/x?a=1&amp;b=2">開く</a>'));
+    }
+
     public function testAnHtmlBodyLosesItsTags(): void
     {
         $this->assertSame(['Line one', 'Line two'], TeamsWorkflowSender::paragraphs('<p>Line one</p><p></p><p>Line two</p>'));
