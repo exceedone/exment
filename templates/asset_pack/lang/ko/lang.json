@@ -223,5 +223,15 @@
         {
             "workflow_view_name": "자산 신청(표준)"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "443a629e799118e3d3b6",
+            "notify_view_name": "반납 기한 초과 (다음 날)"
+        },
+        {
+            "suuid": "bee2b3c2eed422884924",
+            "notify_view_name": "자산 신청 (제출, 승인, 반려)"
+        }
     ]
 }

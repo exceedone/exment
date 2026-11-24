@@ -1714,5 +1714,32 @@
             ]
         }
     ],
-    "thumbnail": "thumbnail.png"
+    "thumbnail": "thumbnail.png",
+    "notifies": [
+        {
+            "suuid": "e5967aaf67c9ae4b4398",
+            "notify_name": null,
+            "notify_view_name": "契約の終了日が近い（30 日前）",
+            "active_flg": "1",
+            "notify_trigger": "1",
+            "target_name": "sales_contract",
+            "trigger_settings": {
+                "notify_target_table_name": "sales_contract",
+                "notify_target_column_name": "end_date",
+                "notify_day": "30",
+                "notify_beforeafter": "-1",
+                "notify_hour": "9"
+            },
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "created_user",
+                        "has_roles"
+                    ]
+                }
+            ],
+            "mail_key_name": "time_notify"
+        }
+    ]
 }

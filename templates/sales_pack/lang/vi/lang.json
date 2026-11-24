@@ -277,5 +277,11 @@
             "role_group_view_name": "Bán hàng",
             "description": "Người xem, tạo và chỉnh sửa khách hàng, cơ hội bán hàng, báo giá và hợp đồng."
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "e5967aaf67c9ae4b4398",
+            "notify_view_name": "Hợp đồng sắp hết hạn (trước 30 ngày)"
+        }
     ]
 }

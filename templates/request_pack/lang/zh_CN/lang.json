@@ -237,5 +237,11 @@
         {
             "workflow_view_name": "申请与审批（标准）"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "819e4404298f54104248",
+            "notify_view_name": "申请（已提交、已批准、已退回）"
+        }
     ]
 }
