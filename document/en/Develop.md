@@ -225,23 +225,33 @@ When modifying the program, please edit the 'packages' folder.
 GitHub brunch is operated as follows.  
 *Reference(Japanese site)： [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
-> **Current workflow (since 2026-11-20)**: send every pull request to `master`.
+> **Current workflow (reviewed on 2026-11-24)**
 >
 > | Branch | What it is | Pull requests |
 > |---|---|---|
-> | `master` | The next version | **All of them** (features, performance, bug fixes) |
-> | `7.1` | Maintenance of 7.1.x (made from the v7.1.0 tag) | Not directly. Send to `master` and add the label `backport-7.1` |
-> | `7.0` | Maintenance of 7.0.x | Not directly. Send to `master` and add the label `backport-7.0` |
-> | `6.2` | Maintenance of 6.2.x (security fixes only, until 2027-03-31) | Not directly. Label `backport-6.2` |
+> | `master` | The next minor version (now 7.3) | New features and large changes go only here |
+> | `7.2` | Maintenance of 7.2.x (made from the v7.2.0 tag) | A fix shipped in 7.2.x goes **to `7.2` and to `master`, one PR each** (the same change twice) |
+> | `7.1`, `7.0` | Maintenance of 7.1.x and 7.0.x (security fixes only) | The maintainers cherry-pick what is needed |
+> | `6.2` | Maintenance of 6.2.x (security fixes only, until 2027-03-31) | The same |
+> | `feature/XXX`, `fix/XXX` | Work branches | To one of the above |
+>
+> **Next versions**: 7.2.x has fixes and small features; 7.3 logs, audit, caching and the SaaS integration; 7.4 Laravel 13; 7.5 bank and card integration.
 >
 > **How a release is made**
-> 1. Merge into `master` **only what can ship in the next version**. **Do not merge a pull request that should not ship until the release is out.** Unfinished or large work (e.g. Laravel 13) grows in a feature branch (`feature/XXX`). Work that is in but should not show yet goes behind a setting that is **off by default**
-> 2. On the release day, tag the release (e.g. `v7.2.0`) on `master`
-> 3. **The version branch (e.g. `7.2`) is made when the tag is made, at the tag** (`git push origin v7.2.0^{commit}:refs/heads/7.2`), not before. It then keeps 7.2.x maintenance
-> 4. If something already in `master` should not ship, `git revert` it on `master` before tagging (and bring it back after the release)
-> 5. Fixes after the release go to `master` with a `backport-7.x` label; the maintainers cherry-pick them into the version branch and release 7.x.y
+> 1. Merge into `master` **only what can ship in the next version**. Unfinished or large work grows in `feature/XXX`. Work that is in but should not show yet goes behind a setting that is **off by default** (`Features::register`)
+> 2. A 7.2.x release is a tag (e.g. `v7.2.4`) on `7.2`. Before it, the tests run once more on the latest `7.2`
+> 3. A new minor version (e.g. 7.3.0) is a tag on `master`, and **the version branch (`7.3`) is made at that tag** (`git push origin v7.3.0^{commit}:refs/heads/7.3`), not before
+> 4. If something already in `master` should not ship, `git revert` it before tagging (and bring it back after the release)
 >
-> Security fixes are not handled in public issues or pull requests; see [SECURITY.md](../../SECURITY.md).
+> **How to send pull requests (to keep the GitHub test queue short)**
+> - Bundle small fixes by topic (one PR to `7.2` and one to `master`), not one PR per fix
+> - Push as little as possible while the tests run (each push starts them again)
+> - When a job fails because of the network (timeouts, failed downloads), rerun only the failed job
+> - Before merging, update a PR whose base has moved and let the tests pass; a PR that touches none of the files changed since can be merged as it is
+>
+> **Exment SaaS (exceedone/exment-saas)**: after a core release, a PR imports it into SaaS. SaaS checks it on `develop` before `master` (production). See `document/en/SaaS-Release.md` in exment-saas.
+>
+> Security fixes are not handled in public issues or pull requests; see [SECURITY.md](../../SECURITY.md) (they are fixed in the private fork of a GitHub Security Advisory).
 >
 > The table below describes the previous branch model.
 
@@ -282,6 +292,6 @@ If you want to commit to exceedone/exment of the main unit, follow the procedure
 
 - Exment pull request on GitHub.  
 
-- Execute a pull request for the branch in the "Current workflow" table above (**master** for new functions and bug fixes alike) of exceedone/exment. Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
+- Execute a pull request for the branch in the "Current workflow" table above (**master** for new functions; **7.2** and **master** for a fix shipped in 7.2.x) of exceedone/exment. Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
 Please include comments as much as possible.
 
