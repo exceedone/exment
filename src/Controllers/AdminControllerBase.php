@@ -12,9 +12,25 @@ use ExmentAdminCore\Admin\Layout\Content;
 * @method \ExmentAdminCore\Admin\Grid grid()
 * @method \ExmentAdminCore\Admin\Form form($id = null)
  */
-class AdminControllerBase extends Controller
+class AdminControllerBase extends Controller implements \Illuminate\Routing\Controllers\HasMiddleware
 {
     use ExmentControllerTrait;
+
+    /**
+     * No middleware of the controller itself (Exment's are the groups of the routes).
+     *
+     * Declared so that Laravel makes the controller when the action runs, after the middleware,
+     * and not before them to ask it for its middleware (Controller::getMiddleware() of the host
+     * app's base controller). The constructors set the title and the header of the page with
+     * exmtrans(): made before the middleware, they were in the language of the site, not in the
+     * language of the user (UserLocaleTimezone runs after the login is known).
+     *
+     * @return array<int, mixed>
+     */
+    public static function middleware(): array
+    {
+        return [];
+    }
 
     /**
      * Index interface.
