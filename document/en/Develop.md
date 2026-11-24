@@ -231,9 +231,12 @@ GitHub brunch is operated as follows.
 > |---|---|---|
 > | `develop` | The next version (now 7.3). The default branch on GitHub | **New features and large changes go here** (the usual target) |
 > | `7.2` | Fixes for 7.2.x | A fix shipped in 7.2.x goes **to `7.2` and to `develop`, one PR each** (the same change twice) |
+> | `release/X.Y.Z` (e.g. `release/7.2.5`) | Collects the fixes shipped as X.Y.Z when several people add them (e.g. snoro and the AI team) | PRs from `fix/XXX` go here. When all are in and the tests pass, the maintainers merge it into `7.2` (and the same into `develop`) |
 > | `master` | **What has been released** (exment: the released version; exment-saas: production) | Not directly. The maintainers merge into it at a release |
 > | `7.1`, `7.0`, `6.2` | Old versions (security fixes only; 6.2 until 2027-03-31) | The maintainers cherry-pick what is needed |
 > | `feature/XXX`, `fix/XXX` | Work branches | To one of the above |
+> 
+> - `release/X.Y.Z` is made from `7.2` and deleted after the release. `develop/X.Y.Z` cannot be made (it clashes with the branch `develop`). `release/7.2.5` was made on 2026-11-24 (exment: `7.2` + #2073; exment-saas: from `merge/exment-7.2.4`, as it has no `7.2` yet)
 >
 > **How a release is made (the same in both)**
 > 1. Run the tests once more on the latest `7.2` (for 7.2.x) or `develop` (for a new version such as 7.3.0)
