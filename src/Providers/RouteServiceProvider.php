@@ -514,6 +514,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("column/{tableKey}/{id}/columnTypeHtml", 'CustomColumnController@columnTypeHtml');
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
 
+            // data maintenance of a table (#1829, Features::DATA_MAINTENANCE)
+            $router->get("data_maintenance/{tableKey}", 'DataMaintenanceController@index');
+            $router->post("data_maintenance/{tableKey}/attachments", 'DataMaintenanceController@deleteAttachments');
+
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
             $router->post('form/{tableKey}/settingModal', 'CustomFormController@settingModal');
             $router->get('form/{tableKey}/preview/{suuid}', 'CustomFormController@previewBySuuid');

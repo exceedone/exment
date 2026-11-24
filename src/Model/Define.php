@@ -493,6 +493,8 @@ class Define
         ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
         ['name' => 'qrcode', 'href' => 'table/:id/edit?qrcodesetting=1', 'icon' => 'fa-qrcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.qrcode', 'description' => 'qrcode.description'],
         ['name' => 'jancode', 'href' => 'table/:id/edit?jancodesetting=1', 'icon' => 'fa-barcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.jancode', 'description' => 'jancode.description'],
+        // only when the feature is used (Features::DATA_MAINTENANCE, #1829)
+        ['name' => 'data_maintenance', 'href' => 'data_maintenance/:table_name', 'icon' => 'fa-wrench', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.data_maintenance', 'description' => 'data_maintenance.description', 'feature' => 'data_maintenance'],
     ];
 
     public const CUSTOM_VALUE_TRAITS = [

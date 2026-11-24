@@ -24,7 +24,8 @@ class Image extends File
         // get image url
         $url = ExmentFile::getUrl($this->fileValue($v));
         if (!isset($url)) {
-            return $url;
+            // the file is gone (#1829)
+            return is_nullorempty($this->fileValue($v)) ? null : esc_html(exmtrans('common.file_deleted'));
         }
 
         return \Exment::getUrlTag($url, '<img src="'.$url.'" class="mw-100 image_html" />', UrlTagType::BLANK, ['class' => 'image-link'], [
