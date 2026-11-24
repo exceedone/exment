@@ -227,34 +227,35 @@ GitHub brunch is operated as follows.
 
 > **Branches (decided on 2026-11-24, the same in exment and exment-saas)**
 >
-> | Branch | What it is | Pull requests |
-> |---|---|---|
-> | `develop` | The next version (now 7.3). The default branch on GitHub | **New features and large changes go here** (the usual target) |
-> | `7.2` | Fixes for 7.2.x | A fix shipped in 7.2.x goes **to `7.2` and to `develop`, one PR each** (the same change twice) |
-> | `master` | **What has been released** (exment: the released version; exment-saas: production) | Not directly. The maintainers merge into it at a release |
-> | `7.1`, `7.0`, `6.2` | Old versions (security fixes only; 6.2 until 2027-03-31) | The maintainers cherry-pick what is needed |
-> | `feature/XXX`, `fix/XXX` | Work branches | To one of the above |
+> There are only two kinds of branches.
 >
-> **How a release is made (the same in both)**
-> 1. Run the tests once more on the latest `7.2` (for 7.2.x) or `develop` (for a new version such as 7.3.0)
-> 2. Tag and release (exment `v7.2.4`, exment-saas `saas.v7.2.4`)
-> 3. Merge what was released into `master`
-> 4. After a new version (e.g. 7.3.0), make its version branch (`7.3`) at the tag (`git push origin v7.3.0^{commit}:refs/heads/7.3`)
-> 5. Work in `develop` that should not ship yet goes behind a setting that is **off by default** (`Features::register`), or is reverted before the tag
+> | Branch | What it is |
+> |---|---|
+> | `develop/<version>` (e.g. `develop/7.2.6`, `develop/7.3.0`) | Collects what ships in that version. **Send every pull request to the `develop/<version>` of the version it should ship in** |
+> | `master` | **What has been released** (exment: the released version; exment-saas: production). Not directly |
 >
-> **exment-saas (SaaS)**
-> - The version follows core: SaaS with core 7.2.4 is `saas.v7.2.4`; SaaS-only fixes on it are `saas.v7.2.4.1`, `saas.v7.2.4.2`, … (the `saas.v7.2.0.N` tags of 7.2.1–7.2.3 are not used any more)
-> - After a core release, a PR imports it. The AI features (AI assistant, chatbot, AI-OCR) exist only in SaaS, so **the AI team checks them on staging (`stg.*`)** before production
+> - Send PRs from work branches (`feature/XXX`, `fix/XXX`) to `develop/<version>`
+> - Large features (e.g. for 7.3) go to `develop/7.3.0`, fixes for 7.2.x to `develop/7.2.<n>`. When unsure, ask the maintainers
+> - A change to documents only (`document/`) may go to `master`
+> - Old versions (`7.1`, `7.0`, `6.2`) get security fixes only, cherry-picked by the maintainers (6.2 until 2027-03-31)
+>
+> **Each time (the same in exment and exment-saas)**
+> 1. After a version ships, make the next `develop/<version>` (e.g. `develop/7.2.6` after 7.2.5)
+> 2. Merge what ships in it through PRs
+> 3. Before the release, ask the AI team to "check `develop/<version>`". The AI features (AI assistant, chatbot, AI-OCR) exist only in SaaS, so they check them on staging (`stg.*`). **Nothing else goes into a `develop/<version>` while it is being checked**
+> 4. When it is OK, run the tests once more on the latest content, tag and release (exment `v7.2.6`, exment-saas `saas.v7.2.6`), merge into `master`, and delete `develop/<version>`
+> 5. When two `develop/<version>` branches exist (e.g. `develop/7.2.6` and `develop/7.3.0`), the maintainers bring the fixes of the one released first into the other
+>
+> **exment-saas versions** follow core: SaaS with core 7.2.4 is `saas.v7.2.4`; SaaS-only fixes on it are `saas.v7.2.4.1`, …
 >
 > **How to send pull requests (to keep the GitHub test queue short)**
 > - Bundle small fixes by topic, not one PR per fix
-> - Push as little as possible while the tests run (each push starts them again)
-> - When a job fails because of the network (timeouts, failed downloads), rerun only the failed job
-> - Before merging, update a PR whose base has moved and let the tests pass; a PR that touches none of the files changed since can be merged as it is
+> - Push as little as possible while the tests run
+> - When a job fails because of the network, rerun only the failed job
 >
 > Security fixes are not handled in public issues or pull requests; see SECURITY.md (they are fixed in the private fork of a GitHub Security Advisory).
 >
-> **Before the switch**: until 2026-11-24, `master` of exment was used for the next version (7.3). At the switch, `develop` is made from it and `master` goes back to the released version (v7.2.4). Users of `dev-master` then get 7.2.4.
+> **The switch on 2026-11-24**: `master` of exment was used for the next version (7.3) until then. Its content moved to `develop/7.3.0`, and `master` went back to the released version (v7.2.4); the old `master` is kept as `backup/master-2026-11-24`. The plain `develop` and `7.2` branches are not used. The same day, `release/<version>` was renamed `develop/<version>`; only 7.2.5 keeps `release/7.2.5` until it ships, because the AI team was testing it. Users of `dev-master` now get 7.2.4.
 >
 > The table below describes the previous branch model.
 
@@ -295,6 +296,6 @@ If you want to commit to exceedone/exment of the main unit, follow the procedure
 
 - Exment pull request on GitHub.  
 
-- Execute a pull request for the branch in the "Current workflow" table above (**develop** for new functions; **7.2** and **develop** for a fix shipped in 7.2.x) of exceedone/exment. Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
+- Execute a pull request for the **develop/<version>** of the version it should ship in (see "Branches" above) of exceedone/exment. Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
 Please include comments as much as possible.
 

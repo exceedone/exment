@@ -82,6 +82,52 @@ class PluginDiskLazyTest extends UnitTestBase
     }
 
     /**
+     * The path of a plugin (asked several times per plugin on every page) is its local copy. A copy
+     * that is up to date is used without asking the cloud disk whether the plugin is there.
+     *
+     * @return void
+     */
+    public function testAnUpToDateCopyIsUsedWithoutTheCloudDisk()
+    {
+        $plugin = $this->plugin();
+        $this->copy($plugin, $plugin->updated_at->format('YmdHis'));
+        $local = \Exment::replaceBackToSlash(Storage::disk('plugin_local')->path($plugin->getPath()));
+
+        $this->assertSame(rtrim($local, '/'), rtrim($plugin->getLocalFullPath(), '/'));
+        $this->assertSame(rtrim($local, '/'), rtrim(\Exment::replaceBackToSlash($plugin->getFullPath()), '/'));
+        $plugin->requirePlugin();
+    }
+
+    /**
+     * A copy that is not up to date is downloaded from the cloud disk, as before.
+     *
+     * @return void
+     */
+    public function testAnOldCopyStillAsksTheCloudDisk()
+    {
+        $plugin = $this->plugin();
+        $this->copy($plugin, '20000101000000');
+        $this->expectExceptionMessage('the cloud disk was made');
+        $plugin->getFullPath();
+    }
+
+    /**
+     * A plugin required several times is looked in once by the class loader.
+     *
+     * @return void
+     */
+    public function testTheClassLoaderKeepsADirectoryOnce()
+    {
+        $loader = new \Exceedone\Exment\Services\ClassLoader();
+        $loader->registerDir('/a', 'App\Plugins\A');
+        $loader->registerDir('/a', 'App\Plugins\A');
+        $loader->registerDir('/b', 'App\Plugins\B');
+        $dirs = new \ReflectionProperty($loader, 'dirs');
+        $dirs->setAccessible(true);
+        $this->assertCount(2, $dirs->getValue($loader));
+    }
+
+    /**
      * On the local disk (the default) nothing is copied.
      *
      * @return void

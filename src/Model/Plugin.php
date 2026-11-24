@@ -445,10 +445,8 @@ class Plugin extends ModelBase
      */
     public function requirePlugin(?PluginDiskService $diskService = null)
     {
-        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
-
         // call plugin
-        $fullPathDir = \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
+        $fullPathDir = $this->getLocalFullPath($diskService);
 
         \Exment::classLoader()->registerDir($fullPathDir, $this->getNameSpace());
     }
@@ -465,7 +463,16 @@ class Plugin extends ModelBase
      */
     public function getLocalFullPath(?PluginDiskService $diskService = null): string
     {
-        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
+        if (!isset($diskService)) {
+            $diskService = new PluginDiskService($this);
+            $diskService->syncFromDisk();
+        }
+
+        // whether the plugin is there. A local copy that was up to date is not asked of the cloud
+        // disk again (ISS00413): it was copied from there, and the request costs time on each page
+        if (!$diskService->isLocalCopyCurrent()) {
+            $this->initPluginDisk(null, $diskService);
+        }
 
         return \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
     }
