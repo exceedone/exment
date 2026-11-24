@@ -30,6 +30,7 @@ use Exceedone\Exment\Tests\TestDefine;
 use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\Testing\TestResponse;
@@ -1406,11 +1407,11 @@ class KanbanFixTest extends UnitTestBase
                 $count++;
             }
         };
-        \Event::listen('eloquent.retrieved: *', $listener);
+        Event::listen('eloquent.retrieved: *', $listener);
         try {
             $callback();
         } finally {
-            \Event::forget('eloquent.retrieved: *');
+            Event::forget('eloquent.retrieved: *');
         }
 
         return $count;
