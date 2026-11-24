@@ -78,7 +78,7 @@ EOT;
 
     public function render()
     {
-        \Admin::script($this->script());
+        \ExmentAdminCore\Admin\Facades\Admin::script($this->script());
 
         $this->attributes['disabled'] = true;
 

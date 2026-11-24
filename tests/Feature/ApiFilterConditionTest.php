@@ -426,6 +426,6 @@ class ApiFilterConditionTest extends ExmentKitTestCase
         })->pluck('name', 'id')->toArray();
 
 
-        $this->assertTrue(\Exment::isContains2Array($expectOptions, $json) && \Exment::isContains2Array($json, $expectOptions), "expects array is " . json_encode($expectOptions) . ", but result array is " . json_encode($json));
+        $this->assertTrue(\Exceedone\Exment\Facades\ExmentFacade::isContains2Array($expectOptions, $json) && \Exceedone\Exment\Facades\ExmentFacade::isContains2Array($json, $expectOptions), "expects array is " . json_encode($expectOptions) . ", but result array is " . json_encode($json));
     }
 }

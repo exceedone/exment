@@ -31,7 +31,7 @@ if (!function_exists('exmDebugLog')) {
 
         $log_string = $now->format("YmdHisv")." ".$log;
 
-        \Log::debug($log_string);
+        \Illuminate\Support\Facades\Log::debug($log_string);
     }
 }
 
@@ -55,7 +55,7 @@ if (!function_exists('getManualUrl')) {
     // @phpstan-ignore-next-line
     function getManualUrl($uri = null)
     {
-        return \Exment::getManualUrl($uri);
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl($uri);
     }
 }
 
@@ -592,12 +592,12 @@ if (!function_exists('getFullpath')) {
         }
 
         $adapter = $disk->getAdapter();
-        $path = \Exment::getPathPrefix($adapter, $filename);
+        $path = \Exceedone\Exment\Facades\ExmentFacade::getPathPrefix($adapter, $filename);
 
         if ($mkdir) {
             // @phpstan-ignore-next-line
             $dirPath = pathinfo($path)['dirname'];
-            \Exment::makeDirectory($dirPath);
+            \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($dirPath);
         }
         return $path;
     }
@@ -696,7 +696,7 @@ if (!function_exists('deleteDirectory')) {
             return;
         }
         if (is_string($disk)) {
-            $disk = \Storage::disk($disk);
+            $disk = \Illuminate\Support\Facades\Storage::disk($disk);
         }
 
         try {
@@ -1282,7 +1282,7 @@ if (!function_exists('get_password_rule')) {
     // @phpstan-ignore-next-line
     function get_password_rule($required = true, ?LoginUser $login_user = null)
     {
-        return \Exment::get_password_rule($required, $login_user);
+        return \Exceedone\Exment\Facades\ExmentFacade::get_password_rule($required, $login_user);
     }
 }
 
@@ -1464,7 +1464,7 @@ if (!function_exists('canConnection')) {
         // Use session. Not request session
         return System::cache(Define::SYSTEM_KEY_SESSION_CAN_CONNECTION_DATABASE, function () {
             // get all table names
-            return \ExmentDB::canConnection();
+            return \Exceedone\Exment\Facades\ExmentDBFacade::canConnection();
         }, true);
     }
 }
@@ -1492,16 +1492,16 @@ if (!function_exists('hasTable')) {
                 // arguments Laravel 12 lists every schema on the server as
                 // "schema.table", which never matches $table_name below and, on a
                 // shared multi-tenant server, would read other tenants' databases.
-                return \Schema::getTableListing(\Schema::getCurrentSchemaName(), false);
+                return \Illuminate\Support\Facades\Schema::getTableListing(\Illuminate\Support\Facades\Schema::getCurrentSchemaName(), false);
             } catch (\Throwable $e) {
                 // before the install the database of .env is not the site's yet (the defaults
                 // of the zip, before the database step): not an error of the site
                 // a cached config is an installed site; else .env tells (as the Initialize middleware)
                 // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
                 if (app()->configurationIsCached() || boolval(env('EXMENT_INITIALIZE', false))) {
-                    \Log::error('Error fetching table names: ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::error('Error fetching table names: ' . $e->getMessage());
                 } else {
-                    \Log::debug('Error fetching table names (not installed yet): ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::debug('Error fetching table names (not installed yet): ' . $e->getMessage());
                 }
                 return [];
             }
@@ -1804,7 +1804,7 @@ if (!function_exists('getDataFromSheet')) {
     // @phpstan-ignore-next-line
     function getDataFromSheet($sheet, $keyvalue = false, $isGetMerge = false)
     {
-        return \Exment::getDataFromSheet($sheet, $keyvalue, $isGetMerge);
+        return \Exceedone\Exment\Facades\ExmentFacade::getDataFromSheet($sheet, $keyvalue, $isGetMerge);
     }
 }
 
@@ -1815,7 +1815,7 @@ if (!function_exists('getCellValue')) {
     // @phpstan-ignore-next-line
     function getCellValue($cell, $sheet, $isGetMerge = false)
     {
-        return \Exment::getCellValue($cell, $sheet, $isGetMerge);
+        return \Exceedone\Exment\Facades\ExmentFacade::getCellValue($cell, $sheet, $isGetMerge);
     }
 }
 

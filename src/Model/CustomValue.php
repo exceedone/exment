@@ -357,7 +357,7 @@ abstract class CustomValue extends ModelBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = \Exment::uniqueCustomValues(
+            $result = \Exceedone\Exment\Facades\ExmentFacade::uniqueCustomValues(
                 $result,
                 $workflow_action->getAuthorityTargets($this, WorkflowGetAuthorityType::CURRENT_WORK_USER)
             );
@@ -498,7 +498,7 @@ abstract class CustomValue extends ModelBase
         // The ones who already did have nothing left to run: the task list leaves them out
         // (WorkflowTaskService) and the action modal offers them no submit. Executing again
         // only recorded the same approval twice.
-        if ($ignoreExecuted && !is_null($login_user = \Exment::user())) {
+        if ($ignoreExecuted && !is_null($login_user = \Exceedone\Exment\Facades\ExmentFacade::user())) {
             $workflow_actions = $workflow_actions->filter(function ($workflow_action) use ($login_user) {
                 return !WorkflowValue::isAlreadyExecuted($workflow_action->id, $this, $login_user->base_user);
             });
@@ -678,7 +678,7 @@ abstract class CustomValue extends ModelBase
                 // Delete only children.
                 $model->deleteChildrenValues();
 
-                $model->deleted_user_id = \Exment::getUserId();
+                $model->deleted_user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
 
                 // saved_notify(as update) disable
                 $saved_notify = $model->saved_notify;
@@ -1051,7 +1051,7 @@ abstract class CustomValue extends ModelBase
             $pivot_name = $relation->getRelationName();
 
             // find keys and delete
-            \DB::table($pivot_name)
+            \Illuminate\Support\Facades\DB::table($pivot_name)
                 ->where('parent_id', $this->id)
                 ->delete();
         }
@@ -1064,7 +1064,7 @@ abstract class CustomValue extends ModelBase
             $pivot_name = $relation->getRelationName();
 
             // find keys and delete
-            \DB::table($pivot_name)
+            \Illuminate\Support\Facades\DB::table($pivot_name)
                 ->where('child_id', $this->id)
                 ->delete();
         }
@@ -1211,10 +1211,10 @@ abstract class CustomValue extends ModelBase
 
                 // check has user or org id
                 if ($related_type == SystemTableName::USER) {
-                    return $value['authoritable_target_id'] == \Exment::getUserId();
+                    return $value['authoritable_target_id'] == \Exceedone\Exment\Facades\ExmentFacade::getUserId();
                 } elseif ($related_type == SystemTableName::ORGANIZATION) {
                     $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
-                    return in_array($value['authoritable_target_id'], \Exment::user()->getOrganizationIdsForQuery($enum));
+                    return in_array($value['authoritable_target_id'], \Exceedone\Exment\Facades\ExmentFacade::user()->getOrganizationIdsForQuery($enum));
                 }
             });
         }
@@ -1223,12 +1223,12 @@ abstract class CustomValue extends ModelBase
         if ($related_type == SystemTableName::USER) {
             $query = $this
             ->value_authoritable_users()
-            ->where('authoritable_target_id', \Exment::getUserId());
+            ->where('authoritable_target_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId());
         } elseif ($related_type == SystemTableName::ORGANIZATION) {
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
             $query = $this
                 ->value_authoritable_organizations()
-                ->whereIn('authoritable_target_id', \Exment::user()->getOrganizationIdsForQuery($enum));
+                ->whereIn('authoritable_target_id', \Exceedone\Exment\Facades\ExmentFacade::user()->getOrganizationIdsForQuery($enum));
         } else {
             throw new \Exception();
         }
@@ -1558,7 +1558,7 @@ abstract class CustomValue extends ModelBase
             }
 
             // Exment helper class not recognized
-            return \Exment::getUrlTag($url, $document_name, UrlTagType::BLANK, [], [
+            return \Exceedone\Exment\Facades\ExmentFacade::getUrlTag($url, $document_name, UrlTagType::BLANK, [], [
                 'tooltipTitle' => exmtrans('common.download')
             ]);
         }
@@ -1601,7 +1601,7 @@ abstract class CustomValue extends ModelBase
         }
 
         $urlType = boolval($options['modal']) ? UrlTagType::MODAL : UrlTagType::TOP;
-        return \Exment::getUrlTag($url, $label, $urlType, $attributes, [
+        return \Exceedone\Exment\Facades\ExmentFacade::getUrlTag($url, $label, $urlType, $attributes, [
             'notEscape' => !$escape,
         ]);
     }
@@ -1705,11 +1705,11 @@ abstract class CustomValue extends ModelBase
         if ($this->custom_table->table_name != SystemTableName::COMMENT || !$this->exists) {
             return false;
         }
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($login_user) || $login_user->isAdministrator()) {
             return false;
         }
-        return !isMatchString($this->created_user_id, \Exment::getUserId());
+        return !isMatchString($this->created_user_id, \Exceedone\Exment\Facades\ExmentFacade::getUserId());
     }
 
     /**
@@ -1733,8 +1733,8 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::DATA_NOT_FOUND();
         }
 
-        $login_user = \Exment::user();
-        $isAuthor = isset($login_user) && isMatchString($comment->created_user_id, \Exment::getUserId());
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
+        $isAuthor = isset($login_user) && isMatchString($comment->created_user_id, \Exceedone\Exment\Facades\ExmentFacade::getUserId());
         if (!$isAuthor && !(isset($login_user) && $login_user->isAdministrator())) {
             return ErrorCode::PERMISSION_DENY();
         }
@@ -1974,11 +1974,11 @@ abstract class CustomValue extends ModelBase
         //$subquery->take($takeCount);
 
         if ($options['searchDocument'] && boolval(config('exment.search_document', false))) {
-            $subquery->union(\Exment::getSearchDocumentQuery($this->custom_table, $q)->select('id'));
+            $subquery->union(\Exceedone\Exment\Facades\ExmentFacade::getSearchDocumentQuery($this->custom_table, $q)->select('id'));
         }
 
         // create main query
-        // $mainQuery = \DB::query()->fromSub($subquery, 'sub');
+        // $mainQuery = \Illuminate\Support\Facades\DB::query()->fromSub($subquery, 'sub');
 
         // return $mainQuery;
         return $subquery;
@@ -2018,7 +2018,7 @@ abstract class CustomValue extends ModelBase
 
             if ($options['searchDocument'] && boolval(config('exment.search_document', false))) {
                 $query->orWhere(function ($query) use ($q) {
-                    \Exment::getSearchDocumentQuery($this->custom_table, $q, $query);
+                    \Exceedone\Exment\Facades\ExmentFacade::getSearchDocumentQuery($this->custom_table, $q, $query);
                 });
             }
         });
@@ -2103,7 +2103,7 @@ abstract class CustomValue extends ModelBase
             return ["=", $q];
         }
 
-        return \Exment::getQueryMarkAndValue($isLike, $q);
+        return \Exceedone\Exment\Facades\ExmentFacade::getQueryMarkAndValue($isLike, $q);
     }
 
     /**

@@ -760,7 +760,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
-        $validator = \Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
+        $validator = \Illuminate\Support\Facades\Validator::make(array_dot_reverse($value), $rules, [], $customAttributes);
 
         $errors = $this->validatorUniques($value, $custom_value, $options);
 
@@ -1045,7 +1045,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             if (!$is_duplicate) {
                 $column_keys = [];
-                $query = \DB::table(getDBTableName($this->table_name));
+                $query = \Illuminate\Support\Facades\DB::table(getDBTableName($this->table_name));
                 foreach ([1,2,3] as $key) {
                     if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
                         continue;
@@ -1298,7 +1298,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
             // get page settings
             // Exment helper class not recognized
-            $settings = \Exment::user()->getSettingValue($path)?? '[]';
+            $settings = \Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue($path)?? '[]';
             $settings = json_decode_ex($settings, true);
 
             // get view settings
@@ -1342,7 +1342,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $inputs = Arr::except(Request::all(), ['view', '_pjax', '_token', '_method', '_previous_', '_export_', 'format', 'group_key', 'group_view']);
 
         // Exment helper class not recognized
-        $parameters = \Exment::user()->getSettingValue($path)?? '[]';
+        $parameters = \Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue($path)?? '[]';
         $parameters = json_decode_ex($parameters, true);
 
 
@@ -1429,9 +1429,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $model = $model->where('showlist_flg', true);
 
         // if not exists, filter model using permission
-        if ($options['checkPermission'] && !\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
+        if ($options['checkPermission'] && !\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             // get tables has custom_table permission.
-            $permission_tables = \Exment::user()->allHasPermissionTables($options['permissions']);
+            $permission_tables = \Exceedone\Exment\Facades\ExmentFacade::user()->allHasPermissionTables($options['permissions']);
             $permission_table_ids = $permission_tables->map(function ($permission_table) {
                 return array_get($permission_table, 'id');
             });
@@ -2150,7 +2150,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return;
         }
 
-        \Schema::createValueTable($table_name);
+        \Illuminate\Support\Facades\Schema::createValueTable($table_name);
 
         System::clearCache();
     }
@@ -2160,10 +2160,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function dropTable()
     {
         $table_name = getDBTableName($this);
-        if (!\Schema::hasTable($table_name)) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable($table_name)) {
             return;
         }
-        \Schema::dropIfExists($table_name);
+        \Illuminate\Support\Facades\Schema::dropIfExists($table_name);
 
         System::clearCache();
     }
@@ -2321,7 +2321,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected function getAccessibleUserOrganizationIds($target_table)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $key .= '.user.' . md5((string) ($userId ?? 'guest'));
         $resolver = function () use ($target_table) {
             // $target_table : user or org
@@ -3321,7 +3321,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $table_name = $this->table_name;
         $role_key = (array)$role_key;
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return false;
         }
@@ -3585,7 +3585,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         System::requestSession($key, function () use ($custom_values) {
             // get custom_values_authoritable
-            $values = \DB::table('custom_value_authoritables')
+            $values = \Illuminate\Support\Facades\DB::table('custom_value_authoritables')
                 ->where('parent_type', $this->table_name)
                 ->whereIn('parent_id', $custom_values->pluck('id')->toArray())
                 ->get(['authoritable_user_org_type', 'authoritable_target_id', 'authoritable_type', 'parent_id']);
@@ -3849,7 +3849,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function copyTable($inputs = null, bool $include_view = false, bool $include_form = false)
     {
-        \ExmentDB::transaction(function ($connect) use ($inputs, $include_view, $include_form) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function ($connect) use ($inputs, $include_view, $include_form) {
             $new_table = $this->replicate(['suuid'])->setRelations([]);
             foreach($inputs as $key => $input) {
                 $new_table->{$key} = $input;

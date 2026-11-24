@@ -270,7 +270,7 @@ class NotifyService
                     ]],
                 ]);
             } catch (\Exception $ex) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
                 return getAjaxResponse([
                     'result'  => false,
                     'errors' => ['send_error_message' => ['type' => 'input',
@@ -517,7 +517,7 @@ class NotifyService
                 $dedupeMinutes
             )
         ) {
-            \Log::info('LINE reminder skipped by dedupe', [
+            \Illuminate\Support\Facades\Log::info('LINE reminder skipped by dedupe', [
                 'user_id' => $userId,
                 'parent_id' => $custom_value->id,
                 'parent_type' => $custom_value->custom_table->table_name,
@@ -798,7 +798,7 @@ class NotifyService
         $sender = $className::make($webhook_url, $slack_subject, $slack_body, $options);
         // the URL is checked when it is posted to, too (its name may point elsewhere by now)
         if (!WebhookUrlGuard::isAllowed($webhook_url)) {
-            \Log::warning('Exment notify: the webhook URL is not allowed and nothing was sent: ' . parse_url((string)$webhook_url, PHP_URL_HOST)
+            \Illuminate\Support\Facades\Log::warning('Exment notify: the webhook URL is not allowed and nothing was sent: ' . parse_url((string)$webhook_url, PHP_URL_HOST)
                 . ' (the server itself and internal addresses are refused; to post to this host, add it to EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS in .env)');
             return $sender;
         }

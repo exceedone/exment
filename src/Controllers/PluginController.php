@@ -45,7 +45,7 @@ class PluginController extends AdminControllerBase
         $this->AdminContent($content);
 
         // demo mode: no upload
-        if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL) && !DemoMode::enabled()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::PLUGIN_ALL) && !DemoMode::enabled()) {
             $content->row(view('exment::plugin.upload'));
         }
 
@@ -63,12 +63,12 @@ class PluginController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function executeBatch(Request $request, $id)
     {
-        if (!\Exment::user()->hasPermission(Permission::PLUGIN_ACCESS)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::PLUGIN_ACCESS)) {
             Checker::error();
             return false;
         }
 
-        \Artisan::call('exment:batch', ['id' => $id]);
+        \Illuminate\Support\Facades\Artisan::call('exment:batch', ['id' => $id]);
 
         admin_toastr(exmtrans('common.message.success_execute'));
         return back();
@@ -90,7 +90,7 @@ class PluginController extends AdminControllerBase
 
             $filter->like('author', exmtrans("plugin.author"));
             $filter->like('version', exmtrans("plugin.version"));
-            $filter->like('active_flg', exmtrans("plugin.active_flg"))->radio(\Exment::getYesNoAllOption());
+            $filter->like('active_flg', exmtrans("plugin.active_flg"))->radio(\Exceedone\Exment\Facades\ExmentFacade::getYesNoAllOption());
         });
 
         $grid->column('plugin_name', exmtrans("plugin.plugin_name"))->sortable();
@@ -104,7 +104,7 @@ class PluginController extends AdminControllerBase
         $grid->column('author', exmtrans("plugin.author"));
         $grid->column('version', exmtrans("plugin.version"));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
-            return \Exment::getTrueMark($active_flg);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($active_flg);
         })->escape(false);
 
         $grid->disableCreateButton();
@@ -124,7 +124,7 @@ class PluginController extends AdminControllerBase
             }
         });
 
-        if (!\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::PLUGIN_ALL)) {
             $grid->model()->whereIn('id', Plugin::getIdsHasSettingPermission());
         }
 
@@ -142,7 +142,7 @@ class PluginController extends AdminControllerBase
         // Uploading installs or replaces a plugin, that is PHP code. The route lets
         // in the setting permission of a single plugin too, so check it here: the
         // upload form itself is shown only with PLUGIN_ALL (index()).
-        if (!\Exment::user()->hasPermission(Permission::PLUGIN_ALL) || DemoMode::enabled()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::PLUGIN_ALL) || DemoMode::enabled()) {
             Checker::error();
             return false;
         }
@@ -186,7 +186,7 @@ class PluginController extends AdminControllerBase
             }
 
             // get disk
-            $disk = \Storage::disk(Define::DISKNAME_ADMIN);
+            $disk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN);
             $folder = $plugin->getPath();
             if ($disk->exists($folder)) {
                 $disk->deleteDirectory($folder);
@@ -211,7 +211,7 @@ class PluginController extends AdminControllerBase
         if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL()) && $request->has('options')) {
             $uri = array_get((array)$request->get('options'), 'uri');
             if ($uri !== $plugin->getOption('uri')) {
-                $validator = \Validator::make(
+                $validator = \Illuminate\Support\Facades\Validator::make(
                     ['uri' => $uri],
                     ['uri' => ['required', 'regex:' . static::URI_PATTERN, 'max:100']]
                 );

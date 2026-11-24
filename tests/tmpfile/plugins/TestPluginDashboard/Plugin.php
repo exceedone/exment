@@ -69,7 +69,7 @@ class Plugin extends PluginDashboardBase
                 ->getValueModel($id);
         } else {
             return CustomTable::getEloquent('custom_value_edit_all')
-            ->getValueModel()->where('value->user', \Exment::user()->base_user->id)->first();
+            ->getValueModel()->where('value->user', \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id)->first();
         }
     }
 

@@ -68,7 +68,7 @@ class AdminDiskService extends DiskServiceBase
         $localSyncDisk = $localSyncDiskItem->disk();
 
         // download file
-        \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
 
         // only call if exists
         if (!$disk->exists($diskItem->filePath())) {

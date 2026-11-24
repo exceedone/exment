@@ -255,7 +255,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         CustomColumn::getEloquent('unlinked_flg', CustomTable::getEloquent('safety_check_answer'))->delete();
         $menuIds = Menu::orderBy('id')->pluck('id')->all();
 
-        $this->assertEquals(0, \Artisan::call('exment:patchdata', ['action' => 'line_safety_check']));
+        $this->assertEquals(0, \Illuminate\Support\Facades\Artisan::call('exment:patchdata', ['action' => 'line_safety_check']));
 
         $this->assertNotNull(CustomColumn::getEloquent('unlinked_flg', CustomTable::getEloquent('safety_check_answer')), 'The patch must recreate the missing column.');
         $this->assertEquals($menuIds, Menu::orderBy('id')->pluck('id')->all(), 'The patch must not delete or recreate menus.');
@@ -269,7 +269,7 @@ class SafetyCheckInstallerTest extends FeatureTestBase
         $this->app[\Illuminate\Contracts\Console\Kernel::class]->all();
         $foreign = $this->replaceWithForeignTable('safety_check_event', ['event_status']);
 
-        $this->assertEquals(1, \Artisan::call('exment:patchdata', ['action' => 'line_safety_check']));
+        $this->assertEquals(1, \Illuminate\Support\Facades\Artisan::call('exment:patchdata', ['action' => 'line_safety_check']));
 
         $this->assertFalse(boolval(CustomTable::where('id', $foreign->id)->firstOrFail()->system_flg));
     }

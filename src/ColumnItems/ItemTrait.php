@@ -490,7 +490,7 @@ trait ItemTrait
     public function getDateFormatWrapTableColumn(string $format): string
     {
         $table_column_name = $this->getTableColumn();
-        return \DB::getQueryGrammar()->getDateFormatString($format, $table_column_name);
+        return \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString($format, $table_column_name);
     }
 
     /**
@@ -523,7 +523,7 @@ trait ItemTrait
         }
 
         // get wraped, joined table, and sub query's as name.
-        $wrapCastColumn = \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
+        $wrapCastColumn = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($this->getTableColumn($this->sqlAsName()));
         if (isset($new_summary_condition)) {
             // add condition.
             $result = "$new_summary_condition($wrapCastColumn)";
@@ -555,7 +555,7 @@ trait ItemTrait
             case SummaryCondition::MAX:
             case SummaryCondition::MIN:
                 // get wraped, joined table, and sub query's as name.
-                return \Exment::wrapColumn($this->getTableColumn($this->sqlAsName()));
+                return \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($this->getTableColumn($this->sqlAsName()));
         }
         return null;
     }
@@ -584,7 +584,7 @@ trait ItemTrait
         }
 
         if ($wrap) {
-            $column_name = \Exment::wrapColumn($column_name);
+            $column_name = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($column_name);
         }
 
         if (!isset($cast)) {

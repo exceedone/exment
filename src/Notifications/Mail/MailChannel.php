@@ -39,7 +39,7 @@ class MailChannel
         $tmpZipPath = null;
 
         try {
-            \Mail::send([], [], function (Message $message) use ($mailMessage, &$tmpZipPath) {
+            \Illuminate\Support\Facades\Mail::send([], [], function (Message $message) use ($mailMessage, &$tmpZipPath) {
                 $subject = $mailMessage->getSubject();
                 $body = $mailMessage->getBody();
 
@@ -61,7 +61,7 @@ class MailChannel
         } finally {
             // remove file
             if (isset($tmpZipPath)) {
-                \File::delete($tmpZipPath);
+                \Illuminate\Support\Facades\File::delete($tmpZipPath);
             }
         }
     }

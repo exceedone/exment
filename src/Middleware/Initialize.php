@@ -42,7 +42,7 @@ class Initialize
             // from the marker file and from .env itself, not from the database nor
             // from env() (with a config cache, env() does not read .env).
             if (InstalledState::isInstalled()) {
-                \Log::error('Database connection failed during initialization. Exment is installed, but the database is unreachable or has no system table.');
+                \Illuminate\Support\Facades\Log::error('Database connection failed during initialization. Exment is installed, but the database is unreachable or has no system table.');
                 abort(503, 'Database connection failed. Please check your database settings in .env');
             }
 
@@ -148,7 +148,7 @@ class Initialize
     public static function defaultLogo(): string
     {
         try {
-            if (\Exment::isModernUi()) {
+            if (\Exceedone\Exment\Facades\ExmentFacade::isModernUi()) {
                 return static::DEFAULT_LOGO;
             }
             $skin = strval(System::site_skin() ?: config('admin.skin'));
@@ -234,7 +234,7 @@ class Initialize
     {
         //// set from env
         if (!is_null($env = config('exment.locale', env('APP_LOCALE')))) {
-            \App::setLocale($env);
+            \Illuminate\Support\Facades\App::setLocale($env);
         }
         if (!is_null($env = config('exment.timezone', env('APP_TIMEZONE')))) {
             Config::set('app.timezone', $env);
@@ -546,7 +546,7 @@ class Initialize
 
             // favicon
             if (!is_null(System::site_favicon())) {
-                \Admin::setFavicon(admin_url('favicon'));
+                \ExmentAdminCore\Admin\Facades\Admin::setFavicon(admin_url('favicon'));
             }
 
             // mail setting
@@ -620,7 +620,7 @@ class Initialize
     public static function requireBootstrap()
     {
         $file = config('exment.bootstrap', exment_app_path('bootstrap.php'));
-        if (!\File::exists($file)) {
+        if (!\Illuminate\Support\Facades\File::exists($file)) {
             return;
         }
         require_once $file;

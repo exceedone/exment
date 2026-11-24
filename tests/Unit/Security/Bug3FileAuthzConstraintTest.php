@@ -22,7 +22,7 @@ class Bug3FileAuthzConstraintTest extends SecurityRegressionTestCase
     public function test_current_behavior_parentless_file_is_still_permitted(): void
     {
         $uuid = make_uuid();
-        \DB::table('files')->insert([
+        \Illuminate\Support\Facades\DB::table('files')->insert([
             'uuid'           => $uuid,
             'local_dirname'  => 'sec_poc',
             'local_filename' => $uuid . '.txt',
@@ -30,7 +30,7 @@ class Bug3FileAuthzConstraintTest extends SecurityRegressionTestCase
             'parent_id'      => null,
             'parent_type'    => null,
         ]);
-        $data = \DB::table('files')->where('uuid', $uuid)->first();
+        $data = \Illuminate\Support\Facades\DB::table('files')->where('uuid', $uuid)->first();
 
         $method = new \ReflectionMethod(FileController::class, 'checkParentPermission');
         $method->setAccessible(true);

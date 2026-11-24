@@ -51,7 +51,7 @@ class PasswordHistoryRule implements Rule
         }
 
         return !($old_passwords->contains(function ($current_password) use ($value) {
-            return \Hash::check($value, $current_password);
+            return \Illuminate\Support\Facades\Hash::check($value, $current_password);
         }));
     }
 

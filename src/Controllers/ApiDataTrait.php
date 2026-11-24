@@ -18,7 +18,7 @@ use Exceedone\Exment\Enums\ValueType;
 use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Api about target table's data.

@@ -254,7 +254,7 @@ class NotifyNavbarController extends AdminControllerBase
      */
     public function batchAll(Request $request, String $type): \Symfony\Component\HttpFoundation\Response
     {
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         try {
             switch ($type) {
                 case 'read':
@@ -270,16 +270,16 @@ class NotifyNavbarController extends AdminControllerBase
                     throw new \Exception();
             }
 
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
             // query()->update() and delete() skip the model events (ISS02824)
-            NotifyNavbar::navbarCacheForget(\Exment::getUserId());
+            NotifyNavbar::navbarCacheForget(\Exceedone\Exment\Facades\ExmentFacade::getUserId());
 
             return getAjaxResponse([
                 'result'  => true,
                 'toastr' => exmtrans('notify_navbar.message.'.$type.'_succeeded'),
             ]);
         } catch (\Exception $e) {
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
         }
 
         return getAjaxResponse([

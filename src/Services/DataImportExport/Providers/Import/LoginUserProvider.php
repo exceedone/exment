@@ -143,10 +143,10 @@ class LoginUserProvider extends ProviderBase
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
-        $validator = \Validator::make($data, [
+        $validator = \Illuminate\Support\Facades\Validator::make($data, [
             // get validate password.
             // not check history.
-            'password' => \Exment::get_password_rule(true, null, ['confirmed' => false])
+            'password' => \Exceedone\Exment\Facades\ExmentFacade::get_password_rule(true, null, ['confirmed' => false])
         ]);
         if ($validator->fails()) {
             // create error message

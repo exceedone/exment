@@ -210,7 +210,7 @@ class ScheduledJobsTest extends FeatureTestBase
 
         // its end (the command line calls exment:scheduled-job-finish), with its output
         file_put_contents(ScheduledJobs::runOutputPath($run), str_repeat('x', 5000) . "\nthe end");
-        $this->assertSame(0, \Artisan::call('exment:scheduled-job-finish', ['run' => $run->id, 'code' => 0]));
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:scheduled-job-finish', ['run' => $run->id, 'code' => 0]));
         $run->refresh();
         $this->assertSame(ScheduledJobRun::RESULT_SUCCESS, $run->result);
         $this->assertSame(0, $run->exit_code);
@@ -367,8 +367,8 @@ class ScheduledJobsTest extends FeatureTestBase
     {
         $this->scheduledRun(static::JOB, 1);
         $this->scheduledRun(static::JOB, 1);
-        $this->assertSame(0, \Artisan::call('exment:schedule-status', ['--json' => true]));
-        $status = json_decode(\Artisan::output(), true);
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:schedule-status', ['--json' => true]));
+        $status = json_decode(\Illuminate\Support\Facades\Artisan::output(), true);
         $this->assertIsArray($status);
         $this->assertArrayHasKey('cron_alive', $status);
         $this->assertIsArray($status['jobs']);

@@ -113,7 +113,7 @@ class DefaultFormChildRowValidationTest extends UnitTestBase
         $rows = [];
         foreach ($children as $index => $child) {
             // the stored updated_at, as the edit form shows it
-            $stored = \DB::table(getDBTableName($child_table))->where('id', $child->id)->value('updated_at');
+            $stored = \Illuminate\Support\Facades\DB::table(getDBTableName($child_table))->where('id', $child->id)->value('updated_at');
             $rows[$child->id] = [
                 'id' => $child->id,
                 'updated_at' => $updatedAts[$index] ?? \Carbon\Carbon::parse($stored)->format('Y-m-d H:i:s'),

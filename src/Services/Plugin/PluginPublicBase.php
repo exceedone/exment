@@ -53,12 +53,12 @@ class PluginPublicBase
     {
         $base_path = $this->plugin->getFullPath('public');
         $type_path = path_join($base_path, $path);
-        if (!\File::exists($type_path)) {
+        if (!\Illuminate\Support\Facades\File::exists($type_path)) {
             return [];
         }
 
         // get files
-        $files = \File::allFiles($type_path);
+        $files = \Illuminate\Support\Facades\File::allFiles($type_path);
 
         return collect($files)->filter(function ($file) use ($type) {
             // @phpstan-ignore-next-line

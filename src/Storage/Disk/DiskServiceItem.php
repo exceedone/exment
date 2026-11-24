@@ -81,7 +81,7 @@ class DiskServiceItem
     {
         $disk = $this->resolvedDisk();
         if (!is_null($this->dirName) && !$disk->exists($this->dirName)) {
-            \Exment::makeDirectoryDisk($disk, $this->dirName);
+            \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($disk, $this->dirName);
         }
     }
 

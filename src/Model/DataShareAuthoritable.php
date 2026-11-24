@@ -24,7 +24,7 @@ class DataShareAuthoritable extends ModelBase
     {
         $target_type = static::getTargetType($target_data);
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return;
         }
@@ -187,7 +187,7 @@ class DataShareAuthoritable extends ModelBase
         $target_type = static::getTargetType($target_data);
         $target_key = $target_type->toString();
 
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
 
         try {
             // get user and org
@@ -212,7 +212,7 @@ class DataShareAuthoritable extends ModelBase
                     ];
                 });
 
-                $shares = array_merge($shares, \Schema::insertDelete(SystemTableName::DATA_SHARE_AUTHORITABLE, $user_organizations, [
+                $shares = array_merge($shares, \Illuminate\Support\Facades\Schema::insertDelete(SystemTableName::DATA_SHARE_AUTHORITABLE, $user_organizations, [
                     'dbValueFilter' => function (&$model) use ($target_data, $target_key, $item) {
                         $model->where('parent_type', $target_key)
                             ->where('parent_id', $target_data->id)
@@ -232,7 +232,7 @@ class DataShareAuthoritable extends ModelBase
                 ]));
             }
             // Laravel facade DB not recognized
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
 
             System::clearCache();
 
@@ -242,7 +242,7 @@ class DataShareAuthoritable extends ModelBase
             ]);
         } catch (\Exception $exception) {
             //TODO:error handling
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
             throw $exception;
         }
     }

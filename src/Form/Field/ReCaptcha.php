@@ -25,7 +25,7 @@ class ReCaptcha extends Hidden
     // @phpstan-ignore-next-line
     public function __construct($arguments = [])
     {
-        // if (!\Exment::isAvailableGoogleRecaptcha()) {
+        // if (!\Exceedone\Exment\Facades\ExmentFacade::isAvailableGoogleRecaptcha()) {
         //     throw new \Exception('To use captcha field, please install [mews/captcha] first.');
         // }
 

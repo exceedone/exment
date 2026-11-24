@@ -18,7 +18,7 @@ trait BootstrapTrait
     protected static function setCssJsList(array $list, bool $isCss, bool $isLast = false)
     {
         /** @phpstan-ignore-next-line */
-        $ver = \Exment::getExmentCurrentVersion();
+        $ver = \Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion();
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }

@@ -196,7 +196,7 @@ class ApiTableController extends AdminControllerTableBase
             return abortJson(403, $code);
         }
 
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'label' => 'required|string|max:255',
         ]);
         if ($validator->fails()) {

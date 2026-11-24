@@ -299,8 +299,8 @@ class FilterOption extends EnumBase
 
         $transName = static::getTransName($condition_key);
         foreach (['condition.condition_key_options', 'custom_view.filter_condition_options'] as $key) {
-            if (\Lang::has("exment::exment.$key.$transName")) {
-                return \Lang::get("exment::exment.$key.$transName");
+            if (\Illuminate\Support\Facades\Lang::has("exment::exment.$key.$transName")) {
+                return \Illuminate\Support\Facades\Lang::get("exment::exment.$key.$transName");
             }
         }
 

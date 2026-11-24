@@ -34,7 +34,7 @@ class InitializeForm
         $form->text('user_code', exmtrans('user.user_code'))->required()->help(exmtrans('common.help_code'));
         $form->text('user_name', exmtrans('user.user_name'))->required()->help(exmtrans('user.help.user_name'));
         $form->text('email', exmtrans('user.email'))->required()->help(exmtrans('user.help.email'));
-        $form->password('password', exmtrans('user.password'))->required()->help(\Exment::get_password_help());
+        $form->password('password', exmtrans('user.password'))->required()->help(\Exceedone\Exment\Facades\ExmentFacade::get_password_help());
         $form->password('password_confirmation', exmtrans('user.password_confirmation'))->required();
 
         // the tuning Exment can do by itself: chosen here, done after the setup is saved
@@ -59,7 +59,7 @@ class InitializeForm
         $request = request();
 
         try {
-            \DB::beginTransaction();
+            \Illuminate\Support\Facades\DB::beginTransaction();
 
             $result = $this->postInitializeForm($request, 'initialize', true, true);
             if ($result instanceof \Illuminate\Http\RedirectResponse) {
@@ -107,13 +107,13 @@ class InitializeForm
             }
             InstalledState::markInstalled();
 
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
 
             // the tuning chosen on the screen; a failure does not stop the setup (it is logged)
             try {
                 (new AutoTuning(true))->apply((array) $request->get('auto_tuning', []), intval($loginuser->id));
             } catch (\Throwable $ex) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
 
             admin_toastr(trans('admin.save_succeeded'));
@@ -138,7 +138,7 @@ class InitializeForm
                     );
                 }
             } catch (\Throwable $ex) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
 
             return redirect(admin_url('/'));
@@ -152,7 +152,7 @@ class InitializeForm
             // \Throwable, not \Exception: a TypeError/Error here must roll back and show
             // the friendly message too, not white-screen. Keep the cause in the log.
             DB::rollback();
-            \Log::error($exception);
+            \Illuminate\Support\Facades\Log::error($exception);
             return back()->withErrors([
                 'initialize_error' => exmtrans('install.error.initialize_error'),
             ]);

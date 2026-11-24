@@ -81,7 +81,7 @@ class Audit
                 'created_at' => now(),
             ]);
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not write the audit log: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not write the audit log: ' . $e->getMessage());
         }
     }
 

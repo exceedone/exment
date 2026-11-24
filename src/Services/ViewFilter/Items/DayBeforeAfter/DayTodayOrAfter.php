@@ -34,6 +34,6 @@ class DayTodayOrAfter extends DayBeforeAfterBase
     protected function _compareValue($value, $conditionValue): bool
     {
         $today = \Exceedone\Exment\Services\UserTimezone::today();
-        return \Exment::getCarbonOnlyDay($value)->gte($today);
+        return \Exceedone\Exment\Facades\ExmentFacade::getCarbonOnlyDay($value)->gte($today);
     }
 }

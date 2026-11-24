@@ -42,7 +42,7 @@ class PluginDiskLazyTest extends UnitTestBase
 
     protected function tearDown(): void
     {
-        \File::deleteDirectory($this->root);
+        \Illuminate\Support\Facades\File::deleteDirectory($this->root);
         Storage::forgetDisk(['plugin_sync', 'plugin_local']);
         parent::tearDown();
     }

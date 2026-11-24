@@ -68,7 +68,7 @@ class TemplateDiskService extends DiskServiceBase
         $localSyncDisk = $localSyncDiskItem->Disk();
 
         // download zip
-        \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
 
         // get file list
         $files = $disk->allFiles($diskItem->dirName());

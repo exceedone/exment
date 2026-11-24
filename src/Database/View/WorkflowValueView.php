@@ -15,20 +15,20 @@ class WorkflowValueView
     public static function createWorkflowValueUnionView()
     {
         // get sub query for first executed workflow value's id.
-        $subqueryFirstWorkflowValueId = \DB::table(SystemTableName::WORKFLOW_VALUE)
+        $subqueryFirstWorkflowValueId = \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_VALUE)
             ->whereNull('workflow_status_from_id')
             ->groupBy(['morph_id', 'morph_type'])
-            ->select('morph_id', 'morph_type', \DB::raw('max(' . SystemTableName::WORKFLOW_VALUE . '.id) AS workflow_value_first_id'))
+            ->select('morph_id', 'morph_type', \Illuminate\Support\Facades\DB::raw('max(' . SystemTableName::WORKFLOW_VALUE . '.id) AS workflow_value_first_id'))
         ;
 
         // get sub query for executed workflow value's id.
-        $subqueryLastWorkflowValueId = \DB::table(SystemTableName::WORKFLOW_VALUE)
+        $subqueryLastWorkflowValueId = \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_VALUE)
             ->where('action_executed_flg', 0)
             ->groupBy(['morph_id', 'morph_type'])
-            ->select('morph_id', 'morph_type', \DB::raw('max(' . SystemTableName::WORKFLOW_VALUE . '.id) AS workflow_value_last_id'))
+            ->select('morph_id', 'morph_type', \Illuminate\Support\Facades\DB::raw('max(' . SystemTableName::WORKFLOW_VALUE . '.id) AS workflow_value_last_id'))
         ;
 
-        $subquery2 = \DB::table(SystemTableName::WORKFLOW_TABLE)
+        $subquery2 = \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)
         ->join(SystemTableName::WORKFLOW, function ($join) {
             $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
             ;
@@ -99,7 +99,7 @@ class WorkflowValueView
 
         /////// third query. has workflow value's custom value and workflow value authorities
 
-        $subquery3 = \DB::table(SystemTableName::WORKFLOW_TABLE)
+        $subquery3 = \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)
         ->join(SystemTableName::WORKFLOW, function ($join) {
             $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
             ;

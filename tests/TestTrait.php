@@ -200,7 +200,7 @@ trait TestTrait
     {
         // get all ids
         /** @phpstan-ignore-next-line */
-        $allIds = \DB::table(getDBTableName($custom_table))->select('id')->pluck('id');
+        $allIds = \Illuminate\Support\Facades\DB::table(getDBTableName($custom_table))->select('id')->pluck('id');
         $query = $custom_table->getValueModel()->withoutGlobalScopes();
 
         if ($filterCallback) {
@@ -226,7 +226,7 @@ trait TestTrait
     {
         $dir = storage_path('app/tests');
         /** @phpstan-ignore-next-line */
-        \Exment::makeDirectory($dir);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($dir);
 
         return $dir;
     }
@@ -242,9 +242,9 @@ trait TestTrait
         // create file
         $file = path_join($dir, $fileName);
         /** @phpstan-ignore-next-line */
-        if (!\File::exists($file)) {
+        if (!\Illuminate\Support\Facades\File::exists($file)) {
             /** @phpstan-ignore-next-line */
-            \File::put($file, TestDefine::FILE_BASE64);
+            \Illuminate\Support\Facades\File::put($file, TestDefine::FILE_BASE64);
         }
         return $file;
     }
@@ -259,11 +259,11 @@ trait TestTrait
         // create file
         $file = path_join($dir, $imageName);
         /** @phpstan-ignore-next-line */
-        if (!\File::exists($file)) {
+        if (!\Illuminate\Support\Facades\File::exists($file)) {
             // convert to base64. This string is 1*1 rad color's image
             $f = base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsIAAA7CARUoSoAAAAANSURBVBhXY3gro/IfAAVUAi3GPZKdAAAAAElFTkSuQmCC');
             /** @phpstan-ignore-next-line */
-            \File::put($file, $f);
+            \Illuminate\Support\Facades\File::put($file, $f);
         }
         return $file;
     }
@@ -276,7 +276,7 @@ trait TestTrait
     {
         $file = $this->getTextFilePath($fileName);
         /** @phpstan-ignore-next-line */
-        return \File::get($file);
+        return \Illuminate\Support\Facades\File::get($file);
     }
 
     /**
@@ -287,7 +287,7 @@ trait TestTrait
     {
         $file = $this->getTextImagePath($imageName);
         /** @phpstan-ignore-next-line */
-        return \File::get($file);
+        return \Illuminate\Support\Facades\File::get($file);
     }
 
 

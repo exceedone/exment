@@ -209,7 +209,7 @@ EOT;
     {
         $script = collect(static::$scripts)->filter()->unique()->implode("");
         //static::$scripts = [];
-        //\Admin::script($script);
+        //\ExmentAdminCore\Admin\Facades\Admin::script($script);
         return $script;
     }
 

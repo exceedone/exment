@@ -64,7 +64,7 @@ class SystemPerformanceLogTest extends UnitTestBase
         System::logging_toggle_available(true);
         \Exceedone\Exment\Middleware\ExmentDebug::handleLog();
 
-        \DB::select('select ? as secret_value', ['very-secret-1346']);
+        \Illuminate\Support\Facades\DB::select('select ? as secret_value', ['very-secret-1346']);
 
         $all = implode("\n", QueryLogger::all());
         $this->assertStringContainsString('select ? as secret_value', $all);

@@ -136,12 +136,12 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
         }
         // Sso exception
         catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return redirect($error_url)->withInput(get_flash_input())->withErrors(
                 [$this->username() => exmtrans('login.sso_provider_error')]
             );
@@ -161,7 +161,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             return false;
         }
 
-        if (is_null($user = \Exment::user())) {
+        if (is_null($user = \Exceedone\Exment\Facades\ExmentFacade::user())) {
             return false;
         }
 
@@ -186,7 +186,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             return true;
         }
 
-        if (is_null($user = \Exment::user())) {
+        if (is_null($user = \Exceedone\Exment\Facades\ExmentFacade::user())) {
             return true;
         }
 
@@ -214,7 +214,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
      */
     public function getLogout(Request $request)
     {
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $this->guard()->logout();
 
         // get option before clear session
@@ -230,7 +230,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             return $this->logoutSso($request, $login_user, $options);
         }
 
-        return redirect(\URL::route('exment.login'));
+        return redirect(\Illuminate\Support\Facades\URL::route('exment.login'));
     }
 
     // @phpstan-ignore-next-line
@@ -250,7 +250,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
     // @phpstan-ignore-next-line
     public function filedelete(Request $request)
     {
-        $loginUser = \Exment::user();
+        $loginUser = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         ExmentFile::deleteFileInfo($loginUser->avatar);
         $loginUser->avatar = null;
@@ -288,7 +288,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                         $column_item->setFormColumnOptions(['view_only' => true]);
                     }
                     $field = $column_item
-                        ->setCustomValue(\Exment::user()->base_user)
+                        ->setCustomValue(\Exceedone\Exment\Facades\ExmentFacade::user()->base_user)
                         ->getAdminField(null, 'base_user.value.');
 
                     $form->pushField($field);
@@ -322,22 +322,22 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 });
 
             // demo mode: the published password cannot be changed
-            if (\Exment::user()->login_type == LoginType::PURE && !DemoMode::enabled()) {
+            if (\Exceedone\Exment\Facades\ExmentFacade::user()->login_type == LoginType::PURE && !DemoMode::enabled()) {
                 $form->password('current_password', exmtrans('user.current_password'))->rules(['required_with:password', new ExmentValidator\CurrentPasswordRule()])->help(exmtrans('user.help.change_only'));
-                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exment::user()))->help(exmtrans('user.help.change_only') . \Exment::get_password_help());
+                $form->password('password', exmtrans('user.new_password'))->rules(get_password_rule(false, \Exceedone\Exment\Facades\ExmentFacade::user()))->help(exmtrans('user.help.change_only') . \Exceedone\Exment\Facades\ExmentFacade::get_password_help());
                 $form->password('password_confirmation', exmtrans('user.new_password_confirmation'));
             }
 
             
             $form->validatorSavingCallback(function ($input, $message, $form) {
-                if (static::currentPasswordVerificationFails(\Exment::user(), $input)) {
+                if (static::currentPasswordVerificationFails(\Exceedone\Exment\Facades\ExmentFacade::user(), $input)) {
                     $message->add('current_password', exmtrans('validation.current_password'));
                 }
             });
 
             // show 2factor setting if use
             if (boolval(config('exment.login_use_2factor', false)) && boolval(System::login_use_2factor())) {
-                $login_2factor_provider = \Exment::user()->getSettingValue(
+                $login_2factor_provider = \Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue(
                     implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
                     System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
                 );
@@ -352,12 +352,12 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
             // the language and the time zone of the user (ISS02835)
             $form->select('user_locale', exmtrans('user.locale'))
                 ->options(UserLocale::allowedOptions())
-                ->default(\Exment::user()->getSettingValue(UserLocale::SETTING_KEY))
+                ->default(\Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue(UserLocale::SETTING_KEY))
                 ->placeholder(exmtrans('user.locale_auto'))
                 ->help(exmtrans('user.help.locale'));
             $form->select('user_timezone', exmtrans('user.timezone'))
                 ->options(UserTimezone::options())
-                ->default(\Exment::user()->getSettingValue(UserTimezone::SETTING_KEY))
+                ->default(\Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue(UserTimezone::SETTING_KEY))
                 ->placeholder(exmtrans('user.timezone_site', ['timezone' => UserTimezone::site()]))
                 ->help(exmtrans('user.help.timezone'));
 
@@ -380,7 +380,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                     $form->password = $form_password;
                 }
 
-                \Exment::user()->setSettingValue(
+                \Exceedone\Exment\Facades\ExmentFacade::user()->setSettingValue(
                     implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
                     request()->get('login_2factor_provider')
                 );
@@ -402,7 +402,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
      */
     protected static function saveLocaleTimezone(?string $locale, ?string $timezone): void
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (is_null($user)) {
             return;
         }
@@ -428,7 +428,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
     public function postLocale(Request $request)
     {
         $locale = UserLocale::match($request->get('locale'));
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!is_null($user) && !DemoMode::enabled()) {
             $user->setSettingValue(UserLocale::SETTING_KEY, $locale);
             UserLocale::clearCache();
@@ -453,11 +453,11 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
     protected static function queueLocaleCookie(?string $locale): void
     {
         if (is_null($locale)) {
-            \Cookie::queue(\Cookie::forget(UserLocale::COOKIE_NAME));
+            \Illuminate\Support\Facades\Cookie::queue(\Illuminate\Support\Facades\Cookie::forget(UserLocale::COOKIE_NAME));
             return;
         }
         // one year
-        \Cookie::queue(UserLocale::COOKIE_NAME, $locale, 60 * 24 * 365);
+        \Illuminate\Support\Facades\Cookie::queue(UserLocale::COOKIE_NAME, $locale, 60 * 24 * 365);
     }
 
     /**

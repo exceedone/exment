@@ -43,10 +43,10 @@ class PluginGrid extends GridBase
         $grid = $this->pluginClass->grid();
 
         if (!$this->pluginClass->useBox()) {
-            return \Exment::getRender($grid);
+            return \Exceedone\Exment\Facades\ExmentFacade::getRender($grid);
         }
 
-        $box = new Box($this->custom_view->view_view_name, \Exment::getRender($grid));
+        $box = new Box($this->custom_view->view_view_name, \Exceedone\Exment\Facades\ExmentFacade::getRender($grid));
         foreach ($this->getBoxTools() as $tool) {
             $box->tools($tool);
         }

@@ -850,7 +850,7 @@ class CustomViewFilterTest extends UnitTestBase
         ]];
         /** @phpstan-ignore-next-line Result of method Exceedone\Exment\Tests\Unit\CustomViewFilterTest::getColumnFilterData() (void) is used.   */
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            $user_id = \Exment::getUserId();
+            $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             return array_get($data, 'value.user') == $user_id;
         }, ['login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC]);
     }
@@ -876,7 +876,7 @@ class CustomViewFilterTest extends UnitTestBase
                 return false;
             }
 
-            $user_id = \Exment::getUserId();
+            $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             return !isMatchString($user, $user_id);
         }, ['login_user_id' => TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC]);
     }
@@ -1526,7 +1526,7 @@ class CustomViewFilterTest extends UnitTestBase
         ]];
         /** @phpstan-ignore-next-line Result of method Exceedone\Exment\Tests\Unit\CustomViewFilterTest::getColumnFilterData() (void) is used.   */
         $array = $this->getColumnFilterData($filter_settings, function ($data, $filter_settings) {
-            $user_id = \Exment::getUserId();
+            $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             return array_get($data, 'created_user_id') == $user_id;
         });
     }
@@ -2003,7 +2003,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["ドトール", "珈琲館"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
@@ -2055,7 +2055,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["コメダ珈琲", "スターバックス"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
@@ -2083,7 +2083,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["コメダ珈琲", "スターバックス"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
@@ -2135,7 +2135,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["上島珈琲店", "珈琲館"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
@@ -2167,7 +2167,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["イタリア", "中国"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $filter_settings = [[
             'column_name' => 'select_multiple',
@@ -2192,7 +2192,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["アメリカ", "日本"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
@@ -2220,7 +2220,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["ろ", "と"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,
@@ -2248,7 +2248,7 @@ class CustomViewFilterTest extends UnitTestBase
 
         // Whther use unicode
         $searchArray = '["い", "ち"]';
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
 
         $options = [
             'target_table_name' => TestDefine::TESTDATA_TABLE_NAME_UNICODE_DATA,

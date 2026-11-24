@@ -23,7 +23,7 @@ class ZipService
      */
     public static function createPasswordZip($files, $zipFullPath, $tmpFolderPath, $password, ?string $disk = null)
     {
-        \Exment::makeDirectory($tmpFolderPath);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($tmpFolderPath);
         foreach ($files as $file) {
             $tmpfile = pathinfo($file)['basename'];
             if (empty($tmpfile) || $tmpfile == '.' || $tmpfile == '..') {
@@ -38,10 +38,10 @@ class ZipService
 
             // If has $disk, copy using disk
             if (!is_nullorempty($disk)) {
-                $f = \Storage::disk($disk)->get($file);
-                \File::put(path_join($tmpFolderPath, $tmpfile), $f);
+                $f = \Illuminate\Support\Facades\Storage::disk($disk)->get($file);
+                \Illuminate\Support\Facades\File::put(path_join($tmpFolderPath, $tmpfile), $f);
             } else {
-                \File::copy($file, path_join($tmpFolderPath, $tmpfile));
+                \Illuminate\Support\Facades\File::copy($file, path_join($tmpFolderPath, $tmpfile));
             }
         }
 
@@ -51,8 +51,8 @@ class ZipService
             static::execPasswordZipLinux($zipFullPath, $tmpFolderPath, $password);
         }
 
-        if (\File::exists($tmpFolderPath)) {
-            \File::deleteDirectory($tmpFolderPath);
+        if (\Illuminate\Support\Facades\File::exists($tmpFolderPath)) {
+            \Illuminate\Support\Facades\File::deleteDirectory($tmpFolderPath);
         }
     }
 
@@ -108,7 +108,7 @@ class ZipService
         if ($returnVar !== 0) {
             // the mail would go out with a missing attachment otherwise, and nothing
             // anywhere would say why. do not throw: that would stop the whole notify run.
-            \Log::warning('Exment: password zip failed. exit code: ' . $returnVar);
+            \Illuminate\Support\Facades\Log::warning('Exment: password zip failed. exit code: ' . $returnVar);
         }
     }
 
@@ -137,7 +137,7 @@ class ZipService
             if (strpos($entryName, "\0") !== false || static::isUnsafeZipEntryName($entryName)) {
                 // drop control characters so one entry name cannot forge extra log lines
                 $loggedName = strval(preg_replace('/[[:cntrl:]]/', '', $entryName));
-                \Log::warning('Exment: rejected zip entry: ' . $loggedName);
+                \Illuminate\Support\Facades\Log::warning('Exment: rejected zip entry: ' . $loggedName);
 
                 return strval(exmtrans('error.invalid_zip_entry'));
             }

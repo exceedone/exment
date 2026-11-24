@@ -133,7 +133,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->column('form_view_name', exmtrans("custom_form_public.custom_form_id"));
         $grid->column('public_form_view_name', exmtrans("custom_form_public.public_form_view_name"));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
         $grid->column('validity_period', exmtrans("custom_form_public.validity_period"))
             ->display(function ($value, $column, $model) {
@@ -400,7 +400,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->column('custom_table.table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
         $grid->column('form_view_name', exmtrans("custom_form.form_view_name"))->sortable();
         $grid->column('default_flg', exmtrans("custom_form.default_flg"))->sortable()->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
 
         if (isset($this->custom_table)) {
@@ -455,7 +455,7 @@ class CustomFormController extends AdminControllerTableBase
             // Add a column filter
             $filter->like('form_view_name', exmtrans("custom_form.form_view_name"));
 
-            $filter->equal('default_flg', exmtrans("custom_form.default_flg"))->radio(\Exment::getYesNoAllOption());
+            $filter->equal('default_flg', exmtrans("custom_form.default_flg"))->radio(\Exceedone\Exment\Facades\ExmentFacade::getYesNoAllOption());
         });
 
         return $grid;
@@ -719,7 +719,7 @@ class CustomFormController extends AdminControllerTableBase
             $rules['custom_form_blocks.*.custom_form_columns.*.options.image'] = ['nullable', new \Exceedone\Exment\Validator\ImageRule()];
         }
 
-        return \Validator::make($request->all(), $rules, [], [
+        return \Illuminate\Support\Facades\Validator::make($request->all(), $rules, [], [
             'custom_form_blocks.*.options.hasmany_type' => exmtrans('custom_form.hasmany_type'),
             'custom_form_blocks.*.options.lazy_load_enabled' => exmtrans('custom_form.lazy_load_enabled'),
         ]);

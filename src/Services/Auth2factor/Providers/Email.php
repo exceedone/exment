@@ -56,7 +56,7 @@ class Email
         }
 
         $verify_code = $request->get('verify_code');
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         if (!Auth2factorService::verifyCode('email', $verify_code, true)) {
             $this->incrementLoginAttempts($request);
@@ -77,7 +77,7 @@ class Email
     // @phpstan-ignore-next-line
     public function insertVerify()
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // set 2factor params
         $verify_code = random_int(100000, 999999);
@@ -101,7 +101,7 @@ class Email
      */
     protected function throttleKey(\Illuminate\Http\Request $request): string
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
         return '2factor|' . ($loginuser ? $loginuser->id : $request->ip());
     }
 

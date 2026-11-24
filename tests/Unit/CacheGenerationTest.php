@@ -21,13 +21,13 @@ class CacheGenerationTest extends UnitTestBase
         parent::setUp();
         $this->useCacheBefore = config('exment.use_cache');
         config(['cache.default' => 'array', 'exment.use_cache' => true, 'exment.features_locked' => '']);
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         System::clearCache();
     }
 
     protected function tearDown(): void
     {
-        \DB::rollBack();
+        \Illuminate\Support\Facades\DB::rollBack();
         config(['exment.use_cache' => $this->useCacheBefore, 'exment.features_locked' => '']);
         System::clearRequestSession();
         parent::tearDown();
@@ -39,7 +39,7 @@ class CacheGenerationTest extends UnitTestBase
      */
     private function anotherServerClears(): void
     {
-        \DB::table('systems')->updateOrInsert(
+        \Illuminate\Support\Facades\DB::table('systems')->updateOrInsert(
             ['system_name' => Define::SYSTEM_KEY_CACHE_GENERATION],
             ['system_value' => 'other' . uniqid()]
         );
@@ -93,7 +93,7 @@ class CacheGenerationTest extends UnitTestBase
         System::clearCache();
         $after = System::cacheGeneration();
         $this->assertNotSame($before, $after);
-        $this->assertSame($after, \DB::table('systems')->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION)->value('system_value'));
+        $this->assertSame($after, \Illuminate\Support\Facades\DB::table('systems')->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION)->value('system_value'));
     }
 
     public function testOneKeyIsForgottenWithoutANewGeneration(): void
@@ -150,13 +150,13 @@ class CacheGenerationTest extends UnitTestBase
             System::clearCache();
 
             $this->assertSame('stays', Cache::get('not_of_exment'));
-            $this->assertSame([], \File::allFiles($path . DIRECTORY_SEPARATOR . 'exment'), 'the files of the generation before are removed');
+            $this->assertSame([], \Illuminate\Support\Facades\File::allFiles($path . DIRECTORY_SEPARATOR . 'exment'), 'the files of the generation before are removed');
             System::clearRequestSession();
             $this->assertSame('again', System::cache('cache_generation_test', function () {
                 return 'again';
             }));
         } finally {
-            \File::deleteDirectory($path);
+            \Illuminate\Support\Facades\File::deleteDirectory($path);
             config(['cache.default' => 'array', 'cache.stores.' . System::FILE_STORE => null]);
             Cache::forgetDriver('file');
             Cache::forgetDriver(System::FILE_STORE);
@@ -168,7 +168,7 @@ class CacheGenerationTest extends UnitTestBase
         config(['exment.use_cache' => false]);
         System::clearRequestSession();
         $queries = 0;
-        \DB::listen(function () use (&$queries) {
+        \Illuminate\Support\Facades\DB::listen(function () use (&$queries) {
             $queries++;
         });
         $calls = 0;
@@ -190,7 +190,7 @@ class CacheGenerationTest extends UnitTestBase
             return 'kept';
         });
         $before = System::cacheGeneration();
-        $this->assertSame(0, \Artisan::call('exment:cache-clear'));
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:cache-clear'));
         $this->assertNotSame($before, System::cacheGeneration());
         System::clearRequestSession();
         $this->assertSame('again', System::cache('cache_generation_test', function () {

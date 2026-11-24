@@ -104,7 +104,7 @@ class ResetPasswordCommand extends Command
             $rules = [
                 'password' => get_password_rule(true, $login_user),
                 ];
-            $validation = \Validator::make($data, $rules);
+            $validation = \Illuminate\Support\Facades\Validator::make($data, $rules);
             if ($validation->fails()) {
                 $messages = collect($validation->errors()->messages());
                 $message = $messages->map(function ($message) {
@@ -142,7 +142,7 @@ class ResetPasswordCommand extends Command
                 $this->line(exmtrans('command.resetpassword.success'));
             }
         } catch (\Exception $e) {
-            \Log::error($e);
+            \Illuminate\Support\Facades\Log::error($e);
             $this->error($e->getMessage());
             return -1;
         }

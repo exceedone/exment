@@ -83,7 +83,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'version'))
             ->assertStatus(200)
             ->assertJson([
-                'version' => \Exment::getExmentCurrentVersion()
+                'version' => \Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion()
             ]);
     }
 
@@ -99,7 +99,7 @@ class Api2Test extends ApiTestBase
         ])->get(admin_urls('api', 'version'))
             ->assertStatus(200)
             ->assertJson([
-                'version' => \Exment::getExmentCurrentVersion()
+                'version' => \Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion()
             ]);
     }
 
@@ -796,7 +796,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
         // update config for test
-        \Config::set('exment.api_max_data_count', 10000);
+        \Illuminate\Support\Facades\Config::set('exment.api_max_data_count', 10000);
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -1811,7 +1811,7 @@ class Api2Test extends ApiTestBase
      */
     public function testDeleteValueForceConfig()
     {
-        \Config::set('exment.delete_force_custom_value', true);
+        \Illuminate\Support\Facades\Config::set('exment.delete_force_custom_value', true);
         $this->_testDeleteValue(false, false);
     }
 
@@ -2050,7 +2050,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getUser2AccessToken([ApiScope::VALUE_READ]);
 
-        \Config::set('exment.api_max_data_count', 10000);
+        \Illuminate\Support\Facades\Config::set('exment.api_max_data_count', 10000);
 
         $response = $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -2171,7 +2171,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::NOTIFY_READ]);
         $itemCount = NotifyNavbar::withoutGlobalScopes()->where('read_flg', 0)->where('target_user_id', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->count();
-        \Config::set('exment.api_max_data_count', 10000);
+        \Illuminate\Support\Facades\Config::set('exment.api_max_data_count', 10000);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -2187,7 +2187,7 @@ class Api2Test extends ApiTestBase
     {
         $token = $this->getAdminAccessToken([ApiScope::NOTIFY_WRITE]);
         $itemCount = NotifyNavbar::withoutGlobalScopes()->where('target_user_id', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->count();
-        \Config::set('exment.api_max_data_count', 10000);
+        \Illuminate\Support\Facades\Config::set('exment.api_max_data_count', 10000);
 
         $this->withHeaders([
             'Authorization' => "Bearer $token",
@@ -3037,7 +3037,7 @@ class Api2Test extends ApiTestBase
      */
     protected function assertLogsFilterResult(array $filters, ?\Closure $ckeckCallback = null)
     {
-        \Config::set('exment.api_max_data_count', 1000000);
+        \Illuminate\Support\Facades\Config::set('exment.api_max_data_count', 1000000);
         $token = $this->getAdminAccessToken([ApiScope::LOG]);
 
         // The call below is itself written to the operation log, and that row is created after
@@ -3231,7 +3231,7 @@ class Api2Test extends ApiTestBase
             ////// Check as n:n
             else {
                 // Get value using pivot table
-                $childIds = \DB::table($relation->getRelationName())
+                $childIds = \Illuminate\Support\Facades\DB::table($relation->getRelationName())
                     ->where('parent_id', $id)
                     ->select('child_id')
                     ->distinct()
@@ -3283,7 +3283,7 @@ class Api2Test extends ApiTestBase
                 })->toArray();
 
                 // Get value using pivot table
-                $parentIds = \DB::table($relation->getRelationName())
+                $parentIds = \Illuminate\Support\Facades\DB::table($relation->getRelationName())
                     ->where('child_id', $id)
                     ->select('parent_id')
                     ->distinct()

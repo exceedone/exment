@@ -398,14 +398,14 @@ class Features
                 return;
             }
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
             return;
         }
 
         $cacheKey = null;
         try {
             $cacheKey = static::pluginsCacheKey();
-            $kept = \Cache::get($cacheKey);
+            $kept = \Illuminate\Support\Facades\Cache::get($cacheKey);
             if (is_array($kept)) {
                 static::$registered += $kept;
                 static::$definitions = null;
@@ -413,14 +413,14 @@ class Features
             }
         } catch (\Throwable $e) {
             // the cache cannot be read: made as without the cache
-            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
             $cacheKey = null;
         }
 
         try {
             $built = Plugin::getPluginPages()->count();
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the features of the plugins: ' . $e->getMessage());
             return;
         }
         static::$definitions = null;
@@ -431,9 +431,9 @@ class Features
         try {
             // all that is registered (also what was registered before in this
             // request, as by the scripts of the plugins in admin.bootstrap)
-            \Cache::put($cacheKey, static::$registered, static::PLUGINS_CACHE_SECONDS);
+            \Illuminate\Support\Facades\Cache::put($cacheKey, static::$registered, static::PLUGINS_CACHE_SECONDS);
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
         }
     }
 
@@ -454,9 +454,9 @@ class Features
     public static function forgetPluginsCache(): void
     {
         try {
-            \Cache::forever(static::pluginsGenerationKey(), uniqid('', true));
+            \Illuminate\Support\Facades\Cache::forever(static::pluginsGenerationKey(), uniqid('', true));
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the cache of the features of the plugins: ' . $e->getMessage());
         }
         static::$pluginsBooted = false;
         static::$definitions = null;
@@ -493,7 +493,7 @@ class Features
             return [$row['id'] ?? null, $row['plugin_name'] ?? null, $row['plugin_types'] ?? $row['plugin_type'] ?? null,
                 $row['version'] ?? null, $row['active_flg'] ?? null, strval($row['updated_at'] ?? '')];
         })->toJson();
-        $generation = strval(\Cache::get(static::pluginsGenerationKey(), ''));
+        $generation = strval(\Illuminate\Support\Facades\Cache::get(static::pluginsGenerationKey(), ''));
         return static::PLUGINS_CACHE_KEY . md5(static::siteSign() . "\n" . $generation . "\n" . $sign);
     }
 
@@ -541,7 +541,7 @@ class Features
 
     protected static function translated(string $text): string
     {
-        if (str_contains($text, '::') && preg_match('/\A[\w.\-]+::[\w.\-]+\z/', $text) === 1 && \Lang::has($text)) {
+        if (str_contains($text, '::') && preg_match('/\A[\w.\-]+::[\w.\-]+\z/', $text) === 1 && \Illuminate\Support\Facades\Lang::has($text)) {
             return strval(trans($text));
         }
         return $text;
@@ -675,7 +675,7 @@ class Features
         // maintenance mode turned off: a maintenance of the site ends now (and does not come back)
         $maintenance = $values[MaintenanceMode::FEATURE] ?? null;
         if (is_array($maintenance) && !boolval(array_get($maintenance, 'enabled', false))) {
-            MaintenanceMode::featureTurnedOff(\Exment::user());
+            MaintenanceMode::featureTurnedOff(\Exceedone\Exment\Facades\ExmentFacade::user());
         }
     }
 
@@ -734,7 +734,7 @@ class Features
         if ($groups === null || !static::attribute($key, 'who', true)) {
             return true;
         }
-        $user = $user ?? \Exment::user();
+        $user = $user ?? \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return false;
         }
@@ -782,7 +782,7 @@ class Features
             return response()->json(['result' => false, 'message' => $message, 'toastr' => $message], $status, [static::DENIED_HEADER => $key]);
         }
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $admin = isset($user) && $user->hasPermission(Permission::SYSTEM);
         $data = [
             'message' => $message,

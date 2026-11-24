@@ -38,9 +38,9 @@ class UiDesignSettingTest extends FeatureTestBase
 
     public function testModernIsTheDefault(): void
     {
-        $this->assertNull(\Exment::getUiDesignForced());
-        $this->assertSame('modern', \Exment::getUiDesign());
-        $this->assertTrue(\Exment::isModernUi());
+        $this->assertNull(\Exceedone\Exment\Facades\ExmentFacade::getUiDesignForced());
+        $this->assertSame('modern', \Exceedone\Exment\Facades\ExmentFacade::getUiDesign());
+        $this->assertTrue(\Exceedone\Exment\Facades\ExmentFacade::isModernUi());
 
         $this->assertStringContainsString(self::STYLESHEET, $this->loginPage());
         $this->assertStringContainsString(self::STYLESHEET, $this->adminPage());
@@ -50,8 +50,8 @@ class UiDesignSettingTest extends FeatureTestBase
     {
         $this->setDesign('classic');
 
-        $this->assertSame('classic', \Exment::getUiDesign());
-        $this->assertFalse(\Exment::isModernUi());
+        $this->assertSame('classic', \Exceedone\Exment\Facades\ExmentFacade::getUiDesign());
+        $this->assertFalse(\Exceedone\Exment\Facades\ExmentFacade::isModernUi());
 
         $this->assertStringNotContainsString(self::STYLESHEET, $this->loginPage());
         $this->assertStringNotContainsString(self::STYLESHEET, $this->adminPage());
@@ -70,8 +70,8 @@ class UiDesignSettingTest extends FeatureTestBase
         $this->setDesign('modern');
         config(['exment.ui_design' => 'classic']);
 
-        $this->assertSame('classic', \Exment::getUiDesignForced());
-        $this->assertFalse(\Exment::isModernUi());
+        $this->assertSame('classic', \Exceedone\Exment\Facades\ExmentFacade::getUiDesignForced());
+        $this->assertFalse(\Exceedone\Exment\Facades\ExmentFacade::isModernUi());
 
         $this->assertStringNotContainsString(self::STYLESHEET, $this->loginPage());
         $this->assertStringNotContainsString(self::STYLESHEET, $this->adminPage());
@@ -82,7 +82,7 @@ class UiDesignSettingTest extends FeatureTestBase
         $this->setDesign('classic');
         config(['exment.ui_design' => 'modern']);
 
-        $this->assertSame('modern', \Exment::getUiDesignForced());
+        $this->assertSame('modern', \Exceedone\Exment\Facades\ExmentFacade::getUiDesignForced());
         $this->assertStringContainsString(self::STYLESHEET, $this->loginPage());
     }
 
@@ -92,20 +92,20 @@ class UiDesignSettingTest extends FeatureTestBase
 
         foreach (['', 'true', 'dark', 1, true] as $value) {
             config(['exment.ui_design' => $value]);
-            $this->assertNull(\Exment::getUiDesignForced());
-            $this->assertSame('classic', \Exment::getUiDesign());
+            $this->assertNull(\Exceedone\Exment\Facades\ExmentFacade::getUiDesignForced());
+            $this->assertSame('classic', \Exceedone\Exment\Facades\ExmentFacade::getUiDesign());
         }
 
         // upper case and spaces around the value are accepted
         config(['exment.ui_design' => ' Modern ']);
-        $this->assertSame('modern', \Exment::getUiDesignForced());
+        $this->assertSame('modern', \Exceedone\Exment\Facades\ExmentFacade::getUiDesignForced());
     }
 
     public function testAnUnknownStoredValueFallsBackToModern(): void
     {
         $this->setDesign('dark');
 
-        $this->assertSame('modern', \Exment::getUiDesign());
+        $this->assertSame('modern', \Exceedone\Exment\Facades\ExmentFacade::getUiDesign());
     }
 
     public function testTheSystemSettingPageOffersTheChoice(): void
@@ -151,7 +151,7 @@ class UiDesignSettingTest extends FeatureTestBase
 
         $this->assertStringContainsString('name="site_layout"', $content);
         $this->assertStringNotContainsString('name="ui_design"', $content);
-        $this->assertSame('modern', \Exment::getUiDesign());
+        $this->assertSame('modern', \Exceedone\Exment\Facades\ExmentFacade::getUiDesign());
     }
 
     /**

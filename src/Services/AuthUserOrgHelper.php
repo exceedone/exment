@@ -147,7 +147,7 @@ class AuthUserOrgHelper
         // get custom_value's users
         $target_ids = [];
         $all = false;
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
 
         if ($target_table->allUserAccessable()) {
             $all = true;
@@ -190,7 +190,7 @@ class AuthUserOrgHelper
      */
     protected static function getUserScopedCacheKey(string $key): string
     {
-        return $key . '.user.' . md5((string) (\Exment::getUserId() ?? 'guest'));
+        return $key . '.user.' . md5((string) (\Exceedone\Exment\Facades\ExmentFacade::getUserId() ?? 'guest'));
     }
 
 
@@ -351,7 +351,7 @@ class AuthUserOrgHelper
         $orgsArray = static::getOrganizationTreeArray();
 
         if (!isset($targetUserId)) {
-            $targetUserId = \Exment::getUserId();
+            $targetUserId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         }
 
         $results = [];
@@ -577,7 +577,7 @@ class AuthUserOrgHelper
         }
 
         // if login user have FILTER_MULTIUSER_ALL, no filter
-        if (\Exment::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
             return;
         }
 
@@ -586,7 +586,7 @@ class AuthUserOrgHelper
         // First, get users org joined
         $db_table_name_pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
         // @phpstan-ignore-next-line
-        $target_users = \DB::table($db_table_name_pivot)->whereIn('parent_id', $user->getOrganizationIdsForQuery($joinedOrgFilterType))
+        $target_users = \Illuminate\Support\Facades\DB::table($db_table_name_pivot)->whereIn('parent_id', $user->getOrganizationIdsForQuery($joinedOrgFilterType))
             ->pluck('child_id');
 
         $target_users = $target_users->merge($user->getUserId())->unique();
@@ -612,7 +612,7 @@ class AuthUserOrgHelper
         }
 
         // if login user have FILTER_MULTIUSER_ALL, no filter
-        if (\Exment::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::FILTER_MULTIUSER_ALL)) {
             return;
         }
 

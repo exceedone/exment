@@ -288,7 +288,7 @@ class ScheduledJobs
             };
             $launcher($line);
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] scheduled jobs, run now: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] scheduled jobs, run now: ' . $e->getMessage());
             $event->mutex->forget($lock);
             Recorder::end($run, 1, $e->getMessage());
             return [false, 'failed'];
@@ -313,7 +313,7 @@ class ScheduledJobs
                 $event->mutex->forget(static::lockEvent($event));
             }
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] scheduled jobs, the end of a run: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] scheduled jobs, the end of a run: ' . $e->getMessage());
         }
         return true;
     }

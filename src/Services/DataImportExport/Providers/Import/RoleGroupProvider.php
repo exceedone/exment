@@ -152,7 +152,7 @@ class RoleGroupProvider extends ProviderBase
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
-        $validator = \Validator::make($data, [
+        $validator = \Illuminate\Support\Facades\Validator::make($data, [
             'id' => 'nullable|numeric',
             'role_group_name' => [
                 'max:64',

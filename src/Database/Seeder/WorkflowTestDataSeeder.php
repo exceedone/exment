@@ -549,7 +549,7 @@ class WorkflowTestDataSeeder extends Seeder
                         $conditions['morph_id'] = $header->id;
                         // @phpstan-ignore-next-line
                         if (isset($conditions['target_column_id'])) {
-                            \Log::debug($workflow['tables'][0]['custom_table']);
+                            \Illuminate\Support\Facades\Log::debug($workflow['tables'][0]['custom_table']);
                             $target_column = CustomColumn::getEloquent($conditions['target_column_id'], $workflow['tables'][0]['custom_table']);
                             $conditions['target_column_id'] = $target_column->id;
                         }
@@ -586,7 +586,7 @@ class WorkflowTestDataSeeder extends Seeder
 
                 foreach ($userKeys as $userKey) {
                     $user = $users[$userKey];
-                    \Auth::guard('admin')->attempt([
+                    \Illuminate\Support\Facades\Auth::guard('admin')->attempt([
                         'username' => array_get($user, 'value.user_code'),
                         'password' => array_get($user, 'password')
                     ]);
@@ -623,7 +623,7 @@ class WorkflowTestDataSeeder extends Seeder
                         }
 
                         $user = $users[$wfUserKeys[$index - 1]];
-                        \Auth::guard('admin')->attempt([
+                        \Illuminate\Support\Facades\Auth::guard('admin')->attempt([
                             'username' => array_get($user, 'value.user_code'),
                             'password' => array_get($user, 'password')
                         ]);
@@ -647,7 +647,7 @@ class WorkflowTestDataSeeder extends Seeder
         }
 
         $user = $users['admin'];
-        \Auth::guard('admin')->attempt([
+        \Illuminate\Support\Facades\Auth::guard('admin')->attempt([
             'username' => array_get($user, 'value.user_code'),
             'password' => array_get($user, 'password')
         ]);
@@ -715,7 +715,7 @@ class WorkflowTestDataSeeder extends Seeder
         }
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = \Exment::uniqueCustomValues(
+            $toActionAuthorities = \Exceedone\Exment\Facades\ExmentFacade::uniqueCustomValues(
                 $toActionAuthorities,
                 $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)
             );

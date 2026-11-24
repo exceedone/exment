@@ -156,7 +156,7 @@ trait HasCommentMentionTrait
         // somebody who may open the record is told about it.
         $readers = static::mentionReaderIds($parent, $users);
 
-        $writer = \Exment::getUserId();
+        $writer = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $subject = exmtrans('custom_value.message.mention_notify', ['label' => $parent->label]);
         $body = mb_strimwidth(trim(preg_replace('/\s+/u', ' ', $text)), 0, 400, '…');
 
@@ -179,7 +179,7 @@ trait HasCommentMentionTrait
                 $notified++;
             } catch (\Throwable $ex) {
                 // a failed notification must not cost the comment
-                \Log::warning($ex);
+                \Illuminate\Support\Facades\Log::warning($ex);
             }
         }
 

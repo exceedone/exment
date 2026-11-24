@@ -42,18 +42,18 @@ class ImportExportTest extends FeatureTestBase
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             if ($export) {
                 $this->dirpath = storage_path(path_join_os('app', 'export', 'unittest'));
-                if (\File::exists($this->dirpath)) {
-                    \File::deleteDirectory($this->dirpath);
+                if (\Illuminate\Support\Facades\File::exists($this->dirpath)) {
+                    \Illuminate\Support\Facades\File::deleteDirectory($this->dirpath);
                 }
-                \Exment::makeDirectory($this->dirpath);
+                \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($this->dirpath);
             } else {
                 $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
-                if (\File::exists($import_path)) {
-                    \File::deleteDirectory($import_path);
+                if (\Illuminate\Support\Facades\File::exists($import_path)) {
+                    \Illuminate\Support\Facades\File::deleteDirectory($import_path);
                 }
-                \Exment::makeDirectory($import_path);
+                \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($import_path);
                 $source_path = exment_package_path("tests/tmpfile/Feature/$target_name");
-                \File::copyDirectory($source_path, $import_path);
+                \Illuminate\Support\Facades\File::copyDirectory($source_path, $import_path);
                 $this->dirpath = 'unittest';
             }
         } catch (\Exception $ex) {
@@ -286,7 +286,7 @@ class ImportExportTest extends FeatureTestBase
             $params
         );
 
-        $result = \Artisan::call('exment:export', $params);
+        $result = \Illuminate\Support\Facades\Artisan::call('exment:export', $params);
 
         $this->assertEquals($result, 0);
 
@@ -303,8 +303,8 @@ class ImportExportTest extends FeatureTestBase
      */
     protected function _getFileData(string $file_path, CustomTable $custom_table, array $params)
     {
-        $this->assertTrue(\File::exists($file_path));
-        $this->assertTrue(\File::size($file_path) > 0);
+        $this->assertTrue(\Illuminate\Support\Facades\File::exists($file_path));
+        $this->assertTrue(\Illuminate\Support\Facades\File::size($file_path) > 0);
 
         if ($params['--format'] == 'csv') {
             $file_array = $this->_getCsvArray($file_path);
@@ -471,7 +471,7 @@ class ImportExportTest extends FeatureTestBase
             $params
         );
 
-        $result = \Artisan::call('exment:chunkexport', $params);
+        $result = \Illuminate\Support\Facades\Artisan::call('exment:chunkexport', $params);
 
         $this->assertEquals($result, 0);
 
@@ -501,7 +501,7 @@ class ImportExportTest extends FeatureTestBase
 
         //$maxid = CustomTable::getEloquent($target_name)->getValueModel()->max('id');
 
-        $result = \Artisan::call('exment:import', [
+        $result = \Illuminate\Support\Facades\Artisan::call('exment:import', [
             'dir' => $this->dirpath
         ]);
 

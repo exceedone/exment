@@ -42,7 +42,7 @@ class SecurityCheckController extends AdminControllerBase
         try {
             $done = (new SecurityCheck())->fix(strval($request->get('item')));
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             $done = false;
         }
         if ($done) {

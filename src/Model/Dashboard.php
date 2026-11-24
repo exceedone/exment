@@ -487,7 +487,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
             $query->withoutGlobalScope('showableDashboards');
             $owner = $this->created_user_id;
             if (!isset($owner)) {
-                $login_user = \Exment::user();
+                $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 $owner = isset($login_user) ? $login_user->getUserId() : null;
             }
             $query->where('created_user_id', $owner);
@@ -516,7 +516,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     {
         $query->where('dashboard_type', DashboardType::SYSTEM);
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return;
         }
@@ -550,7 +550,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
      */
     public function hasEditPermission()
     {
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if ($this->dashboard_type == DashboardType::SYSTEM) {
             return static::hasSystemPermission();
         } elseif ($this->created_user_id == $login_user->getUserId()) {
@@ -573,7 +573,7 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     public static function hasSystemPermission()
     {
 
-        return \Admin::user()->hasPermission(Permission::SYSTEM);
+        return \ExmentAdminCore\Admin\Facades\Admin::user()->hasPermission(Permission::SYSTEM);
     }
 
 

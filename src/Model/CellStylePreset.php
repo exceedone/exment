@@ -369,7 +369,7 @@ class CellStylePreset extends ModelBase
         // filled before the migration creating this table ran, so on a fresh
         // install they still say the table is missing and the whole catalog
         // would be skipped.
-        if (!\Schema::hasTable('cell_style_presets')) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('cell_style_presets')) {
             return;
         }
 
@@ -441,7 +441,7 @@ class CellStylePreset extends ModelBase
      */
     public function isEditableBy(): bool
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return false;
         }

@@ -180,7 +180,7 @@ class TestDataSeeder extends Seeder
                         return ['parent_id' => $model->id, 'child_id' => $item];
                     })->toArray();
 
-                    \DB::table($relationName)->insert($inserts);
+                    \Illuminate\Support\Facades\DB::table($relationName)->insert($inserts);
                 }
 
                 // @phpstan-ignore-next-line
@@ -308,7 +308,7 @@ class TestDataSeeder extends Seeder
                     $relationName = CustomRelation::getRelationNamebyTables($parent_table, $custom_table);
 
                     $parent_custom_value_ids->each(function ($parent_custom_value_id) use ($relationName, $custom_value) {
-                        \DB::table($relationName)->insert([
+                        \Illuminate\Support\Facades\DB::table($relationName)->insert([
                             'parent_id' => $parent_custom_value_id,
                             'child_id' => $custom_value->id,
                         ]);
@@ -365,7 +365,7 @@ class TestDataSeeder extends Seeder
                     $max_parent = 10;
                     $max_child = 100;
                     foreach ($users as $key => $user) {
-                        \Auth::guard('admin')->attempt([
+                        \Illuminate\Support\Facades\Auth::guard('admin')->attempt([
                             'username' => $key,
                             'password' => array_get($user, 'password')
                         ]);
@@ -632,7 +632,7 @@ class TestDataSeeder extends Seeder
                     System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
                     $index = 0;
                     foreach ($users as $key => $user) {
-                        \Auth::guard('admin')->attempt([
+                        \Illuminate\Support\Facades\Auth::guard('admin')->attempt([
                             'username' => $key,
                             'password' => array_get($user, 'password')
                         ]);
@@ -722,7 +722,7 @@ class TestDataSeeder extends Seeder
                 System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
                 $index = 0;
                 foreach ($users as $key => $user) {
-                    \Auth::guard('admin')->attempt([
+                    \Illuminate\Support\Facades\Auth::guard('admin')->attempt([
                         'username' => $key,
                         'password' => array_get($user, 'password')
                     ]);
@@ -1119,7 +1119,7 @@ class TestDataSeeder extends Seeder
         $count = 0;
         System::custom_value_save_autoshare(CustomValueAutoShare::USER_ORGANIZATION);
         foreach ($options['users'] as $key => $user) {
-            \Auth::guard('admin')->attempt([
+            \Illuminate\Support\Facades\Auth::guard('admin')->attempt([
                 'username' => $key,
                 'password' => array_get($user, 'password')
             ]);
@@ -1890,7 +1890,7 @@ class TestDataSeeder extends Seeder
         $diskService = new TestPluginDiskService();
         $tmpDiskItem = $diskService->tmpDiskItem();
 
-        $testPluginDirs = \File::directories(exment_package_path('tests/tmpfile/plugins'));
+        $testPluginDirs = \Illuminate\Support\Facades\File::directories(exment_package_path('tests/tmpfile/plugins'));
 
         foreach ($testPluginDirs as $testPluginDir) {
             $config_paths = glob(path_join_os($testPluginDir, 'config.json'));

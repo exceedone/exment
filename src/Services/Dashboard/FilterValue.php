@@ -211,8 +211,8 @@ final class FilterValue
     public static function columnExpr($column): string
     {
         $name = $column->index_enabled ? $column->getIndexColumnName(false) : 'value->' . $column->column_name;
-        $expr = \DB::getQueryGrammar()->wrap(self::qualified($column, $name));
-        if (!$column->index_enabled && self::isMultiple($column) && \Exment::isSqlServer()) {
+        $expr = \Illuminate\Support\Facades\DB::getQueryGrammar()->wrap(self::qualified($column, $name));
+        if (!$column->index_enabled && self::isMultiple($column) && \Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
             // json_value() reads an array as NULL: the array itself is json_query(), as the
             // generated index column of such a column reads it
             $expr = (string) preg_replace('/^json_value\(/i', 'JSON_QUERY(', $expr);
@@ -250,7 +250,7 @@ final class FilterValue
      */
     private static function castNumber(string $expr): string
     {
-        return (\Exment::isSqlServer() ? 'TRY_CAST' : 'CAST') . "({$expr} AS " . self::NUMBER_CAST . ')';
+        return (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer() ? 'TRY_CAST' : 'CAST') . "({$expr} AS " . self::NUMBER_CAST . ')';
     }
 
     /**
@@ -365,12 +365,12 @@ final class FilterValue
         // spaces are removed from the stored list, so from the value it is searched for too;
         // where the list is stored as written by json_encode (MariaDB, SQL Server), the value
         // is searched for the same way
-        $escaped = \ExmentDB::isUseUnicodeMultipleColumn();
+        $escaped = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
         $values = array_values(array_unique(array_map(function ($v) use ($escaped) {
             $v = str_replace(' ', '', $v);
             return $escaped ? json_list_item($v) : $v;
         }, $values)));
-        if (\Exment::isSqlServer()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
             $marks = implode(',', array_fill(0, count($values), '?'));
             $query->whereRaw("EXISTS (SELECT 1 FROM STRING_SPLIT({$list}, ',') AS list_items WHERE list_items.value IN ({$marks}))", $values);
             return;

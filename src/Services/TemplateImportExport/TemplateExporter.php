@@ -45,9 +45,9 @@ class TemplateExporter
         $lang = static::getExportData($template_name, $template_view_name, $description, $options, true);
 
         // create ZIP file --------------------------------------------------
-        $tmpdir = \Exment::getTmpFolderPath('template', false);
+        $tmpdir = \Exceedone\Exment\Facades\ExmentFacade::getTmpFolderPath('template', false);
         $tmpFulldir = getFullpath($tmpdir, Define::DISKNAME_ADMIN_TMP, true);
-        \Exment::makeDirectory($tmpFulldir);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($tmpFulldir);
         $tmpfilename = make_uuid();
 
         $zip = new ZipArchive();
@@ -72,7 +72,7 @@ class TemplateExporter
         }
 
         // add config array
-        $locale = \App::getLocale();
+        $locale = \Illuminate\Support\Facades\App::getLocale();
         // @phpstan-ignore-next-line
         $zip->addFromString('config.json', json_encode($config, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT));
         // @phpstan-ignore-next-line
@@ -102,7 +102,7 @@ class TemplateExporter
             $config['template_name'] = $template_name;
 
             // get version
-            list($latest, $current) = \Exment::getExmentVersion();
+            list($latest, $current) = \Exceedone\Exment\Facades\ExmentFacade::getExmentVersion();
             if (isset($current)) {
                 $config['version'] = $current;
             }
@@ -314,7 +314,7 @@ class TemplateExporter
         // get menu --------------------------------------------------
         // with the menus of the features not used (a site that uses them gets them);
         // with target tables, the menus of those tables the user sees (MenuVisibility)
-        $menuTree = \Exceedone\Exment\Services\MenuVisibility::forUser(\Admin::user())->exportTree((array) $target_tables); // menutree:hierarchy
+        $menuTree = \Exceedone\Exment\Services\MenuVisibility::forUser(\ExmentAdminCore\Admin\Facades\Admin::user())->exportTree((array) $target_tables); // menutree:hierarchy
         $menus = [];
 
         // loop for menutree

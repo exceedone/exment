@@ -13,7 +13,7 @@ class Plugin extends PluginButtonBase
      */
     public function execute()
     {
-        \Log::debug('Plugin calling');
+        \Illuminate\Support\Facades\Log::debug('Plugin calling');
 
         // true : 「○○が正常に完了しました！この後は××の処理を行ってください」と、独自メッセージを表示する
         if ($this->custom_value->getValue('multiples_of_3')  == '1') {

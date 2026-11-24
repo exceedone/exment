@@ -14,7 +14,7 @@ use Exceedone\Exment\Services\SafetyCheck\SafetyCheckSender;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 /**
  *
@@ -94,7 +94,7 @@ trait InitializeFormTrait
         // effect, so the design in effect is shown as text instead and
         // nothing is posted.
         if (!$isInitialize) {
-            $uiDesignForced = \Exment::getUiDesignForced();
+            $uiDesignForced = \Exceedone\Exment\Facades\ExmentFacade::getUiDesignForced();
             if (is_null($uiDesignForced)) {
                 $form->select('ui_design', exmtrans("system.ui_design"))
                     ->options(getTransArray(Define::SYSTEM_UI_DESIGN, "system.ui_design_options"))
@@ -376,7 +376,7 @@ trait InitializeFormTrait
         });
     }
 EOT;
-        \Admin::script($script);
+        \ExmentAdminCore\Admin\Facades\Admin::script($script);
     }
     /**
      * Upload Template

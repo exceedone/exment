@@ -34,6 +34,6 @@ class DayOnOrAfter extends DayBeforeAfterBase
     protected function _compareValue($value, $conditionValue): bool
     {
         $condition_dt = \Carbon\Carbon::parse($conditionValue);
-        return \Exment::getCarbonOnlyDay($value)->gte($condition_dt);
+        return \Exceedone\Exment\Facades\ExmentFacade::getCarbonOnlyDay($value)->gte($condition_dt);
     }
 }

@@ -91,7 +91,7 @@ class BundledPlugins
             try {
                 static::verifyOnce($record, $zip, $json);
             } catch (\Throwable $e) {
-                \Log::warning('[Exment] a bundled plugin is not used: ' . basename($json) . ': ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('[Exment] a bundled plugin is not used: ' . basename($json) . ': ' . $e->getMessage());
                 continue;
             }
             $uuid = strval($record['uuid']);
@@ -119,7 +119,7 @@ class BundledPlugins
             md5(strval(json_encode($record))),
             strval(@filemtime($zip)),
             strval(@filesize($zip)),
-            strval(\Exment::version(false)),
+            strval(\Exceedone\Exment\Facades\ExmentFacade::version(false)),
             PHP_VERSION,
         ]));
         try {
@@ -388,7 +388,7 @@ class BundledPlugins
                 \Exceedone\Exment\Model\System::clearCache();
             }
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the features of the plugin ' . $plugin->plugin_name . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the features of the plugin ' . $plugin->plugin_name . ': ' . $e->getMessage());
         }
     }
 

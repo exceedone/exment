@@ -689,7 +689,7 @@ EOT;
             $form->multipleFile($input_id, trans('admin.upload'))
                 ->options($options)
                 ->setLabelClass(['d-none'])
-                ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(\Exment::getUploadMaxFileSize()), 'max_count' => $max_count]))
+                ->help(exmtrans('custom_value.help.document_upload', ['max_size' => bytesToHuman(\Exceedone\Exment\Facades\ExmentFacade::getUploadMaxFileSize()), 'max_count' => $max_count]))
                 ->setWidth(12, 0);
             $script = <<<EOT
             var uploadCount = null;
@@ -789,14 +789,14 @@ EOT;
         $form->setWidth(10, 2);
 
         if (count($comments) > 0) {
-            $login_user = \Exment::user();
+            $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
             $isAdministrator = isset($login_user) && $login_user->isAdministrator();
             $html = [];
             foreach ($comments as $index => $comment) {
                 $html[] = "<div class='commentline'>" . view('exment::form.field.commentline', [
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
-                    'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId() || $isAdministrator),
+                    'isAbleRemove' => ($comment->created_user_id == \Exceedone\Exment\Facades\ExmentFacade::getUserId() || $isAdministrator),
                     'deleteUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'deletecomment', $comment->suuid),
                 ])->render() . "</div>";
             }
@@ -977,7 +977,7 @@ EOT;
         if (!$document) {
             return response()->json(['result' => false, 'message' => exmtrans('common.message.notfound')], 404);
         }
-        if (boolval(config('exment.file_delete_useronly', false)) && !isMatchString($document->created_user_id, \Exment::getUserId())) {
+        if (boolval(config('exment.file_delete_useronly', false)) && !isMatchString($document->created_user_id, \Exceedone\Exment\Facades\ExmentFacade::getUserId())) {
             return response()->json(['result' => false, 'message' => trans('admin.deny')], 403);
         }
         if (is_array($httpfile)) {
@@ -1108,7 +1108,7 @@ EOT;
             ], 403);
         }
 
-        $validator = \Validator::make(['file' => $httpfile], [
+        $validator = \Illuminate\Support\Facades\Validator::make(['file' => $httpfile], [
             'file' => [
                 'required',
                 'file',

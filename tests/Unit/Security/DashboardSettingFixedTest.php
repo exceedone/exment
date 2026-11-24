@@ -184,7 +184,7 @@ class DashboardSettingFixedTest extends SecurityRegressionTestCase
                 continue;
             }
             $this->asUser($login);
-            if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::SYSTEM)) {
                 return;
             }
         }

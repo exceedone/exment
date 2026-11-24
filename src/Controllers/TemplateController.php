@@ -61,7 +61,7 @@ class TemplateController extends AdminControllerBase
     public function searchTemplate(Request $request)
     {
         if (System::initialized()) {
-            $login_user = \Exment::user();
+            $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
             if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
                 abort(403);
             }
@@ -170,7 +170,7 @@ class TemplateController extends AdminControllerBase
                 'column' => $column,
             ])->render();
         } catch (\Throwable $th) {
-            \Log::error($th);
+            \Illuminate\Support\Facades\Log::error($th);
             // return body and footer
             return view('exment::form.field.tile-items', [
                 'paginator' => null,
@@ -291,7 +291,7 @@ class TemplateController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function import(Request $request)
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         // upload template file and install
         try {
@@ -321,7 +321,7 @@ class TemplateController extends AdminControllerBase
         // Once the system is installed, deleting templates is a system-admin action.
         // (Before initialization no login user exists yet; the install/initialize wizard runs anonymously.)
         if (System::initialized()) {
-            $login_user = \Exment::user();
+            $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
             if (!$login_user || !$login_user->hasPermission(Permission::SYSTEM)) {
                 abort(403);
             }

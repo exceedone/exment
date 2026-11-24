@@ -135,7 +135,7 @@ class NavbarSender extends SenderBase
             $this->body,
             $this->notify_id ?? -1,
             $target_user_id,
-            \Exment::getUserId() ?? null,
+            \Exceedone\Exment\Facades\ExmentFacade::getUserId() ?? null,
             $parent_id,
             $parent_type
         ));

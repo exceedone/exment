@@ -68,7 +68,7 @@ class ScreenList
      */
     public function available(): bool
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return false;
         }
@@ -181,7 +181,7 @@ class ScreenList
      */
     public function pluginPages(): array
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user) || !$user->hasPermission(Permission::PLUGIN_ALL)) {
             return [];
         }

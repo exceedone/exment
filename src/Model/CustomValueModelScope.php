@@ -54,7 +54,7 @@ class CustomValueModelScope implements Scope
         }
 
         // get user info
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         // the rule of an application for this table (TablePolicy): its filter, maybe the whole one
         if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($table_name)) && $policy->scope($builder, $model->custom_table, $user)) {
             return;
@@ -125,7 +125,7 @@ class CustomValueModelScope implements Scope
                 if ($inherit_parent && $parent_table->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
                     $builder->orWhere(function($builder) use ($user, $enum, $db_table_name) {
                         $builder->whereExists(function ($builder) use ($user, $enum, $db_table_name) {
-                            $builder->select(\DB::raw(1))
+                            $builder->select(\Illuminate\Support\Facades\DB::raw(1))
                                 ->from('custom_value_authoritables')
                                 ->whereColumn('custom_value_authoritables.parent_id', "{$db_table_name}.parent_id")
                                 ->whereColumn('custom_value_authoritables.parent_type', "{$db_table_name}.parent_type")
@@ -227,7 +227,7 @@ class CustomValueModelScope implements Scope
                         ->where(function ($builder) use ($restricted, $db_table_name) {
                             // the parent does not exist any more
                             $builder->whereNotExists(function ($query) use ($restricted, $db_table_name) {
-                                $query->select(\DB::raw(1))
+                                $query->select(\Illuminate\Support\Facades\DB::raw(1))
                                     ->from($restricted['db_table_name'])
                                     ->whereColumn($restricted['db_table_name'] . '.id', "$db_table_name.parent_id");
                             });

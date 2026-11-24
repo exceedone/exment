@@ -283,7 +283,7 @@ class DefaultGrid extends GridBase
      */
     public static function gridStorageKey(CustomTable $custom_table): string
     {
-        $user_id = \Exment::getUserId();
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         return $custom_table->table_name . (isset($user_id) ? '.u' . $user_id : '');
     }
 
@@ -373,7 +373,7 @@ class DefaultGrid extends GridBase
             $html = $filter->render();
         });
 
-        return ['html' => $html, 'script' => \Admin::purescript()->render()];
+        return ['html' => $html, 'script' => \ExmentAdminCore\Admin\Facades\Admin::purescript()->render()];
     }
 
     /**

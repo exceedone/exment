@@ -48,7 +48,7 @@ class UserLocaleTimezoneTest extends UnitTestBase
             'exment.locale_from_browser_in_tests' => config('exment.locale_from_browser_in_tests'),
         ];
         $this->phpTimezoneBefore = date_default_timezone_get();
-        $this->localeBefore = \App::getLocale();
+        $this->localeBefore = \Illuminate\Support\Facades\App::getLocale();
 
         // the language of the browser as on a site (the tests leave it out unless asked); no env override
         config(['exment.timezone' => static::SITE_TZ, 'app.timezone' => static::SITE_TZ, 'exment.locale' => 'ja',
@@ -65,7 +65,7 @@ class UserLocaleTimezoneTest extends UnitTestBase
         Carbon::setTestNow();
         date_default_timezone_set($this->phpTimezoneBefore);
         config($this->configBefore);
-        \App::setLocale($this->localeBefore);
+        \Illuminate\Support\Facades\App::setLocale($this->localeBefore);
         UserLocale::clearCache();
 
         parent::tearDown();
@@ -170,21 +170,21 @@ class UserLocaleTimezoneTest extends UnitTestBase
         $user = $this->getUser(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->setUserSetting($user->id, ['locale' => 'en', 'timezone' => static::USER_TZ]);
 
-        \App::setLocale('ja');
+        \Illuminate\Support\Facades\App::setLocale('ja');
         $sender = new class (null, []) extends MailSender {
             /** @var array<int, string> */
             public $seen = [];
 
             protected function sendMail()
             {
-                $this->seen = [\App::getLocale(), UserTimezone::user(), UserTimezone::formatToUser('2026-11-23 10:00:00')];
+                $this->seen = [\Illuminate\Support\Facades\App::getLocale(), UserTimezone::user(), UserTimezone::formatToUser('2026-11-23 10:00:00')];
             }
         };
         $sender->user($user)->send();
 
         $this->assertSame(['en', static::USER_TZ, '2026-11-22 20:00:00'], $sender->seen);
         // and the page goes on in its own language and time zone
-        $this->assertSame('ja', \App::getLocale());
+        $this->assertSame('ja', \Illuminate\Support\Facades\App::getLocale());
         $this->assertSame(static::SITE_TZ, UserTimezone::user());
     }
 

@@ -615,7 +615,7 @@ class BundledPluginsTest extends FeatureTestBase
     public function testTheIdOfTheSite(): void
     {
         $migration = require base_path('vendor/exceedone/exment/database/migrations/2026_11_24_000000_add_site_id.php');
-        \DB::table('systems')->where('system_name', 'site_id')->delete();
+        \Illuminate\Support\Facades\DB::table('systems')->where('system_name', 'site_id')->delete();
         $migration->up();
         System::clearRequestSession();
         $id = SiteId::get();

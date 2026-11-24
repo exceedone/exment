@@ -462,7 +462,7 @@ class TuningServerChecksTest extends UnitTestBase
             }
             $dbColumn = $column->getIndexColumnName(false);
             return hasColumn(getDBTableName($table), $dbColumn)
-                && \Schema::hasCustomIndex(getDBTableName($table), $dbColumn, "index_{$dbColumn}");
+                && \Illuminate\Support\Facades\Schema::hasCustomIndex(getDBTableName($table), $dbColumn, "index_{$dbColumn}");
         });
         $this->assertNotNull($indexed, 'the test data has a search index column');
         $table = $indexed->custom_table_cache;
@@ -471,7 +471,7 @@ class TuningServerChecksTest extends UnitTestBase
         $check = new Tuning\IndexMissingTuning();
         // one read of the indexes per table, no "does the table exist" for each column
         $queries = [];
-        \DB::listen(function ($query) use (&$queries) {
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queries) {
             $queries[] = $query->sql;
         });
         $this->assertNotContains($label, $check->missing());
@@ -487,7 +487,7 @@ class TuningServerChecksTest extends UnitTestBase
         $this->assertFalse($check->isServerWide());
 
         // a column that says "search index" but has no index (inserted bare, as after a failed change)
-        $columnId = \DB::table('custom_columns')->insertGetId([
+        $columnId = \Illuminate\Support\Facades\DB::table('custom_columns')->insertGetId([
             'suuid' => short_uuid(), 'custom_table_id' => $table->id, 'column_name' => 'tuning_no_index_' . uniqid(),
             'column_view_name' => 'tuning no index', 'column_type' => 'text', 'options' => '{"index_enabled":"1"}',
         ]);
@@ -497,7 +497,7 @@ class TuningServerChecksTest extends UnitTestBase
             $this->assertSame(SystemRequireResult::WARNING, $check->checkResult());
             $this->assertSame('php artisan exment:patchdata alter_index_all', $check->getFixText());
         } finally {
-            \DB::table('custom_columns')->where('id', $columnId)->delete();
+            \Illuminate\Support\Facades\DB::table('custom_columns')->where('id', $columnId)->delete();
         }
     }
 
@@ -510,13 +510,13 @@ class TuningServerChecksTest extends UnitTestBase
     {
         $configCached = Tuning\ConfigCacheTuning::cached();
 
-        $this->assertSame(0, \Artisan::call('exment:tuning'));
-        $output = \Artisan::output();
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:tuning'));
+        $output = \Illuminate\Support\Facades\Artisan::output();
         $this->assertStringContainsString(exmtrans('tuning.command_header'), $output);
         $this->assertStringContainsString(exmtrans('tuning.item.schedule.label'), $output);
         $this->assertStringContainsString(exmtrans('tuning.item.php_fpm.label'), $output);
 
-        $this->assertSame(0, \Artisan::call('exment:tuning', ['--only-warning' => true]));
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:tuning', ['--only-warning' => true]));
         $this->assertSame($configCached, Tuning\ConfigCacheTuning::cached(), 'nothing is changed');
     }
 }

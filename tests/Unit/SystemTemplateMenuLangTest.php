@@ -40,12 +40,12 @@ class SystemTemplateMenuLangTest extends UnitTestBase
      */
     protected function mergedMenus(string $testLocale, ?string $jsonString = null, ?string $basePath = null): array
     {
-        $locale = \App::getLocale();
+        $locale = \Illuminate\Support\Facades\App::getLocale();
         try {
-            \App::setLocale($testLocale);
+            \Illuminate\Support\Facades\App::setLocale($testLocale);
             $merged = (new TemplateImporter())->getMergeJson($jsonString, ['basePath' => $basePath]);
         } finally {
-            \App::setLocale($locale);
+            \Illuminate\Support\Facades\App::setLocale($locale);
         }
         return array_get($merged, 'admin_menu', []);
     }
@@ -108,7 +108,7 @@ class SystemTemplateMenuLangTest extends UnitTestBase
             $this->assertSame(['システム設定', 'ログイン設定', 'APIアプリ設定'], array_column($menus, 'title'));
             $this->assertSame(['1', '2', '3'], array_column($menus, 'order'));
         } finally {
-            \File::deleteDirectory($dir);
+            \Illuminate\Support\Facades\File::deleteDirectory($dir);
         }
     }
 }

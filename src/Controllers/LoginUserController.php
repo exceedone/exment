@@ -193,7 +193,7 @@ class LoginUserController extends AdminControllerBase
             }
             DB::commit();
         } catch (TransportExceptionInterface $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             admin_error('Error', exmtrans('error.mailsend_failed'));
             DB::rollback();
             return back()->withInput(get_flash_input());

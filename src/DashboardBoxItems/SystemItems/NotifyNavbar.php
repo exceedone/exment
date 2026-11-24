@@ -135,7 +135,7 @@ class NotifyNavbar
 
             $this->items = NotifyNavbarModel::take($pager_count)->get();
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
         }
     }
 

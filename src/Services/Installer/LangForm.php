@@ -17,7 +17,7 @@ class LangForm
     public function index()
     {
         if (!session()->has('_exment_assets_published')) {
-            \Artisan::call('exment:publish');
+            \Illuminate\Support\Facades\Artisan::call('exment:publish');
             session(['_exment_assets_published' => true]);
         }
 
@@ -41,7 +41,7 @@ class LangForm
             'locale' => 'required',
         ];
 
-        $validation = \Validator::make($request->all(), $rules);
+        $validation = \Illuminate\Support\Facades\Validator::make($request->all(), $rules);
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
         }

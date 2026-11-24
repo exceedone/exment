@@ -221,7 +221,7 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
             return true;
         });
 
-        $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+        $ids = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->belong_organizations->pluck('id')->toArray();
         foreach ($custom_columns as $custom_column) {
             // @phpstan-ignore-next-line
             $query->orWhere(function ($query) use ($custom_column, $tableName, $ids) {
@@ -232,9 +232,9 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
 
                 if ($custom_column->column_type == ColumnType::USER) {
                     if ($custom_column->isMultipleEnabled()) {
-                        $query->whereInArrayString($tableName . '.' . $indexName, \Exment::getUserId());
+                        $query->whereInArrayString($tableName . '.' . $indexName, \Exceedone\Exment\Facades\ExmentFacade::getUserId());
                     } else {
-                        $query->where($tableName . '.' . $indexName, \Exment::getUserId());
+                        $query->where($tableName . '.' . $indexName, \Exceedone\Exment\Facades\ExmentFacade::getUserId());
                     }
                 } else {
                     $query->whereIn($tableName . '.' . $indexName, $ids);

@@ -42,7 +42,7 @@ class Image extends FormOtherItem
             return $imageTag;
         }
 
-        return \Exment::getUrlTag($url, $imageTag, UrlTagType::BLANK, [], [
+        return \Exceedone\Exment\Facades\ExmentFacade::getUrlTag($url, $imageTag, UrlTagType::BLANK, [], [
             'notEscape' => true,
         ]);
     }

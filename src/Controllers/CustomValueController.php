@@ -484,7 +484,7 @@ class CustomValueController extends AdminControllerTableBase
                     $html = $column_item->setCustomValue($custom_value)->html();
                 } catch (\Throwable $ex) {
                     // one column that cannot render must not cost the whole preview
-                    \Log::warning($ex);
+                    \Illuminate\Support\Facades\Log::warning($ex);
                     $html = null;
                 }
 
@@ -817,7 +817,7 @@ class CustomValueController extends AdminControllerTableBase
     {
         $url = json_encode($this->custom_table->getGridUrl(true));
         $label = json_encode(exmtrans('custom_value.back_to_list'));
-        \Admin::script(<<<EOT
+        \ExmentAdminCore\Admin\Facades\Admin::script(<<<EOT
 (function () {
     var h1 = $('#pjax-container .content-header > h1').first();
     if (!h1.length || h1.find('.exm-back-to-list').length) {
@@ -1112,7 +1112,7 @@ EOT);
             }
         }
 
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         $class = $plugin->getClass($request->input('plugin_type'), [
             'custom_table' => $this->custom_table,
@@ -1170,7 +1170,7 @@ EOT);
             abort(404);
         }
 
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         // The button of the record's page is not shown when the form does not
         // allow editing from display, the bulk update of the list is.
@@ -1333,7 +1333,7 @@ EOT);
 
         // the length of the column the name is stored in, as on the view
         // settings screen
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'name' => 'required|string|max:40',
         ], [], [
             'name' => exmtrans('custom_view.kanban_save_view_name'),
@@ -1573,7 +1573,7 @@ EOT);
             ];
         }
 
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
         /** @var WorkflowAction $action */
         $result = $service->execute($action, $data);
         $skipped = WorkflowBulkService::skippedText($result);
@@ -1944,13 +1944,13 @@ EOT);
     {
         $ids = stringToArray($id);
 
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         try {
             foreach ($ids as $id) {
                 // get customvalue
                 $custom_value = CustomTable::getEloquent($tableKey)->getValueModel($id, true);
                 if (!isset($custom_value)) {
-                    \DB::rollback();
+                    \Illuminate\Support\Facades\DB::rollback();
                     return getAjaxResponse(false);
                 }
 
@@ -1960,7 +1960,7 @@ EOT);
 
                 // the edit permission of the row (enableEdit() refuses a row in the trash)
                 if (!$custom_value->custom_table->hasPermissionEditData($custom_value)) {
-                    \DB::rollback();
+                    \Illuminate\Support\Facades\DB::rollback();
                     return getAjaxResponse([
                         'result'  => false,
                         'message' => ErrorCode::PERMISSION_DENY()->getMessage(),
@@ -1970,9 +1970,9 @@ EOT);
                 $custom_value->restore();
             }
 
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
         } catch (\Exception $e) {
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
             return getAjaxResponse([
                 'result'  => false,
                 'message' => $e->getMessage(),
@@ -2213,8 +2213,8 @@ EOT);
                 $table->save();
             }
             $response = getAjaxResponse([
-                'fileBase64' => base64_encode(\File::get($tmpPath)),
-                'fileContentType' => \File::mimeType($tmpPath),
+                'fileBase64' => base64_encode(\Illuminate\Support\Facades\File::get($tmpPath)),
+                'fileContentType' => \Illuminate\Support\Facades\File::mimeType($tmpPath),
                 'fileName' => $fileName,
                 'toastr' => $isCreate ? exmtrans("custom_table.qr_code.created") : exmtrans("custom_table.qr_code.download_complete"),
             ]);
@@ -2443,9 +2443,9 @@ EOT);
     // @phpstan-ignore-next-line
     protected function deleteTmpFile($file_path)
     {
-        if (\File::exists($file_path)) {
+        if (\Illuminate\Support\Facades\File::exists($file_path)) {
             try {
-                \File::delete($file_path);
+                \Illuminate\Support\Facades\File::delete($file_path);
             } catch (\Exception $ex) {
             }
         }

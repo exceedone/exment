@@ -25,7 +25,7 @@ class LoginUserItem extends ProviderBase
     // @phpstan-ignore-next-line
     public function setAdminFormOptions(&$form, $id = null)
     {
-        if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::LOGIN_USER)) {
             return;
         }
 
@@ -67,7 +67,7 @@ class LoginUserItem extends ProviderBase
                 ])]);
 
         $form->password('password', exmtrans('user.password'))->default('')
-                ->help(\Exment::get_password_help())
+                ->help(\Exceedone\Exment\Facades\ExmentFacade::get_password_help())
                 ->attribute(['data-filter' => json_encode([
                     ['key' => 'use_loginuser', 'value' => '1']
                     , ['key' => 'reset_password', 'value' => "1"]
@@ -113,7 +113,7 @@ class LoginUserItem extends ProviderBase
     // @phpstan-ignore-next-line
     public function saving($form, $id = null)
     {
-        if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::LOGIN_USER)) {
             return;
         }
 
@@ -141,7 +141,7 @@ class LoginUserItem extends ProviderBase
     // @phpstan-ignore-next-line
     public function saved($form, $id)
     {
-        if (!\Exment::user()->hasPermission(Permission::LOGIN_USER)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::LOGIN_USER)) {
             return;
         }
 
@@ -221,7 +221,7 @@ class LoginUserItem extends ProviderBase
                 $rules = [
                 'password' => get_password_rule(true, $login_user),
                 ];
-                $validation = \Validator::make($data, $rules);
+                $validation = \Illuminate\Support\Facades\Validator::make($data, $rules);
                 if ($validation->fails()) {
                     return back()->withInput(get_flash_input())->withErrors($validation);
                 }
@@ -276,12 +276,12 @@ class LoginUserItem extends ProviderBase
         }
 
         // only administrator can delete and edit administrator record
-        if (!\Exment::user()->isAdministrator() && $custom_value->isAdministrator()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->isAdministrator() && $custom_value->isAdministrator()) {
             $tools->disableDelete();
             $tools->disableEdit();
         }
         // cannnot delete myself
-        if (\Exment::getUserId() == $custom_value->id) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::getUserId() == $custom_value->id) {
             $tools->disableDelete();
         }
     }

@@ -67,8 +67,8 @@ class MeiliHealthCommand extends Command
             // Only meaningful with the database queue driver; count only the
             // Meili jobs so unrelated failures are not reported as sync issues.
             try {
-                $failed = \DB::table('failed_jobs')->where('payload', 'LIKE', '%Meili%')->count();
-                $pending = \DB::table('jobs')->where('payload', 'LIKE', '%Meili%')->count();
+                $failed = \Illuminate\Support\Facades\DB::table('failed_jobs')->where('payload', 'LIKE', '%Meili%')->count();
+                $pending = \Illuminate\Support\Facades\DB::table('jobs')->where('payload', 'LIKE', '%Meili%')->count();
                 $this->line("  Queue : pending={$pending}, failed={$failed} (Meili jobs, database driver)");
                 if ($failed > 0) {
                     $this->warn("  {$failed} Meili job(s) failed -> consider `php artisan queue:retry all`");

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Console;
 
-use File;
+use Illuminate\Support\Facades\File;
 use Exceedone\Exment\Model\CustomTable;
 
 trait ImportTrait

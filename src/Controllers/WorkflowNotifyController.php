@@ -103,7 +103,7 @@ class WorkflowNotifyController extends Controller
         })->escape(false);
 
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
 
         $grid->tools(function (Grid\Tools $tools) {

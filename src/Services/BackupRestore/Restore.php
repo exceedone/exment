@@ -8,7 +8,7 @@ use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
-use File;
+use Illuminate\Support\Facades\File;
 
 class Restore
 {
@@ -74,10 +74,10 @@ class Restore
         $this->configSkipped = false;
 
         try {
-            \Artisan::call('down');
+            \Illuminate\Support\Facades\Artisan::call('down');
 
             // check backup execute
-            \ExmentDB::checkBackup();
+            \Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
 
             // unzip backup file
             $this->unzipFile($file, $tmp);
@@ -113,7 +113,7 @@ class Restore
         } catch (\Exception $e) {
             throw $e;
         } finally {
-            \Artisan::call('up');
+            \Illuminate\Support\Facades\Artisan::call('up');
             $this->diskService->deleteTmpDirectory();
         }
     }
@@ -130,7 +130,7 @@ class Restore
      * the tenant broken.
      *
      * The restore also rolls back the migrations table (backupDatabase() dumps every table
-     * \Schema::getTableListing() reports, that one included), which is what makes a plain
+     * \Illuminate\Support\Facades\Schema::getTableListing() reports, that one included), which is what makes a plain
      * `migrate` the right repair and not a heavy-handed one: it replays exactly the migrations
      * whose record the restore removed, and nothing else. A backup taken after a migration
      * still carries that migration's record, so the migration is skipped and whatever the
@@ -148,24 +148,24 @@ class Restore
         try {
             // --force: this runs unattended (queue worker, cron applier, CLI restore), and
             // migrate refuses to touch a production database without it.
-            $exitCode = \Artisan::call('migrate', ['--force' => true]);
-            $output = \Artisan::output();
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+            $output = \Illuminate\Support\Facades\Artisan::output();
 
             if ($exitCode !== 0) {
-                \Log::error('Restore: migrate failed after restoring the database. The schema is still at the version of the backup.', [
+                \Illuminate\Support\Facades\Log::error('Restore: migrate failed after restoring the database. The schema is still at the version of the backup.', [
                     'exit_code' => $exitCode,
                     'output' => $output,
                 ]);
                 return false;
             }
 
-            \Log::info('Restore: migrate finished after restoring the database.', ['output' => $output]);
+            \Illuminate\Support\Facades\Log::info('Restore: migrate finished after restoring the database.', ['output' => $output]);
             return true;
         } catch (\Throwable $e) {
             // Console commands run with catchExceptions disabled, so a migration that throws
             // lands here. Do not rethrow: the data restore itself did succeed, and the finally
             // block of execute() still has to bring the application back up.
-            \Log::error('Restore: migrate threw after restoring the database. The schema is still at the version of the backup.', [
+            \Illuminate\Support\Facades\Log::error('Restore: migrate threw after restoring the database. The schema is still at the version of the backup.', [
                 'exception' => $e->getMessage(),
             ]);
             return false;
@@ -179,7 +179,7 @@ class Restore
     // @phpstan-ignore-next-line
     protected function importTsv()
     {
-        \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
+        \Exceedone\Exment\Facades\ExmentDBFacade::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
     }
 
     /**
@@ -228,14 +228,14 @@ class Restore
                 // tenant on the same pool. Skip such a target instead of letting copy() raise
                 // and abort the whole restore - otherwise restore can never succeed there.
                 if (!$this->isWritableDirectory($topath)) {
-                    \Log::warning('Restore: skipped a directory that is not writable.', [
+                    \Illuminate\Support\Facades\Log::warning('Restore: skipped a directory that is not writable.', [
                         'path' => $topath,
                         'target' => $setting[2] ?? $keyname,
                     ]);
                     continue;
                 }
 
-                $success = \File::copyDirectory($fromDirectory, $topath);
+                $success = \Illuminate\Support\Facades\File::copyDirectory($fromDirectory, $topath);
                 if (!$success) {
                     $result = false;
                 }
@@ -246,7 +246,7 @@ class Restore
 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
 
-                \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
+                \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($this->tmpDisk(), $to);
 
                 $files = $tmpDisk->files($directory);
                 foreach ($files as $file) {
@@ -266,7 +266,7 @@ class Restore
         }
 
         if ($this->configSkipped) {
-            \Log::warning('Exment: restore skipped the config files of the backup: ' . $this->getBackupLaravelVersionText());
+            \Illuminate\Support\Facades\Log::warning('Exment: restore skipped the config files of the backup: ' . $this->getBackupLaravelVersionText());
         }
 
         return $result;
@@ -283,13 +283,13 @@ class Restore
      */
     protected function isWritableDirectory(string $path): bool
     {
-        if (\File::isDirectory($path)) {
+        if (\Illuminate\Support\Facades\File::isDirectory($path)) {
             return is_writable($path);
         }
 
         $parent = dirname($path);
 
-        return \File::isDirectory($parent) && is_writable($parent);
+        return \Illuminate\Support\Facades\File::isDirectory($parent) && is_writable($parent);
     }
 
     /**
@@ -329,11 +329,11 @@ class Restore
     protected function getBackupLaravelVersion(): ?string
     {
         $file = path_join($this->diskService->tmpDiskItem()->dirFullPath(), Define::BACKUP_VERSION_FILE);
-        if (!\File::exists($file)) {
+        if (!\Illuminate\Support\Facades\File::exists($file)) {
             return null;
         }
 
-        $versions = json_decode_ex(\File::get($file), true);
+        $versions = json_decode_ex(\Illuminate\Support\Facades\File::get($file), true);
         $laravel = is_array($versions) ? array_get($versions, 'laravel') : null;
 
         return is_string($laravel) ? $laravel : null;
@@ -365,7 +365,7 @@ class Restore
     {
         // get env file
         $file = path_join($this->diskService->tmpDiskItem()->dirFullPath(), '.env');
-        if (!\File::exists($file)) {
+        if (!\Illuminate\Support\Facades\File::exists($file)) {
             return;
         }
 
@@ -450,6 +450,6 @@ class Restore
     // @phpstan-ignore-next-line
     protected function restoreDatabase()
     {
-        \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+        \Exceedone\Exment\Facades\ExmentDBFacade::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());
     }
 }

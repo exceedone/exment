@@ -134,7 +134,7 @@ class ExportCommand extends Command
                 $this->line($message);
             }
         } catch (\Exception $e) {
-            \Log::error($e);
+            \Illuminate\Support\Facades\Log::error($e);
             $this->error($e->getMessage());
             return -1;
         }

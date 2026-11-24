@@ -59,18 +59,18 @@ class InstallingForm
             // with a config cache (php artisan config:cache), .env is not read: the
             // database and the URL prefix just written would not apply
             if (app()->configurationIsCached()) {
-                \Artisan::call('config:clear');
+                \Illuminate\Support\Facades\Artisan::call('config:clear');
             }
             InstallService::setSettingTmp();
             InstallService::forgetInputParams();
         } catch (\Exception $ex) {
-            \Log::error('Exment install: cannot write .env: ' . $ex->getMessage());
+            \Illuminate\Support\Facades\Log::error('Exment install: cannot write .env: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
                 'install_error' => exmtrans('install.error.cannot_write_env'),
             ]);
         }
 
-        if (!\ExmentDB::canConnection()) {
+        if (!\Exceedone\Exment\Facades\ExmentDBFacade::canConnection()) {
             return back()->withInput()->withErrors([
                 'install_error' => exmtrans('install.error.database_canconnection'),
             ]);
@@ -78,18 +78,18 @@ class InstallingForm
 
         try {
             // --force: on a production site key:generate asks, and stops without a terminal
-            \Artisan::call('key:generate', ['--force' => true]);
-            \Artisan::call('passport:keys');
-            $exitCode = \Artisan::call('exment:install');
+            \Illuminate\Support\Facades\Artisan::call('key:generate', ['--force' => true]);
+            \Illuminate\Support\Facades\Artisan::call('passport:keys');
+            $exitCode = \Illuminate\Support\Facades\Artisan::call('exment:install');
             if ($exitCode !== 0) {
-                $output = trim(\Artisan::output());
-                \Log::error('exment:install failed (exit ' . $exitCode . '): ' . $output);
+                $output = trim(\Illuminate\Support\Facades\Artisan::output());
+                \Illuminate\Support\Facades\Log::error('exment:install failed (exit ' . $exitCode . '): ' . $output);
                 return back()->withInput()->withErrors([
                     'install_error' => $output ?: exmtrans('install.error.database_canconnection'),
                 ]);
             }
         } catch (\Exception $ex) {
-            \Log::error('Exment install commands failed: ' . $ex->getMessage());
+            \Illuminate\Support\Facades\Log::error('Exment install commands failed: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
                 'install_error' => $ex->getMessage(),
             ]);

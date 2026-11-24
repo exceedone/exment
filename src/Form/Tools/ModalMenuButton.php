@@ -99,7 +99,7 @@ class ModalMenuButton implements Renderable
             'html' => $this->html,
             'modal_title' => $this->modal_title,
             'menulist' => $this->menulist,
-            'attributes' => \Exment::formatAttributes($this->attributes)
+            'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes($this->attributes)
 
         ])->render();
     }

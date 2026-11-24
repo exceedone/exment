@@ -145,7 +145,7 @@ class ExportImportButton extends ModalTileMenuButton
             $formats['csv'] = [
                 'label' => 'CSV',
                 'icon' => 'fa-file-o',
-                'attributes' => \Exment::formatAttributes([
+                'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes([
                     'target' => '_blank',
                 ]),
             ];
@@ -154,7 +154,7 @@ class ExportImportButton extends ModalTileMenuButton
             $formats['excel'] = [
                 'label' => 'Excel',
                 'icon' => 'fa-file-excel-o',
-                'attributes' => \Exment::formatAttributes([
+                'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes([
                     'target' => '_blank',
                 ]),
             ];
@@ -260,7 +260,7 @@ class ExportImportButton extends ModalTileMenuButton
                 $button = [
                     'label' => exmtrans('custom_value.export'),
                     'icon' => 'fa-file-o',
-                    'attributes' => \Exment::formatAttributes([
+                    'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes([
                         'target' => '_blank',
                     ]),
                 ];
@@ -312,7 +312,7 @@ class ExportImportButton extends ModalTileMenuButton
                             'label' => exmtrans('common.import'),
                             'icon' => 'fa-upload',
                             'url' => '#',
-                            'attributes' => \Exment::formatAttributes([
+                            'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes([
                                 'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
                             ]),
                         ]
@@ -374,7 +374,7 @@ class ExportImportButton extends ModalTileMenuButton
                     return false;
                 }
 
-                if (!\Exment::user()->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
+                if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
                     return false;
                 }
 

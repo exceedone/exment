@@ -340,7 +340,7 @@ class WorkflowAction extends ModelBase
                 ];
             })->toArray();
 
-            \Schema::insertDelete(SystemTableName::WORKFLOW_AUTHORITY, $values, [
+            \Illuminate\Support\Facades\Schema::insertDelete(SystemTableName::WORKFLOW_AUTHORITY, $values, [
                 'dbValueFilter' => function (&$model) use ($key) {
                     $model->where('workflow_action_id', $this->id)
                         ->where('related_type', $key);
@@ -430,7 +430,7 @@ class WorkflowAction extends ModelBase
             ? \Exceedone\Exment\Services\Notify\SameOrganizationWorkflowNotify::getOtherOrgMemberIds($this, $custom_value)
             : [];
 
-        \ExmentDB::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($custom_value, $data, $is_edit, $next, &$workflow_value, &$status_to) {
             $workflow_value = $this->forwardWorkflowValue($custom_value, $data);
 
             if ($next === true) {
@@ -604,7 +604,7 @@ class WorkflowAction extends ModelBase
     public function hasAuthority($custom_value, $targetUser = null)
     {
         if (!isset($targetUser)) {
-            $targetUser = \Exment::user()->base_user;
+            $targetUser = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user;
         }
 
         // check as workflow_value_authorities
@@ -717,9 +717,9 @@ class WorkflowAction extends ModelBase
                     return $org->users;
                 })->flatten();
             }
-            $result = \Exment::uniqueCustomValues($users, $org_users);
+            $result = \Exceedone\Exment\Facades\ExmentFacade::uniqueCustomValues($users, $org_users);
         } else {
-            $result = \Exment::uniqueCustomValues($users, $orgs);
+            $result = \Exceedone\Exment\Facades\ExmentFacade::uniqueCustomValues($users, $orgs);
         }
 
         return $result;
@@ -868,7 +868,7 @@ class WorkflowAction extends ModelBase
 
         $need_next_count = $flow_next_count;
 
-        if (!WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user)) {
+        if (!WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user)) {
             $need_next_count -= 1;
         }
 
@@ -963,7 +963,7 @@ class WorkflowAction extends ModelBase
 
         // check already executed user
         // Exment helper class not recognized
-        $showSubmit = !WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exment::user()->base_user);
+        $showSubmit = !WorkflowValue::isAlreadyExecuted($this->id, $custom_value, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user);
 
         if ($showSubmit) {
             $form->descriptionHtml('<p style="padding-left: 30px;">' . exmtrans('workflow.message.action_execute') . '</p>');
@@ -1084,7 +1084,7 @@ class WorkflowAction extends ModelBase
         $nextActions->each(function ($workflow_action) use (&$toActionAuthorities, $custom_value) {
             $is_select = $workflow_action->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
             // "getAuthorityTargets" set $getValueAutorities i false, because getting next action
-            $toActionAuthorities = \Exment::uniqueCustomValues(
+            $toActionAuthorities = \Exceedone\Exment\Facades\ExmentFacade::uniqueCustomValues(
                 $toActionAuthorities,
                 $workflow_action->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)
             );
@@ -1204,11 +1204,11 @@ class WorkflowAction extends ModelBase
     public static function appendStatusFromQuery($query, $workflow_status)
     {
         // if sql server, append cast
-        if (\Exment::isSqlServer()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
             // create where raw query
             /** @phpstan-ignore-next-line */
-            $column = \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
-            $whereStatusStart = $column . ' = ' . \Exment::wrapValue($workflow_status);
+            $column = \Illuminate\Support\Facades\DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_ACTION . '.status_from');
+            $whereStatusStart = $column . ' = ' . \Exceedone\Exment\Facades\ExmentFacade::wrapValue($workflow_status);
 
             // @phpstan-ignore-next-line
             $query->whereRaw($whereStatusStart);
@@ -1228,10 +1228,10 @@ class WorkflowAction extends ModelBase
     public static function appendStatusFromJoinQuery($query)
     {
         // if sql server, append cast
-        if (\Exment::isSqlServer()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
             // create where raw query
             /** @phpstan-ignore-next-line */
-            $whereStatusStart = \Exment::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
+            $whereStatusStart = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn(SystemTableName::WORKFLOW_ACTION . '.status_from') . ' = ' . \Illuminate\Support\Facades\DB::getQueryGrammar()->getCastColumn(DatabaseDataType::TYPE_STRING, SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
 
             // @phpstan-ignore-next-line
             $query->whereRaw($whereStatusStart);

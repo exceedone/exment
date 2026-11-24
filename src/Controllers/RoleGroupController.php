@@ -82,7 +82,7 @@ class RoleGroupController extends AdminControllerBase
         }
 
         // check has ROLE_GROUP_ALL
-        $hasCreatePermission = \Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL);
+        $hasCreatePermission = \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::ROLE_GROUP_ALL);
         if (!$hasCreatePermission) {
             $grid->disableCreateButton();
         }
@@ -501,7 +501,7 @@ class RoleGroupController extends AdminControllerBase
     public function store()
     {
         // a new role group: the list shows the create button only with ROLE_GROUP_ALL
-        if (!\Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::ROLE_GROUP_ALL)) {
             Checker::error();
             return false;
         }
@@ -530,7 +530,7 @@ class RoleGroupController extends AdminControllerBase
             return back()->withInput($request->all())->withErrors($errors);
         }
 
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
 
         try {
             $role_group = isset($id) ? RoleGroup::findOrFail($id) : new RoleGroup();
@@ -575,7 +575,7 @@ class RoleGroupController extends AdminControllerBase
                 }
             }
 
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
 
             admin_toastr(trans('admin.save_succeeded'));
 
@@ -590,7 +590,7 @@ class RoleGroupController extends AdminControllerBase
             }
         } catch (\Exception $exception) {
             //TODO:error handling
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
             throw $exception;
         }
     }
@@ -612,7 +612,7 @@ class RoleGroupController extends AdminControllerBase
             return $response;
         }
 
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         try {
             // get user and org
             $item = ['name' => 'role_group_item', 'role_group_user_org_type' => SystemTableName::ORGANIZATION];
@@ -630,7 +630,7 @@ class RoleGroupController extends AdminControllerBase
                 ];
             });
 
-            \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_group, [
+            \Illuminate\Support\Facades\Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_group, [
                 'dbValueFilter' => function (&$model) use ($id) {
                     $model->where('role_group_id', $id);
                 },
@@ -645,7 +645,7 @@ class RoleGroupController extends AdminControllerBase
                 },
             ]);
 
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
 
             System::clearCache();
 
@@ -660,7 +660,7 @@ class RoleGroupController extends AdminControllerBase
             }
         } catch (\Exception $exception) {
             //TODO:error handling
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
             throw $exception;
         }
     }
@@ -695,12 +695,12 @@ class RoleGroupController extends AdminControllerBase
     protected function validateForm($isRolePermissionPage = true)
     {
         if ($isRolePermissionPage) {
-            if (!\Exment::user()->hasPermission(Permission::ROLE_GROUP_PERMISSION)) {
+            if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::ROLE_GROUP_PERMISSION)) {
                 Checker::error();
                 return false;
             }
         } else {
-            if (!\Exment::user()->hasPermission(Permission::ROLE_GROUP_USER_ORGANIZATION)) {
+            if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::ROLE_GROUP_USER_ORGANIZATION)) {
                 Checker::error();
                 return false;
             }
@@ -806,7 +806,7 @@ class RoleGroupController extends AdminControllerBase
     protected function widgetDestroy($id)
     {
         // deleting role groups: the list offers it only with ROLE_GROUP_ALL
-        if (!\Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::ROLE_GROUP_ALL)) {
             return false;
         }
         try {
@@ -840,17 +840,17 @@ class RoleGroupController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function hasPermission_Permission()
     {
-        return \Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_PERMISSION]);
+        return \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_PERMISSION]);
     }
     protected function hasPermission_Import(): bool
     {
-        return \Exment::user()->hasPermission(Permission::ROLE_GROUP_ALL);
+        return \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::ROLE_GROUP_ALL);
     }
 
     // @phpstan-ignore-next-line
     protected function hasPermission_UserOrganization()
     {
-        return \Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION]);
+        return \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION]);
     }
 
     /**

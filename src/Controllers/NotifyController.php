@@ -22,7 +22,7 @@ class NotifyController extends AdminControllerBase
     public function index(Request $request, Content $content)
     {
         $this->AdminContent($content);
-        $content->withWarning(exmtrans("notify.notify_moved"), exmtrans("notify.message.notify_moved") . \Exment::getMoreTag('notify', 'notify.notify_moved_tag'));
+        $content->withWarning(exmtrans("notify.notify_moved"), exmtrans("notify.message.notify_moved") . \Exceedone\Exment\Facades\ExmentFacade::getMoreTag('notify', 'notify.notify_moved_tag'));
         return $content;
     }
 

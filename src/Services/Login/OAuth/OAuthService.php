@@ -236,11 +236,11 @@ class OAuthService implements LoginServiceInterface
                 return LoginService::getLoginResult(true, [], [], $custom_login_user);
             }
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
@@ -258,8 +258,8 @@ class OAuthService implements LoginServiceInterface
         // get access token by user setting
         $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
         $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
-        $access_token = \Exment::user()->getSettingValue($key);
-        $expires_at = \Exment::user()->getSettingValue($key_expires_at);
+        $access_token = \Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue($key);
+        $expires_at = \Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue($key_expires_at);
         if (!$access_token || !$expires_at) {
             return null;
         }
@@ -298,8 +298,8 @@ class OAuthService implements LoginServiceInterface
             // get access token by user setting
             $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
             $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
-            \Exment::user()->setSettingValue($key, $token);
-            \Exment::user()->setSettingValue($key_expires_at, $expiresAt);
+            \Exceedone\Exment\Facades\ExmentFacade::user()->setSettingValue($key, $token);
+            \Exceedone\Exment\Facades\ExmentFacade::user()->setSettingValue($key_expires_at, $expiresAt);
             return $token;
         } catch (\Exception $ex) {
             return null;
@@ -317,8 +317,8 @@ class OAuthService implements LoginServiceInterface
         // get access token by user setting
         $key = ("plugin_crud_oauth_access_token_{$login_setting->id}");
         $key_expires_at = ("plugin_crud_oauth_access_token_expires_at_{$login_setting->id}");
-        \Exment::user()->forgetSettingValue($key);
-        \Exment::user()->forgetSettingValue($key_expires_at);
+        \Exceedone\Exment\Facades\ExmentFacade::user()->forgetSettingValue($key);
+        \Exceedone\Exment\Facades\ExmentFacade::user()->forgetSettingValue($key_expires_at);
     }
 
 

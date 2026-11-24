@@ -109,7 +109,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
 
         // reserved by a 再送 meanwhile: the send lock rules that out unless the lock lapsed
         $reservedAt = now()->format('Y-m-d H:i:s');
-        \DB::table(getDBTableName(CustomTable::getEloquent('safety_check_event')))
+        \Illuminate\Support\Facades\DB::table(getDBTableName(CustomTable::getEloquent('safety_check_event')))
             ->where('id', $event->id)
             ->update(['value->resent_at' => $reservedAt]);
 
@@ -283,7 +283,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
         $rowA = $rows->first(function ($row) use ($userA) {
             return (int) array_get($row->value, 'user') === $userA;
         });
-        \DB::table(getDBTableName(CustomTable::getEloquent('safety_check_answer')))
+        \Illuminate\Support\Facades\DB::table(getDBTableName(CustomTable::getEloquent('safety_check_answer')))
             ->where('id', $rowA->id)->delete();
         $this->assertEquals($userCount - 1, $this->answerRows($event->id)->count());
 
@@ -378,7 +378,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
     public function testBuildMailSenderFlagsFinalUserWhenAdminTriggered(): void
     {
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
-        $this->assertNotNull(\Exment::getUserId(), 'Fixture: the send must be attributable to a logged-in user.');
+        $this->assertNotNull(\Exceedone\Exment\Facades\ExmentFacade::getUserId(), 'Fixture: the send must be attributable to a logged-in user.');
 
         $event = $this->createEvent();
         /** @var \Exceedone\Exment\Model\CustomValue $userValue */
@@ -394,7 +394,7 @@ class SafetyCheckSenderTest extends FeatureTestBase
     public function testBuildMailSenderLeavesFinalUserOffWhenNoLoggedInUser(): void
     {
         auth('admin')->logout();
-        $this->assertNull(\Exment::getUserId(), 'Fixture: this send must be unattributable.');
+        $this->assertNull(\Exceedone\Exment\Facades\ExmentFacade::getUserId(), 'Fixture: this send must be unattributable.');
 
         $event = $this->createEvent();
         /** @var \Exceedone\Exment\Model\CustomValue $userValue */

@@ -437,7 +437,7 @@ class File extends ModelBase
         if ($content instanceof \Illuminate\Http\UploadedFile) {
             $content->storeAs($dirname, $file->local_filename, config('admin.upload.disk'));
         } else {
-            \Storage::disk(config('admin.upload.disk'))->put(path_join($dirname, $file->local_filename), $content);
+            \Illuminate\Support\Facades\Storage::disk(config('admin.upload.disk'))->put(path_join($dirname, $file->local_filename), $content);
         }
         return $file;
     }

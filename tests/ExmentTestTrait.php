@@ -35,7 +35,7 @@ trait ExmentTestTrait
      */
     protected function setUpExment()
     {
-        \App::setLocale('en');
+        \Illuminate\Support\Facades\App::setLocale('en');
     }
 
     /**
@@ -45,26 +45,26 @@ trait ExmentTestTrait
      */
     public function runDatabaseMigrations()
     {
-        if (!\App::environment('local', 'testing')) {
+        if (!\Illuminate\Support\Facades\App::environment('local', 'testing')) {
             return;
         }
 
         if (!static::$databaseSetup) {
             $this->dropAllTables();
-            \Artisan::call('migrate');
+            \Illuminate\Support\Facades\Artisan::call('migrate');
 
             System::clearRequestSession();
             Morph::defineMorphMap();
 
-            \Artisan::call('exment:install');
+            \Illuminate\Support\Facades\Artisan::call('exment:install');
 
             static::$databaseSetup = true;
 
             // $this->beforeApplicationDestroyed(function () {
-            //     \Artisan::call('migrate:reset');
-            //     $tables = \DB::connection()->getDoctrineSchemaManager()->listTableNames();
+            //     \Illuminate\Support\Facades\Artisan::call('migrate:reset');
+            //     $tables = \Illuminate\Support\Facades\DB::connection()->getDoctrineSchemaManager()->listTableNames();
             //     foreach($tables as $table_name){
-            //         \Schema::dropIfExists($table_name);
+            //         \Illuminate\Support\Facades\Schema::dropIfExists($table_name);
             //     }
             // });
         }
@@ -75,12 +75,12 @@ trait ExmentTestTrait
      */
     protected function dropAllTables()
     {
-        \Artisan::call('migrate:reset');
-        $tables = \DB::select('SHOW TABLES');
+        \Illuminate\Support\Facades\Artisan::call('migrate:reset');
+        $tables = \Illuminate\Support\Facades\DB::select('SHOW TABLES');
         $tableKey = array_key_first((array) $tables[0]);
         foreach ($tables as $table) {
             $tableName = $table->$tableKey;
-            \Schema::dropIfExists($tableName);
+            \Illuminate\Support\Facades\Schema::dropIfExists($tableName);
         }
     }
 }

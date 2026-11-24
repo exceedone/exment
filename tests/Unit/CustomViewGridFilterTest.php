@@ -53,8 +53,8 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName($this->table_name);
-        \DB::table($dbTableName)->where('id', 10)->update(['created_at' => '2025-02-01 00:00:00']);
-        \DB::table($dbTableName)->where('id', 20)->update(['created_at' => '2025-02-01 23:59:59']);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)->update(['created_at' => '2025-02-01 00:00:00']);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 20)->update(['created_at' => '2025-02-01 23:59:59']);
 
         $this->__testGridFilter(['created_at.start' => '2025-02-01', 'created_at.end' => '2025-02-01'], function ($data) {
             $actual = array_get($data, 'created_at');
@@ -72,8 +72,8 @@ class CustomViewGridFilterTest extends UnitTestBase
         $this->init();
 
         $dbTableName = \getDBTableName($this->table_name);
-        \DB::table($dbTableName)->where('id', 10)->update(['updated_at' => '2025-02-01 00:00:00']);
-        \DB::table($dbTableName)->where('id', 20)->update(['updated_at' => '2025-02-02 23:59:59']);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)->update(['updated_at' => '2025-02-01 00:00:00']);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 20)->update(['updated_at' => '2025-02-02 23:59:59']);
 
         $this->__testGridFilter(['updated_at.start' => '2025-02-01', 'updated_at.end' => '2025-02-02'], function ($data) {
             $actual = array_get($data, 'updated_at');
@@ -119,8 +119,8 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
-        \DB::table($dbTableName)->where('id', 10)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.text', 'hoge')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.text', 'hoge')")]);
 
         $custom_column = CustomColumn::getEloquent('text', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -141,8 +141,8 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
-        \DB::table($dbTableName)->where('id', 10)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.url', 'https://exment.net/docs/#/ja/')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.url', 'https://exment.net/docs/#/ja/')")]);
 
         $custom_column = CustomColumn::getEloquent('url', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -163,8 +163,8 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
-        \DB::table($dbTableName)->where('id', 10)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.email', 'hoge@test.com')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.email', 'hoge@test.com')")]);
 
         $custom_column = CustomColumn::getEloquent('email', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -236,10 +236,10 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
-        \DB::table($dbTableName)->where('id', 10)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.date', '2020-11-30')")]);
-        \DB::table($dbTableName)->where('id', 20)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.date', '2020-12-01')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.date', '2020-11-30')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 20)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.date', '2020-12-01')")]);
 
         $custom_column = CustomColumn::getEloquent('date', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -260,10 +260,10 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
-        \DB::table($dbTableName)->where('id', 10)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.time', '10:00:00')")]);
-        \DB::table($dbTableName)->where('id', 20)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.time', '09:59:59')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.time', '10:00:00')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 20)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.time', '09:59:59')")]);
 
         $custom_column = CustomColumn::getEloquent('time', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -284,10 +284,10 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $dbTableName = \getDBTableName($this->table_name);
         $json_func = $this->getJsonUpdateFunction();
-        \DB::table($dbTableName)->where('id', 10)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.datetime', '2020-11-30 23:59:59')")]);
-        \DB::table($dbTableName)->where('id', 20)
-            ->update(['value' => \DB::raw("{$json_func}(value, '$.datetime', '2020-12-01 00:00:01')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 10)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.datetime', '2020-11-30 23:59:59')")]);
+        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', 20)
+            ->update(['value' => \Illuminate\Support\Facades\DB::raw("{$json_func}(value, '$.datetime', '2020-12-01 00:00:01')")]);
 
         $custom_column = CustomColumn::getEloquent('datetime', $this->table_name);
         $db_column_name = $custom_column->getIndexColumnName(false);
@@ -571,7 +571,7 @@ class CustomViewGridFilterTest extends UnitTestBase
 
         $this->__testGridFilter(['workflow_work_users' => 1], function ($data) {
             foreach($data->workflow_work_users as $user) {
-                if ($user->id == \Exment::user()->base_user->id) {
+                if ($user->id == \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id) {
                     return true;
                 }
             }
@@ -1020,7 +1020,7 @@ class CustomViewGridFilterTest extends UnitTestBase
 
     protected function getJsonUpdateFunction(): string
     {
-        if (\Exment::isSqlServer()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
             return 'JSON_MODIFY';
         } else {
             return 'JSON_SET';

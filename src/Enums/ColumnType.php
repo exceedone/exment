@@ -329,6 +329,6 @@ class ColumnType extends EnumBase
         }
 
         $icon = static::getFontAwesomeClass($column_type);
-        return \Exment::getSelectOptionHtml($icon, exmtrans("custom_column.column_type_options.{$column_type}"));
+        return \Exceedone\Exment\Facades\ExmentFacade::getSelectOptionHtml($icon, exmtrans("custom_column.column_type_options.{$column_type}"));
     }
 }

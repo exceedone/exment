@@ -23,14 +23,14 @@ class MaintenanceGuard
         if (!isset($state)) {
             return $next($request);
         }
-        $user = in_array($kind, [MaintenanceMode::KIND_PUBLIC, MaintenanceMode::KIND_ANONYMOUS, MaintenanceMode::KIND_API_ANONYMOUS], true) ? null : \Exment::user();
+        $user = in_array($kind, [MaintenanceMode::KIND_PUBLIC, MaintenanceMode::KIND_ANONYMOUS, MaintenanceMode::KIND_API_ANONYMOUS], true) ? null : \Exceedone\Exment\Facades\ExmentFacade::user();
         if (MaintenanceMode::passes($state, $request, $kind, $user)) {
             return $next($request);
         }
         if ($kind === MaintenanceMode::KIND_WEB && isset($user)) {
             // a user who may not come in now is logged out: the login does not stay for after
             try {
-                \Auth::guard("admin")->logout();
+                \Illuminate\Support\Facades\Auth::guard("admin")->logout();
                 if ($request->hasSession()) {
                     $request->session()->invalidate();
                 }

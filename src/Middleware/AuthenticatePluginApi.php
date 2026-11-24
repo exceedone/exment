@@ -26,13 +26,13 @@ class AuthenticatePluginApi extends \ExmentAdminCore\Admin\Middleware\Authentica
             return abortJson(500, ErrorCode::PLUGIN_NOT_FOUND());
         }
 
-        if (\Auth::guard(Define::AUTHENTICATE_KEY_API)->check()) {
-            \Exment::setGuard(Define::AUTHENTICATE_KEY_API);
+        if (\Illuminate\Support\Facades\Auth::guard(Define::AUTHENTICATE_KEY_API)->check()) {
+            \Exceedone\Exment\Facades\ExmentFacade::setGuard(Define::AUTHENTICATE_KEY_API);
         } else {
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$user->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }

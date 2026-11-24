@@ -114,7 +114,7 @@ class EnvService
             $path = path_join(base_path(), '.env');
         }
 
-        if (!\File::exists($path)) {
+        if (!\Illuminate\Support\Facades\File::exists($path)) {
             return null;
         }
 

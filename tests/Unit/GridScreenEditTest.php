@@ -98,7 +98,7 @@ class GridScreenEditTest extends UnitTestBase
     private function setPriorityForm(?CustomForm $form = null): void
     {
         $formIds = CustomForm::where('custom_table_id', $this->table()->id)->pluck('id');
-        \DB::table('custom_form_priorities')->whereIn('custom_form_id', $formIds)->delete();
+        \Illuminate\Support\Facades\DB::table('custom_form_priorities')->whereIn('custom_form_id', $formIds)->delete();
         if (isset($form)) {
             $priority = new CustomFormPriority();
             $priority->custom_form_id = $form->id;
@@ -115,11 +115,11 @@ class GridScreenEditTest extends UnitTestBase
      */
     private function setFormColumn(CustomForm $form, string $column_name, ?array $options): void
     {
-        $blockIds = \DB::table('custom_form_blocks')
+        $blockIds = \Illuminate\Support\Facades\DB::table('custom_form_blocks')
             ->where('custom_form_id', $form->id)
             ->where('form_block_type', FormBlockType::DEFAULT)
             ->pluck('id');
-        $query = \DB::table('custom_form_columns')
+        $query = \Illuminate\Support\Facades\DB::table('custom_form_columns')
             ->whereIn('custom_form_block_id', $blockIds)
             ->where('form_column_type', FormColumnType::COLUMN)
             ->where('form_column_target_id', $this->column($column_name)->id);
@@ -138,7 +138,7 @@ class GridScreenEditTest extends UnitTestBase
     private function setTableOptions(array $options): void
     {
         $table = $this->table();
-        \DB::table('custom_tables')->where('id', $table->id)
+        \Illuminate\Support\Facades\DB::table('custom_tables')->where('id', $table->id)
             ->update(['options' => json_encode(array_merge($table->options ?? [], $options))]);
         System::clearCache();
     }
@@ -149,7 +149,7 @@ class GridScreenEditTest extends UnitTestBase
     private function setColumnOptions(string $column_name, array $options): void
     {
         $column = $this->column($column_name);
-        \DB::table('custom_columns')->where('id', $column->id)
+        \Illuminate\Support\Facades\DB::table('custom_columns')->where('id', $column->id)
             ->update(['options' => json_encode(array_merge($column->options ?? [], $options))]);
         System::clearCache();
     }
@@ -197,7 +197,7 @@ class GridScreenEditTest extends UnitTestBase
 
     private function bootAdmin(): void
     {
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
         view()->share('errors', new \Illuminate\Support\ViewErrorBag());
     }

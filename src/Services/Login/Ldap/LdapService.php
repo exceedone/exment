@@ -393,11 +393,11 @@ class LdapService implements LoginServiceInterface
             return LoginService::getLoginResult(true, [], [], $custom_login_user);
         } catch (\LdapRecord\Auth\BindException|\LdapRecord\ConnectionException $ex) {
             // cannot reach / bind to the server
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::PROVIDER_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         }

@@ -59,7 +59,7 @@ class ExmentDebug
      */
     protected static function logDatabase($debugSql = true, $performanceLog = false)
     {
-        \DB::listen(function ($query) use ($debugSql, $performanceLog) {
+        \Illuminate\Support\Facades\DB::listen(function ($query) use ($debugSql, $performanceLog) {
             // system performance log: keep "?" as it is, so that no personal or secret data is saved
             if ($performanceLog) {
                 QueryLogger::add($query->sql, $query->time);
@@ -115,7 +115,7 @@ class ExmentDebug
         $headers = $request->headers->__toString();
         $ip = $request->ip();
 
-        \Log::debug("\nIP : {$ip}\nURL : $url\nInput : $input\nHeaders --------------------------------------\n$headers");
+        \Illuminate\Support\Facades\Log::debug("\nIP : {$ip}\nURL : $url\nInput : $input\nHeaders --------------------------------------\n$headers");
     }
 
     /**
@@ -155,12 +155,12 @@ class ExmentDebug
         }
 
         $schedule->call(function () {
-            \Log::debug('Exment schedule debug everyMinute called.');
+            \Illuminate\Support\Facades\Log::debug('Exment schedule debug everyMinute called.');
         })->everyMinute();
 
         $schedule->call(function () {
-            \Log::debug('Exment schedule debug hourly called.');
+            \Illuminate\Support\Facades\Log::debug('Exment schedule debug hourly called.');
         })->hourly();
-        \Log::debug('Exment schedule debug defined.');
+        \Illuminate\Support\Facades\Log::debug('Exment schedule debug defined.');
     }
 }

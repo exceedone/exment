@@ -463,10 +463,10 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
         $path = getFullpath($name, Define::DISKNAME_ADMIN_TMP);
 
         $dir = dirname($path);
-        if (!\File::exists($dir)) {
-            \File::makeDirectory($dir, 0755, true);
+        if (!\Illuminate\Support\Facades\File::exists($dir)) {
+            \Illuminate\Support\Facades\File::makeDirectory($dir, 0755, true);
         }
-        \File::put($path, 'this is not a zip file at all');
+        \Illuminate\Support\Facades\File::put($path, 'this is not a zip file at all');
 
         try {
             $restore = new Restore();
@@ -477,7 +477,7 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
             // second argument true = the "uploaded file" path, the one the screen uses
             $unzipFile->invoke($restore, $name, true);
         } finally {
-            \File::delete($path);
+            \Illuminate\Support\Facades\File::delete($path);
         }
     }
 
@@ -501,7 +501,7 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
     public function test_an_unreadable_stored_backup_zip_is_not_a_successful_restore(): void
     {
         $name = 'broken_' . short_uuid() . '.zip';
-        $disk = \Storage::disk(Define::DISKNAME_BACKUP_SYNC);
+        $disk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_BACKUP_SYNC);
         $disk->put('list/' . $name, 'this is not a zip file at all');
 
         $restore = new Restore();

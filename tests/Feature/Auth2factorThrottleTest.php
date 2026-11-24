@@ -76,7 +76,7 @@ class Auth2factorThrottleTest extends FeatureTestBase
         }
 
         // after the limit even the right code is not taken, whatever else the client sends
-        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)->insert([
             'login_user_id' => $this->user->id,
             'email' => $this->user->email,
             'verify_code' => '123456',
@@ -89,7 +89,7 @@ class Auth2factorThrottleTest extends FeatureTestBase
 
     public function testTheRightCodeIsTakenBeforeTheLimit(): void
     {
-        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)->insert([
             'login_user_id' => $this->user->id,
             'email' => $this->user->email,
             'verify_code' => '123456',
@@ -107,7 +107,7 @@ class Auth2factorThrottleTest extends FeatureTestBase
         $email->insertVerify();
         $email->insertVerify();
 
-        $count = \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+        $count = \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('login_user_id', $this->user->id)
             ->where('verify_type', '2factor_email')
             ->count();

@@ -87,7 +87,7 @@ class GuardRawSqlValueInterpolationTest extends CodebaseGuardTestCase
         $this->assertSame([], self::detectViolations('<?php $query->orderByRaw("$view_column_target $sort_order");'));
         $this->assertSame([], self::detectViolations('<?php $q->whereRaw("a = \'b\'");')); // constant, no variable
         // Concatenating a sub-query SQL into DB::raw (a DIFFERENT shape, out of scope here) -> not caught.
-        $this->assertSame([], self::detectViolations('<?php $this->join(\DB::raw(\'(\' . $query . \') s\'));'));
+        $this->assertSame([], self::detectViolations('<?php $this->join(\Illuminate\Support\Facades\DB::raw(\'(\' . $query . \') s\'));'));
         // Array key inside interpolation {$arr[\'key\']} -> not caught.
         $this->assertSame([], self::detectViolations('<?php $q->orderByRaw("{$o[\'wrap_column\']} {$o[\'sort_type\']}");'));
         // Inside a comment -> ignored.

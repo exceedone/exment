@@ -37,7 +37,7 @@ class Auth2factorService
     // @phpstan-ignore-next-line
     public static function getProvider()
     {
-        $provider = \Exment::user()->getSettingValue(
+        $provider = \Exceedone\Exment\Facades\ExmentFacade::user()->getSettingValue(
             implode(".", [UserSetting::USER_SETTING, 'login_2factor_provider']),
             System::login_2factor_provider() ?? Login2FactorProviderType::EMAIL
         );
@@ -59,15 +59,15 @@ class Auth2factorService
      */
     public static function verifyCode($verify_type, $verify_code, $matchDelete = false)
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // remove old datetime value
-        \DB::table('email_code_verifies')
+        \Illuminate\Support\Facades\DB::table('email_code_verifies')
             ->where('valid_period_datetime', '<', \Carbon\Carbon::now())
             ->delete();
 
         // get from database
-        $query = \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+        $query = \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('verify_code', $verify_code)
             ->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type)
             ->where('email', $loginuser->email)
@@ -110,7 +110,7 @@ class Auth2factorService
         }
         // throw mailsend Exception
         catch (TransportExceptionInterface $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return false;
         }
     }
@@ -125,17 +125,17 @@ class Auth2factorService
      */
     protected static function addVerify($verify_type, $verify_code, $valid_period_datetime)
     {
-        $loginuser = \Exment::user();
+        $loginuser = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         // only the newest code is good: a code sent before is taken back, so
         // logging in again and again does not make many codes good at once
-        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+        \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type)
             ->where('login_user_id', $loginuser->id)
             ->delete();
 
         // set database
-        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+        \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->insert(
                 [
                     'login_user_id' => $loginuser->id,
@@ -159,7 +159,7 @@ class Auth2factorService
     // @phpstan-ignore-next-line
     protected static function sendVerify($mail_template, $mail_prms = []): MailSender
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // send mail
         $sender = MailSender::make($mail_template, $loginuser->email)
@@ -174,8 +174,8 @@ class Auth2factorService
     // @phpstan-ignore-next-line
     public static function deleteCode($verify_type, $verify_code)
     {
-        $loginuser = \Admin::user();
-        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
+        \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('verify_code', $verify_code)
             ->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type)
             ->where('email', $loginuser->email)

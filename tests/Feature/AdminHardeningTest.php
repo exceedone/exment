@@ -62,7 +62,7 @@ class AdminHardeningTest extends FeatureTestBase
     protected function fileWithoutRecord(): File
     {
         $uuid = make_uuid();
-        \DB::table('files')->insert([
+        \Illuminate\Support\Facades\DB::table('files')->insert([
             'uuid' => $uuid,
             'file_type' => 1,
             'local_dirname' => 'hardening',

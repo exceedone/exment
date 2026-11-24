@@ -102,7 +102,7 @@ class CheckLoggingEnabled
             return null;
         }
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $email = isset($user) && isset($user->base_user) ? $user->base_user->getValue('email') : null;
 
         $summary = sprintf(

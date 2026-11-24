@@ -550,7 +550,7 @@ class FileShareTest extends FeatureTestBase
         $plain = strval($link->plainToken());
         $this->assertSame(ShareLinks::TOKEN_LENGTH, strlen($plain));
 
-        $row = \DB::table('file_share_links')->where('id', $link->id)->first();
+        $row = \Illuminate\Support\Facades\DB::table('file_share_links')->where('id', $link->id)->first();
         $this->assertSame(hash('sha256', $plain), $row->token, 'only the sha256 is kept');
         $this->assertStringNotContainsString($plain, strval($row->token_encrypted), 'the copy is encrypted');
         $this->assertNotNull(ShareLinks::resolve($plain));
@@ -559,9 +559,9 @@ class FileShareTest extends FeatureTestBase
 
         // a link made before: the migration moves its token, and it still opens
         $legacy = Str::random(ShareLinks::TOKEN_LENGTH);
-        \DB::table('file_share_links')->where('id', $link->id)->update(['token' => $legacy, 'token_encrypted' => null]);
+        \Illuminate\Support\Facades\DB::table('file_share_links')->where('id', $link->id)->update(['token' => $legacy, 'token_encrypted' => null]);
         (require base_path('vendor/exceedone/exment/database/migrations/2026_11_30_000000_hash_file_share_link_tokens.php'))->up();
-        $this->assertSame(hash('sha256', $legacy), \DB::table('file_share_links')->where('id', $link->id)->value('token'));
+        $this->assertSame(hash('sha256', $legacy), \Illuminate\Support\Facades\DB::table('file_share_links')->where('id', $link->id)->value('token'));
         $this->assertNotNull(ShareLinks::resolve($legacy));
         $this->assertStringEndsWith('/' . $legacy, strval(FileShareLink::query()->findOrFail($link->id)->url()));
     }

@@ -36,7 +36,7 @@ class SafetyCheckController extends AdminControllerBase
      */
     protected function authorizeSystemAdmin(): void
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$user || !$user->hasPermission(Permission::SYSTEM)) {
             abort(403);
         }
@@ -281,7 +281,7 @@ EOT;
 
     public static function sendLockKey(): string
     {
-        return 'safety_check_send.' . \Exment::getUserId();
+        return 'safety_check_send.' . \Exceedone\Exment\Facades\ExmentFacade::getUserId();
     }
 
     /**
@@ -325,7 +325,7 @@ EOT;
             $throttle = (int) System::safety_check_resend_throttle_minutes();
             if ($throttle > 0) {
                 $cutoff = now()->subMinutes($throttle)->format('Y-m-d H:i:s');
-                $reserved = \DB::table(getDBTableName($eventTable))
+                $reserved = \Illuminate\Support\Facades\DB::table(getDBTableName($eventTable))
                     ->where('id', $event->id)
                     ->where(function ($query) use ($cutoff) {
                         $query->whereNull('value->resent_at')

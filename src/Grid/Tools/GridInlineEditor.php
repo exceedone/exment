@@ -167,7 +167,7 @@ class GridInlineEditor extends AbstractTool
             'csrf' => csrf_token(),
             // The date editor uses Exment's own calendar, which follows the
             // locale it is given rather than the browser's.
-            'locale' => \App::getLocale(),
+            'locale' => \Illuminate\Support\Facades\App::getLocale(),
             'columns' => $columns,
             'labels' => [
                 'saving' => exmtrans('common.grid_inline_saving'),

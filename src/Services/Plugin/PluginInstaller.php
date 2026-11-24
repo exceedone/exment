@@ -14,8 +14,8 @@ use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Storage\Disk\DiskServiceItem;
 use ZipArchive;
-use File;
-use Validator;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Plugin Installer
@@ -221,19 +221,19 @@ class PluginInstaller
             return true;
         }
 
-        if (!\File::exists($dir) || empty(\File::glob(path_join($dir, '*.php')))) {
+        if (!\Illuminate\Support\Facades\File::exists($dir) || empty(\Illuminate\Support\Facades\File::glob(path_join($dir, '*.php')))) {
             return true;
         }
 
         try {
-            \Artisan::call('migrate', [
+            \Illuminate\Support\Facades\Artisan::call('migrate', [
                 '--path' => $dir,
                 '--realpath' => true,
                 '--force' => true,
             ]);
             return true;
         } catch (\Throwable $e) {
-            \Log::error('Plugin migration failed for ' . $plugin->plugin_name . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::error('Plugin migration failed for ' . $plugin->plugin_name . ': ' . $e->getMessage());
             return false;
         }
     }
@@ -333,7 +333,7 @@ class PluginInstaller
                         // @phpstan-ignore-next-line
                         static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                     } catch (\Throwable $e) {
-                        \Log::error('PluginInstaller: upload failed for plugin [' . ($plugin->plugin_name ?? '') . ']: ', [
+                        \Illuminate\Support\Facades\Log::error('PluginInstaller: upload failed for plugin [' . ($plugin->plugin_name ?? '') . ']: ', [
                             'e' => $e,
                             'trace' => $e->getTraceAsString(),
                         ]);
@@ -355,7 +355,7 @@ class PluginInstaller
                         // @phpstan-ignore-next-line
                         static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
                     } catch (\Throwable $e) {
-                        \Log::error('PluginInstaller: upload failed for plugin [' . ($plugin->plugin_name ?? '') . ']: ', [
+                        \Illuminate\Support\Facades\Log::error('PluginInstaller: upload failed for plugin [' . ($plugin->plugin_name ?? '') . ']: ', [
                             'e' => $e,
                             'trace' => $e->getTraceAsString(),
                         ]);
@@ -490,7 +490,7 @@ class PluginInstaller
         $filelist = collect($files)->mapWithKeys(function ($file) use ($pluginFolderPath, $pluginFileBasepath) {
             // get moved file name
             $movedFileName = str_replace($pluginFileBasepath, '', $file);
-            $movedFileName = str_replace(\Exment::replaceBackToSlash($pluginFileBasepath), '', $movedFileName);
+            $movedFileName = str_replace(\Exceedone\Exment\Facades\ExmentFacade::replaceBackToSlash($pluginFileBasepath), '', $movedFileName);
             // @phpstan-ignore-next-line
             $movedFileName = trim($movedFileName, '/');
             $movedFileName = trim($movedFileName, '\\');

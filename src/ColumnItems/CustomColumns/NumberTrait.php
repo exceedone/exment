@@ -98,7 +98,7 @@ trait NumberTrait
         /** @phpstan-ignore-next-line */
         $form->valueModal('calc_formula', exmtrans("custom_column.options.calc_formula"))
             /** @phpstan-ignore-next-line */
-            ->help(exmtrans("custom_column.help.calc_formula") . \Exment::getMoreTag('column', 'custom_column.options.calc_formula'))
+            ->help(exmtrans("custom_column.help.calc_formula") . \Exceedone\Exment\Facades\ExmentFacade::getMoreTag('column', 'custom_column.options.calc_formula'))
             /** @phpstan-ignore-next-line */
             ->ajax(admin_urls('column', $custom_table->table_name, $id, 'calcModal'))
             ->modalContentname('options_calc_formula')

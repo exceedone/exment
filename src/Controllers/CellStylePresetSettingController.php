@@ -41,7 +41,7 @@ class CellStylePresetSettingController extends AdminControllerBase
      */
     public function callAction($method, $parameters)
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user) || !$user->hasPermission(Permission::SYSTEM)) {
             Checker::error();
             return response('');

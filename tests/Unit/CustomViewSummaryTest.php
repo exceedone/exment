@@ -970,7 +970,7 @@ class CustomViewSummaryTest extends UnitTestBase
     // @phpstan-ignore-next-line
     public function testFuncSummaryChildOrder2()
     {
-        if (\Exment::isSqlServer()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
             $this->markTestSkipped('SQL Serverでは対象外のテストです。');
         }
 

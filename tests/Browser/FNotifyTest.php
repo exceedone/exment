@@ -87,8 +87,8 @@ class FNotifyTest extends ExmentKitTestCase
      */
     public function testNotifyButtonPost()
     {
-        \Notification::fake();
-        \Notification::assertNothingSent();
+        \Illuminate\Support\Facades\Notification::fake();
+        \Illuminate\Support\Facades\Notification::assertNothingSent();
 
         // get value
         $custom_table = Model\CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);

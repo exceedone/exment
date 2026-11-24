@@ -149,11 +149,11 @@ abstract class ExmentKitTestCase extends BaseTestCase
         $userTable = \Exceedone\Exment\Model\CustomTable::getEloquent('user');
         if (!$userTable) {
             // Try to seed again
-            \Artisan::call('db:seed', [
+            \Illuminate\Support\Facades\Artisan::call('db:seed', [
                 '--class' => 'Exceedone\\Exment\\Database\\Seeder\\InstallSeeder',
                 '--force' => true
             ]);
-            \Artisan::call('db:seed', [
+            \Illuminate\Support\Facades\Artisan::call('db:seed', [
                 '--class' => 'Exceedone\\Exment\\Database\\Seeder\\TestDataSeeder',
                 '--force' => true
             ]);

@@ -108,7 +108,7 @@ class ExactSelectOption extends PageConstraint
      */
     protected function contains2Array($testArr1, $targetArr2): bool
     {
-        return \Exment::isContains2Array($testArr1, $targetArr2);
+        return \Exceedone\Exment\Facades\ExmentFacade::isContains2Array($testArr1, $targetArr2);
     }
 
     /**

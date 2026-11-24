@@ -116,7 +116,7 @@ class RoleGroupPermissionProvider extends ProviderBase
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
-        $validator = \Validator::make($data, $rules);
+        $validator = \Illuminate\Support\Facades\Validator::make($data, $rules);
         if ($validator->fails()) {
             // create error message
             foreach ($validator->getMessages() as $message) {

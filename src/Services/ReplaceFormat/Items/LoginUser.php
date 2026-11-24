@@ -19,7 +19,7 @@ class LoginUser extends ItemBase
 
         $column_name = $this->length_array[1];
 
-        $login_user = \Exment::user()?\Exment::user()->base_user: null;
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user()?\Exceedone\Exment\Facades\ExmentFacade::user()->base_user: null;
         if ($login_user) {
             return $login_user->getValue($column_name, true);
         }

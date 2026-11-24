@@ -90,7 +90,7 @@ class HPluginPageTest extends ExmentKitTestCase
 
         /** @var CustomValue $data */
         $data = CustomTable::getEloquent('custom_value_edit_all')
-                    ->getValueModel()->where('value->user', \Exment::user()->base_user->id)->first();
+                    ->getValueModel()->where('value->user', \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id)->first();
         $box = DashboardBox::where('dashboard_box_view_name', 'unit test box')->first();
 
         $integer = $data->getValue('integer');

@@ -27,6 +27,6 @@ class DayYesterday extends DayOnBase
      */
     protected function _compareValue($value, $conditionValue): bool
     {
-        return \Exment::getCarbonOnlyDay($value)->eq(\Exceedone\Exment\Services\UserTimezone::today()->subDay());
+        return \Exceedone\Exment\Facades\ExmentFacade::getCarbonOnlyDay($value)->eq(\Exceedone\Exment\Services\UserTimezone::today()->subDay());
     }
 }

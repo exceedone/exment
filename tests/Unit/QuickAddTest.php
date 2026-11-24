@@ -83,7 +83,7 @@ class QuickAddTest extends UnitTestBase
     private function setColumnOptions(string $column_name, array $options): void
     {
         $column = CustomColumn::getEloquent($column_name, $this->table());
-        \DB::table('custom_columns')->where('id', $column->id)
+        \Illuminate\Support\Facades\DB::table('custom_columns')->where('id', $column->id)
             ->update(['options' => json_encode(array_merge($column->options ?? [], $options))]);
         System::clearCache();
     }

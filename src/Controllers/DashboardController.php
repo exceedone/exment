@@ -164,7 +164,7 @@ class DashboardController extends AdminControllerBase
     public function home(Request $request, Content $content)
     {
         // check permission. if not permission, show message
-        if (\Exment::user()->noPermission()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::user()->noPermission()) {
             admin_warning(trans('admin.deny'), exmtrans('common.help.no_permission'));
         }
         // if system admin, check version
@@ -233,7 +233,7 @@ class DashboardController extends AdminControllerBase
         $charts = Admin::user() ? Admin::user()->getSettingValue('dashboard_chart.' . $this->dashboard->suuid) : null;
         // the bundle is cached by the browser (dashboard.js fetches it with cache: true), so its
         // URL carries the version the way Bootstrap's script list does, and an upgrade is fetched
-        $ver = \Exment::getExmentCurrentVersion() ?? date('YmdHis');
+        $ver = \Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion() ?? date('YmdHis');
         $init = [
             'lang' => $lang,
             'charts' => is_array($charts) ? $charts : new \stdClass(),
@@ -605,7 +605,7 @@ class DashboardController extends AdminControllerBase
                     'dashboard_suuid' => $this->dashboard->suuid,
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
                     'icons' => $icons,
-                    'attributes' => \Exment::formatAttributes($attributes),
+                    'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes($attributes),
                     'box_height' => $box_height,
                 ]));
             }
@@ -638,7 +638,7 @@ class DashboardController extends AdminControllerBase
      */
     protected function showAdminNotices(): void
     {
-        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::SYSTEM)) {
             return;
         }
         try {
@@ -657,7 +657,7 @@ class DashboardController extends AdminControllerBase
                 admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link . $only . static::noticesKnownScript());
             }
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
         }
     }
 
@@ -681,7 +681,7 @@ class DashboardController extends AdminControllerBase
     protected function showVersionUpdate()
     {
         // if system admin, check version
-        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::SYSTEM)) {
             return;
         }
 
@@ -689,10 +689,10 @@ class DashboardController extends AdminControllerBase
             return;
         }
 
-        $versionCheck = \Exment::checkLatestVersion();
+        $versionCheck = \Exceedone\Exment\Facades\ExmentFacade::checkLatestVersion();
         if ($versionCheck === SystemVersion::HAS_NEXT) {
-            list($latest, $current) = \Exment::getExmentVersion();
-            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. esc_html(\Exment::versionUpdateUrl()).'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
+            list($latest, $current) = \Exceedone\Exment\Facades\ExmentFacade::getExmentVersion();
+            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. esc_html(\Exceedone\Exment\Facades\ExmentFacade::versionUpdateUrl()).'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
         }
     }
 

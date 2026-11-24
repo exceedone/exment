@@ -98,7 +98,7 @@ class WorkflowTaskWiringTest extends TestCase
     {
         $api = null;
         $webapi = null;
-        foreach (\Route::getRoutes()->getRoutes() as $route) {
+        foreach (\Illuminate\Support\Facades\Route::getRoutes()->getRoutes() as $route) {
             if (!str_ends_with($route->uri(), '/workflowTaskPage')) {
                 continue;
             }
@@ -303,7 +303,7 @@ class WorkflowTaskWiringTest extends TestCase
         // the endpoint answers from the cache, keyed by the service, for one poll interval
         $this->assertStringContainsString('WorkflowTaskService::navbarCacheKey()', $api);
         $this->assertStringContainsString(
-            '\Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\WorkflowTaskNav::interval()',
+            '\Illuminate\Support\Facades\Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\WorkflowTaskNav::interval()',
             $api
         );
 

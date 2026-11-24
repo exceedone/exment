@@ -187,16 +187,16 @@ class MenuTitleLocaleTest extends UnitTestBase
         $this->be(\Exceedone\Exment\Model\LoginUser::find(1));
         $titles = $this->templateTitles();
         $stored = [];
-        foreach (\DB::table((new Menu())->getTable())->whereIn('menu_type', [MenuType::SYSTEM, MenuType::PARENT_NODE])->get() as $menu) {
+        foreach (\Illuminate\Support\Facades\DB::table((new Menu())->getTable())->whereIn('menu_type', [MenuType::SYSTEM, MenuType::PARENT_NODE])->get() as $menu) {
             $stored[intval($menu->id)] = (array) $menu;
         }
         $this->assertNotEmpty($stored);
 
-        $before = \App::getLocale();
+        $before = \Illuminate\Support\Facades\App::getLocale();
         try {
             $seen = 0;
             foreach (['en', 'ja', 'vi'] as $locale) {
-                \App::setLocale($locale);
+                \Illuminate\Support\Facades\App::setLocale($locale);
                 foreach ((new Menu())->allNodes() as $node) {
                     $row = array_get($stored, intval($node['id']));
                     if (!isset($row)) {
@@ -217,7 +217,7 @@ class MenuTitleLocaleTest extends UnitTestBase
             }
             $this->assertGreaterThan(0, $seen, 'the site has menus with a title of the install template');
         } finally {
-            \App::setLocale($before);
+            \Illuminate\Support\Facades\App::setLocale($before);
         }
     }
 
@@ -225,23 +225,23 @@ class MenuTitleLocaleTest extends UnitTestBase
     {
         $this->be(\Exceedone\Exment\Model\LoginUser::find(1));
         $table = (new Menu())->getTable();
-        $menu = \DB::table($table)->where('menu_type', MenuType::SYSTEM)->where('menu_name', 'home')->first();
+        $menu = \Illuminate\Support\Facades\DB::table($table)->where('menu_type', MenuType::SYSTEM)->where('menu_name', 'home')->first();
         $this->assertNotNull($menu);
-        $before = \App::getLocale();
-        \DB::beginTransaction();
+        $before = \Illuminate\Support\Facades\App::getLocale();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         try {
-            \DB::table($table)->where('id', $menu->id)->update(['title' => 'Changed by the administrator']);
+            \Illuminate\Support\Facades\DB::table($table)->where('id', $menu->id)->update(['title' => 'Changed by the administrator']);
             \Exceedone\Exment\Services\MenuVisibility::forgetRows();
             \Exceedone\Exment\Model\System::clearRequestSession();
             foreach (['en', 'ja', 'de'] as $locale) {
-                \App::setLocale($locale);
+                \Illuminate\Support\Facades\App::setLocale($locale);
                 $node = collect((new Menu())->allNodes())->firstWhere('id', $menu->id);
                 $this->assertNotNull($node);
                 $this->assertSame('Changed by the administrator', $node['title'], $locale);
             }
         } finally {
-            \DB::rollBack();
-            \App::setLocale($before);
+            \Illuminate\Support\Facades\DB::rollBack();
+            \Illuminate\Support\Facades\App::setLocale($before);
             \Exceedone\Exment\Services\MenuVisibility::forgetRows();
             \Exceedone\Exment\Model\System::clearRequestSession();
         }

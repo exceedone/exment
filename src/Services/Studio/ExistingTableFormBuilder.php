@@ -30,7 +30,7 @@ class ExistingTableFormBuilder
     public static function tables(): array
     {
         // kept for the request (System::clearRequestSession() forgets it), per user
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $key = 'studio_existing_tables_' . (isset($user) ? $user->base_user_id : '');
         return System::requestSession($key, function () {
             return static::readTables();

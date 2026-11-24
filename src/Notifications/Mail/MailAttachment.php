@@ -38,7 +38,7 @@ class MailAttachment
      */
     public function getFullPath(): ?string
     {
-        return \Storage::disk(Define::DISKNAME_ADMIN)->path($this->path);
+        return \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN)->path($this->path);
     }
 
     /**
@@ -48,7 +48,7 @@ class MailAttachment
      */
     public function getFile()
     {
-        return \Storage::disk(Define::DISKNAME_ADMIN)->get($this->path);
+        return \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN)->get($this->path);
     }
 
     /**

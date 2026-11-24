@@ -572,7 +572,7 @@ class Define
     public static function FILE_OPTION()
     {
         // get max size
-        $maxSize = \Exment::getUploadMaxFileSize();
+        $maxSize = \Exceedone\Exment\Facades\ExmentFacade::getUploadMaxFileSize();
 
         return [
             'showPreview' => true,

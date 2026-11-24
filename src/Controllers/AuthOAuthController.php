@@ -48,14 +48,14 @@ class AuthOAuthController extends \ExmentAdminCore\Admin\Controllers\AuthControl
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             if ($ex->hasAdminError()) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
 
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => exmtrans('login.sso_provider_error')]
             );
@@ -107,14 +107,14 @@ class AuthOAuthController extends \ExmentAdminCore\Admin\Controllers\AuthControl
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             if ($ex->hasAdminError()) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
 
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => exmtrans('login.sso_provider_error')]
             );

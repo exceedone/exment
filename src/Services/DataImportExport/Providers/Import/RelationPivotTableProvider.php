@@ -92,16 +92,16 @@ class RelationPivotTableProvider extends ProviderBase
         $table_name = $this->relation->getRelationName();
 
         // get target id(cannot use Eloquent because not define)
-        $id = \DB::table($table_name)
+        $id = \Illuminate\Support\Facades\DB::table($table_name)
             ->where('parent_id', array_get($data, 'parent_id'))
             ->where('child_id', array_get($data, 'child_id'))
             ->first()->id ?? null;
 
         // if delete
         if (isset($id) && $delete) {
-            \DB::table($table_name)->where('id', $id)->delete();
+            \Illuminate\Support\Facades\DB::table($table_name)->where('id', $id)->delete();
         } elseif (!isset($id)) {
-            \DB::table($table_name)->insert($data);
+            \Illuminate\Support\Facades\DB::table($table_name)->insert($data);
         } else {
             return;
         }

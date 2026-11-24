@@ -209,7 +209,7 @@ class ExtendedBuilderPaginateTest extends UnitTestBase
      */
     protected function skipIfNotMysql(): void
     {
-        $driver = \DB::connection()->getDriverName();
+        $driver = \Illuminate\Support\Facades\DB::connection()->getDriverName();
         if (!in_array($driver, ['mysql', 'mariadb'], true)) {
             $this->markTestSkipped('FIND_IN_SET is available only on MySQL / MariaDB.');
         }

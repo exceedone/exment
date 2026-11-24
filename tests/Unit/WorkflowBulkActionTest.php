@@ -99,7 +99,7 @@ class WorkflowBulkActionTest extends UnitTestBase
             99999999 => WorkflowBulkService::SKIP_NOT_FOUND,
         ], $result['skipped']);
 
-        $middle = \DB::table('workflow_statuses')->where('workflow_id', $action->workflow_id)->where('status_name', 'middle')->value('id');
+        $middle = \Illuminate\Support\Facades\DB::table('workflow_statuses')->where('workflow_id', $action->workflow_id)->where('status_name', 'middle')->value('id');
         foreach ($runnable as $id) {
             $this->assertEquals($middle, $this->statusOf($id), "record $id is at middle");
             $this->assertSame('bulk', WorkflowValue::where('morph_type', 'custom_value_edit_all')->where('morph_id', $id)
@@ -166,7 +166,7 @@ class WorkflowBulkActionTest extends UnitTestBase
             ->where('latest_flg', true)->first();
         $this->assertEquals(
             [$user1],
-            \DB::table('workflow_value_authorities')->where('workflow_value_id', $value->id)->where('related_type', 'user')->pluck('related_id')->map(function ($id) {
+            \Illuminate\Support\Facades\DB::table('workflow_value_authorities')->where('workflow_value_id', $value->id)->where('related_type', 'user')->pluck('related_id')->map(function ($id) {
                 return (int)$id;
             })->all()
         );

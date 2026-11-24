@@ -125,7 +125,7 @@ class MaintenanceModeTest extends FeatureTestBase
         $this->assertSame(strval(MaintenanceMode::RETRY_AFTER_DEFAULT), $page->headers->get('Retry-After'));
         $this->assertStringContainsString(e(MaintenanceMode::message($state)), strval($page->getContent()));
         // user1 was logged out: the login does not stay for after
-        $this->assertNull(\Auth::guard('admin')->user());
+        $this->assertNull(\Illuminate\Support\Facades\Auth::guard('admin')->user());
 
         // ajax gets JSON
         $this->be($user1);

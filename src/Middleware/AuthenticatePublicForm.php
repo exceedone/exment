@@ -19,7 +19,7 @@ class AuthenticatePublicForm extends Middleware
     public function authenticate($request, array $guards)
     {
         if ($this->auth->guard(Define::AUTHENTICATE_KEY_PUBLIC_FORM)->check()) {
-            \Exment::setGuard(Define::AUTHENTICATE_KEY_PUBLIC_FORM);
+            \Exceedone\Exment\Facades\ExmentFacade::setGuard(Define::AUTHENTICATE_KEY_PUBLIC_FORM);
         } else {
             throw new \Exceedone\Exment\Exceptions\PublicFormNotFoundException();
         }

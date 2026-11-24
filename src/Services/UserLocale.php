@@ -276,7 +276,7 @@ class UserLocale
      */
     public static function apply(string $locale): void
     {
-        \App::setLocale($locale);
+        \Illuminate\Support\Facades\App::setLocale($locale);
         static::aliasAdminLang($locale);
         try {
             \Carbon\Carbon::setLocale($locale);
@@ -338,7 +338,7 @@ class UserLocale
         $locale = static::forUser($user) ?? static::match(static::siteDefault()) ?? static::siteDefault();
         $timezone = UserTimezone::forUser($user);
 
-        $beforeLocale = \App::getLocale();
+        $beforeLocale = \Illuminate\Support\Facades\App::getLocale();
         $beforeTimezone = UserTimezone::current();
         static::apply($locale);
         UserTimezone::setCurrent($timezone);

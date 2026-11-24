@@ -131,7 +131,7 @@ class PluginItem implements ItemInterface
         }
 
         // if not access permission
-        if (!\Exment::user()->hasPermissionPlugin($this->plugin, Permission::PLUGIN_ACCESS)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermissionPlugin($this->plugin, Permission::PLUGIN_ACCESS)) {
             return trans('admin.deny');
         }
 

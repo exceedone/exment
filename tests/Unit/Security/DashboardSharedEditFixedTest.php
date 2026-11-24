@@ -240,7 +240,7 @@ class DashboardSharedEditFixedTest extends SecurityRegressionTestCase
                 continue;
             }
             $this->asUser($login);
-            if (\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::SYSTEM)) {
                 continue;
             }
             if ($hiddenTable === null || !CustomTable::getEloquent($hiddenTable)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {

@@ -73,7 +73,7 @@ class ClassLoader
                 require_once $file;
             } catch (\Throwable $th) {
                 admin_error_once(exmtrans('common.error'), exmtrans('error.class_load_error', $file, $th->getMessage()));
-                \Log::error($th);
+                \Illuminate\Support\Facades\Log::error($th);
             }
         }
     }
@@ -97,7 +97,7 @@ class ClassLoader
 
         foreach ([$defaultClassPath, $removingClassPath] as $path) {
             $file = path_join_os($dir, $path);
-            $file = \Exment::replaceOsSeparator($file);
+            $file = \Exceedone\Exment\Facades\ExmentFacade::replaceOsSeparator($file);
 
             if (!is_readable($file)) {
                 continue;

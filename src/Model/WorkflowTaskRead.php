@@ -23,7 +23,7 @@ class WorkflowTaskRead extends ModelBase
         // The service already filters on target_user_id, but a future query that forgets to
         // would otherwise expose (or overwrite) another user's state.
         static::addGlobalScope('target_user', function ($builder) {
-            return $builder->where('target_user_id', \Exment::getUserId());
+            return $builder->where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId());
         });
     }
 }

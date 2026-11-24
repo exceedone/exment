@@ -32,7 +32,7 @@ class DisplayFieldArrayValueTest extends TestCase
      */
     private function bootAdmin(): void
     {
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
     }

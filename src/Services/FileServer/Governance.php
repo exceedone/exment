@@ -263,7 +263,7 @@ class Governance
                     Audit::log(Audit::RETENTION_DELETE, $workspace, $node, null, ['days' => intval($workspace->retention_days)]);
                     $count++;
                 } catch (\Throwable $e) {
-                    \Log::warning('[FileServer] retention of node ' . $node->id . ': ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::warning('[FileServer] retention of node ' . $node->id . ': ' . $e->getMessage());
                 }
             }
         }

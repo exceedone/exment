@@ -70,7 +70,7 @@ class PluginNamespaceRule implements Rule
             $dirPath = path_rtrim($basePath, $baseName);
 
             // get namespace
-            $namespaces = array_filter(explode('/', \Exment::replaceBackToSlash($dirPath)));
+            $namespaces = array_filter(explode('/', \Exceedone\Exment\Facades\ExmentFacade::replaceBackToSlash($dirPath)));
 
             $topDirectory = strtolower((string)reset($namespaces));
             if (in_array($topDirectory, self::NON_NAMESPACED_DIRECTORIES, true)) {

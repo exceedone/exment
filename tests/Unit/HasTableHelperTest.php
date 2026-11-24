@@ -57,11 +57,11 @@ class HasTableHelperTest extends UnitTestBase
     {
         $this->assertContains(
             \Exceedone\Exment\Database\Schema\BuilderTrait::class,
-            class_uses_recursive(\Schema::getFacadeRoot()),
+            class_uses_recursive(\Illuminate\Support\Facades\Schema::getFacadeRoot()),
             'The default connection must use Exment\'s schema builder.'
         );
 
-        $listed = \Schema::getTableListing();
+        $listed = \Illuminate\Support\Facades\Schema::getTableListing();
         $this->assertContains(SystemTableName::CUSTOM_TABLE, $listed);
         foreach ($listed as $name) {
             $this->assertIsString($name);
@@ -105,9 +105,9 @@ class HasTableHelperTest extends UnitTestBase
      */
     public function testAgreesWithTheSchemaBuilder()
     {
-        $this->assertSame(\Schema::hasTable(SystemTableName::CUSTOM_TABLE), hasTable(SystemTableName::CUSTOM_TABLE));
+        $this->assertSame(\Illuminate\Support\Facades\Schema::hasTable(SystemTableName::CUSTOM_TABLE), hasTable(SystemTableName::CUSTOM_TABLE));
         $this->assertSame(
-            \Schema::hasTable('no_such_table_for_has_table_helper'),
+            \Illuminate\Support\Facades\Schema::hasTable('no_such_table_for_has_table_helper'),
             hasTable('no_such_table_for_has_table_helper')
         );
 

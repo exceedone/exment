@@ -79,7 +79,7 @@ class UserBelongOrganizationItem extends ProviderBase
         // get relation name
         $relationName = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
 
-        \Schema::insertDelete($relationName, $belong_organizations, [
+        \Illuminate\Support\Facades\Schema::insertDelete($relationName, $belong_organizations, [
             'dbValueFilter' => function (&$model) use ($id) {
                 $model->where('child_id', $id);
             },

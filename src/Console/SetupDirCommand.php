@@ -54,7 +54,7 @@ class SetupDirCommand extends AdminInstallCommand
         }
 
         // If not Windows, get user and group
-        if (!\Exment::isWindows()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::isWindows()) {
             $user = $this->option('user');
             if (!$user) {
                 $current_user = get_current_user();
@@ -111,13 +111,13 @@ class SetupDirCommand extends AdminInstallCommand
     public static function createSystemFolder(?string $user, ?string $group, bool $easy = false)
     {
         // create storage/app/purifier
-        \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier')));
-        \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'HTML')));
-        \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'CSS')));
-        \Exment::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'URI')));
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory(base_path(path_join('storage', 'app', 'purifier')));
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'HTML')));
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'CSS')));
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory(base_path(path_join('storage', 'app', 'purifier', 'URI')));
 
         // Add permission if linux
-        if (!\Exment::isWindows()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::isWindows()) {
             static::addPermission('', $user, $group, false);
 
             static::addPermission('storage', $user, $group);
@@ -161,8 +161,8 @@ class SetupDirCommand extends AdminInstallCommand
     {
         $path = base_path($path);
 
-        if (\File::isDirectory($path)) {
-            $dirs = \Exment::allDirectories($path);
+        if (\Illuminate\Support\Facades\File::isDirectory($path)) {
+            $dirs = \Exceedone\Exment\Facades\ExmentFacade::allDirectories($path);
             foreach ($dirs as $dir) {
                 chown($dir, $user);
                 chgrp($dir, $group);
@@ -174,7 +174,7 @@ class SetupDirCommand extends AdminInstallCommand
             // Change mod self
             chmod($path, 02775);
 
-            $files = \File::allFiles($path, true);
+            $files = \Illuminate\Support\Facades\File::allFiles($path, true);
             foreach ($files as $file) {
                 chown($file, $user);
                 chgrp($file, $group);
@@ -182,7 +182,7 @@ class SetupDirCommand extends AdminInstallCommand
                     chmod($file, 0664);
                 }
             }
-        } elseif (\File::exists($path)) {
+        } elseif (\Illuminate\Support\Facades\File::exists($path)) {
             chown($path, $user);
             chgrp($path, $group);
             if ($isMod) {
@@ -201,8 +201,8 @@ class SetupDirCommand extends AdminInstallCommand
     {
         $path = base_path($path);
 
-        if (\File::isDirectory($path)) {
-            $dirs = \Exment::allDirectories($path);
+        if (\Illuminate\Support\Facades\File::isDirectory($path)) {
+            $dirs = \Exceedone\Exment\Facades\ExmentFacade::allDirectories($path);
             foreach ($dirs as $dir) {
                 chmod($dir, 02755);
             }
@@ -210,11 +210,11 @@ class SetupDirCommand extends AdminInstallCommand
             // Change mod self
             chmod($path, 02755);
 
-            $files = \File::allFiles($path);
+            $files = \Illuminate\Support\Facades\File::allFiles($path);
             foreach ($files as $file) {
                 chmod($file, 0644);
             }
-        } elseif (\File::exists($path)) {
+        } elseif (\Illuminate\Support\Facades\File::exists($path)) {
             chmod($path, 0644);
         }
     }

@@ -64,7 +64,7 @@ class CustomOperationController extends AdminControllerTableBase
         if (!$this->hasSystemPermission()) {
             $operation = CustomOperation::getEloquent($id);
 
-            if ($operation->created_user_id != \Exment::getUserId()) {
+            if ($operation->created_user_id != \Exceedone\Exment\Facades\ExmentFacade::getUserId()) {
                 Checker::error();
                 return false;
             }
@@ -105,7 +105,7 @@ class CustomOperationController extends AdminControllerTableBase
             })->implode(exmtrans('common.separate_word'));
         });
         $grid->column('active_flg', exmtrans("custom_operation.active_flg"))->display(function ($active_flg) {
-            return \Exment::getTrueMark($active_flg);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($active_flg);
         })->escape(false);
 
         $grid->model()->where('custom_table_id', $this->custom_table->id);

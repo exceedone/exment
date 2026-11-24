@@ -27,7 +27,7 @@ class VersionSecurity extends SecurityBase
     {
         if (!isset($this->exment)) {
             try {
-                $this->exment = \Exment::checkLatestVersion();
+                $this->exment = \Exceedone\Exment\Facades\ExmentFacade::checkLatestVersion();
             } catch (\Throwable $e) {
                 $this->exment = SystemVersion::ERROR;
             }
@@ -63,7 +63,7 @@ class VersionSecurity extends SecurityBase
         $items = [];
         list($latest, $current) = [null, null];
         try {
-            list($latest, $current) = \Exment::getExmentVersion();
+            list($latest, $current) = \Exceedone\Exment\Facades\ExmentFacade::getExmentVersion();
         } catch (\Throwable $e) {
         }
         $items[] = 'Exment ' . ($current ?? '-') . ($this->exment() == SystemVersion::HAS_NEXT ? ' → ' . $latest : '');

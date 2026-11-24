@@ -36,7 +36,7 @@ class EBackupDataTest extends ExmentKitTestCase
         ;
 
         try {
-            !\ExmentDB::checkBackup();
+            !\Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
         // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
@@ -63,7 +63,7 @@ class EBackupDataTest extends ExmentKitTestCase
     public function testDisplayBackupData()
     {
         try {
-            !\ExmentDB::checkBackup();
+            !\Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
         // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
@@ -124,7 +124,7 @@ class EBackupDataTest extends ExmentKitTestCase
     public function testBackupConfigSave()
     {
         try {
-            !\ExmentDB::checkBackup();
+            !\Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
         // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
@@ -183,7 +183,7 @@ class EBackupDataTest extends ExmentKitTestCase
     public function testBackupNoTarget()
     {
         try {
-            !\ExmentDB::checkBackup();
+            !\Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
         // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
@@ -219,7 +219,7 @@ class EBackupDataTest extends ExmentKitTestCase
     protected function backupData()
     {
         try {
-            !\ExmentDB::checkBackup();
+            !\Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
         // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);
@@ -248,7 +248,7 @@ class EBackupDataTest extends ExmentKitTestCase
     protected function restoreData()
     {
         try {
-            !\ExmentDB::checkBackup();
+            !\Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
         // @phpstan-ignore-next-line
         } catch (BackupRestoreCheckException $ex) {
             $this->assertTrue(true);

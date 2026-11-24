@@ -41,7 +41,7 @@ class VersionCommand extends Command
      */
     public function handle()
     {
-        $this->line(\Exment::getExmentCurrentVersion());
+        $this->line(\Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion());
         return 0;
     }
 }

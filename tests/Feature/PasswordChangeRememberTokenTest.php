@@ -32,7 +32,7 @@ class PasswordChangeRememberTokenTest extends FeatureTestBase
         $this->initAllTest();
 
         // the token of a "remember me" cookie issued before
-        \DB::table('login_users')
+        \Illuminate\Support\Facades\DB::table('login_users')
             ->where('id', TestDefine::TESTDATA_USER_LOGINID_ADMIN)
             ->update(['remember_token' => self::OLD_TOKEN]);
         $this->assertNotNull($this->retrieveByOldToken(), 'the cookie signs in before the password is changed');
@@ -60,7 +60,7 @@ class PasswordChangeRememberTokenTest extends FeatureTestBase
             $login_user = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         }
         $this->assertNotEmpty($login_user->email);
-        $token = \Password::broker('exment_admins')->createToken($login_user);
+        $token = \Illuminate\Support\Facades\Password::broker('exment_admins')->createToken($login_user);
 
         $new = 'Reset-Flow-1734!';
         $this->withoutMiddleware(VerifyCsrfToken::class)
@@ -115,7 +115,7 @@ class PasswordChangeRememberTokenTest extends FeatureTestBase
      */
     private function stored(string $column)
     {
-        return \DB::table('login_users')->where('id', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->value($column);
+        return \Illuminate\Support\Facades\DB::table('login_users')->where('id', TestDefine::TESTDATA_USER_LOGINID_ADMIN)->value($column);
     }
 
     /**

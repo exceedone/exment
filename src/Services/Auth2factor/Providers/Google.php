@@ -32,7 +32,7 @@ class Google
      */
     public function index()
     {
-        $loginUser = \Admin::user();
+        $loginUser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // if not available, send email
         if (!boolval($loginUser->auth2fa_available)) {
@@ -51,7 +51,7 @@ class Google
      */
     public function sendmail()
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // set 2factor params
         $verify_code = str_random(32);
@@ -90,7 +90,7 @@ class Google
         }
 
         $verify_code = $request->get('code');
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         if (!Auth2factorService::verifyCode('google', $verify_code)) {
             $this->incrementLoginAttempts($request);
@@ -158,7 +158,7 @@ class Google
 
         $verify_code = $request->get('verify_code');
         $g2fa = $this->getG2fa();
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
         $key = decrypt($loginuser->auth2fa_key);
 
         // validation google 2fa
@@ -206,7 +206,7 @@ class Google
      */
     protected function throttleKey(\Illuminate\Http\Request $request): string
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
         return '2factor|' . ($loginuser ? $loginuser->id : $request->ip());
     }
 

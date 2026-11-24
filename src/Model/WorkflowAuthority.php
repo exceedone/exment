@@ -208,7 +208,7 @@ class WorkflowAuthority extends ModelBase implements WorkflowAuthorityInterface
             ? static::templateColumnRefToId($ref)
             : static::templateUserOrgCodeToId($type, $ref);
         if (is_null($id)) {
-            \Log::warning('Exment template import: workflow authority skipped, ' . $type . ' "' . strval($ref) . '" does not exist on this system.');
+            \Illuminate\Support\Facades\Log::warning('Exment template import: workflow authority skipped, ' . $type . ' "' . strval($ref) . '" does not exist on this system.');
             return TemplateImportResult::CONITNUE;
         }
 

@@ -104,7 +104,7 @@ class ImportCommand extends Command
                 }
             }
         } catch (\Exception $e) {
-            \Log::error($e);
+            \Illuminate\Support\Facades\Log::error($e);
             $this->error($e->getMessage());
             return -1;
         }

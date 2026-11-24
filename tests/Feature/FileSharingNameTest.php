@@ -30,15 +30,15 @@ class FileSharingNameTest extends FeatureTestBase
         $this->assertSame('File sharing', $title($config['admin_menu']));
         $this->assertSame('ファイル共有', $title($lang['admin_menu']));
 
-        $current = \App::getLocale();
+        $current = \Illuminate\Support\Facades\App::getLocale();
         try {
-            \App::setLocale('ja');
+            \Illuminate\Support\Facades\App::setLocale('ja');
             $this->assertSame('ファイル共有', exmtrans('menu.system_definitions.file_server'));
             $this->assertSame('ファイル共有', exmtrans('file_server.header'));
-            \App::setLocale('en');
+            \Illuminate\Support\Facades\App::setLocale('en');
             $this->assertSame('File sharing', exmtrans('menu.system_definitions.file_server'));
         } finally {
-            \App::setLocale($current);
+            \Illuminate\Support\Facades\App::setLocale($current);
         }
     }
 

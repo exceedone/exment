@@ -55,7 +55,7 @@ class DocumentProvider extends FileColumnProvider
         $displayFileName = array_get($data, 'display_file_name') ?? array_get($data, 'file_name');
 
         // get file
-        $file = \File::get($fileFullPath);
+        $file = \Illuminate\Support\Facades\File::get($fileFullPath);
 
         // save file info
         $exmentfile = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $file, $this->custom_table->table_name, $displayFileName)

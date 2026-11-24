@@ -259,7 +259,7 @@ final class ColumnOptions
     private static function indexScannable($column): bool
     {
         // a list column's index holds whole lists, no single value to probe (liveValues)
-        return (bool) $column->index_enabled && !\Exment::isSqlServer() && !FilterValue::isMultiple($column);
+        return (bool) $column->index_enabled && !\Exceedone\Exment\Facades\ExmentFacade::isSqlServer() && !FilterValue::isMultiple($column);
     }
 
     /**
@@ -267,7 +267,7 @@ final class ColumnOptions
      */
     private static function hasTrashed(CustomTable $table): bool
     {
-        return \DB::table(getDBTableName($table))->whereNotNull('deleted_at')->exists();
+        return \Illuminate\Support\Facades\DB::table(getDBTableName($table))->whereNotNull('deleted_at')->exists();
     }
 
     /**
@@ -288,12 +288,12 @@ final class ColumnOptions
             return $values;
         }
         $name = $column->getIndexColumnName(false);
-        $grammar = \DB::getQueryGrammar();
-        $hinted = \DB::raw($grammar->wrap(getDBTableName($table)) . ' USE INDEX (' . $grammar->wrap('index_' . $name) . ')');
+        $grammar = \Illuminate\Support\Facades\DB::getQueryGrammar();
+        $hinted = \Illuminate\Support\Facades\DB::raw($grammar->wrap(getDBTableName($table)) . ' USE INDEX (' . $grammar->wrap('index_' . $name) . ')');
         $live = function ($from) use ($name, $values) {
             $kept = [];
             foreach (array_chunk($values, self::PROBES_PER_QUERY) as $chunk) {
-                $query = \DB::query();
+                $query = \Illuminate\Support\Facades\DB::query();
                 foreach ($chunk as $i => $v) {
                     $query->selectSub(function ($probe) use ($from, $name, $v) {
                         $probe->from($from)

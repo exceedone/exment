@@ -22,7 +22,7 @@ class UserLocaleTimezone
     public function handle(Request $request, \Closure $next, string $type = 'web')
     {
         try {
-            $user = \Exment::user();
+            $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         } catch (\Throwable $ex) {
             $user = null;
         }

@@ -52,7 +52,7 @@ class IndexMissingTuning extends TuningBase
                 if (!isset($indexes[$dbTable])) {
                     $indexes[$dbTable] = array_map(function ($index) {
                         return strtolower(strval($index['name'] ?? ''));
-                    }, \Schema::getIndexes($dbTable));
+                    }, \Illuminate\Support\Facades\Schema::getIndexes($dbTable));
                 }
                 if (!in_array(strtolower("index_{$dbColumn}"), $indexes[$dbTable], true)) {
                     $this->missing[] = $table->table_view_name . ' / ' . $column->column_view_name;

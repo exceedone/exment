@@ -85,7 +85,7 @@ class ScheduledJobController extends AdminControllerBase
     {
         static::onlyAdministrators();
         $key = strval($request->get('job'));
-        [$done, $reason] = ScheduledJobs::runNow($key, \Exment::getUserId());
+        [$done, $reason] = ScheduledJobs::runNow($key, \Exceedone\Exment\Facades\ExmentFacade::getUserId());
         if ($done) {
             admin_toastr(exmtrans('scheduled_jobs.message.started', ['name' => ScheduledJobs::label($key)]));
         } else {
@@ -100,7 +100,7 @@ class ScheduledJobController extends AdminControllerBase
      */
     protected static function onlyAdministrators(): void
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user) || !$user->isAdministrator()) {
             abort(403);
         }

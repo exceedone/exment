@@ -27,6 +27,6 @@ class DayTomorrow extends DayOnBase
      */
     protected function _compareValue($value, $conditionValue): bool
     {
-        return \Exment::getCarbonOnlyDay($value)->eq(\Exceedone\Exment\Services\UserTimezone::today()->addDay());
+        return \Exceedone\Exment\Facades\ExmentFacade::getCarbonOnlyDay($value)->eq(\Exceedone\Exment\Services\UserTimezone::today()->addDay());
     }
 }

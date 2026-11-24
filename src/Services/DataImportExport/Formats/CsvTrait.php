@@ -65,7 +65,7 @@ trait CsvTrait
 
         // if zip, extract
         if ($extension == 'zip' && isset($file)) {
-            $tmpdir = \Exment::getTmpFolderPath('data', false);
+            $tmpdir = \Exceedone\Exment\Facades\ExmentFacade::getTmpFolderPath('data', false);
             $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
 
             $filename = $file->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
@@ -92,7 +92,7 @@ trait CsvTrait
                 $zip->extractTo($tmpfolderpath);
 
                 // get all files
-                $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
+                $files = collect(\Illuminate\Support\Facades\File::files($tmpfolderpath))->filter(function ($value) {
                     // @phpstan-ignore-next-line
                     return pathinfo($value)['extension'] == 'csv';
                 });
@@ -107,10 +107,10 @@ trait CsvTrait
                 }
                 // delete zip
                 if (isset($tmpfolderpath)) {
-                    \File::deleteDirectory($tmpfolderpath);
+                    \Illuminate\Support\Facades\File::deleteDirectory($tmpfolderpath);
                 }
                 if (isset($fullpath)) {
-                    \File::delete($fullpath);
+                    \Illuminate\Support\Facades\File::delete($fullpath);
                 }
             }
         } else {

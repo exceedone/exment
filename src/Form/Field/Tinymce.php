@@ -137,7 +137,7 @@ class Tinymce extends Textarea
         $this->rules = array_values($this->rules);
 
         // the language file of TinyMCE when it has one (langs/<locale>.js), else English (ISS02835)
-        $locale = static::tinymceLanguage(\App::getLocale());
+        $locale = static::tinymceLanguage(\Illuminate\Support\Facades\App::getLocale());
 
         $enableImage = !$this->disableImage && !boolval(config('exment.diable_upload_images_editor', false));
 
@@ -173,7 +173,7 @@ class Tinymce extends Textarea
 
         $configs = json_encode($configs);
 
-        $max_file_size = \Exment::getUploadMaxFileSize();
+        $max_file_size = \Exceedone\Exment\Facades\ExmentFacade::getUploadMaxFileSize();
         $message = exmtrans('custom_value.message.editor_image_oversize');
         $url =  url_join($this->getPostImageUri(), 'tmpimages') . '?_token='. csrf_token();
 

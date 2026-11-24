@@ -28,7 +28,7 @@ class Backup
      */
     public function check()
     {
-        return \ExmentDB::checkBackup();
+        return \Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
     }
 
     /**
@@ -42,7 +42,7 @@ class Backup
     {
         try {
             // check backup execute
-            \ExmentDB::checkBackup();
+            \Exceedone\Exment\Facades\ExmentDBFacade::checkBackup();
 
             $target = $target ?? BackupTarget::arrays();
 
@@ -57,7 +57,7 @@ class Backup
 
             // backup database tables
             if (in_array(BackupTarget::DATABASE, $target)) {
-                \ExmentDB::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+                \Exceedone\Exment\Facades\ExmentDBFacade::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
             }
 
             // backup directory
@@ -105,15 +105,15 @@ class Backup
             // is local file
             if (is_string($s)) {
                 $from = $s;
-                if (!\File::exists($from)) {
+                if (!\Illuminate\Support\Facades\File::exists($from)) {
                     continue;
                 }
 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
 
-                \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
+                \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($this->tmpDisk(), $to);
 
-                \File::copyDirectory($from, $this->tmpDisk()->path($to));
+                \Illuminate\Support\Facades\File::copyDirectory($from, $this->tmpDisk()->path($to));
             }
             // is croud file
             else {
@@ -121,7 +121,7 @@ class Backup
 
                 $to = path_join($this->diskService->tmpDiskItem()->dirName(), $setting[1]);
 
-                \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
+                \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($this->tmpDisk(), $to);
 
                 $files = $disk->allFiles('');
                 foreach ($files as $file) {
@@ -151,7 +151,7 @@ class Backup
             $envLines = $this->getMatchedEnv();
             $to_env = $this->tmpDisk()->path(path_join($this->diskService->tmpDiskItem()->dirName(), '.env'));
 
-            \File::put($to_env, $envLines);
+            \Illuminate\Support\Facades\File::put($to_env, $envLines);
         }
 
         return true;
@@ -168,10 +168,10 @@ class Backup
     protected function writeVersionFile()
     {
         $dirName = $this->diskService->tmpDiskItem()->dirName();
-        \Exment::makeDirectoryDisk($this->tmpDisk(), $dirName);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($this->tmpDisk(), $dirName);
 
-        \File::put($this->tmpDisk()->path(path_join($dirName, Define::BACKUP_VERSION_FILE)), json_encode([
-            'exment' => \Exment::getExmentCurrentVersion(),
+        \Illuminate\Support\Facades\File::put($this->tmpDisk()->path(path_join($dirName, Define::BACKUP_VERSION_FILE)), json_encode([
+            'exment' => \Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion(),
             'laravel' => app()->version(),
         ], JSON_THROW_ON_ERROR));
     }
@@ -196,7 +196,7 @@ class Backup
                 }
                 $filePath = $file->getRealPath();
                 $relativePath = substr($filePath, strlen($this->diskService->tmpDiskItem()->dirFullPath()) + 1);
-                $relativePath = \Exment::replaceBackToSlash($relativePath);
+                $relativePath = \Exceedone\Exment\Facades\ExmentFacade::replaceBackToSlash($relativePath);
                 $zip->addFile($filePath, $relativePath);
             }
             $zip->close();
@@ -256,7 +256,7 @@ class Backup
     {
         // get env file
         $file = path_join(base_path(), '.env');
-        if (!\File::exists($file)) {
+        if (!\Illuminate\Support\Facades\File::exists($file)) {
             return null;
         }
 

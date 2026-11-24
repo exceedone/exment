@@ -99,7 +99,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
     {
         $this->bindFeed([$this->feedItem(['id' => 'quake-label', 'max_scale' => 50])]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $quakeInfo = (string) array_get($this->eventRows()->first()->value, 'quake_info');
         $this->assertStringContainsString(SafetyCheckDefine::scaleLabel(50), $quakeInfo);
@@ -117,7 +117,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
         $this->assertNull(System::safety_check_last_feed_time());
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $rows = $this->eventRows();
         $this->assertEquals(1, $rows->count());
@@ -143,7 +143,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             $lockedWhileSending[] = $this->eventLocked(array_get($row->value, 'event'));
         });
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $event = $this->eventRows()->first();
         $this->assertNotNull($event);
@@ -158,7 +158,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['id' => 'quake-below', 'max_scale' => 40, 'time' => $itemTime]);
         $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $this->eventRows()->count());
         Bus::assertNotDispatched(LineSendJob::class);
@@ -179,7 +179,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['id' => 'dup-1', 'max_scale' => 55, 'time' => Carbon::now()->subMinute()]);
         $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(1, $this->eventRows()->count());
         Bus::assertNotDispatched(LineSendJob::class);
@@ -198,7 +198,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'received_at' => Carbon::now()->subMinutes(4),
         ]);
         $this->bindFeed([$prompt]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
         $this->assertEquals(1, $this->eventRows()->count());
 
         $correction = $this->feedItem([
@@ -208,7 +208,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'received_at' => Carbon::now()->subMinutes(2),
         ]);
         $this->bindFeed([$prompt, $correction]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(1, $this->eventRows()->count(), 'A correction bulletin for an already-triggered quake must not create a second event.');
         Bus::assertDispatchedTimes(LineSendJob::class, 1);
@@ -232,7 +232,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'received_at' => Carbon::now()->subMinutes(4),
         ]);
         $this->bindFeed([$foreshock]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
         $this->assertEquals(1, $this->eventRows()->count());
 
         $mainshock = $this->feedItem([
@@ -242,7 +242,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'received_at' => Carbon::now()->subMinutes(2),
         ]);
         $this->bindFeed([$foreshock, $mainshock]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $rows = $this->eventRows();
         $this->assertEquals(2, $rows->count(), 'A distinct larger quake within the cooldown window must still trigger its own event.');
@@ -258,7 +258,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
         $this->assertNull(System::safety_check_last_feed_time());
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $this->eventRows()->count());
         Bus::assertNotDispatched(LineSendJob::class);
@@ -278,7 +278,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['id' => 'quake-old-but-allowed', 'max_scale' => 60, 'time' => $itemTime]);
         $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $rows = $this->eventRows();
         $this->assertEquals(1, $rows->count());
@@ -297,7 +297,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'received_at' => Carbon::now()->subMinutes(4),
         ]);
         $this->bindFeed([$prompt]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
         $this->assertEquals(0, $this->eventRows()->count(), 'The prompt report is below threshold.');
 
         $detail = $this->feedItem([
@@ -307,7 +307,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'received_at' => Carbon::now()->subMinutes(2),
         ]);
         $this->bindFeed([$prompt, $detail]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $rows = $this->eventRows();
         $this->assertEquals(1, $rows->count(), 'The upgraded correction bulletin must trigger even though it shares earthquake.time with the already-consumed prompt report.');
@@ -319,7 +319,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
     {
         $this->bindFeed([$this->feedItem(['id' => 'eq-nohypo', 'hypocenter' => '', 'max_scale' => 50])]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $event = $this->eventRows()->first();
         $this->assertNotNull($event);
@@ -338,14 +338,14 @@ class SafetyWatchCommandTest extends FeatureTestBase
             'time' => $quakeTime->copy(), 'received_at' => Carbon::now()->subMinutes(4),
         ]);
         $this->bindFeed([$prompt]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $detail = $this->feedItem([
             'id' => 'eq-bf-detail', 'hypocenter' => '熊本県熊本地方', 'max_scale' => 50,
             'time' => $quakeTime->copy(), 'received_at' => Carbon::now()->subMinutes(2),
         ]);
         $this->bindFeed([$prompt, $detail]);
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $rows = $this->eventRows();
         $this->assertEquals(1, $rows->count());
@@ -364,7 +364,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             $this->feedItem(['id' => 'stale-small', 'max_scale' => 10, 'time' => Carbon::now()->subHours(2)]),
         ]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $this->eventRows()->count());
         Log::getFacadeRoot()->shouldHaveReceived('warning')
@@ -386,7 +386,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
             throw new \RuntimeException('forced event save failure');
         });
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $this->eventRows()->count());
         Bus::assertNotDispatched(LineSendJob::class);
@@ -396,14 +396,14 @@ class SafetyWatchCommandTest extends FeatureTestBase
     public function testWatcherDoesNotFlushWholeCacheStore(): void
     {
         config(['exment.use_cache' => true]);
-        \Cache::put('unrelated-sentinel', 'keep-me', 300);
+        \Illuminate\Support\Facades\Cache::put('unrelated-sentinel', 'keep-me', 300);
 
         $item = $this->feedItem(['id' => 'quake-cache', 'max_scale' => 50]);
         $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
-        $this->assertEquals('keep-me', \Cache::get('unrelated-sentinel'), 'The watcher must clear only its own keys, not flush the whole cache store.');
+        $this->assertEquals('keep-me', \Illuminate\Support\Facades\Cache::get('unrelated-sentinel'), 'The watcher must clear only its own keys, not flush the whole cache store.');
         $this->assertNotNull(System::safety_check_last_feed_time());
     }
 
@@ -427,7 +427,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['id' => 'quake-age-default', 'max_scale' => 50, 'time' => Carbon::now()->subMinutes(5)]);
         $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(1, $this->eventRows()->count(), 'max_bulletin_age=0 must fall back to the default, not mark every bulletin stale.');
     }
@@ -440,7 +440,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['id' => 'quake-minscale-default', 'max_scale' => 40]);
         $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $this->eventRows()->count(), 'min_scale=0 must fall back to the default, not trigger on every quake.');
     }
@@ -460,7 +460,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['id' => 'new-quake-cd', 'max_scale' => 55, 'time' => $quakeTime->copy()]);
         $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(1, $this->eventRows()->count(), 'cooldown=0 must fall back to the default 60 minutes and suppress the re-trigger.');
         Bus::assertNotDispatched(LineSendJob::class);
@@ -472,7 +472,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
         $feed = $this->bindFeed([]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertTrue($feed->called);
         $this->assertEquals(25, $feed->receivedLimit);
@@ -484,7 +484,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
 
         $feed = $this->bindFeed([]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertTrue($feed->called);
         $this->assertEquals(100, $feed->receivedLimit);
@@ -494,14 +494,14 @@ class SafetyWatchCommandTest extends FeatureTestBase
     {
         Log::spy();
 
-        \DB::table('custom_tables')->where('table_name', 'safety_check_event')
+        \Illuminate\Support\Facades\DB::table('custom_tables')->where('table_name', 'safety_check_event')
             ->update(['table_name' => 'zz_hidden_safety_check_event']);
         System::clearCache();
 
         $item = $this->feedItem(['id' => 'quake-no-tables', 'max_scale' => 60]);
         $this->bindFeed([$item]);
 
-        $exitCode = \Artisan::call('exment:safetywatch');
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $exitCode);
         Bus::assertNotDispatched(LineSendJob::class);
@@ -520,7 +520,7 @@ class SafetyWatchCommandTest extends FeatureTestBase
         $item = $this->feedItem(['max_scale' => 60]);
         $feed = $this->bindFeed([$item]);
 
-        \Artisan::call('exment:safetywatch');
+        \Illuminate\Support\Facades\Artisan::call('exment:safetywatch');
 
         $this->assertEquals(0, $this->eventRows()->count());
         $this->assertFalse($feed->called);

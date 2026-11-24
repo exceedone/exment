@@ -12,7 +12,7 @@ use Exceedone\Exment\Enums\Permission;
 use Illuminate\Contracts\Filesystem\FileNotFoundException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 class PluginCodeController extends AdminControllerBase
 {
@@ -147,7 +147,7 @@ class PluginCodeController extends AdminControllerBase
             return false;
         }
 
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nodeid' => 'required',
         ]);
         if ($validator->fails()) {
@@ -212,7 +212,7 @@ class PluginCodeController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected function getFileEditFormView(Request $request, $id)
     {
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'nodeid' => 'required',
         ]);
         if ($validator->fails()) {
@@ -294,7 +294,7 @@ class PluginCodeController extends AdminControllerBase
         }
 
         // check extension
-        $ext = \File::extension($nodepath);
+        $ext = \Illuminate\Support\Facades\File::extension($nodepath);
         $mode = false;
         $image = null;
 
@@ -470,6 +470,6 @@ class PluginCodeController extends AdminControllerBase
      */
     protected static function canEditCode(): bool
     {
-        return \Exment::user()->hasPermission(Permission::PLUGIN_ALL) && !\Exceedone\Exment\Services\DemoMode::enabled();
+        return \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::PLUGIN_ALL) && !\Exceedone\Exment\Services\DemoMode::enabled();
     }
 }

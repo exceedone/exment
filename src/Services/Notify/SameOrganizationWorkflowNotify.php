@@ -75,7 +75,7 @@ class SameOrganizationWorkflowNotify
         try {
             return self::collectOtherOrgMemberIds($action, $custom_value);
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             return [];
         }
@@ -106,7 +106,7 @@ class SameOrganizationWorkflowNotify
             return [];
         }
 
-        $executerId = \Exment::getUserId();
+        $executerId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
 
         // The "users" relation of an organization is a plain belongsToMany over this pivot
         // table (OrganizationTrait::users), so every organization can be expanded with ONE
@@ -128,7 +128,7 @@ class SameOrganizationWorkflowNotify
         // the button.
         $userTableName = getDBTableName(SystemTableName::USER);
 
-        $memberIds = \DB::table($pivotTableName)
+        $memberIds = \Illuminate\Support\Facades\DB::table($pivotTableName)
             ->join($userTableName, $userTableName . '.id', '=', $pivotTableName . '.child_id')
             ->whereIn($pivotTableName . '.parent_id', $orgs->pluck('id')->all())
             ->whereNull($userTableName . '.deleted_at')
@@ -271,7 +271,7 @@ class SameOrganizationWorkflowNotify
         }
 
         $users = [];
-        $query = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($table, $permission, \DB::table(getDBTableName(SystemTableName::USER)));
+        $query = AuthUserOrgHelper::getRoleUserAndOrgBelongsUserQueryTable($table, $permission, \Illuminate\Support\Facades\DB::table(getDBTableName(SystemTableName::USER)));
         if (!is_nullorempty($query)) {
             foreach ($query->pluck('id') as $id) {
                 $users[(int)$id] = true;
@@ -294,7 +294,7 @@ class SameOrganizationWorkflowNotify
             return new \Illuminate\Support\Collection();
         }
 
-        return \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+        return \Illuminate\Support\Facades\DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
             ->where('parent_type', $parentType)
             ->where('parent_id', $parentId)
             ->get(['authoritable_user_org_type', 'authoritable_target_id']);
@@ -364,7 +364,7 @@ class SameOrganizationWorkflowNotify
             // reload to get the status AFTER the action has been executed
             $custom_value->load(['workflow_value']);
 
-            $executerId = \Exment::getUserId();
+            $executerId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             $custom_table = $custom_value->custom_table;
 
             $subject = self::fit(exmtrans('workflow.same_org_notify.subject'), self::MAX_SUBJECT_LENGTH);
@@ -420,7 +420,7 @@ class SameOrganizationWorkflowNotify
                 NotifyNavbar::navbarCacheForget(array_column($chunk, 'target_user_id'));
             }
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
         }
     }
 

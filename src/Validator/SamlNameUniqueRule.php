@@ -28,7 +28,7 @@ class SamlNameUniqueRule implements Rule
             return true;
         }
 
-        return \DB::table(SystemTableName::LOGIN_SETTINGS)
+        return \Illuminate\Support\Facades\DB::table(SystemTableName::LOGIN_SETTINGS)
             ->where('options->saml_name', $value)
             ->where('login_type', LoginType::SAML)
             ->count() == 0;

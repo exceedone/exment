@@ -160,7 +160,7 @@ class RecordUrl
         try {
             $answer = call_user_func($resolver, $custom_value);
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return null;
         }
         if (is_null($answer)) {
@@ -169,7 +169,7 @@ class RecordUrl
 
         $url = static::sameSite($answer);
         if (!isset($url)) {
-            \Log::warning('[Exment] a plugin gave an address of another site for a record; the data page is used.', [
+            \Illuminate\Support\Facades\Log::warning('[Exment] a plugin gave an address of another site for a record; the data page is used.', [
                 'table' => $custom_value->custom_table->table_name,
                 'id' => $custom_value->id,
             ]);
@@ -195,7 +195,7 @@ class RecordUrl
         try {
             $plugins = Plugin::getByPluginTypes(PluginType::PAGE);
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             $plugins = [];
         }
         foreach ($plugins as $plugin) {
@@ -212,7 +212,7 @@ class RecordUrl
                     }
                 }
             } catch (\Throwable $ex) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
         }
 

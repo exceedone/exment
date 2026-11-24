@@ -59,7 +59,7 @@ class NotifyNavbarFilterTableListTest extends FeatureTestBase
         $this->createNotify($loginUser, SystemTableName::ORGANIZATION);
 
         $this->loginAs($loginUser);
-        $this->assertFalse(\Exment::user()->hasPermission(Permission::CUSTOM_TABLE), 'precondition: user must not have custom_table permission');
+        $this->assertFalse(\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::CUSTOM_TABLE), 'precondition: user must not have custom_table permission');
         $this->assertFalse(CustomTable::getEloquent(SystemTableName::USER)->hasPermission(Permission::CUSTOM_TABLE), 'precondition: user must not have table permission');
 
         $this->assertSame(
@@ -285,7 +285,7 @@ class NotifyNavbarFilterTableListTest extends FeatureTestBase
 
         app('auth')->forgetGuards();
         System::clearRequestSession();
-        $this->assertNull(\Exment::getUserId(), 'precondition: no login user');
+        $this->assertNull(\Exceedone\Exment\Facades\ExmentFacade::getUserId(), 'precondition: no login user');
 
         $this->assertSame([], NotifyNavbar::getTargetTableOptions());
     }

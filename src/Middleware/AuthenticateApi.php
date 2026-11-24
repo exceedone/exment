@@ -30,13 +30,13 @@ class AuthenticateApi extends \ExmentAdminCore\Admin\Middleware\Authenticate
                 }
                 return abortJson(401, ErrorCode::ACCESS_DENIED());
             }
-            \Auth::guard(Define::AUTHENTICATE_KEY_API)->setUser($login_user);
-            \Exment::setGuard(Define::AUTHENTICATE_KEY_API);
+            \Illuminate\Support\Facades\Auth::guard(Define::AUTHENTICATE_KEY_API)->setUser($login_user);
+            \Exceedone\Exment\Facades\ExmentFacade::setGuard(Define::AUTHENTICATE_KEY_API);
             return $next($request);
         }
 
-        if (\Auth::guard(Define::AUTHENTICATE_KEY_API)->check()) {
-            \Exment::setGuard(Define::AUTHENTICATE_KEY_API);
+        if (\Illuminate\Support\Facades\Auth::guard(Define::AUTHENTICATE_KEY_API)->check()) {
+            \Exceedone\Exment\Facades\ExmentFacade::setGuard(Define::AUTHENTICATE_KEY_API);
         } else {
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }

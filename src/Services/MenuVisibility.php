@@ -72,7 +72,7 @@ class MenuVisibility
     public static function forUser($user = null): self
     {
         if (!isset($user)) {
-            $user = \Exment::user();
+            $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         }
         return new self($user instanceof LoginUser ? $user : null);
     }

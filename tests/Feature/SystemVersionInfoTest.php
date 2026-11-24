@@ -39,7 +39,7 @@ class SystemVersionInfoTest extends FeatureTestBase
         $this->assertSame(['Exment', 'PHP', exmtrans('system.version_info.web_server'), exmtrans('system.version_info.database'), 'OS'], array_keys($items));
         $this->assertSame(PHP_VERSION, $items['PHP']);
         // the database answers its driver and version
-        $this->assertStringStartsWith(\DB::connection()->getDriverName() . ' ', $items[exmtrans('system.version_info.database')]);
+        $this->assertStringStartsWith(\Illuminate\Support\Facades\DB::connection()->getDriverName() . ' ', $items[exmtrans('system.version_info.database')]);
         foreach ($items as $value) {
             $this->assertNotSame('', trim($value));
         }

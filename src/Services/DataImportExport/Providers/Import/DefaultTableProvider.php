@@ -197,7 +197,7 @@ class DefaultTableProvider extends ProviderBase
 
         // check create or update check
         // *Only check user object for batch
-        if ($validateRow && isset($model) && !is_nullorempty(\Exment::user())) {
+        if ($validateRow && isset($model) && !is_nullorempty(\Exceedone\Exment\Facades\ExmentFacade::user())) {
             if (!$model->exists && ($code = $this->custom_table->enableCreate()) !== true) {
                 $validateRow = false;
             } elseif (array_key_value_exists('deleted_at', $data) && ($code = $model->enableDelete()) !== true) {

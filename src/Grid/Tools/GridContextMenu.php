@@ -146,7 +146,7 @@ class GridContextMenu extends AbstractTool
         // write - an unauthenticated render (a public form preview) has
         // no user, and not every table has an assignee.
         $assignColumn = $canEdit ? $this->findAssignColumn() : null;
-        $assignUser = \Exment::user() ? \Exment::user()->base_user_id : null;
+        $assignUser = \Exceedone\Exment\Facades\ExmentFacade::user() ? \Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id : null;
         $assignName = $assignColumn ? e($assignColumn->column_name) : '';
         $assignUserId = $assignUser ? e(strval($assignUser)) : '';
 

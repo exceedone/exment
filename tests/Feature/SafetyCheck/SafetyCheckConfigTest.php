@@ -50,7 +50,7 @@ class SafetyCheckConfigTest extends FeatureTestBase
 
     public function testScaleLabelRendersIntensityNotRawCode(): void
     {
-        \App::setLocale('ja');
+        \Illuminate\Support\Facades\App::setLocale('ja');
         $this->assertEquals('最大震度1', SafetyCheckDefine::scaleLabel(10));
         $this->assertEquals('最大震度3', SafetyCheckDefine::scaleLabel(30));
         $this->assertEquals('最大震度5弱', SafetyCheckDefine::scaleLabel(45));
@@ -60,7 +60,7 @@ class SafetyCheckConfigTest extends FeatureTestBase
         $this->assertEquals('最大震度5弱以上', SafetyCheckDefine::scaleLabel(46));
         $this->assertEquals('最大震度不明', SafetyCheckDefine::scaleLabel(-1));
 
-        \App::setLocale('en');
+        \Illuminate\Support\Facades\App::setLocale('en');
         $this->assertEquals('Max Shindo 5 Lower', SafetyCheckDefine::scaleLabel(45));
         $this->assertEquals('Max Shindo Unknown', SafetyCheckDefine::scaleLabel(-1));
     }

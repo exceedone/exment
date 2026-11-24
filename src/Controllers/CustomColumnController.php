@@ -139,17 +139,17 @@ class CustomColumnController extends AdminControllerTableBase
             return array_get(ColumnType::transArray("custom_column.column_type_options"), $val);
         });
         $grid->column('required', exmtrans("common.required"))->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
         \Exceedone\Exment\Services\ScreenExtensions::call('custom_column.grid', $grid, $this->custom_table);
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
         $grid->column('options->freeword_search', exmtrans("custom_column.options.freeword_search"))->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
         $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
         $grid->column('order', exmtrans("custom_column.order"))->sortable()->editable();
 
@@ -194,7 +194,7 @@ class CustomColumnController extends AdminControllerTableBase
                     } else {
                         $query->whereIn("options->$key", [1, '1']);
                     }
-                }, exmtrans("$label.$key"))->radio(\Exment::getYesNoAllOption());
+                }, exmtrans("$label.$key"))->radio(\Exceedone\Exment\Facades\ExmentFacade::getYesNoAllOption());
             }
         });
         return $grid;
@@ -594,7 +594,7 @@ class CustomColumnController extends AdminControllerTableBase
         });
 
         $body = $form->render();
-        $script = \Admin::purescript()->render();
+        $script = \ExmentAdminCore\Admin\Facades\Admin::purescript()->render();
         return [
             'body'  => $body,
             'script' => $script,

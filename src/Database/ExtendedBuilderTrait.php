@@ -143,7 +143,7 @@ trait ExtendedBuilderTrait
         // if not suport where in multiple, first getting target id, and add query. ----------------------------------------------------
         $tableName = $this->_getTableExment();
         /** @phpstan-ignore-next-line */
-        $subquery = \DB::table($tableName);
+        $subquery = \Illuminate\Support\Facades\DB::table($tableName);
 
         // group "$values" index.
         $groups = collect($values)->groupBy(function ($item, $key) {

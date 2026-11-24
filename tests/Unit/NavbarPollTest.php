@@ -70,7 +70,7 @@ class NavbarPollTest extends UnitTestBase
         $this->be(\Exceedone\Exment\Model\LoginUser::first());
         $before = NotifyNavbar::navbarCacheKey();
         $this->assertNotNull($before);
-        NotifyNavbar::navbarCacheForget([\Exment::getUserId(), null, '']);
+        NotifyNavbar::navbarCacheForget([\Exceedone\Exment\Facades\ExmentFacade::getUserId(), null, '']);
         $after = NotifyNavbar::navbarCacheKey();
         $this->assertNotSame($before, $after);
 
@@ -89,7 +89,7 @@ class NavbarPollTest extends UnitTestBase
     {
         foreach (['notifyPage', 'workflowTaskPage'] as $name) {
             $found = false;
-            foreach (\Route::getRoutes()->getRoutes() as $route) {
+            foreach (\Illuminate\Support\Facades\Route::getRoutes()->getRoutes() as $route) {
                 if (!str_ends_with($route->uri(), '/' . $name)) {
                     continue;
                 }

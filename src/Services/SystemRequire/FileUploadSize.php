@@ -8,7 +8,7 @@ class FileUploadSize extends SystemRequireBase
 {
     public function __construct()
     {
-        $maxSize = \Exment::getUploadMaxFileSize();
+        $maxSize = \Exceedone\Exment\Facades\ExmentFacade::getUploadMaxFileSize();
         $this->result = $maxSize;
     }
 
@@ -56,6 +56,6 @@ class FileUploadSize extends SystemRequireBase
 
     public function getSettingUrl(): ?string
     {
-        return \Exment::getManualUrl('additional_php_ini');
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('additional_php_ini');
     }
 }

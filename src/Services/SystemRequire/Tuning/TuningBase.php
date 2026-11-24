@@ -51,7 +51,7 @@ abstract class TuningBase extends SystemRequireBase
 
     public function getSettingUrl(): ?string
     {
-        return \Exment::getManualUrl('tuning');
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('tuning');
     }
 
     /**

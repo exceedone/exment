@@ -38,7 +38,7 @@ class PublicFormFooter extends FooterBase
     public function useRecaptchaV2()
     {
         // if no exixts class, return $this
-        if (!\Exment::isAvailableGoogleRecaptcha()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::isAvailableGoogleRecaptcha()) {
             return $this;
         }
 
@@ -54,7 +54,7 @@ class PublicFormFooter extends FooterBase
     public function useRecaptchaV3()
     {
         // if no exixts class, return $this
-        if (!\Exment::isAvailableGoogleRecaptcha()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::isAvailableGoogleRecaptcha()) {
             return $this;
         }
 

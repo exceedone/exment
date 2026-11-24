@@ -38,7 +38,7 @@ class TrashedRelationSearchIconTest extends FeatureTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         // soft delete is the default; make sure the env does not force hard delete.
-        \Config::set('exment.delete_force_custom_value', false);
+        \Illuminate\Support\Facades\Config::set('exment.delete_force_custom_value', false);
     }
 
     // ------------------------------------------------------------------ //

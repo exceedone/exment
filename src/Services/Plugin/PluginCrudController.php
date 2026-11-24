@@ -202,11 +202,11 @@ class PluginCrudController extends Controller
         try {
             return $targetClass->getPluginOptions()->loginOAuth();
         } catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             throw $ex;
             // if error, redirect edit page
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             throw $ex;
         }
     }
@@ -236,11 +236,11 @@ class PluginCrudController extends Controller
             }
             return redirect($targetClass->getFullUrl($endpoints->first()));
         } catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             throw $ex;
             // if error, redirect edit page
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             throw $ex;
         }
     }
@@ -264,11 +264,11 @@ class PluginCrudController extends Controller
             $targetClass->getPluginOptions()->clearOauthAccessToken();
             return redirect($targetClass->getFullUrl('noauth'));
         } catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             throw $ex;
             // if error, redirect edit page
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             throw $ex;
         }
     }

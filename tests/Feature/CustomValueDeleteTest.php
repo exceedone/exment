@@ -37,7 +37,7 @@ class CustomValueDeleteTest extends FeatureTestBase
         $this->initAllTest();
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
-        \Config::set('exment.delete_force_custom_value', $isDeleteHardForce);
+        \Illuminate\Support\Facades\Config::set('exment.delete_force_custom_value', $isDeleteHardForce);
     }
 
 
@@ -328,7 +328,7 @@ class CustomValueDeleteTest extends FeatureTestBase
             ->toArray();
 
         // get storage real files
-        $storages = \Storage::disk(config('admin.upload.disk'))->files($custom_table->table_name);
+        $storages = \Illuminate\Support\Facades\Storage::disk(config('admin.upload.disk'))->files($custom_table->table_name);
 
         // get revisions
         $revisions = Revision::where('revisionable_type', $custom_table->table_name)

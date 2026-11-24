@@ -172,7 +172,7 @@ class ModelBase extends Model
         }
 
         // Exment helper class not recognized
-        $user_id = \Exment::getUserId();
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         if (is_nullorempty($user_id)) {
             return;
         }

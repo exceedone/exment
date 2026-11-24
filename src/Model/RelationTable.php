@@ -899,7 +899,7 @@ class RelationTable
     public static function setWorkflowStatusSubquery($query, CustomTable $custom_table, bool $or_option = false)
     {
         $tableName = getDBTableName($custom_table);
-        $subquery = \DB::table($tableName)
+        $subquery = \Illuminate\Support\Facades\DB::table($tableName)
             ->leftJoin(SystemTableName::WORKFLOW_VALUE, function ($join) use ($tableName, $custom_table) {
                 $join->on(SystemTableName::WORKFLOW_VALUE . '.morph_id', "$tableName.id")
                     ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)
@@ -934,7 +934,7 @@ class RelationTable
         $userTableName = getDBTableName(SystemTableName::USER);
 
         /////// first query. has workflow value's custom value
-        $subquery = \DB::table($tableName)
+        $subquery = \Illuminate\Support\Facades\DB::table($tableName)
             ->join(SystemTableName::VIEW_WORKFLOW_VALUE_UNION, function ($join) use ($tableName, $custom_table) {
                 $join->on(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_id', "$tableName.id")
                     ->where(SystemTableName::VIEW_WORKFLOW_VALUE_UNION . '.custom_value_type', $custom_table->table_name)
@@ -977,14 +977,14 @@ class RelationTable
 
 
         /////// second query. not has workflow value's custom value
-        $subquery2 = \DB::table($tableName)
+        $subquery2 = \Illuminate\Support\Facades\DB::table($tableName)
             ->join(SystemTableName::VIEW_WORKFLOW_START, function ($join) use ($custom_table) {
                 $join->where(SystemTableName::VIEW_WORKFLOW_START . '.workflow_table_id', $custom_table->id)
                 ;
             })
             // filtering not contains workflow value
             ->whereNotExists(function ($query) use ($tableName, $custom_table) {
-                $query->select(\DB::raw(1))
+                $query->select(\Illuminate\Support\Facades\DB::raw(1))
                     ->from(SystemTableName::WORKFLOW_VALUE)
                     ->whereColumn(SystemTableName::WORKFLOW_VALUE . '.morph_id', "$tableName.id")
                     ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $custom_table->table_name)

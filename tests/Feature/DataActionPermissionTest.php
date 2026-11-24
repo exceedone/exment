@@ -80,7 +80,7 @@ class DataActionPermissionTest extends FeatureTestBase
 
     protected function documentCount(CustomValue $record): int
     {
-        return \DB::table(getDBTableName(SystemTableName::DOCUMENT))
+        return \Illuminate\Support\Facades\DB::table(getDBTableName(SystemTableName::DOCUMENT))
             ->where('parent_type', static::TABLE_VIEW)->where('parent_id', $record->id)->count();
     }
 

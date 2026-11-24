@@ -88,7 +88,7 @@ class AutoTuning
                     $result[$key] = exmtrans('tuning.auto.item.' . $key);
                 }
             } catch (\Throwable $e) {
-                \Log::warning('Exment auto tuning: ' . $key . ': ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('Exment auto tuning: ' . $key . ': ' . $e->getMessage());
             }
         }
         return $result;
@@ -125,7 +125,7 @@ class AutoTuning
                 $done[] = $key;
                 $results[] = ['key' => $key, 'status' => static::DONE, 'message' => ''];
             } catch (\Throwable $e) {
-                \Log::error('Exment auto tuning: ' . $key . ': ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('Exment auto tuning: ' . $key . ': ' . $e->getMessage());
                 $failed[] = $key;
                 $results[] = ['key' => $key, 'status' => static::FAILED, 'message' => $e->getMessage()];
             }
@@ -354,7 +354,7 @@ class AutoTuning
         }
         $app = app();
         try {
-            \Artisan::call($command);
+            \Illuminate\Support\Facades\Artisan::call($command);
         } finally {
             \Illuminate\Container\Container::setInstance($app);
             \Illuminate\Support\Facades\Facade::clearResolvedInstances();
@@ -370,10 +370,10 @@ class AutoTuning
     protected static function log(array $results, bool $setup, ?int $userId): void
     {
         $detail = ['setup' => $setup, 'results' => $results];
-        \Log::info('[auto tuning]', $detail);
+        \Illuminate\Support\Facades\Log::info('[auto tuning]', $detail);
         try {
             if (is_null($userId)) {
-                $user = \Exment::user();
+                $user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 $userId = $user ? intval($user->id) : 0;
             }
             $request = app()->runningInConsole() ? null : request();
@@ -406,7 +406,7 @@ class AutoTuning
                 'results' => $results,
             ], JSON_UNESCAPED_UNICODE));
         } catch (\Throwable $ex) {
-            \Log::warning('Exment auto tuning: could not keep the result: ' . $ex->getMessage());
+            \Illuminate\Support\Facades\Log::warning('Exment auto tuning: could not keep the result: ' . $ex->getMessage());
         }
     }
 

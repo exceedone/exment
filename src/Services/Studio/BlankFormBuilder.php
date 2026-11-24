@@ -82,7 +82,7 @@ class BlankFormBuilder
      */
     public static function available(): bool
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         return isset($user) && $user->hasPermission(Permission::CUSTOM_TABLE);
     }
 

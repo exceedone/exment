@@ -377,7 +377,7 @@ class StudioController extends AdminControllerBase
         }
 
         $this->forgetSheet();
-        $stored = $file->storeAs(\Exment::getTmpFolderPath('studio', false), short_uuid() . '.' . $extension, Define::DISKNAME_ADMIN_TMP);
+        $stored = $file->storeAs(\Exceedone\Exment\Facades\ExmentFacade::getTmpFolderPath('studio', false), short_uuid() . '.' . $extension, Define::DISKNAME_ADMIN_TMP);
         if ($stored === false) {
             return response()->json(['result' => false, 'message' => exmtrans('studio.error.sheet_file')], 422);
         }
@@ -469,7 +469,7 @@ class StudioController extends AdminControllerBase
         }
 
         // the form and its buttons, or nothing
-        $form = \DB::transaction(function () use ($screen, $actions) {
+        $form = \Illuminate\Support\Facades\DB::transaction(function () use ($screen, $actions) {
             $form = ExistingTableFormBuilder::build($screen);
             if (count($actions) > 0) {
                 ScreenAction::build(CustomTable::getEloquent($form->custom_table_id), array_column($screen['fields'], 'column_id'), $actions);

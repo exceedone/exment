@@ -35,7 +35,7 @@ class Url extends CustomItem
             return esc_html($value);
         }
 
-        return \Exment::getUrlTag($url, $value, UrlTagType::BLANK);
+        return \Exceedone\Exment\Facades\ExmentFacade::getUrlTag($url, $value, UrlTagType::BLANK);
     }
 
     /**

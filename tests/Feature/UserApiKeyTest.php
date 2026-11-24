@@ -95,7 +95,7 @@ class UserApiKeyTest extends ApiTestBase
     protected function getWithKey(string $plain, array $path, array $headers = [], array $server = []): \Illuminate\Testing\TestResponse
     {
         // each request signs in again, as on a real server (the test app keeps the guards)
-        \Auth::forgetGuards();
+        \Illuminate\Support\Facades\Auth::forgetGuards();
         return $this->withServerVariables($server)
             ->withHeaders(['Authorization' => "Bearer $plain"] + $headers)
             ->get(admin_urls('api', ...$path));
@@ -134,7 +134,7 @@ class UserApiKeyTest extends ApiTestBase
 
         $this->assertStringStartsWith(UserApiKeys::PREFIX, $plain);
         $this->assertGreaterThanOrEqual(52, strlen($plain));
-        $row = (array)\DB::table('user_api_keys')->where('id', $key->id)->first();
+        $row = (array)\Illuminate\Support\Facades\DB::table('user_api_keys')->where('id', $key->id)->first();
         $this->assertSame(hash('sha256', $plain), $row['key_hash']);
         foreach ($row as $column => $value) {
             $this->assertNotSame($plain, $value, $column);
@@ -186,7 +186,7 @@ class UserApiKeyTest extends ApiTestBase
         $this->assertRefused($this->getWithKey($plain, ['me']), 'revoked');
 
         [$key, $plain] = $this->makeKey();
-        \DB::table('user_api_keys')->where('id', $key->id)->update(['expires_at' => Carbon::now()->subMinute()]);
+        \Illuminate\Support\Facades\DB::table('user_api_keys')->where('id', $key->id)->update(['expires_at' => Carbon::now()->subMinute()]);
         $this->assertRefused($this->getWithKey($plain, ['me']), 'expired');
 
         // all the keys of a user at once
@@ -237,7 +237,7 @@ class UserApiKeyTest extends ApiTestBase
     public function testALimitedKeyDoesNotReachOtherTables(): void
     {
         [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['tables' => ['custom_value_edit']]);
-        $id = \DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
+        $id = \Illuminate\Support\Facades\DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
 
         $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit', $id . '?children=1']), 'table');
         $this->assertRefused($this->getWithKey($plain, ['data', 'custom_value_edit?parents=1']), 'table');
@@ -257,7 +257,7 @@ class UserApiKeyTest extends ApiTestBase
     {
         $file = function (string $table): string {
             $uuid = make_uuid();
-            \DB::table('files')->insert(['uuid' => $uuid, 'local_dirname' => $table, 'local_filename' => "$uuid.txt", 'filename' => 'a.txt',
+            \Illuminate\Support\Facades\DB::table('files')->insert(['uuid' => $uuid, 'local_dirname' => $table, 'local_filename' => "$uuid.txt", 'filename' => 'a.txt',
                 'parent_type' => $table, 'parent_id' => 1, 'created_at' => now(), 'updated_at' => now()]);
             return $uuid;
         };
@@ -270,9 +270,9 @@ class UserApiKeyTest extends ApiTestBase
         // the URL names the table of the key; the file is of another table
         $this->assertRefused($this->getWithKey($plain, ['files', 'custom_value_edit', $other]), 'table');
         $this->assertRefused($this->getWithKey($plain, ['files', $other]), 'table');
-        \Auth::forgetGuards();
+        \Illuminate\Support\Facades\Auth::forgetGuards();
         $this->withHeaders(['Authorization' => "Bearer $plain"])->delete(admin_urls('api', 'files', 'custom_value_edit', $other))->assertStatus(403);
-        $this->assertSame(1, \DB::table('files')->where('uuid', $other)->count());
+        $this->assertSame(1, \Illuminate\Support\Facades\DB::table('files')->where('uuid', $other)->count());
         // a file of its own table passes the key (what the file API answers then is its own matter)
         $this->getWithKey($plain, ['files', 'custom_value_edit', $mine]);
         $this->assertNull(UserApiKeys::$lastRefusal);
@@ -286,13 +286,13 @@ class UserApiKeyTest extends ApiTestBase
     {
         [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['scopes' => UserApiKeys::availableScopes()]);
         foreach ([['get', 'tokens'], ['get', 'clients'], ['get', 'personal-access-tokens'], ['post', 'personal-access-tokens'], ['get', 'scopes']] as [$method, $path]) {
-            \Auth::forgetGuards();
+            \Illuminate\Support\Facades\Auth::forgetGuards();
             $response = $this->withHeaders(['Authorization' => "Bearer $plain", 'Accept' => 'application/json'])
                 ->$method(admin_urls('oauth', $path), $method === 'post' ? ['name' => 'x', 'scopes' => []] : []);
             $this->assertContains($response->getStatusCode(), [401, 403], "$method oauth/$path");
             $this->assertNotSame(200, $response->getStatusCode());
         }
-        $this->assertSame(0, \DB::table('oauth_access_tokens')->where('name', 'x')->count());
+        $this->assertSame(0, \Illuminate\Support\Facades\DB::table('oauth_access_tokens')->where('name', 'x')->count());
     }
 
     /**
@@ -313,7 +313,7 @@ class UserApiKeyTest extends ApiTestBase
     public function testAUserOfSso(): void
     {
         $login = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        \DB::table('login_users')->where('id', $login->id)->update(['login_provider' => 'test_sso']);
+        \Illuminate\Support\Facades\DB::table('login_users')->where('id', $login->id)->update(['login_provider' => 'test_sso']);
 
         // without its login: no password login to find
         [, $plain] = $this->makeKey();
@@ -443,15 +443,15 @@ class UserApiKeyTest extends ApiTestBase
     public function testRelatedDataAskedInTheBody(): void
     {
         [, $plain] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['tables' => ['custom_value_edit']]);
-        $id = \DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
+        $id = \Illuminate\Support\Facades\DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
         foreach (['children', 'parents'] as $param) {
-            \Auth::forgetGuards();
+            \Illuminate\Support\Facades\Auth::forgetGuards();
             $response = $this->withHeaders(['Authorization' => "Bearer $plain"])
                 ->post(admin_urls('api', 'data', 'custom_value_edit', $id), [$param => '1']);
             $this->assertRefused($response, 'table');
         }
         // without it, the POST (read one record) passes
-        \Auth::forgetGuards();
+        \Illuminate\Support\Facades\Auth::forgetGuards();
         $this->withHeaders(['Authorization' => "Bearer $plain"])->post(admin_urls('api', 'data', 'custom_value_edit', $id))->assertStatus(200);
     }
 
@@ -465,7 +465,7 @@ class UserApiKeyTest extends ApiTestBase
         $rate = intval(config('exment.api_max_rate_limit', 60));
         $statuses = [];
         for ($i = 0; $i <= $rate; $i++) {
-            \Auth::forgetGuards();
+            \Illuminate\Support\Facades\Auth::forgetGuards();
             $statuses[] = $this->withHeaders(['Authorization' => 'Bearer ' . UserApiKeys::PREFIX . bin2hex(random_bytes(24))])
                 ->get(admin_urls('api', 'me'))->getStatusCode();
         }
@@ -504,7 +504,7 @@ class UserApiKeyTest extends ApiTestBase
     public function testTheCountOfKeysIsLocked(): void
     {
         $queries = [];
-        \DB::listen(function ($query) use (&$queries) {
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queries) {
             $queries[] = strtolower($query->sql);
         });
         $this->makeKey();
@@ -520,7 +520,7 @@ class UserApiKeyTest extends ApiTestBase
     public function testTheEndDateOfAKeyOfSso(): void
     {
         $login = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        \DB::table('login_users')->where('id', $login->id)->update(['login_provider' => 'test_sso']);
+        \Illuminate\Support\Facades\DB::table('login_users')->where('id', $login->id)->update(['login_provider' => 'test_sso']);
         config(['exment.api_key_max_days_sso' => 30]);
 
         [$key] = $this->makeKey(TestDefine::TESTDATA_USER_LOGINID_USER1, ['login_user_id' => (int)$login->id]);
@@ -544,7 +544,7 @@ class UserApiKeyTest extends ApiTestBase
         $login = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->assertFalse(UserApiKeys::isSsoLogin($login));
         foreach ([['login_type' => 'ldap', 'login_provider' => null], ['login_type' => 'oauth', 'login_provider' => null], ['login_type' => 'pure', 'login_provider' => 'x']] as $values) {
-            \DB::table('login_users')->where('id', $login->id)->update($values);
+            \Illuminate\Support\Facades\DB::table('login_users')->where('id', $login->id)->update($values);
             /** @var LoginUser $again */
             $again = LoginUser::findOrFail($login->id);
             $this->assertTrue(UserApiKeys::isSsoLogin($again), json_encode($values) ?: '');
@@ -557,7 +557,7 @@ class UserApiKeyTest extends ApiTestBase
     public function testUnknownKeysAreLoggedSampled(): void
     {
         \Illuminate\Support\Facades\RateLimiter::clear('apikey-log:' . UserApiKeys::siteHash() . ':127.0.0.1');
-        $log = \Log::spy();
+        $log = \Illuminate\Support\Facades\Log::spy();
         for ($i = 0; $i < 3; $i++) {
             $this->assertRefused($this->getWithKey(UserApiKeys::PREFIX . bin2hex(random_bytes(24)), ['me']), 'unknown');
         }

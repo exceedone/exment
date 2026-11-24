@@ -217,7 +217,7 @@ class SummaryGrid extends GridBase
                 return $column_item->setCustomValue($custom_value)->html();
             })->escape(false);
 
-        if (!\Exment::isSqlServer() && $column instanceof CustomViewColumn) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::isSqlServer() && $column instanceof CustomViewColumn) {
             $grid_column->cast($column_item->getCastName(true));
         }
 
@@ -568,7 +568,7 @@ class SummaryGrid extends GridBase
             $html = $filter->render();
         });
 
-        return ['html' => $html, 'script' => \Admin::purescript()->render()];
+        return ['html' => $html, 'script' => \ExmentAdminCore\Admin\Facades\Admin::purescript()->render()];
     }
 
     /**

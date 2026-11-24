@@ -78,7 +78,7 @@ class Exment
     public function menu()
     {
         // the menus the login user sees (Services\MenuVisibility)
-        $user = \Admin::user();
+        $user = \ExmentAdminCore\Admin\Facades\Admin::user();
         if (!isset($user)) {
             return (new Menu())->toTree();
         }
@@ -210,7 +210,7 @@ class Exment
             }
 
             // whether has User
-            $user = \Exment::user();
+            $user = \Exceedone\Exment\Facades\ExmentFacade::user();
             if (!$user) {
                 // @phpstan-ignore-next-line
                 return $callback($request, $exception);
@@ -234,7 +234,7 @@ class Exment
     // @phpstan-ignore-next-line
     public function user($guards = null)
     {
-        return \Auth::guard($this->guard)->user();
+        return \Illuminate\Support\Facades\Auth::guard($this->guard)->user();
     }
 
 
@@ -245,7 +245,7 @@ class Exment
     public function setGuard(string $guard)
     {
         $this->guard = $guard;
-        \Auth::shouldUse($guard);
+        \Illuminate\Support\Facades\Auth::shouldUse($guard);
     }
 
     /**
@@ -265,7 +265,7 @@ class Exment
     public function getUserId()
     {
         // whether has User
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (empty($user)) {
             return null;
         }
@@ -490,7 +490,7 @@ class Exment
     public function getVersionFromComposerLock(): ?string
     {
         $composer_lock = base_path('composer.lock');
-        if (!\File::exists($composer_lock)) {
+        if (!\Illuminate\Support\Facades\File::exists($composer_lock)) {
             return null;
         }
         $key = $composer_lock . ':' . @filemtime($composer_lock);
@@ -508,7 +508,7 @@ class Exment
         }
 
         $version = null;
-        $json = json_decode_ex(\File::get($composer_lock), true);
+        $json = json_decode_ex(\Illuminate\Support\Facades\File::get($composer_lock), true);
         if (is_array($json)) {
             // @phpstan-ignore-next-line
             $exment = collect(array_get($json, 'packages'))->first(function ($package) {
@@ -683,7 +683,7 @@ class Exment
         return view('exment::widgets.url-tag', [
             'href' => $href,
             'label' => $label,
-            'attributes' => \Exment::formatAttributes($attributes),
+            'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes($attributes),
         ])->render();
     }
 
@@ -809,13 +809,13 @@ class Exment
             $custom_table = CustomTable::getEloquent(SystemTableName::DOCUMENT);
             $column_document_name = CustomColumn::getEloquent('document_name', $custom_table);
             $documentDbName = getDBTableName($custom_table);
-            $documentDbNameWrap = \Exment::wrapTable($documentDbName);
-            $targetDbNameWrap = \Exment::wrapTable(getDBTableName($target_custom_table));
+            $documentDbNameWrap = \Exceedone\Exment\Facades\ExmentFacade::wrapTable($documentDbName);
+            $targetDbNameWrap = \Exceedone\Exment\Facades\ExmentFacade::wrapTable(getDBTableName($target_custom_table));
 
             // search document name
-            list($mark, $q) = \Exment::getQueryMarkAndValue(true, $q);
+            list($mark, $q) = \Exceedone\Exment\Facades\ExmentFacade::getQueryMarkAndValue(true, $q);
             $query
-                ->select(\DB::raw(1))
+                ->select(\Illuminate\Support\Facades\DB::raw(1))
                 ->from($documentDbName)
                 ->where($documentDbName . '.' . $column_document_name->getQueryKey(), $mark, $q)
                 ->where("$documentDbName.parent_type", $target_custom_table->table_name)
@@ -936,13 +936,13 @@ class Exment
     // @phpstan-ignore-next-line
     public function wrapColumn($string)
     {
-        return \DB::getQueryGrammar()->wrap($string);
+        return \Illuminate\Support\Facades\DB::getQueryGrammar()->wrap($string);
     }
 
     // @phpstan-ignore-next-line
     public function wrapTable($string)
     {
-        return \DB::getQueryGrammar()->wrapTable($string);
+        return \Illuminate\Support\Facades\DB::getQueryGrammar()->wrapTable($string);
     }
 
     /**
@@ -997,7 +997,7 @@ class Exment
             return $path;
         }
         $tmppath = getFullpath($path, Define::DISKNAME_ADMIN_TMP);
-        \Exment::makeDirectory($tmppath);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($tmppath);
 
         return $tmppath;
     }
@@ -1091,10 +1091,10 @@ class Exment
      */
     public function makeDirectory(?string $path, int $mode = 0775)
     {
-        if (\File::exists($path)) {
+        if (\Illuminate\Support\Facades\File::exists($path)) {
             return;
         }
-        \File::makeDirectory($path, $mode, true);
+        \Illuminate\Support\Facades\File::makeDirectory($path, $mode, true);
     }
 
     /**
@@ -1141,7 +1141,7 @@ class Exment
      */
     public function isSqlServer(): bool
     {
-        return \DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder;
+        return \Illuminate\Support\Facades\DB::getSchemaBuilder() instanceof \Illuminate\Database\Schema\SqlServerBuilder;
     }
 
 

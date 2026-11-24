@@ -35,7 +35,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         // soft delete is the default; make sure the env does not force hard delete.
-        \Config::set('exment.delete_force_custom_value', false);
+        \Illuminate\Support\Facades\Config::set('exment.delete_force_custom_value', false);
     }
 
     // ------------------------------------------------------------------ //
@@ -112,7 +112,7 @@ class RoleGroupUserCountTest extends FeatureTestBase
         $roleGroup = $this->createRoleGroup();
         $this->assignUsers($roleGroup, 2);
 
-        $missingId = (int) \DB::table(getDBTableName(SystemTableName::USER))->max('id') + 100000;
+        $missingId = (int) \Illuminate\Support\Facades\DB::table(getDBTableName(SystemTableName::USER))->max('id') + 100000;
         RoleGroupUserOrganization::create([
             'role_group_id' => $roleGroup->id,
             'role_group_user_org_type' => SystemTableName::USER,

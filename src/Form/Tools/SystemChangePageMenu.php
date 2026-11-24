@@ -45,7 +45,7 @@ class SystemChangePageMenu extends ModalTileMenuButton
                 'icon' => 'fa-cog',
                 'header' => exmtrans('system.system_header'),
                 'description' => exmtrans('system.system_description'),
-                'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
+                'permission' => \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::SYSTEM),
 
                 'buttons' => [
                     [
@@ -65,35 +65,35 @@ class SystemChangePageMenu extends ModalTileMenuButton
                 'icon' => 'fa-table',
                 'header' => exmtrans('custom_table.header'),
                 'description' => exmtrans('custom_table.description'),
-                'permission' => \Exment::user()->hasPermission(Permission::CUSTOM_TABLE),
+                'permission' => \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::CUSTOM_TABLE),
             ],
             [
                 'href' => admin_url('role_group'),
                 'icon' => 'fa-user-secret',
                 'header' => exmtrans("role_group.header"),
                 'description' => exmtrans('role_group.description'),
-                'permission' => \Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_ROLE_GROUP),
+                'permission' => \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::AVAILABLE_ACCESS_ROLE_GROUP),
             ],
             [
                 'href' => admin_url('workflow'),
                 'icon' => 'fa-share-alt',
                 'header' => exmtrans('workflow.header'),
                 'description' => exmtrans('workflow.description'),
-                'permission' => \Exment::user()->hasPermission(Permission::WORKFLOW),
+                'permission' => \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::WORKFLOW),
             ],
             [
                 'href' => admin_url('api_setting'),
                 'icon' => 'fa-code-fork',
                 'header' => exmtrans('api.header'),
                 'description' => exmtrans('api.description'),
-                'permission' => System::api_available() && \Exment::user()->hasPermission(Permission::AVAILABLE_API),
+                'permission' => System::api_available() && \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::AVAILABLE_API),
             ],
             [
                 'href' => admin_url('login_setting'),
                 'icon' => 'fa-sign-in',
                 'header' => exmtrans('login.header'),
                 'description' => exmtrans('login.description'),
-                'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
+                'permission' => \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::SYSTEM),
             ],
         ])->filter(function ($item) {
             return $item['permission'];

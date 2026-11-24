@@ -44,7 +44,7 @@ class CommentItem extends SystemItem
 
         // @phpstan-ignore-next-line
         $query->whereExists(function ($subQuery) use ($input, $tableName, $tableNameComment, $columnName) {
-            $subQuery->select(\DB::raw(1))
+            $subQuery->select(\Illuminate\Support\Facades\DB::raw(1))
                 ->from($tableNameComment)
                 ->whereColumn("{$tableNameComment}.parent_id", "{$tableName}.id")
                 ->where("{$tableNameComment}.parent_type", $this->custom_table->table_name)
