@@ -99,7 +99,7 @@
     }
 
     // ---- box loading ------------------------------------------------------------------
-    function loadBox(suuid, url) {
+    function loadBox(suuid, url, force) {
         if (!suuid) { return; }
         var $box = boxOf(suuid);
         if ($box.hasClass('loading')) {
@@ -117,8 +117,16 @@
         $box.find('.box-body-inneritem').html('');
         $box.find('.overlay').show();
 
+        url = url || (admin_url('dashboardbox/html/' + suuid) + boxQuery(suuid));
+        if (force) {
+            // the user explicitly asked for fresh content: a throwaway parameter makes the URL
+            // differ from the cached one (system boxes are browser-cached, see
+            // DashboardBoxController::SYSTEM_BOX_CACHE_SECONDS). The server ignores _r.
+            url += (url.indexOf('?') === -1 ? '?' : '&') + '_r=' + Date.now();
+        }
+
         $.ajax({
-            url: url || (admin_url('dashboardbox/html/' + suuid) + boxQuery(suuid)),
+            url: url,
             type: 'GET',
             success: function (data) {
                 if (replaced($box)) { return; }
@@ -899,7 +907,8 @@
             Exment.CommonEvent.ShowSwal(admin_url('dashboardbox/delete/' + suuid), { title: L.delete_confirm, confirm: L.confirm, method: 'delete', cancel: L.cancel });
         });
         $(document).on('click' + NS, '[data-exment-widget="reload"]', function (ev) {
-            loadBox($(ev.target).closest('[data-suuid]').data('suuid'));
+            // force: bypass the browser cache, or the button would redisplay a cached system box
+            loadBox($(ev.target).closest('[data-suuid]').data('suuid'), null, true);
         });
         $(document).on('click' + NS, '[data-ajax-link]', function (ev) {
             var $link = $(ev.target).closest('[data-ajax-link]');

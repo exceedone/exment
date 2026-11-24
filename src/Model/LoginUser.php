@@ -107,7 +107,8 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         foreach (System::header_user_info() as $field) {
             if ($field == SystemColumn::CREATED_AT) {
                 $title = exmtrans('common.created_at');
-                $value = $base_user->created_at;
+                // in the time zone of the user (ISS02835)
+                $value = \Exceedone\Exment\Services\UserTimezone::display($base_user->created_at);
             } else {
                 /** @var CustomColumn|null $column */
                 $column = CustomColumn::find($field);

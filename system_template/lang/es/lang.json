@@ -1,0 +1,588 @@
+{
+    "template_view_name": "Plantilla del sistema",
+    "description": "Es la plantilla del sistema. Debe instalarse obligatoriamente.",
+    "custom_tables": [
+        {
+            "table_name": "document",
+            "table_view_name": "Documento",
+            "custom_columns": [
+                {
+                    "column_name": "document_name",
+                    "column_view_name": "Nombre del documento"
+                },
+                {
+                    "column_name": "file_uuid",
+                    "column_view_name": "UUID del archivo"
+                }
+            ]
+        },
+        {
+            "table_name": "comment",
+            "table_view_name": "Documento",
+            "custom_columns": [
+                {
+                    "column_name": "comment_detail",
+                    "column_view_name": "Detalle del documento"
+                }
+            ]
+        },
+        {
+            "table_name": "base_info",
+            "table_view_name": "Información básica",
+            "custom_columns": [
+                {
+                    "column_name": "company_name",
+                    "column_view_name": "Nombre de la empresa"
+                },
+                {
+                    "column_name": "company_kana",
+                    "column_view_name": "Nombre de la empresa (kana)"
+                },
+                {
+                    "column_name": "zip01",
+                    "column_view_name": "Código postal 1"
+                },
+                {
+                    "column_name": "zip02",
+                    "column_view_name": "Código postal 2"
+                },
+                {
+                    "column_name": "tel01",
+                    "column_view_name": "Teléfono 1",
+                    "options": {
+                        "placeholder": "ej.: 03"
+                    }
+                },
+                {
+                    "column_name": "tel02",
+                    "column_view_name": "Teléfono 2",
+                    "options": {
+                        "placeholder": "ej.: 1234"
+                    }
+                },
+                {
+                    "column_name": "tel03",
+                    "column_view_name": "Teléfono 3",
+                    "options": {
+                        "placeholder": "ej.: 5678"
+                    }
+                },
+                {
+                    "column_name": "fax01",
+                    "column_view_name": "Fax 1",
+                    "options": {
+                        "placeholder": "ej.: 03"
+                    }
+                },
+                {
+                    "column_name": "fax02",
+                    "column_view_name": "Fax 2",
+                    "options": {
+                        "placeholder": "ej.: 1234"
+                    }
+                },
+                {
+                    "column_name": "fax03",
+                    "column_view_name": "Fax 3",
+                    "options": {
+                        "placeholder": "ej.: 5678"
+                    }
+                },
+                {
+                    "column_name": "pref",
+                    "column_view_name": "Prefectura",
+                    "options": {
+                        "select_item_valtext": "01,Hokkaido\n02,Aomori\n03,Iwate\n04,Akita\n05,Akita\n06,Yamagata\n07,Fukushima\n08,Ibaraki\n09,Tochigi\n10,Gunma\n11,Saitama\n12,Chiba\n13,Tokyo\n14,Kanagawa\n15,Niigata\n16,Toyama\n17,Ishikawa\n18,Fukui\n19,Yamanashi\n20,Nagano\n21,Gifu\n22,Shizuoka\n23,Aichi\n24,Mie\n25,Shiga\n26,Kyoto\n27,Osaka\n28,Hyogo\n29,Nara\n30,Wakayama\n31,Tottori\n32,Shimane\n33,Hiroshima\n34,Yamaguchi\n36,Tokushima\n37,Kagawa\n38,Ehime\n39,Kochi\n40,Fukuoka\n41,Saga\n42,Nagasaki\n43,Kumamoto\n44,Oita\n45,Miyazaki\n46,Kagoshima\n47,Okinawa"
+                    }
+                },
+                {
+                    "column_name": "addr01",
+                    "column_view_name": "Dirección"
+                },
+                {
+                    "column_name": "addr02",
+                    "column_view_name": "Dirección (edificio y otros)"
+                },
+                {
+                    "column_name": "company_logo",
+                    "column_view_name": "Logotipo de la empresa",
+                    "options": {
+                        "help": "El tamaño de imagen óptimo es 200 x 70."
+                    }
+                },
+                {
+                    "column_name": "company_stamp",
+                    "column_view_name": "Sello de la empresa",
+                    "options": {
+                        "help": "El tamaño de imagen óptimo es 200 x 200."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_name",
+                    "column_view_name": "Cuenta bancaria - Nombre del banco"
+                },
+                {
+                    "column_name": "transfer_bank_office_name",
+                    "column_view_name": "Cuenta bancaria - Nombre de la sucursal"
+                },
+                {
+                    "column_name": "transfer_bank_office_no",
+                    "column_view_name": "Cuenta bancaria - N.º de sucursal"
+                },
+                {
+                    "column_name": "transfer_bank_account_type",
+                    "column_view_name": "Cuenta bancaria - Tipo de cuenta",
+                    "options": {
+                        "help": "Introduzca el tipo de cuenta, por ejemplo [Ahorros] o [Corriente]."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "Cuenta bancaria - Titular"
+                },
+                {
+                    "column_name": "transfer_bank_account_no",
+                    "column_view_name": "Cuenta bancaria - N.º de cuenta"
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "Cuenta bancaria - Titular"
+                }
+            ]
+        },
+        {
+            "table_name": "user",
+            "table_view_name": "Usuario",
+            "custom_columns": [
+                {
+                    "column_name": "user_code",
+                    "column_view_name": "Código de usuario"
+                },
+                {
+                    "column_name": "user_name",
+                    "column_view_name": "Nombre de usuario"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Correo electrónico"
+                }
+            ]
+        },
+        {
+            "table_name": "organization",
+            "table_view_name": "Organización",
+            "custom_columns": [
+                {
+                    "column_name": "organization_code",
+                    "column_view_name": "Código de organización"
+                },
+                {
+                    "column_name": "organization_name",
+                    "column_view_name": "Nombre de la organización"
+                },
+                {
+                    "column_name": "parent_organization",
+                    "column_view_name": "Organización superior"
+                }
+            ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "Plantilla de correo",
+            "description": "Gestiona el texto de los mensajes y otros datos para el envío de correos.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_key_name",
+                    "column_view_name": "Clave del correo",
+                    "options": {
+                        "help": "Clave que identifica de forma única la plantilla de correo en el sistema."
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "Nombre visible del correo",
+                    "options": {
+                        "help": "Nombre de la plantilla que se muestra en la pantalla de lista."
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "Tipo de plantilla",
+                    "options": {
+                        "select_item_valtext": "header,Encabezado\nbody,Cuerpo\nfooter,Pie"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "Asunto del correo",
+                    "options": {
+                        "help": "Introduzca el asunto del correo que se enviará. Puede usar variables."
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "Cuerpo del correo",
+                    "options": {
+                        "help": "Introduzca el texto del correo que desea enviar. Puede usar variables."
+                    }
+                },
+                {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "Nombre visible del remitente",
+                    "options": {
+                        "help": "Introduzca el nombre visible del remitente."
+                    }
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Archivos adjuntos",
+                    "options": {
+                        "help": "Agregue el archivo que desea adjuntar al correo."
+                    }
+                },
+                {
+                    "column_name": "custom_attachments",
+                    "column_view_name": "Adjuntos personalizados",
+                    "options": {
+                        "help": "Agregue la columna de archivo o los documentos que desea adjuntar al correo."
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "mail_send_log",
+            "table_view_name": "Historial de envío de correos",
+            "description": "Gestiona el historial de envío de correos.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_from",
+                    "column_view_name": "Remitente"
+                },
+                {
+                    "column_name": "mail_to",
+                    "column_view_name": "Destinatario"
+                },
+                {
+                    "column_name": "mail_cc",
+                    "column_view_name": "Destinatario (CC)"
+                },
+                {
+                    "column_name": "mail_bcc",
+                    "column_view_name": "Destinatario (CCO)"
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "Asunto del correo"
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "Cuerpo del correo"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Usuario destinatario"
+                },
+                {
+                    "column_name": "mail_template",
+                    "column_view_name": "Plantilla del correo enviado"
+                },
+                {
+                    "column_name": "send_datetime",
+                    "column_view_name": "Fecha de envío"
+                }
+            ]
+        },
+        {
+            "table_name": "information",
+            "table_view_name": "Avisos",
+            "description": "Avisos para los usuarios. Se pueden mostrar en un panel, entre otros lugares.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Cargo"
+                },
+                {
+                    "column_name": "body",
+                    "column_view_name": "Cuerpo"
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "Mostrar",
+                    "options": {
+                        "help": "Seleccione SÍ si desea mostrarlo en la lista."
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "Orden de visualización",
+                    "options": {
+                        "help": "Se muestra en la lista en orden descendente de valor. (Si el valor es igual, se ordena por la fecha de actualización más reciente)."
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "Prioridad",
+                    "options": {
+                        "select_item_valtext": "1,Muy baja\n2,Baja\n3,Normal\n4,Alta\n5,Muy alta"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "e6b833089cee9ad107e6",
+            "form_view_name": "Formulario"
+        },
+        {
+            "suuid": "c38977fc14800c624894",
+            "form_view_name": "Formulario"
+        },
+        {
+            "suuid": "cd614f0abb054f5f9adb",
+            "form_view_name": "Formulario"
+        },
+        {
+            "suuid": "eaaae44f42d1895e43b9",
+            "form_view_name": "Formulario",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": "Tabla secundaria - Usuario",
+                    "form_block_target_table_name": "user"
+                }
+            ]
+        },
+        {
+            "suuid": "96c4e4f7d8a86a4ba17e",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "s6j3csfuc4kagb82zna3",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "s6j3csauc4kagb82zna3",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "3471e23fbff8dc65437b",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "24e34126c023857a092e",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "b6d5afcda4ce26091f36",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "99120fd4b360e15993d2",
+            "view_view_name": "Lista de avisos"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "system_default_dashboard",
+            "dashboard_view_name": "Panel predeterminado",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Lista de avisos"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Guía"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Noticias de Exment"
+                }
+            ]
+        }
+    ],
+    "role_groups": [
+        {
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "Grupo de administración de todos los datos",
+            "description": "Grupo de roles que permite ver y editar todos los datos."
+        },
+        {
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "Grupo de administración de usuarios y organizaciones",
+            "description": "Grupo de roles que administra usuarios y organizaciones"
+        },
+        {
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "Grupo de administración de avisos",
+            "description": "Grupo de roles que administra los avisos."
+        },
+        {
+            "role_group_name": "user_group",
+            "role_group_view_name": "Grupo de usuarios",
+            "description": "Grupo de roles para los usuarios predeterminados."
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "system",
+            "menu_name": "home",
+            "title": "Panel"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "groupware",
+            "title": "Groupware"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "file_server",
+            "title": "Archivos compartidos"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "master",
+            "title": "Maestros"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "base_info",
+            "title": "Información básica"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "organization",
+            "title": "Organización"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "Usuario"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "information",
+            "title": "Avisos"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_data",
+            "title": "Configuración: datos y pantallas"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "custom_table",
+            "title": "Tabla personalizada"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "studio",
+            "title": "Studio"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "menu",
+            "title": "Menú"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "Flujo de trabajo"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "Plantilla de correo"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "Notificación"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "cell_style_preset",
+            "title": "Estilos de celda predefinidos"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "template",
+            "title": "Plantilla"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_user",
+            "title": "Configuración: usuarios y permisos"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "loginuser",
+            "title": "Usuario con acceso"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "role_group",
+            "title": "Grupo de roles"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "login_setting",
+            "title": "Configuración de inicio de sesión"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "Configuración de API"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "Registro de operaciones"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "Configuración: sistema"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "system",
+            "title": "Configuración del sistema"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "feature",
+            "title": "Gestión de funciones"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "plugin",
+            "title": "Plugin"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "backup",
+            "title": "Copia de seguridad"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "tuning",
+            "title": "Optimización"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "Comprobación de seguridad"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "maintenance",
+            "title": "Modo de mantenimiento"
+        }
+    ]
+}

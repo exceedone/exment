@@ -55,6 +55,10 @@ class CustomValueModelScope implements Scope
 
         // get user info
         $user = \Exment::user();
+        // the rule of an application for this table (TablePolicy): its filter, maybe the whole one
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($table_name)) && $policy->scope($builder, $model->custom_table, $user)) {
+            return;
+        }
         // if not have, check as login
         if (!isset($user)) {
             // console, queue and batch (backup, import, schedules): no user, all rows

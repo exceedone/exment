@@ -43,6 +43,9 @@ class InstallSeeder extends Seeder
 
             LineInstaller::ensureAll();
             SafetyCheckInstaller::ensureAll();
+
+            // the data of an application (ScreenExtensions install.seeded)
+            \Exceedone\Exment\Services\ScreenExtensions::call('install.seeded');
         } catch (\Exception $exception) {
             //DB::rollback();
             throw $exception;

@@ -1,0 +1,50 @@
+{
+    "template_view_name": "Nhật ký hiệu năng hệ thống",
+    "description": "Mẫu dùng để ghi nhật ký hiệu năng hệ thống, bao gồm URL thực thi, người dùng, thời gian và truy vấn SQL.",
+    "custom_tables": [
+        {
+            "table_name": "system_logs",
+            "table_view_name": "Nhật ký hiệu năng hệ thống",
+            "description": "Ghi lại nhật ký hiệu năng hệ thống như truy vấn SQL đã thực thi, URL thực thi, người dùng và thời gian.",
+            "custom_columns": [
+                {
+                    "column_name": "url",
+                    "column_view_name": "URL thực thi"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Người dùng thực thi"
+                },
+                {
+                    "column_name": "create_at",
+                    "column_view_name": "Thời gian thực thi"
+                },
+                {
+                    "column_name": "sql",
+                    "column_view_name": "SQL"
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5160ffbedcfce843fb8e",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "d9ce8f6d3b288d6da84b",
+            "view_view_name": "Tất cả bản ghi"
+        }
+    ],
+    "custom_copies": [],
+    "admin_menu": [
+        {
+            "title": "Nhật ký hiệu năng hệ thống",
+            "menu_type": "table",
+            "menu_name": "system_logs"
+        }
+    ]
+}

@@ -15,6 +15,7 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\SpOut;
 use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\Xlsx;
+use Exceedone\Exment\Services\UserTimezone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -188,11 +189,13 @@ trait DataImportExportServiceTrait
             return $this->pluginExportAction->execute();
         }
 
-        if ($action == 'view_export' && isset($this->viewExportAction)) {
-            $datalist = $this->viewExportAction->datalist();
-        } else {
-            $datalist = $this->exportAction->datalist();
-        }
+        // the date and times in the time zone of the site, or of the user when chosen (ISS02835)
+        $datalist = UserTimezone::runData(request()->get('timezone') === 'user', function () use ($action) {
+            if ($action == 'view_export' && isset($this->viewExportAction)) {
+                return $this->viewExportAction->datalist();
+            }
+            return $this->exportAction->datalist();
+        });
 
         $files = $formatObj
             ->datalist($datalist)
@@ -267,7 +270,11 @@ trait DataImportExportServiceTrait
             ];
         }
 
-        $response = $this->importAction->import($datalist);
+        // the date and times of the file in the time zone of the site, or of the user when chosen (ISS02835)
+        $asUser = request()->get('import_timezone') === 'user';
+        $response = UserTimezone::runData($asUser, function () use ($datalist) {
+            return $this->importAction->import($datalist);
+        });
 
         return $response;
     }
@@ -504,6 +511,19 @@ trait DataImportExportServiceTrait
             ->help(exmtrans('custom_value.import.help.import_plugin'));
         }
 
+        // the time zone of the date and times of the file, when the user has another one than the site (ISS02835)
+        if (UserTimezone::differs()) {
+            $form->select('import_timezone', exmtrans('custom_value.import.import_timezone'))
+                ->options([
+                    'site' => exmtrans('custom_value.import.timezone_site', ['timezone' => UserTimezone::site()]),
+                    'user' => exmtrans('custom_value.import.timezone_user', ['timezone' => UserTimezone::user()]),
+                ])
+                ->default('site')
+                ->disableClear()
+                ->setWidth(8, 3)
+                ->help(exmtrans('custom_value.import.help.import_timezone'));
+        }
+
         $form->hidden('select_action')->default('stop');
         // $form->select('select_action', exmtrans('custom_value.import.error_flow'))
         //     ->options(getTransArray(Define::CUSTOM_VALUE_IMPORT_ERROR, "custom_value.import.error_options"))
@@ -587,6 +607,11 @@ trait DataImportExportServiceTrait
                     if (ColumnType::isMultipleEnabled(array_get($target_column, 'column_type'))
                         && boolval(array_get($target_column, 'options.multiple_enabled'))) {
                         $value = explode(",", $value);
+                    }
+
+                    // an import in the time zone of the user: the date and times to the time zone of the site (ISS02835)
+                    if (UserTimezone::dataAsUser() && array_get($target_column, 'column_type') == ColumnType::DATETIME) {
+                        $value = UserTimezone::formatFromUser($value);
                     }
 
                     if (array_has($options, 'setting')) {

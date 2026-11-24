@@ -467,6 +467,9 @@ HTML;
             return true;
         }
 
+        // A date and time is edited in the time zone of the user: the cell hands over the value in it
+        // (rawValueTag), and the write is saved in the time zone of the site
+        // (ApiDataController::screenWriteFromUser). ISS02835
         if (in_array($type, [ColumnType::TEXT, ColumnType::EMAIL, ColumnType::URL,
             ColumnType::DATE, ColumnType::DATETIME, ], true)) {
             return true;
@@ -939,6 +942,13 @@ HTML;
 
         if (!$needed) {
             return '';
+        }
+
+        // the editor opens on the date and time of the user, as the cell shows it (ISS02835)
+        $value_column = $custom_column
+            ?? ($item instanceof \Exceedone\Exment\ColumnItems\CustomItem ? $item->getCustomColumn() : null);
+        if ($value_column && $value_column->column_type === ColumnType::DATETIME) {
+            $value = \Exceedone\Exment\Services\UserTimezone::formatToUser($value);
         }
 
         return '<span class="exm-cell-raw" data-v="' . esc_html((string)$value) . '"></span>';

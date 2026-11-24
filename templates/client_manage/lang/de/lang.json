@@ -1,0 +1,141 @@
+{
+    "template_view_name": "Kundenverwaltung",
+    "description": "Einfache Kundenverwaltung. Wenn Sie Haupt- und Unterkategorien für Ihre Kunden erfassen, können Sie Kunden nach Kategorie suchen.",
+    "custom_tables": [
+        {
+            "table_name": "major_class",
+            "table_view_name": "Hauptkategorie",
+            "description": "Hauptkategorie",
+            "custom_columns": [
+                {
+                    "column_name": "major_class_code",
+                    "column_view_name": "Hauptkategorie-Code"
+                },
+                {
+                    "column_name": "major_class_name",
+                    "column_view_name": "Hauptkategorie-Name"
+                }
+            ]
+        },
+        {
+            "table_name": "minor_class",
+            "table_view_name": "Unterkategorie",
+            "description": "Unterkategorie",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Hauptkategorie"
+                },
+                {
+                    "column_name": "minor_class_code",
+                    "column_view_name": "Unterkategorie-Code"
+                },
+                {
+                    "column_name": "minor_class_name",
+                    "column_view_name": "Unterkategorie-Name"
+                }
+            ]
+        },
+        {
+            "table_name": "client_manage",
+            "table_view_name": "Kundeninformationen",
+            "description": "Kundeninformationen",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Hauptkategorie"
+                },
+                {
+                    "column_name": "minor_class",
+                    "column_view_name": "Unterkategorie"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "Kundenname"
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "Postleitzahl"
+                },
+                {
+                    "column_name": "street_address",
+                    "column_view_name": "Straße und Hausnummer"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Telefon"
+                },
+                {
+                    "column_name": "fax",
+                    "column_view_name": "Fax"
+                },
+                {
+                    "column_name": "mail",
+                    "column_view_name": "E-Mail-Adresse"
+                },
+                {
+                    "column_name": "hp",
+                    "column_view_name": "Website"
+                },
+                {
+                    "column_name": "available_flg",
+                    "column_view_name": "Aktiv"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "9b7cdef69121669e53f3",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "874049a23fa54616587e",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "d72abe95f6a2bd472bee",
+            "form_view_name": "Formular"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "901117b47cad43291ed6",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "58c28b1a750f81b6621a",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "1e425a576a67c5d993f2",
+            "view_view_name": "Alle Kundeninformationen"
+        },
+        {
+            "suuid": "bc5692520c4d124b4815",
+            "view_view_name": "Aktive Kundeninformationen"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Kundenverwaltung",
+            "menu_type": "parent_node",
+            "menu_name": "client_manage_parent"
+        },
+        {
+            "title": "Hauptkategorie",
+            "menu_type": "table",
+            "menu_name": "major_class"
+        },
+        {
+            "title": "Unterkategorie",
+            "menu_type": "table",
+            "menu_name": "minor_class"
+        },
+        {
+            "title": "Kundeninformationen",
+            "menu_type": "table",
+            "menu_name": "client_manage"
+        }
+    ]
+}

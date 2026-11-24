@@ -48,6 +48,8 @@ use Cache;
  * @method static string|void system_values_pos($arg = null)
  * @method static string|void data_submit_redirect($arg = null)
  * @method static array|void header_user_info($arg = null)
+ * @method static array<int, string>|void allowed_locales($arg = null)
+ * @method static bool|void locale_from_browser($arg = null)
  * @method static boolean|void complex_password($arg = null)
  * @method static int|void password_expiration_days($arg = null)
  * @method static boolean|void first_change_password($arg = null)
@@ -136,7 +138,7 @@ class System extends ModelBase
     {
         // Get system setting value
         if (static::hasFunction($name)) {
-            $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
+            $setting = \Exceedone\Exment\Services\CoreExtensions::systemSettings()[$name];
             return static::getset_system_value($name, $setting, $argments);
         }
 
@@ -485,7 +487,7 @@ class System extends ModelBase
     // @phpstan-ignore-next-line
     public static function hasFunction($name)
     {
-        return array_key_exists($name, Define::SYSTEM_SETTING_NAME_VALUE);
+        return array_key_exists($name, \Exceedone\Exment\Services\CoreExtensions::systemSettings());
     }
 
 
@@ -493,7 +495,7 @@ class System extends ModelBase
     public static function get_system_keys($group = null)
     {
         $keys = [];
-        foreach (Define::SYSTEM_SETTING_NAME_VALUE as $k => $v) {
+        foreach (\Exceedone\Exment\Services\CoreExtensions::systemSettings() as $k => $v) {
             if (isset($group)) {
                 if (is_string($group)) {
                     $group = [$group];
@@ -645,7 +647,7 @@ class System extends ModelBase
         $old_value = $system->system_value;
 
         // change set value by type
-        $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
+        $setting = \Exceedone\Exment\Services\CoreExtensions::systemSettings()[$name];
         $type = array_get($setting, 'type');
 
         if ($type == 'file') {

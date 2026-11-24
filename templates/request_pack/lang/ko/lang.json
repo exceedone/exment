@@ -1,0 +1,237 @@
+{
+    "template_view_name": "신청 팩",
+    "description": "품의, 경비 정산, 출장·지급·휴가 신청과 제출/승인/반려 워크플로, 신청자 및 승인자 역할 그룹, \"신청·승인\" 메뉴가 포함됩니다.",
+    "custom_tables": [
+        {
+            "table_name": "request_ringi",
+            "table_view_name": "품의서",
+            "description": "사내 결재를 요청합니다(구매, 계약, 채용 등).",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "제목"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "금액"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "희망일"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "내용 및 사유"
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "첨부 파일"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense",
+            "table_view_name": "경비 정산",
+            "description": "지출한 경비를 정산합니다. 영수증은 명세에 첨부합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "제목"
+                },
+                {
+                    "column_name": "apply_date",
+                    "column_view_name": "신청일"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense_detail",
+            "table_view_name": "경비 명세",
+            "description": "경비 정산의 명세입니다.",
+            "custom_columns": [
+                {
+                    "column_name": "use_date",
+                    "column_view_name": "날짜"
+                },
+                {
+                    "column_name": "account",
+                    "column_view_name": "계정 과목",
+                    "options": {
+                        "select_item_valtext": "travel,여비 교통비\nmeeting,회의비\nentertainment,접대비\nsupplies,소모품비\ncommunication,통신비\nbooks,도서 인쇄비\nother,기타"
+                    }
+                },
+                {
+                    "column_name": "payee",
+                    "column_view_name": "지급처"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "금액"
+                },
+                {
+                    "column_name": "receipt",
+                    "column_view_name": "영수증"
+                }
+            ]
+        },
+        {
+            "table_name": "request_trip",
+            "table_view_name": "출장 신청",
+            "description": "출장 전에 신청합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "destination",
+                    "column_view_name": "출장지"
+                },
+                {
+                    "column_name": "purpose",
+                    "column_view_name": "목적"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "시작일"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "종료일"
+                },
+                {
+                    "column_name": "transport",
+                    "column_view_name": "교통수단",
+                    "options": {
+                        "select_item_valtext": "train,열차\nshinkansen,신칸센\nplane,항공기\ncar,자동차\nother,기타"
+                    }
+                },
+                {
+                    "column_name": "estimated_cost",
+                    "column_view_name": "예상 비용"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        },
+        {
+            "table_name": "request_payment",
+            "table_view_name": "지급 신청",
+            "description": "청구서의 지급을 신청합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "payee",
+                    "column_view_name": "지급처"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "금액"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "지급 기한"
+                },
+                {
+                    "column_name": "invoice",
+                    "column_view_name": "청구서"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "내용"
+                }
+            ]
+        },
+        {
+            "table_name": "request_leave",
+            "table_view_name": "휴가 신청",
+            "description": "휴가를 신청합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "leave_type",
+                    "column_view_name": "휴가 종류",
+                    "options": {
+                        "select_item_valtext": "paid,연차 휴가\nhalf_am,반차(오전)\nhalf_pm,반차(오후)\nspecial,특별 휴가\nsubstitute,대체 휴일\nabsence,결근\nother,기타"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "시작일"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "종료일"
+                },
+                {
+                    "column_name": "days",
+                    "column_view_name": "일수"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "사유"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "fb49ce9f4362a2c57793",
+            "form_view_name": "폼"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "신청·승인",
+            "menu_type": "parent_node",
+            "menu_name": "request"
+        },
+        {
+            "title": "미처리 작업",
+            "menu_type": "system",
+            "menu_name": "workflow_task"
+        },
+        {
+            "title": "품의서",
+            "menu_type": "table",
+            "menu_name": "request_ringi"
+        },
+        {
+            "title": "경비 정산",
+            "menu_type": "table",
+            "menu_name": "request_expense"
+        },
+        {
+            "title": "출장 신청",
+            "menu_type": "table",
+            "menu_name": "request_trip"
+        },
+        {
+            "title": "지급 신청",
+            "menu_type": "table",
+            "menu_name": "request_payment"
+        },
+        {
+            "title": "휴가 신청",
+            "menu_type": "table",
+            "menu_name": "request_leave"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "request_applicant_group",
+            "role_group_view_name": "신청자",
+            "description": "신청을 작성하고 본인의 신청을 조회·편집할 수 있는 사람입니다. 직원을 여기에 추가하십시오."
+        },
+        {
+            "role_group_name": "request_approver_group",
+            "role_group_view_name": "승인자",
+            "description": "모든 신청을 조회하고 승인 또는 반려할 수 있는 사람입니다."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "신청·승인(표준)"
+        }
+    ]
+}
