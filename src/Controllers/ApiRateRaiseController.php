@@ -45,7 +45,7 @@ class ApiRateRaiseController extends AdminControllerBase
         $raises = ApiRateRaise::query()->orderByDesc('id')->get();
         $userIds = $raises->pluck('created_user_id')
             ->merge($raises->where('target_type', ApiRateRaise::TARGET_USER)->pluck('target_id'))
-            ->filter()->map('intval')->unique()->diff(array_map('intval', array_keys($users)))->all();
+            ->filter()->map(fn ($v) => intval($v))->unique()->diff(array_map('intval', array_keys($users)))->all();
         foreach (getModelName(SystemTableName::USER)::query()->whereKey($userIds)->get() as $user) {
             $users[strval($user->id)] = strval($user->getLabel());
         }
