@@ -277,5 +277,11 @@
             "role_group_view_name": "销售",
             "description": "可查看、创建和编辑客户、商机、报价和合同的人员。"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "e5967aaf67c9ae4b4398",
+            "notify_view_name": "合同即将到期（30 天前）"
+        }
     ]
 }

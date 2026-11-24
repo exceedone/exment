@@ -277,5 +277,11 @@
             "role_group_view_name": "Vertrieb",
             "description": "Personen, die Kunden, Verkaufschancen, Angebote und Verträge sehen, anlegen und bearbeiten."
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "e5967aaf67c9ae4b4398",
+            "notify_view_name": "Vertrag endet bald (30 Tage vorher)"
+        }
     ]
 }

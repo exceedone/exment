@@ -223,5 +223,15 @@
         {
             "workflow_view_name": "Yêu cầu về tài sản (tiêu chuẩn)"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "443a629e799118e3d3b6",
+            "notify_view_name": "Quá hạn trả (ngày hôm sau)"
+        },
+        {
+            "suuid": "bee2b3c2eed422884924",
+            "notify_view_name": "Yêu cầu tài sản (đã gửi, đã duyệt, trả lại)"
+        }
     ]
 }
