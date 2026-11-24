@@ -648,6 +648,11 @@ class ExmentServiceProvider extends ServiceProvider
         } catch (\Exception $ex) {
         }
 
+        // the jobs an application added (CoreExtensions::addSchedule())
+        foreach (\Exceedone\Exment\Services\CoreExtensions::schedules() as $register) {
+            $register($schedule);
+        }
+
         // maintenance mode: the planned start and end (never skipped in a maintenance)
         $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);
     }
