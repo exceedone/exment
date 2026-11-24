@@ -9,6 +9,10 @@ parameters:
         # Exceedone\Exment\ColumnItems\CustomColumns namespace so one unit test can run
         # without the application. PHPStan must not read them as the real helpers.
         - vendor/exceedone/exment/tests/fixtures/EditorClipboardImageEnvironment.php
+        # Calls the QR code through the global alias \QrCode. After PHPStan reads such a call, it
+        # reads the facade behind it (src/Facades/QrCodeFacade.php) wrongly: "return statement is
+        # missing" in getFacadeAccessor(), when the same worker read this file first (CI, now and then).
+        - vendor/exceedone/exment/tests/Unit/QrCodeAliasTest.php
     level: 7
     stubFiles:
         - exment/stubs/laravel/passport/Client.stub

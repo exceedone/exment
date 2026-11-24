@@ -7,7 +7,7 @@ use Exceedone\Exment\Services\Line\QrRenderer;
 
 /**
  * The QR code is made with bacon/bacon-qr-code 3 (#1902). The calls of simple-qrcode
- * (format, size, margin, generate) and the "QrCode" alias still work.
+ * (format, size, margin, generate) still work. The "QrCode" alias: QrCodeAliasTest.
  */
 class QrCodeBuilderTest extends UnitTestBase
 {
@@ -48,11 +48,6 @@ class QrCodeBuilderTest extends UnitTestBase
         QrCodeFacade::format('png')->size(50)->generate('a');
         // the next QR code does not keep "png" from the previous one
         $this->assertStringContainsString('<svg', QrCodeFacade::generate('b'));
-    }
-
-    public function testAlias(): void
-    {
-        $this->assertStringContainsString('<svg', \QrCode::format('svg')->generate('alias'));
     }
 
     public function testTheOldClassNameStillWorks(): void
