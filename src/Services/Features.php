@@ -151,6 +151,16 @@ class Features
             'description' => 'exment::exment.feature.features.api_keys_help',
             'endpoints' => ['auth/api_keys'],
         ]);
+        // the API of the members (Controllers\ApiMemberController, ISS00335): the users of an
+        // organization and the members of the role groups. Off until it is turned on; who may use it
+        // is the permission of the role groups
+        $core[\Exceedone\Exment\Controllers\ApiMemberController::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.api_members',
+            'description' => 'exment::exment.feature.features.api_members_help',
+            'api' => ['organization', 'user', 'role_group'],
+            'manual' => 'api_members',
+            'who' => false,
+        ]);
         // the MCP server (api/mcp, ISS00439): off until an administrator turns it on and
         // chooses the role groups whose users may use it from an AI
         $core[static::MCP] = static::definition([
