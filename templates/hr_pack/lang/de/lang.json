@@ -1,0 +1,168 @@
+{
+    "template_view_name": "Personal-Paket",
+    "description": "Mitarbeiterliste und Ein- und Austrittsprozesse (mit Aufgaben), Rollengruppen für Personal und Mitarbeiter und ein Menü „Personal & Verwaltung“.",
+    "custom_tables": [
+        {
+            "table_name": "hr_employee",
+            "table_view_name": "Mitarbeiter",
+            "description": "Die Mitarbeiterliste, verknüpft mit den Login-Benutzern.",
+            "custom_columns": [
+                {
+                    "column_name": "employee_no",
+                    "column_view_name": "Personalnr."
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Benutzer"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Abteilung"
+                },
+                {
+                    "column_name": "position",
+                    "column_view_name": "Position"
+                },
+                {
+                    "column_name": "employment_type",
+                    "column_view_name": "Beschäftigungsart",
+                    "options": {
+                        "select_item_valtext": "regular,Festangestellt\ncontract,Befristet\npart_time,Teilzeit\ndispatch,Leiharbeit\nofficer,Führungskraft"
+                    }
+                },
+                {
+                    "column_name": "join_date",
+                    "column_view_name": "Eintritt am"
+                },
+                {
+                    "column_name": "extension",
+                    "column_view_name": "Durchwahl"
+                },
+                {
+                    "column_name": "work_location",
+                    "column_view_name": "Arbeitsort"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "select_item_valtext": "active,Aktiv\nleave,Beurlaubt\nretired,Ausgeschieden"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure",
+            "table_view_name": "Ein- und Austritte",
+            "description": "Prozesse für Eintritte, Austritte und Versetzungen. Erfassen Sie die Aufgaben in den Positionen und markieren Sie sie als erledigt.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Betreff"
+                },
+                {
+                    "column_name": "procedure_type",
+                    "column_view_name": "Art",
+                    "options": {
+                        "select_item_valtext": "join,Eintritt\nleave,Austritt\ntransfer,Versetzung"
+                    }
+                },
+                {
+                    "column_name": "person_name",
+                    "column_view_name": "Person"
+                },
+                {
+                    "column_name": "employee",
+                    "column_view_name": "Mitarbeiter"
+                },
+                {
+                    "column_name": "scheduled_date",
+                    "column_view_name": "Datum"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "select_item_valtext": "todo,Offen\ndoing,In Bearbeitung\ndone,Erledigt"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Verantwortlich"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure_task",
+            "table_view_name": "Aufgaben",
+            "description": "Eine Aufgabe eines Prozesses.",
+            "custom_columns": [
+                {
+                    "column_name": "task",
+                    "column_view_name": "Aufgabe"
+                },
+                {
+                    "column_name": "assignee",
+                    "column_view_name": "Zuständig"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Fällig am"
+                },
+                {
+                    "column_name": "done",
+                    "column_view_name": "Erledigt"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0748bf896060b0c25e21",
+            "form_view_name": "Formular"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Personal & Verwaltung",
+            "menu_type": "parent_node",
+            "menu_name": "hr"
+        },
+        {
+            "title": "Mitarbeiter",
+            "menu_type": "table",
+            "menu_name": "hr_employee"
+        },
+        {
+            "title": "Ein- und Austritte",
+            "menu_type": "table",
+            "menu_name": "hr_procedure"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "hr_admin_group",
+            "role_group_view_name": "Personal & Verwaltung",
+            "description": "Personen, die die Mitarbeiterliste und die Prozesse sehen, anlegen und bearbeiten."
+        },
+        {
+            "role_group_name": "hr_member_group",
+            "role_group_view_name": "Mitarbeiter",
+            "description": "Personen, die die Mitarbeiterliste sehen."
+        }
+    ],
+    "notifies": [
+        {
+            "suuid": "06e4a6e35f688ae4fecc",
+            "notify_view_name": "Termin des Verfahrens bald (7 Tage vorher)"
+        }
+    ]
+}

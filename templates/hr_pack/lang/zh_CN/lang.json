@@ -1,0 +1,168 @@
+{
+    "template_view_name": "人事包",
+    "description": "员工名册和入职、离职手续（含任务），以及人事和员工角色组和“人事与总务”菜单。",
+    "custom_tables": [
+        {
+            "table_name": "hr_employee",
+            "table_view_name": "员工",
+            "description": "员工名册，与登录用户关联。",
+            "custom_columns": [
+                {
+                    "column_name": "employee_no",
+                    "column_view_name": "员工编号"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "用户"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "部门"
+                },
+                {
+                    "column_name": "position",
+                    "column_view_name": "职位"
+                },
+                {
+                    "column_name": "employment_type",
+                    "column_view_name": "雇佣类型",
+                    "options": {
+                        "select_item_valtext": "regular,正式员工\ncontract,合同工\npart_time,兼职\ndispatch,派遣员工\nofficer,高管"
+                    }
+                },
+                {
+                    "column_name": "join_date",
+                    "column_view_name": "入职日期"
+                },
+                {
+                    "column_name": "extension",
+                    "column_view_name": "分机号"
+                },
+                {
+                    "column_name": "work_location",
+                    "column_view_name": "工作地点"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状态",
+                    "options": {
+                        "select_item_valtext": "active,在职\nleave,休假中\nretired,已离职"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure",
+            "table_view_name": "入职与离职",
+            "description": "入职、离职和调动的手续。在明细中填写任务并标记完成。",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "标题"
+                },
+                {
+                    "column_name": "procedure_type",
+                    "column_view_name": "类型",
+                    "options": {
+                        "select_item_valtext": "join,入职\nleave,离职\ntransfer,调动"
+                    }
+                },
+                {
+                    "column_name": "person_name",
+                    "column_view_name": "人员"
+                },
+                {
+                    "column_name": "employee",
+                    "column_view_name": "员工"
+                },
+                {
+                    "column_name": "scheduled_date",
+                    "column_view_name": "日期"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状态",
+                    "options": {
+                        "select_item_valtext": "todo,未开始\ndoing,进行中\ndone,已完成"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "负责人"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure_task",
+            "table_view_name": "任务",
+            "description": "手续中的一项任务。",
+            "custom_columns": [
+                {
+                    "column_name": "task",
+                    "column_view_name": "任务"
+                },
+                {
+                    "column_name": "assignee",
+                    "column_view_name": "负责人"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "期限"
+                },
+                {
+                    "column_name": "done",
+                    "column_view_name": "已完成"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0748bf896060b0c25e21",
+            "form_view_name": "表单"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "人事与总务",
+            "menu_type": "parent_node",
+            "menu_name": "hr"
+        },
+        {
+            "title": "员工",
+            "menu_type": "table",
+            "menu_name": "hr_employee"
+        },
+        {
+            "title": "入职与离职",
+            "menu_type": "table",
+            "menu_name": "hr_procedure"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "hr_admin_group",
+            "role_group_view_name": "人事与总务",
+            "description": "可查看、创建和编辑员工名册和手续的人员。"
+        },
+        {
+            "role_group_name": "hr_member_group",
+            "role_group_view_name": "员工",
+            "description": "可查看员工名册的人员。"
+        }
+    ],
+    "notifies": [
+        {
+            "suuid": "06e4a6e35f688ae4fecc",
+            "notify_view_name": "手续日期临近（7 天前）"
+        }
+    ]
+}

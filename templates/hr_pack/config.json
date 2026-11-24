@@ -1,0 +1,876 @@
+{
+    "template_name": "hr_pack",
+    "template_view_name": "人事・総務パック",
+    "description": "社員名簿・入退社の手続き（やることの明細）と、人事・総務と社員の役割グループ、「人事・総務」のメニューのセットです。",
+    "custom_tables": [
+        {
+            "table_name": "hr_employee",
+            "table_view_name": "社員名簿",
+            "description": "社員の名簿です。ログインユーザーとつなぎます。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-id-card",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "employee_no",
+                    "column_view_name": "社員番号",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "ユーザー",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "所属",
+                    "column_type": "organization",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "position",
+                    "column_view_name": "役職",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "128",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "employment_type",
+                    "column_view_name": "雇用形態",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "regular,正社員\ncontract,契約社員\npart_time,パート・アルバイト\ndispatch,派遣\nofficer,役員",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "join_date",
+                    "column_view_name": "入社日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "extension",
+                    "column_view_name": "内線",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "7",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "32",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "work_location",
+                    "column_view_name": "勤務地",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "8",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "string_length": "256",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状態",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "9",
+                    "options": {
+                        "default": "active",
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "active,在籍\nleave,休職\nretired,退職",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "10",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "6c9aabfefa3b22d583d8",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "hr_employee",
+                        "table_label_column_name": "employee_no"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure",
+            "table_view_name": "入退社の手続き",
+            "description": "入社・退社・異動の手続きです。やることを明細に入れて、終わったら完了にします。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-exchange",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "件名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "procedure_type",
+                    "column_view_name": "種類",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "join,入社\nleave,退社\ntransfer,異動",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "person_name",
+                    "column_view_name": "対象の人",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "128",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "employee",
+                    "column_view_name": "社員",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "hr_employee",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "scheduled_date",
+                    "column_view_name": "予定日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状態",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "default": "todo",
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "todo,準備中\ndoing,手続き中\ndone,完了",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "担当者",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "7",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "8",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "19d9ba7c6bc7a181efd0",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "hr_procedure",
+                        "table_label_column_name": "title"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure_task",
+            "table_view_name": "やること",
+            "description": "手続きでやることです。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-check",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "task",
+                    "column_view_name": "内容",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "assignee",
+                    "column_view_name": "担当",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "期限",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "done",
+                    "column_view_name": "完了",
+                    "column_type": "yesno",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "default": "0",
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": []
+        }
+    ],
+    "custom_relations": [
+        {
+            "relation_type": "1",
+            "options": {
+                "parent_import_table_name": null,
+                "parent_import_column_name": null,
+                "parent_export_table_name": null,
+                "parent_export_column_name": null
+            },
+            "parent_custom_table_name": "hr_procedure",
+            "child_custom_table_name": "hr_procedure_task"
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0748bf896060b0c25e21",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "options": null,
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "c3f599d3dfbc2c5c0c56",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "423",
+                            "form_column_target_name": "title"
+                        },
+                        {
+                            "suuid": "3836364fb30753506b79",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "432",
+                            "form_column_target_name": "procedure_type"
+                        },
+                        {
+                            "suuid": "26652de19d23ef3f3b31",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "441",
+                            "form_column_target_name": "person_name"
+                        },
+                        {
+                            "suuid": "8dc4f66f3ef0863e4e20",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "450",
+                            "form_column_target_name": "employee"
+                        },
+                        {
+                            "suuid": "6aed0a63d4781122208e",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "459",
+                            "form_column_target_name": "scheduled_date"
+                        },
+                        {
+                            "suuid": "d6ed5939f3efe0b9d967",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "467",
+                            "form_column_target_name": "status"
+                        },
+                        {
+                            "suuid": "6d815d146b880b043918",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "478",
+                            "form_column_target_name": "owner"
+                        },
+                        {
+                            "suuid": "8308ff4349f66b194835",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "484",
+                            "form_column_target_name": "note"
+                        }
+                    ],
+                    "form_block_target_table_name": "hr_procedure"
+                },
+                {
+                    "form_block_view_name": "やること",
+                    "form_block_type": "1",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "1199f24d0a0ce0eeb1e5",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "1",
+                            "form_column_target_name": "task"
+                        },
+                        {
+                            "suuid": "372191ba99fed7e4ee88",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "2",
+                            "form_column_target_name": "assignee"
+                        },
+                        {
+                            "suuid": "56fcb56df68758e021cf",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "3",
+                            "form_column_target_name": "due_date"
+                        },
+                        {
+                            "suuid": "395e7f66280a254312f4",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "4",
+                            "form_column_target_name": "done"
+                        }
+                    ],
+                    "form_block_target_table_name": "hr_procedure_task"
+                }
+            ],
+            "table_name": "hr_procedure"
+        }
+    ],
+    "admin_menu": [
+        {
+            "order": "50",
+            "title": "人事・総務",
+            "icon": "fa-users",
+            "uri": "#",
+            "options": {
+                "visible_role_group_names": [
+                    "hr_admin_group",
+                    "hr_member_group"
+                ]
+            },
+            "menu_type": "parent_node",
+            "menu_name": "hr",
+            "parent_name": null,
+            "menu_target_name": null
+        },
+        {
+            "order": "1",
+            "title": "社員名簿",
+            "icon": "fa-id-card",
+            "uri": "hr_employee",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "hr_employee",
+            "parent_name": "hr",
+            "menu_target_name": "hr_employee"
+        },
+        {
+            "order": "2",
+            "title": "入退社の手続き",
+            "icon": "fa-exchange",
+            "uri": "hr_procedure",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "hr_procedure",
+            "parent_name": "hr",
+            "menu_target_name": "hr_procedure"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "hr_admin_group",
+            "role_group_view_name": "人事・総務",
+            "role_group_order": "0",
+            "description": "社員名簿と入退社の手続きを見て、作り、直す人。",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "hr_employee"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "hr_procedure"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "hr_procedure_task"
+                }
+            ]
+        },
+        {
+            "role_group_name": "hr_member_group",
+            "role_group_view_name": "社員",
+            "role_group_order": "0",
+            "description": "社員名簿を見る人。",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_view_all"
+                    ],
+                    "role_group_target_name": "hr_employee"
+                }
+            ]
+        }
+    ],
+    "thumbnail": "thumbnail.png",
+    "notifies": [
+        {
+            "suuid": "06e4a6e35f688ae4fecc",
+            "notify_name": null,
+            "notify_view_name": "手続きの予定日が近い（7 日前）",
+            "active_flg": "1",
+            "notify_trigger": "1",
+            "target_name": "hr_procedure",
+            "trigger_settings": {
+                "notify_target_table_name": "hr_procedure",
+                "notify_target_column_name": "scheduled_date",
+                "notify_day": "7",
+                "notify_beforeafter": "-1",
+                "notify_hour": "9"
+            },
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "column:hr_procedure.owner",
+                        "created_user"
+                    ]
+                }
+            ],
+            "mail_key_name": "time_notify"
+        }
+    ]
+}
