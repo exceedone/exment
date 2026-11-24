@@ -713,6 +713,8 @@ return [
                 'explain' => 'Khóa dùng để mã hóa và ký phiên làm việc. Mỗi trang web cần có khóa riêng.',
                 'warning' => 'APP_KEY chưa có hoặc vẫn là giá trị mẫu.',
                 'fix' => 'Vui lòng chạy php artisan key:generate trên máy chủ. Với trang web đang được sử dụng, khóa mới sẽ khiến các giá trị đã lưu ở dạng mã hóa (mật khẩu máy chủ email...) không đọc được: khi đó vui lòng thiết lập lại.',
+                'shipped_warning' => 'APP_KEY vẫn là khóa có sẵn trong tệp zip tải về.',
+                'shipped_fix' => 'Vui lòng chạy php artisan key:generate trên máy chủ. Sau đó mọi người sẽ bị đăng xuất và phải đăng nhập lại. Các giá trị đã lưu ở dạng mã hóa (mật khẩu máy chủ email...) sẽ không đọc được: vui lòng thiết lập lại.',
             ],
             'app_env' => [
                 'label' => 'Môi trường (APP_ENV)',
