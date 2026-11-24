@@ -264,8 +264,8 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && static::store()->has(static::storeKey($key))) {
-                $val = static::store()->get(static::storeKey($key));
+            // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -276,8 +276,8 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && static::store()->has(static::storeKey($key))) {
-                $val = static::store()->get(static::storeKey($key));
+            // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -544,9 +544,8 @@ class System extends ModelBase
     {
         $key = static::getConfigKey($name);
         return static::cache($key, function () use ($name, $setting) {
-            $system = static::allRecordsCache(function ($record) use ($name) {
-                return $record->system_name == $name;
-            }, false)->first();
+            // by the index of system_name: a scan of every row was run for each setting (ISS00413)
+            $system = static::recordsCacheBy(['system_name'], [$name])->first();
 
             $type = array_get($setting, 'type');
             $value = null;

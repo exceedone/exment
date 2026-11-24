@@ -192,6 +192,16 @@ trait HasPermissions
             return $this->getPermissions();
         });
 
+        // asked for each item of the menu and each check: the objects are made once for the roles (ISS00413)
+        $memoKey = Define::SYSTEM_KEY_SESSION_AUTHORITY . '_objects';
+        $memo = System::requestSession($memoKey);
+        if (is_array($memo) && $memo[0] === $roles) {
+            /** @var Collection $collection */
+            // @phpstan-ignore-next-line
+            $collection = collect($memo[1]);
+            return $collection;
+        }
+
         $permissions = [];
         foreach ($roles as $key => $role) {
             if (RoleType::SYSTEM == $key) {
@@ -220,6 +230,8 @@ trait HasPermissions
                 }
             }
         }
+
+        System::setRequestSession($memoKey, [$roles, $permissions]);
 
         /** @var Collection $collection */
         // @phpstan-ignore-next-line
@@ -325,10 +337,12 @@ trait HasPermissions
     protected function getPermissions()
     {
         $authority = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
+            // the role groups of the user, read and scanned once for the three kinds (ISS00413)
+            $roles = $this->getPermissionItems();
             return [
-                RoleType::SYSTEM => $this->getSystemPermissions(),
-                RoleType::TABLE => $this->getCustomTablePermissions(),
-                RoleType::PLUGIN => $this->getPluginPermissions(),
+                RoleType::SYSTEM => $this->getSystemPermissions($roles),
+                RoleType::TABLE => $this->getCustomTablePermissions($roles),
+                RoleType::PLUGIN => $this->getPluginPermissions($roles),
             ];
         });
         return $authority;
@@ -338,10 +352,10 @@ trait HasPermissions
      * get all permissons for all custom tables.
      */
     // @phpstan-ignore-next-line
-    protected function getCustomTablePermissions()
+    protected function getCustomTablePermissions($roles = null)
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems();
+        $roles = $roles ?? $this->getPermissionItems();
 
         // get permission_details for all tables. --------------------------------------------------
         $permission_details = [];
@@ -396,10 +410,10 @@ trait HasPermissions
      * get Plugin permissons.
      */
     // @phpstan-ignore-next-line
-    protected function getPluginPermissions()
+    protected function getPluginPermissions($roles = null)
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems();
+        $roles = $roles ?? $this->getPermissionItems();
 
         // get permission_details for all tables. --------------------------------------------------
         $permission_details = [];
@@ -442,10 +456,10 @@ trait HasPermissions
      * get all permissons for system.
      */
     // @phpstan-ignore-next-line
-    protected function getSystemPermissions()
+    protected function getSystemPermissions($roles = null)
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems();
+        $roles = $roles ?? $this->getPermissionItems();
 
         // get roles records
         $permissions = [];
