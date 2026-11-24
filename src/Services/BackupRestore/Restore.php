@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\BackupRestore;
 
 use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
+use Exceedone\Exment\Services\CoreExtensions;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Model\System;
@@ -84,6 +85,9 @@ class Restore
 
             $result = 0;
 
+            // the rules of an application before the database is replaced (CoreExtensions::addRestoreRule)
+            $this->runRestoreRules('before');
+
             // restore table definition
             $this->restoreDatabase();
 
@@ -97,6 +101,8 @@ class Restore
 
             // copy env
             $this->updateEnv();
+
+            $this->runRestoreRules('after');
 
             // Everything cached so far describes rows that no longer exist, and the migrations
             // below read Exment's own models - clear before, and again after, so the caller
@@ -206,6 +212,9 @@ class Restore
             if (is_null($setting)) {
                 continue;
             }
+            if (!$this->restoresFile($setting[2], null)) {
+                continue;
+            }
 
             // config files of another Laravel version would overwrite the current ones and
             // stop the application from starting (e.g. config/app.php listing providers
@@ -251,6 +260,9 @@ class Restore
                 $files = $tmpDisk->files($directory);
                 foreach ($files as $file) {
                     $path = path_ltrim($file, $to);
+                    if (!$this->restoresFile($setting[2], $path)) {
+                        continue;
+                    }
                     // copy from crowd to local
                     $stream = $tmpDisk->readStream($file);
                     $disk->delete($path);
@@ -281,6 +293,40 @@ class Restore
      * @param string $path
      * @return bool
      */
+    /**
+     * Whether the value of $key in the backup's .env is written (the rules of an application).
+     */
+    protected function restoresEnv(string $key): bool
+    {
+        foreach (CoreExtensions::restoreRules('env') as $rule) {
+            if (!$rule($key)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Whether a folder of the backup ($path null) or a file in it is restored (the rules of an
+     * application).
+     */
+    protected function restoresFile(string $target, ?string $path): bool
+    {
+        foreach (CoreExtensions::restoreRules('file') as $rule) {
+            if (!$rule($target, $path)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    protected function runRestoreRules(string $kind): void
+    {
+        foreach (CoreExtensions::restoreRules($kind) as $rule) {
+            $rule();
+        }
+    }
+
     protected function isWritableDirectory(string $path): bool
     {
         if (\File::isDirectory($path)) {
@@ -392,7 +438,7 @@ class Restore
                 }
 
                 foreach ($lines as $line) {
-                    if (in_array($line[0], $ignoreKeys, true)) {
+                    if (in_array($line[0], $ignoreKeys, true) || !$this->restoresEnv($line[0])) {
                         continue;
                     }
                     $this->setEnv([$line[0] => $line[1]]);

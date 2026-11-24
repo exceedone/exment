@@ -6,7 +6,8 @@ use Exceedone\Exment\Model\Define;
 
 /**
  * Additions to the lists of Define, for an application built on Exment (registered from its
- * service provider): system settings, system menus, the pages of a table, help links and scheduled jobs.
+ * service provider): system settings, system menus, the pages of a table, help links, scheduled jobs
+ * and the rules of a restore.
  * Nothing is added by Exment itself, so the lists are Define's as they are.
  */
 class CoreExtensions
@@ -28,6 +29,12 @@ class CoreExtensions
 
     /** @var array<string, string> command => name (scheduled_jobs.jobs.<name>) */
     protected static $scheduledJobNames = [];
+
+    /** @var array<string, array<int, \Closure>> kind (env, file, before, after) => rules */
+    protected static $restoreRules = [];
+
+    /** The kinds of the rules of a restore (addRestoreRule()). */
+    public const RESTORE_RULE_KINDS = ['env', 'file', 'before', 'after'];
 
     /**
      * System settings, as Define::SYSTEM_SETTING_NAME_VALUE (name => definition).
@@ -160,6 +167,37 @@ class CoreExtensions
     }
 
     /**
+     * Rules of a restore (Services\BackupRestore\Restore), for a site whose operator decides some
+     * of its settings: what a backup may not bring back. Each key is optional:
+     * - env: function (string $key): bool. False: the value of the backup's .env is not written
+     *   (the site keeps its own)
+     * - file: function (string $target, ?string $path): bool. False: not restored. $target is a
+     *   BackupTarget (plugin, attachment, ...); $path is null for the whole folder, or the path of
+     *   a file in it (the folders on a disk such as S3 are restored file by file)
+     * - before: function (): void, before the database of the backup replaces the site's
+     * - after: function (): void, after the data, the files and the .env, before the migration
+     *
+     * @param array<string, \Closure> $rule kind => closure
+     */
+    public static function addRestoreRule(array $rule): void
+    {
+        foreach ($rule as $kind => $closure) {
+            if (!in_array($kind, static::RESTORE_RULE_KINDS, true)) {
+                throw new \InvalidArgumentException('Unknown kind of a restore rule: ' . $kind);
+            }
+            static::$restoreRules[$kind][] = $closure;
+        }
+    }
+
+    /**
+     * @return array<int, \Closure>
+     */
+    public static function restoreRules(string $kind): array
+    {
+        return static::$restoreRules[$kind] ?? [];
+    }
+
+    /**
      * Forget the additions (tests).
      */
     public static function reset(): void
@@ -170,5 +208,6 @@ class CoreExtensions
         static::$helpUrls = [];
         static::$schedules = [];
         static::$scheduledJobNames = [];
+        static::$restoreRules = [];
     }
 }
