@@ -59,6 +59,17 @@ class ErrorController extends Controller
     }
 
     /**
+     * A page that is not there (the route of a plugin page that is not there): 404, shown as
+     * Exment's error page by the handler of the errors (Exment::error()).
+     *
+     * @return never
+     */
+    public function notFound()
+    {
+        abort(404);
+    }
+
+    /**
      * The status of the error page: the one of an HTTP exception (abort(404) of a plugin page,
      * a 403), 404 for a record not found, else 200 as before (the page itself is the same).
      *

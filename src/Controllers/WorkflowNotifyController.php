@@ -52,6 +52,7 @@ class WorkflowNotifyController extends Controller
         if (!$this->workflow) {
             abort(404);
         }
+        $this->localizePageInfo();
         return parent::callAction($method, $parameters);
     }
 
