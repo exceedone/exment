@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\CoreExtensions;
+use Exceedone\Exment\Services\ScheduledJobs\ScheduledJobs;
 use Exceedone\Exment\Services\ScreenExtensions;
 use Exceedone\Exment\Services\TablePolicy;
 
@@ -131,18 +132,24 @@ class CoreExtensionsTest extends UnitTestBase
 
     public function testScheduledJobsOfAnApplication(): void
     {
-        $key = \Exceedone\Exment\Services\ScheduledJobs\ScheduledJobs::class;
-        $this->assertNull(collect($key::jobs())->firstWhere('key', 'app:sample-job'), 'none before');
+        $this->assertNotContains('app:sample-job', $this->scheduledJobKeys(), 'none before');
 
         CoreExtensions::addSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
             $schedule->command('app:sample-job')->dailyAt('04:00');
         }, ['app:sample-job' => 'schedule']);
 
-        $job = collect($key::jobs())->firstWhere('key', 'app:sample-job');
-        $this->assertNotNull($job, 'listed on the page, as schedule:run runs it');
-        $this->assertSame(exmtrans('scheduled_jobs.jobs.schedule'), $job['label'], 'named by its text');
+        $this->assertContains('app:sample-job', $this->scheduledJobKeys(), 'listed on the page, as schedule:run runs it');
+        $this->assertSame(exmtrans('scheduled_jobs.jobs.schedule'), ScheduledJobs::label('app:sample-job'), 'named by its text');
         // Exment's own names stay
-        $this->assertSame(exmtrans('scheduled_jobs.jobs.schedule'), $key::label('exment:schedule'));
-        $this->assertSame('app:other', $key::label('app:other'));
+        $this->assertSame(exmtrans('scheduled_jobs.jobs.schedule'), ScheduledJobs::label('exment:schedule'));
+        $this->assertSame('app:other', ScheduledJobs::label('app:other'));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function scheduledJobKeys(): array
+    {
+        return array_column(ScheduledJobs::jobs(), 'key');
     }
 }
