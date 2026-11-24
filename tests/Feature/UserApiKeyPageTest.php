@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Tests\Feature;
 
+use Exceedone\Exment\Services\Mcp\McpGuide;
 use Exceedone\Exment\Controllers\UserApiKeyController;
 use Exceedone\Exment\Jobs\MailSendJob;
 use Exceedone\Exment\Model\LoginUser;
@@ -402,5 +403,94 @@ class UserApiKeyPageTest extends FeatureTestBase
         $this->flushSession();
         \Auth::guard('adminapi')->setUser(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->assertFalse(UserApiKeys::signedInRecently());
+    }
+
+    /**
+     * A key "for MCP" (ISS02879): the scopes the MCP tools read, and the settings of Claude with
+     * the key on the answer that made it - only there, as the key.
+     */
+    public function testAKeyForMcpAndTheSettingsOfClaude(): void
+    {
+        $this->setFeatures([
+            Features::API_KEYS => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()]],
+            Features::MCP => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()]],
+        ]);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $page = $this->get(admin_url('auth/api_keys'));
+        $page->assertOk()->assertSee(exmtrans('api_key.mcp.header'))->assertSee(McpGuide::url())
+            ->assertSee('name="scope_type" value="mcp"', false)
+            ->assertDontSee(exmtrans('api_key.mcp.off'));
+        // without a new key: the settings with a placeholder
+        $page->assertSee('claude mcp add --transport http exment ' . McpGuide::url() . ' --header &quot;Authorization: Bearer exk_...&quot;', false);
+
+        $made = $this->post(admin_url('auth/api_keys'), ['name' => 'claude', 'scope_type' => 'mcp', 'table_type' => 'all', 'days' => '30', 'current_password' => 'user1user1']);
+        $made->assertOk();
+        $this->assertSame(1, preg_match('/exk_[0-9a-f]{48}/', (string)$made->getContent(), $m));
+        $plain = strval($m[0]);
+        /** @var UserApiKey $key */
+        $key = UserApiKey::where('user_id', $this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1))->firstOrFail();
+        $this->assertSame(McpGuide::scopes(), $key->scopes);
+        $made->assertSee(exmtrans('api_key.mcp.with_key'))
+            ->assertSee('--header &quot;Authorization: Bearer ' . $plain . '&quot;', false)
+            ->assertSee('&quot;EXMENT_AUTH&quot;: &quot;Bearer ' . $plain . '&quot;', false);
+
+        // the next page: the key is nowhere
+        $this->get(admin_url('auth/api_keys'))->assertOk()->assertDontSee($plain)->assertSee('Bearer exk_...');
+    }
+
+    public function testAReadOnlyKeyIsNotShownInTheSettings(): void
+    {
+        $this->setFeatures([
+            Features::API_KEYS => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()]],
+            Features::MCP => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()]],
+        ]);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        // read only has the scopes of MCP too: the settings carry it
+        $made = $this->post(admin_url('auth/api_keys'), ['name' => 'ro', 'scope_type' => 'read_only', 'table_type' => 'all', 'days' => '30', 'current_password' => 'user1user1']);
+        $this->assertSame(1, preg_match('/exk_[0-9a-f]{48}/', (string)$made->getContent(), $m));
+        $made->assertSee('Bearer ' . $m[0]);
+        // a key without value_read: not for MCP, the settings keep the placeholder
+        $made = $this->post(admin_url('auth/api_keys'), ['name' => 'me only', 'scope_type' => 'custom', 'scopes' => ['me'], 'table_type' => 'all', 'days' => '30', 'current_password' => 'user1user1']);
+        $this->assertSame(1, preg_match('/exk_[0-9a-f]{48}/', (string)$made->getContent(), $m2));
+        $made->assertDontSee('Bearer ' . $m2[0])->assertSee('Bearer exk_...');
+    }
+
+    public function testTheKeysPageSaysWhenMcpIsOff(): void
+    {
+        $this->setFeatures([
+            Features::API_KEYS => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()]],
+            Features::MCP => ['enabled' => false],
+        ]);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_url('auth/api_keys'))->assertOk()->assertSee(exmtrans('api_key.mcp.off'));
+    }
+
+    /**
+     * The API settings of the administrators: the MCP server on or off, the link to Feature
+     * management, the address, the tools with their scopes, who used it last (ISS02879).
+     */
+    public function testTheApiSettingsShowTheMcpServer(): void
+    {
+        $this->setFeatures([Features::MCP => ['enabled' => false]]);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $off = $this->get(admin_url('api_setting'));
+        $off->assertOk()->assertSee(exmtrans('api.mcp.header'))->assertSee(exmtrans('api.mcp.off'))
+            ->assertSee(exmtrans('api.mcp.feature_off'))->assertSee(admin_url('feature'));
+
+        $this->setFeatures([Features::MCP => ['enabled' => true, 'role_groups' => null]]);
+        \ExmentAdminCore\Admin\Auth\Database\OperationLog::create([
+            'user_id' => (int)TestDefine::TESTDATA_USER_LOGINID_USER1, 'path' => 'mcp/list_tables', 'method' => 'MCP', 'ip' => '127.0.0.1', 'input' => '{}',
+        ]);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $on = $this->get(admin_url('api_setting'));
+        $on->assertOk()->assertSee(exmtrans('api.mcp.on'))->assertDontSee(exmtrans('api.mcp.feature_off'))
+            ->assertSee(McpGuide::url());
+        foreach (McpGuide::TOOL_SCOPES as $tool => $scope) {
+            $on->assertSee($tool)->assertSee($scope);
+        }
+        $user1 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1)->base_user;
+        $on->assertSee(strval($user1->getLabel()))->assertDontSee(exmtrans('api.mcp.recent_none'));
+        // the clients of the API are still listed under it
+        $on->assertSee(exmtrans('api.client_type_text'));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Services\Mcp\McpGuide;
 use Carbon\Carbon;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\Permission;
@@ -42,7 +43,7 @@ class UserApiKeyController extends AdminControllerBase
      *
      * @return Content
      */
-    public function index(Request $request, Content $content, ?string $newKey = null, ?string $error = null, ?string $errorLink = null)
+    public function index(Request $request, Content $content, ?string $newKey = null, ?string $error = null, ?string $errorLink = null, array $newScopes = [])
     {
         $this->abortUnlessAllowed();
         $user = \Exment::user();
@@ -79,6 +80,14 @@ class UserApiKeyController extends AdminControllerBase
             'ask_password' => $this->asksPassword(),
             'action' => admin_url('auth/api_keys'),
             'read_only' => DemoMode::enabled(),
+            // the MCP server (ISS02879): a key for it, and the settings of Claude with the new key
+            'mcp' => [
+                'allowed' => McpGuide::allowed(),
+                'url' => McpGuide::url(),
+                'scopes' => McpGuide::scopes(),
+                'configs' => McpGuide::configs(isset($newKey) && McpGuide::covers($newScopes) ? $newKey : null),
+                'for_new_key' => isset($newKey) && McpGuide::covers($newScopes),
+            ],
         ]));
         return $content;
     }
@@ -114,9 +123,11 @@ class UserApiKeyController extends AdminControllerBase
             return $this->index($request, $content, null, exmtrans('api_key.errors.sign_in_again', 15), admin_url('auth/logout'));
         }
 
-        $scopes = static::text($request, 'scope_type') === 'custom'
+        $scopeType = static::text($request, 'scope_type');
+        $scopes = $scopeType === 'custom'
             ? static::texts($request, 'scopes')
-            : UserApiKeys::readOnlyScopes();
+            // a key for MCP: what its tools read, and nothing more (ISS02879)
+            : ($scopeType === 'mcp' ? McpGuide::scopes() : UserApiKeys::readOnlyScopes());
         $tables = static::text($request, 'table_type') === 'some'
             ? static::texts($request, 'tables')
             : null;
@@ -153,7 +164,7 @@ class UserApiKeyController extends AdminControllerBase
         UserApiKeys::mailCreated($key, $request->ip());
 
         // an empty form: the values of the key are not kept in the fields
-        return $this->index(new Request(), $content, $plain);
+        return $this->index(new Request(), $content, $plain, null, null, (array)$key->scopes);
     }
 
     /**
