@@ -99,12 +99,18 @@
     }
 
     // ---- box loading ------------------------------------------------------------------
-    function loadBox(suuid, url, force) {
-        if (!suuid) { return; }
+    function loadBox(suuid, url, force, done) {
+        done = done || $.noop;
+        if (!suuid) { done(); return; }
         var $box = boxOf(suuid);
+        // read now (reloaded, filtered, or its turn): the first load does not read it again
+        if (firstLoad.observer && $box[0]) { firstLoad.observer.unobserve($box[0]); }
+        var queued = firstLoad.queue.indexOf(suuid);
+        if (queued !== -1) { firstLoad.queue.splice(queued, 1); }
         if ($box.hasClass('loading')) {
             // a newer state arrived while fetching: re-run once this request completes
             $box.data('pending', url || true);
+            done();
             return;
         }
         $box.removeData('pending').addClass('loading');
@@ -128,6 +134,7 @@
         $.ajax({
             url: url,
             type: 'GET',
+            complete: function () { done(); },
             success: function (data) {
                 if (replaced($box)) { return; }
                 // the new body's script registers the chart hooks afresh: a stale hook must never answer for it
@@ -161,6 +168,55 @@
                 flushPending($box, suuid);
             }
         });
+    }
+
+    // ---- the first load of the page (ISS00169) ------------------------------------------
+    // A box is read when it comes near the screen, at most LOAD_AT_ONCE at a time, from the top:
+    // a dashboard of many boxes asked for all of them at once, the ones far below too. A box
+    // the user reloads, filters or sorts is read at once, as before.
+    var LOAD_AT_ONCE = 3;
+    var LOAD_MARGIN = '300px'; // read a little before the box comes into the screen
+    var firstLoad = { queue: [], running: 0, page: 0, observer: null };
+
+    function queueFirstLoad(suuid) {
+        if (firstLoad.queue.indexOf(suuid) === -1) { firstLoad.queue.push(suuid); }
+        nextFirstLoad();
+    }
+
+    function nextFirstLoad() {
+        while (firstLoad.running < LOAD_AT_ONCE && firstLoad.queue.length) {
+            var suuid = firstLoad.queue.shift(), page = firstLoad.page;
+            firstLoad.running++;
+            loadBox(suuid, null, false, function () {
+                // a request of the page before (pjax) does not count for this one
+                if (page !== firstLoad.page) { return; }
+                firstLoad.running--;
+                nextFirstLoad();
+            });
+        }
+    }
+
+    function startFirstLoad($boxes) {
+        if (firstLoad.observer) { firstLoad.observer.disconnect(); }
+        firstLoad = { queue: [], running: 0, page: firstLoad.page + 1, observer: null };
+        var order = [];
+        $boxes.each(function () { var suuid = $(this).data('suuid'); if (suuid) { order.push(suuid); } });
+        if (!('IntersectionObserver' in window)) {
+            $.each(order, function (i, suuid) { queueFirstLoad(suuid); });
+            return;
+        }
+        var observer = firstLoad.observer = new IntersectionObserver(function (entries) {
+            var near = [];
+            $.each(entries, function (i, entry) {
+                if (!entry.isIntersecting) { return; }
+                observer.unobserve(entry.target);
+                near.push($(entry.target).data('suuid'));
+            });
+            // from the top of the page, whatever order the entries came in
+            near.sort(function (a, b) { return order.indexOf(a) - order.indexOf(b); });
+            $.each(near, function (i, suuid) { queueFirstLoad(suuid); });
+        }, { rootMargin: LOAD_MARGIN + ' 0px' });
+        $boxes.each(function () { if ($(this).data('suuid')) { observer.observe(this); } });
     }
 
     // The page was rendered again (pjax) while the box was fetching: its suuid — the chart
@@ -1019,8 +1075,8 @@
                         if (saved[k] && !stateOf(suuid)[k]) { stateOf(suuid)[k] = saved[k]; }
                     });
                 }
-                loadBox(suuid);
             });
+            startFirstLoad($boxes);
         },
         load: loadBox,
         pick: pick,

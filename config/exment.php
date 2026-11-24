@@ -87,12 +87,13 @@ return [
     |--------------------------------------------------------------------------
     |
     | A chart of a list view draws one point per row. It reads at most this many
-    | rows (0 = no limit, the default: an update does not change what a chart
-    | draws). A site with large tables may set it, as 1000; a chart of a large
-    | table is better made with a summary view.
+    | rows and says so when there are more (ISS00169: 5000 by default, more points
+    | than a chart can show; before 7.2.6 every row was read and a large table ran
+    | out of memory or time). 0 = no limit. A chart of a large table is better made
+    | with a summary view.
     |
     */
-    'chart_list_max_rows' => env('EXMENT_CHART_LIST_MAX_ROWS', 0),
+    'chart_list_max_rows' => env('EXMENT_CHART_LIST_MAX_ROWS', 5000),
 
     /*
     |--------------------------------------------------------------------------
