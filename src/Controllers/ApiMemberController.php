@@ -172,7 +172,7 @@ class ApiMemberController extends AdminControllerBase
         if (($denied = static::denied()) !== null) {
             return $denied;
         }
-        $roleGroup = RoleGroup::find($id);
+        $roleGroup = is_numeric($id) ? RoleGroup::query()->whereKey(intval($id))->first() : null;
         if (!isset($roleGroup)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
@@ -207,7 +207,7 @@ class ApiMemberController extends AdminControllerBase
         if (($denied = static::denied()) !== null) {
             return $denied;
         }
-        $roleGroup = RoleGroup::find($id);
+        $roleGroup = is_numeric($id) ? RoleGroup::query()->whereKey(intval($id))->first() : null;
         if (!isset($roleGroup)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
@@ -236,7 +236,7 @@ class ApiMemberController extends AdminControllerBase
                 }
                 $query = RoleGroupUserOrganization::query()->where('role_group_id', $roleGroupId)->where('role_group_user_org_type', $type);
                 if ($add) {
-                    $now = (clone $query)->pluck('role_group_target_id')->map('intval')->all();
+                    $now = (clone $query)->pluck('role_group_target_id')->map(fn ($id) => intval($id))->all();
                     foreach (array_diff($ids, $now) as $targetId) {
                         RoleGroupUserOrganization::query()->insert([
                             'role_group_id' => $roleGroupId,
@@ -316,7 +316,7 @@ class ApiMemberController extends AdminControllerBase
         if (count($ids) > static::MAX_IDS) {
             return [[], abortJson(400, exmtrans('api.errors.over_maxcount', static::MAX_IDS), ErrorCode::INVALID_PARAMS())];
         }
-        $found = getModelName($tableName)::query()->whereIn('id', $ids)->pluck('id')->map('intval')->all();
+        $found = getModelName($tableName)::query()->whereIn('id', $ids)->pluck('id')->map(fn ($id) => intval($id))->all();
         $missing = array_values(array_diff($ids, $found));
         if (count($missing) > 0) {
             return [[], abortJson(400, exmtrans('api.errors.members_not_found', ['name' => $name, 'ids' => implode(',', $missing)]), ErrorCode::DATA_NOT_FOUND())];
@@ -334,7 +334,7 @@ class ApiMemberController extends AdminControllerBase
      */
     protected static function userIdsOf(int $orgId): \Illuminate\Support\Collection
     {
-        return DB::table(static::pivotTable())->where('parent_id', $orgId)->pluck('child_id')->map('intval');
+        return DB::table(static::pivotTable())->where('parent_id', $orgId)->pluck('child_id')->map(fn ($id) => intval($id));
     }
 
     protected static function findValue(string $tableName, mixed $id): ?CustomValue
@@ -371,7 +371,7 @@ class ApiMemberController extends AdminControllerBase
     {
         $targets = RoleGroupUserOrganization::query()->where('role_group_id', $roleGroup->id)->get();
         $ids = function (string $type) use ($targets) {
-            return $targets->where('role_group_user_org_type', $type)->pluck('role_group_target_id')->map('intval')->values();
+            return $targets->where('role_group_user_org_type', $type)->pluck('role_group_target_id')->map(fn ($id) => intval($id))->values();
         };
         $item = [
             'id' => intval($roleGroup->id),
