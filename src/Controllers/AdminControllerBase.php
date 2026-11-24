@@ -30,9 +30,7 @@ class AdminControllerBase extends Controller
      */
     public function callAction($method, $parameters)
     {
-        if (isset($this->pageInfoLocale) && $this->pageInfoLocale !== app()->getLocale() && method_exists($this, '__construct')) {
-            app()->call([$this, '__construct']);
-        }
+        $this->localizePageInfo();
         return parent::callAction($method, $parameters);
     }
 
