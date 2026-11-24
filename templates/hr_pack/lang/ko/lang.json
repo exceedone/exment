@@ -158,5 +158,11 @@
             "role_group_view_name": "직원",
             "description": "직원 목록을 조회할 수 있는 사람입니다."
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "06e4a6e35f688ae4fecc",
+            "notify_view_name": "절차 예정일 임박 (7일 전)"
+        }
     ]
 }

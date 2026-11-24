@@ -903,6 +903,9 @@ class TemplateImporter
                 }
             }
 
+            // notifies: after the tables, the views and the workflows they point to
+            NotifyTemplate::import(array_get($json, 'notifies', []), $is_update);
+
             // create default form and view
             foreach ($createDefaultTables as $createDefaultTable) {
                 CustomForm::getDefault($createDefaultTable);

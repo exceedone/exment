@@ -223,5 +223,15 @@
         {
             "workflow_view_name": "Asset requests (standard)"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "443a629e799118e3d3b6",
+            "notify_view_name": "Return overdue (the day after)"
+        },
+        {
+            "suuid": "bee2b3c2eed422884924",
+            "notify_view_name": "Asset requests (submitted, approved, sent back)"
+        }
     ]
 }

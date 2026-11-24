@@ -277,5 +277,11 @@
             "role_group_view_name": "Sales",
             "description": "People who see, make and edit customers, deals, quotes and contracts."
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "e5967aaf67c9ae4b4398",
+            "notify_view_name": "Contract ending soon (30 days before)"
+        }
     ]
 }

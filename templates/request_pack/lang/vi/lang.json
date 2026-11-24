@@ -237,5 +237,11 @@
         {
             "workflow_view_name": "Yêu cầu và phê duyệt (tiêu chuẩn)"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "819e4404298f54104248",
+            "notify_view_name": "Yêu cầu (đã gửi, đã duyệt, trả lại)"
+        }
     ]
 }
