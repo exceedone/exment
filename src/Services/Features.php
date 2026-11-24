@@ -210,6 +210,15 @@ class Features
             'manual' => 'scheduled_jobs',
             'who' => false,
         ]);
+        // temporary raises of the API rate limit (ApiRateRaises, ISS00442): the system
+        // administrators only. Off until it is turned on
+        $core[ApiRateRaises::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.api_rate_raise',
+            'description' => 'exment::exment.feature.features.api_rate_raise_help',
+            'endpoints' => ['api_rate_raises'],
+            'manual' => 'api_rate_raise',
+            'who' => false,
+        ]);
         return $core;
     }
 

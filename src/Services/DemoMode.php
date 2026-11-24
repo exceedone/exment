@@ -80,6 +80,8 @@ class DemoMode
         Controllers\ApiController::class => ['authLogs', 'authLog'],
         // "Run now" of the scheduled jobs: it starts commands on the server (cron still runs them)
         Controllers\ScheduledJobController::class => ['run'],
+        // the API rate limit of the site (ISS00442)
+        Controllers\ApiRateRaiseController::class => ['store', 'delete'],
     ];
 
     /**
