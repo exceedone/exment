@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Exceedone\Exment\Services\ApiRateRaises;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -27,21 +28,26 @@ class RouteServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        /** @var int $rate_limit */
-        $rate_limit = config('exment.api_max_rate_limit', 60);
-        RateLimiter::for('api', function (Request $request) use ($rate_limit) {
+        RateLimiter::for('api', function (Request $request) {
+            $rate_limit = ApiRateRaises::base();
             // an API key of a user: not through the OAuth guard (Passport empties the Authorization
             // header of a bearer that is not its token, and the key would never sign in after it)
             $bearer = $request->bearerToken();
             if (\Exceedone\Exment\Services\UserApiKeys::looksLikeKey($bearer)) {
+                // a temporary raise of the user of the key (ISS00442)
+                $per_minute = ApiRateRaises::perMinute($rate_limit, ApiRateRaises::userOfApiKey((string)$bearer));
                 // by the IP (a new random key each time, or many keys, do not get more) and by the key
                 return [
-                    Limit::perMinute($rate_limit)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
-                    Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
+                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
+                    Limit::perMinute($per_minute)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
                 ];
             }
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
-            return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
+            // a temporary raise of the user or of the API client of the token (ISS00442)
+            $token = $login_user instanceof \Exceedone\Exment\Model\LoginUser ? $login_user->token() : null;
+            $client_id = $token instanceof \Laravel\Passport\Token ? $token->client_id : null;
+            $per_minute = ApiRateRaises::perMinute($rate_limit, $login_user?->base_user_id, $client_id);
+            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: $request->ip());
         });
     }
     /**
@@ -236,6 +242,10 @@ class RouteServiceProvider extends ServiceProvider
             // the scheduled jobs (ISS02832)
             $router->get('scheduled_jobs', 'ScheduledJobController@index');
             $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
+            // temporary raises of the API rate limit (ISS00442)
+            $router->get('api_rate_raises', 'ApiRateRaiseController@index');
+            $router->post('api_rate_raises', 'ApiRateRaiseController@store');
+            $router->post('api_rate_raises/{id}/delete', 'ApiRateRaiseController@delete');
             $router->get('maintenance', 'MaintenanceController@index');
             $router->post('maintenance', 'MaintenanceController@store');
             $router->post('maintenance/start', 'MaintenanceController@start');

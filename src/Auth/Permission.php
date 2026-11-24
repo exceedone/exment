@@ -309,6 +309,7 @@ class Permission
             case "api_keys":
             case "maintenance":
             case "scheduled_jobs":
+            case "api_rate_raises":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }

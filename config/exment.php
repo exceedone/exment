@@ -1533,6 +1533,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Temporary raises of the API rate limit (ISS00442)
+    |--------------------------------------------------------------------------
+    | The page "API rate limit raises" (the feature api_rate_raise, admin settings → API):
+    | a system administrator lets a user or an API client make more requests per minute
+    | until a time, for an import or a move of data.
+    | api_max_rate_limit_ceiling: the most requests per minute a raise may give (a SaaS sets
+    |   it for its tenants). Empty: no ceiling (on premises).
+    | api_rate_raise_max_hours: the longest a raise may last, in hours (default 24).
+    */
+    'api_max_rate_limit_ceiling' => env('EXMENT_API_MAX_RATE_LIMIT_CEILING'),
+    'api_rate_raise_max_hours' => env('EXMENT_API_RATE_RAISE_MAX_HOURS', 24),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mask targets for the operation log
     |--------------------------------------------------------------------------
     |
