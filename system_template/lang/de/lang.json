@@ -581,6 +581,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "scheduled_jobs",
+            "title": "Geplante Aufgaben"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Wartungsmodus"
         }

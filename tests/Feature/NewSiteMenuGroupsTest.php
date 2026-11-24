@@ -41,7 +41,7 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
         $this->assertSame(['custom_table', 'studio', 'menu', 'workflow', 'mail_template', 'notify', 'cell_style_preset', 'template'], $this->children('admin_data'));
         $this->assertSame(['loginuser', 'role_group', 'login_setting', 'api_setting', 'operation_log'], $this->children('admin_user'));
         // the safety check is added under "admin" by its installer
-        $this->assertSame(['system', 'feature', 'plugin', 'backup', 'tuning', 'security_check', 'maintenance'], array_values(array_diff($this->children('admin'), ['safety_check'])));
+        $this->assertSame(['system', 'feature', 'plugin', 'backup', 'tuning', 'security_check', 'scheduled_jobs', 'maintenance'], array_values(array_diff($this->children('admin'), ['safety_check'])));
     }
 
     public function testTheGroupsAreInOrder(): void

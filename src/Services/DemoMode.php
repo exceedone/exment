@@ -78,6 +78,8 @@ class DemoMode
         // operation log: it shows the IP addresses and requests of the other visitors
         Controllers\LogController::class => ['*'],
         Controllers\ApiController::class => ['authLogs', 'authLog'],
+        // "Run now" of the scheduled jobs: it starts commands on the server (cron still runs them)
+        Controllers\ScheduledJobController::class => ['run'],
     ];
 
     /**

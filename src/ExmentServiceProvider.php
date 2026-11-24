@@ -112,6 +112,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
         \Exceedone\Exment\Console\MaintenanceCommand::class,
+        \Exceedone\Exment\Console\ScheduleStatusCommand::class,
+        \Exceedone\Exment\Console\ScheduledJobFinishCommand::class,
     ];
 
 
@@ -604,6 +606,9 @@ class ExmentServiceProvider extends ServiceProvider
                 // never stop the scheduler for this
             }
         });
+
+        // the runs of each scheduled job, for the page "Scheduled jobs" (ISS02832): only while its feature is used
+        \Exceedone\Exment\Services\ScheduledJobs\Recorder::listen();
     }
 
     /**
