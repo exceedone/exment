@@ -231,20 +231,20 @@ GitHub brunch is operated as follows.
 >
 > | Branch | What it is |
 > |---|---|
-> | `release/<version>` (e.g. `release/7.2.6`, `release/7.3.0`) | Collects what ships in that version. **Send every pull request to the `release/<version>` of the version it should ship in** |
+> | `develop/<version>` (e.g. `develop/7.2.6`, `develop/7.3.0`) | Collects what ships in that version. **Send every pull request to the `develop/<version>` of the version it should ship in** |
 > | `master` | **What has been released** (exment: the released version; exment-saas: production). Not directly |
 >
-> - Send PRs from work branches (`feature/XXX`, `fix/XXX`) to `release/<version>`
-> - Large features (e.g. for 7.3) go to `release/7.3.0`, fixes for 7.2.x to `release/7.2.<n>`. When unsure, ask the maintainers
+> - Send PRs from work branches (`feature/XXX`, `fix/XXX`) to `develop/<version>`
+> - Large features (e.g. for 7.3) go to `develop/7.3.0`, fixes for 7.2.x to `develop/7.2.<n>`. When unsure, ask the maintainers
 > - A change to documents only (`document/`) may go to `master`
 > - Old versions (`7.1`, `7.0`, `6.2`) get security fixes only, cherry-picked by the maintainers (6.2 until 2027-03-31)
 >
 > **Each time (the same in exment and exment-saas)**
-> 1. After a version ships, make the next `release/<version>` (e.g. `release/7.2.6` after 7.2.5)
+> 1. After a version ships, make the next `develop/<version>` (e.g. `develop/7.2.6` after 7.2.5)
 > 2. Merge what ships in it through PRs
-> 3. Before the release, ask the AI team to "check `release/<version>`". The AI features (AI assistant, chatbot, AI-OCR) exist only in SaaS, so they check them on staging (`stg.*`). **Nothing else goes into a `release/<version>` while it is being checked**
-> 4. When it is OK, run the tests once more on the latest content, tag and release (exment `v7.2.6`, exment-saas `saas.v7.2.6`), merge into `master`, and delete `release/<version>`
-> 5. When two `release/<version>` branches exist (e.g. `release/7.2.6` and `release/7.3.0`), the maintainers bring the fixes of the one released first into the other
+> 3. Before the release, ask the AI team to "check `develop/<version>`". The AI features (AI assistant, chatbot, AI-OCR) exist only in SaaS, so they check them on staging (`stg.*`). **Nothing else goes into a `develop/<version>` while it is being checked**
+> 4. When it is OK, run the tests once more on the latest content, tag and release (exment `v7.2.6`, exment-saas `saas.v7.2.6`), merge into `master`, and delete `develop/<version>`
+> 5. When two `develop/<version>` branches exist (e.g. `develop/7.2.6` and `develop/7.3.0`), the maintainers bring the fixes of the one released first into the other
 >
 > **exment-saas versions** follow core: SaaS with core 7.2.4 is `saas.v7.2.4`; SaaS-only fixes on it are `saas.v7.2.4.1`, …
 >
@@ -255,7 +255,7 @@ GitHub brunch is operated as follows.
 >
 > Security fixes are not handled in public issues or pull requests; see SECURITY.md (they are fixed in the private fork of a GitHub Security Advisory).
 >
-> **The switch on 2026-11-24**: `master` of exment was used for the next version (7.3) until then. Its content moved to `release/7.3.0`, and `master` went back to the released version (v7.2.4); the old `master` is kept as `backup/master-2026-11-24`. The `develop` and `7.2` branches are not used. Users of `dev-master` now get 7.2.4.
+> **The switch on 2026-11-24**: `master` of exment was used for the next version (7.3) until then. Its content moved to `develop/7.3.0`, and `master` went back to the released version (v7.2.4); the old `master` is kept as `backup/master-2026-11-24`. The plain `develop` and `7.2` branches are not used. The same day, `release/<version>` was renamed `develop/<version>`; only 7.2.5 keeps `release/7.2.5` until it ships, because the AI team was testing it. Users of `dev-master` now get 7.2.4.
 >
 > The table below describes the previous branch model.
 
@@ -296,6 +296,6 @@ If you want to commit to exceedone/exment of the main unit, follow the procedure
 
 - Exment pull request on GitHub.  
 
-- Execute a pull request for the **release/<version>** of the version it should ship in (see "Branches" above) of exceedone/exment. Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
+- Execute a pull request for the **develop/<version>** of the version it should ship in (see "Branches" above) of exceedone/exment. Please name your branch `feature/XXX` for new functions or `fix/XXX` for bug fixes.  
 Please include comments as much as possible.
 
