@@ -4077,6 +4077,7 @@ return [
             'menu' => '메뉴',
             'role_group' => '역할 그룹',
             'workflow' => '워크플로',
+            'notify' => '알림',
         ],
     ],
     'qrcode' => [
