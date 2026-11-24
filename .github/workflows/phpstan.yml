@@ -36,8 +36,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
-          # 7.2 keeps the boilerplate of 7.2 (simple-qrcode); main moved to bacon-qr-code 3
-          ref: 7.2
           path: ./docker-exment/exment-boilerplate
 
       - uses: actions/checkout@v4
