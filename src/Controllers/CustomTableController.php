@@ -308,7 +308,7 @@ class CustomTableController extends AdminControllerBase
             $form->number('revision_count', exmtrans("custom_table.revision_count"))->help(exmtrans("custom_table.help.revision_count"))
                 ->min(0)
                 ->max(500)
-                ->default(config('exment.revision_count', 100))
+                ->default(config('exment.revision_count_default', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
             ;
 

@@ -431,7 +431,7 @@ class BlankFormBuilder
                 'attachment_flg' => '1',
                 'comment_flg' => '1',
                 'revision_flg' => '1',
-                'revision_count' => config('exment.revision_count', 100),
+                'revision_count' => config('exment.revision_count_default', 100),
                 'one_record_flg' => '0',
                 'use_label_id_flg' => '0',
                 'all_user_editable_flg' => '0',
