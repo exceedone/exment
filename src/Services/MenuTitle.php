@@ -18,6 +18,10 @@ use Exceedone\Exment\Enums\MenuType;
  * that menu, in any language. It is then answered from the same source in the language of the user, so a user in the
  * language the title was written in reads exactly the stored text.
  *
+ * The language files (menu.system_definitions) name a menu by its menu_name, whatever its type: a table
+ * or a custom menu an application made (e.g. the SaaS build, through its own language files) is shown in
+ * the language of the user the same way, while its title is still one of those texts.
+ *
  * A title somebody changed is no such text and is shown as it is. The menus of the other tables, of
  * the plugins and the custom ones are never touched.
  */
@@ -28,6 +32,9 @@ class MenuTitle
 
     /** the titles of the install template, then the ones of the language files */
     protected const SOURCES = ['template', 'lang'];
+
+    /** the types of the menus the language files (menu.system_definitions) name */
+    protected const LANG_TYPES = [MenuType::SYSTEM, MenuType::PARENT_NODE, MenuType::TABLE, MenuType::CUSTOM];
 
     /** the templates the install (and the update) of Exment imports the menus of */
     protected const TEMPLATES = ['system_template', 'templates/system_logs'];
@@ -90,15 +97,16 @@ class MenuTitle
     }
 
     /**
-     * Whether a row may be a menu Exment made: a page of the system, a group or a table (only the
-     * tables of the templates of the install are known, see build()).
+     * Whether a row may be a menu Exment (or an application) made: a page of the system, a group, a
+     * table or a custom menu (only the ones the templates of the install or the language files name
+     * are known, see build()).
      *
      * @param array<string, mixed> $row
      */
     public static function isTarget(array $row): bool
     {
         $type = strval(array_get($row, 'menu_type'));
-        return in_array($type, [MenuType::SYSTEM, MenuType::PARENT_NODE, MenuType::TABLE], true)
+        return in_array($type, static::LANG_TYPES, true)
             && !is_nullorempty(array_get($row, 'menu_name'));
     }
 
@@ -168,22 +176,36 @@ class MenuTitle
             }
         }
 
-        // the language files: the pages of the system and the groups an update adds (Menu::systemTitle)
-        foreach (static::locales() as $locale) {
-            $definitions = trans('exment::exment.menu.system_definitions', [], $locale);
-            if (!is_array($definitions)) {
-                continue;
-            }
+        // the language files: the pages of the system and the groups an update adds (Menu::systemTitle),
+        // and the menus an application names there (a table or a custom menu of the same menu_name)
+        foreach (static::definitions() as $locale => $definitions) {
             foreach ($definitions as $name => $title) {
                 if (!is_string($title) || trim($title) === '') {
                     continue;
                 }
-                foreach ([MenuType::SYSTEM, MenuType::PARENT_NODE] as $type) {
+                foreach (static::LANG_TYPES as $type) {
                     $known[$type . '|' . $name]['lang'][$locale] = trim($title);
                 }
             }
         }
         return $known;
+    }
+
+    /**
+     * menu.system_definitions of each language (with the texts an application adds to the language files).
+     *
+     * @return array<string, array<mixed>>
+     */
+    protected static function definitions(): array
+    {
+        $all = [];
+        foreach (static::locales() as $locale) {
+            $definitions = trans('exment::exment.menu.system_definitions', [], $locale);
+            if (is_array($definitions)) {
+                $all[$locale] = $definitions;
+            }
+        }
+        return $all;
     }
 
     /**
@@ -213,7 +235,8 @@ class MenuTitle
     }
 
     /**
-     * The times of the source files: an update of Exment changes them, and the key with them.
+     * The times of the source files: an update of Exment changes them, and the key with them. With the
+     * texts of the language files, which an application may give from files of its own.
      */
     protected static function sourceStamp(): string
     {
@@ -225,6 +248,7 @@ class MenuTitle
         foreach ($files as $file) {
             $stamp[] = $file . ':' . (is_file($file) ? filemtime($file) . ':' . filesize($file) : '0');
         }
+        $stamp[] = md5(strval(json_encode(static::definitions())));
         return md5(implode('|', $stamp));
     }
 
