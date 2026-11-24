@@ -581,6 +581,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "scheduled_jobs",
+            "title": "예약 작업"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "유지보수 모드"
         }

@@ -110,6 +110,8 @@ class Define
         'site_id' => ['type' => 'string', 'default' => null],
         // the notices told to the system administrators (Services\PluginDistribution\AdminNotices)
         'admin_notices_sent' => ['type' => 'json', 'default' => []],
+        // the scheduled jobs told to the system administrators as failing, until they run well (Services\ScheduledJobs\Recorder)
+        'scheduled_job_alerted' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
@@ -363,6 +365,10 @@ class Define
         'security_check' => [
             'uri' => 'security_check',
             'icon' => 'fa-shield',
+        ],
+        'scheduled_jobs' => [
+            'uri' => 'scheduled_jobs',
+            'icon' => 'fa-clock-o',
         ],
         'maintenance' => [
             'uri' => 'maintenance',
@@ -619,6 +625,7 @@ class Define
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
+        ['uri'=> 'scheduled_jobs', 'help_uri'=> 'scheduled_jobs'],
         ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
