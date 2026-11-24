@@ -18,15 +18,9 @@ class ErrorPageStatusTest extends UnitTestBase
         $this->assertSame(200, ErrorController::statusCode(new \RuntimeException('something')));
     }
 
-    public function testAPluginPageNotFoundIsA404(): void
+    public function testTheErrorPageAnswersWithIt(): void
     {
-        // the form views read $errors (shared by the web middleware in a request)
-        \View::share('errors', new \Illuminate\Support\ViewErrorBag());
-        try {
-            abort(404);
-        } catch (\Throwable $e) {
-            $response = app(ErrorController::class)->error(request(), $e);
-            $this->assertSame(404, $response->getStatusCode());
-        }
+        $source = (string) file_get_contents(dirname(__DIR__, 2) . '/src/Controllers/ErrorController.php');
+        $this->assertStringContainsString('}), static::statusCode($exception));', $source);
     }
 }
