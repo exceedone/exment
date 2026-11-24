@@ -3681,6 +3681,7 @@ return [
             'role_group' => '역할 그룹',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => '감사', 'help' => '로그와 IT 감사 보고서를 볼 수 있습니다(변경할 수 없습니다).'],
             'system' => [
                 'label' => '시스템 관리',
                 'help' => 'Exment의 모든 기능을 사용, 설정, 변경할 수 있습니다.',
@@ -4995,6 +4996,14 @@ return [
             'planned' => '유지보수가 예정되어 있습니다: :start_at부터 :end_at까지. 이 기간에는 사이트를 사용할 수 없습니다.',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => '조작 기록',
+            'login_log' => '로그인 기록',
+            'app_log' => '애플리케이션 로그',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => '예약 작업',
         'description' => '서버의 cron(schedule:run)이 정해진 시간에 실행하는 작업의 목록입니다.',
@@ -5057,6 +5066,7 @@ return [
             'file_server_purge' => '파일 공유: 휴지통 비우기',
             'meili_reconcile' => '전문 검색: 색인 복구',
             'maintenance_tick' => '유지보수 모드: 예정된 시작과 종료',
+            'log_maintenance' => '로그: 오래된 것 삭제',
             'batch' => '플러그인 배치: :name',
         ],
         'cron' => [

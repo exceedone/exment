@@ -3681,6 +3681,7 @@ return [
             'role_group' => 'Rollengruppe',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => 'Prüfung', 'help' => 'Benutzer können die Protokolle und den IT-Prüfbericht lesen (nichts ändern).'],
             'system' => [
                 'label' => 'Systemverwaltung',
                 'help' => 'Sie können alle Funktionen von Exment verwenden, einrichten und ändern.',
@@ -4995,6 +4996,14 @@ return [
             'planned' => 'Eine Wartung ist geplant: von :start_at bis :end_at. In dieser Zeit kann die Website nicht genutzt werden.',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => 'Vorgangsprotokoll',
+            'login_log' => 'Anmeldeprotokoll',
+            'app_log' => 'Anwendungsprotokoll',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => 'Geplante Aufgaben',
         'description' => 'Die Aufgaben, die der Cron des Servers (schedule:run) zu festen Zeiten ausführt.',
@@ -5057,6 +5066,7 @@ return [
             'file_server_purge' => 'Dateifreigabe: Papierkorb leeren',
             'meili_reconcile' => 'Volltextsuche: Index reparieren',
             'maintenance_tick' => 'Wartungsmodus: geplanter Beginn und geplantes Ende',
+            'log_maintenance' => 'Protokolle: alte löschen',
             'batch' => 'Plugin-Batch: :name',
         ],
         'cron' => [

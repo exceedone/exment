@@ -3814,6 +3814,7 @@ return [
         ],
 
         'role_type_option_system' => [
+            'audit' => ['label' => 'Audit', 'help' => 'Users can read the logs and the IT audit report (nothing can be changed).'],
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'login_user' => ['label' => 'Manage login user', 'help' => 'You can manage the users who log in to Exment.'],
             'filter_multiuser_all' => ['label' => 'Get All User and Org', 'help' => 'Information of all users/organizations can be obtained regardless of the setting of User/organization filter.'],
@@ -5023,6 +5024,14 @@ return [
         ],
     ],
 
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => 'Operation log',
+            'login_log' => 'Login record',
+            'app_log' => 'Application log',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => 'Scheduled Jobs',
         'description' => 'The jobs the cron of the server (schedule:run) runs at set times.',
@@ -5085,6 +5094,7 @@ return [
             'file_server_purge' => 'File sharing: empty the trash',
             'meili_reconcile' => 'Full-text search: repair the index',
             'maintenance_tick' => 'Maintenance mode: the planned start and end',
+            'log_maintenance' => 'Logs: delete the old ones',
             'batch' => 'Plugin batch: :name',
         ],
         'cron' => [

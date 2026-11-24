@@ -3681,6 +3681,7 @@ return [
             'role_group' => '角色组',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => '审计', 'help' => '可以查看日志和 IT 审计报告（不能更改）。'],
             'system' => [
                 'label' => '系统管理',
                 'help' => '可以使用、设置和更改 Exment 的所有功能。',
@@ -4995,6 +4996,14 @@ return [
             'planned' => '已计划维护：从 :start_at 到 :end_at。期间站点无法使用。',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => '操作记录',
+            'login_log' => '登录记录',
+            'app_log' => '应用日志',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => '计划任务',
         'description' => '服务器的 cron（schedule:run）在固定时间运行的任务列表。',
@@ -5057,6 +5066,7 @@ return [
             'file_server_purge' => '文件共享：清空回收站',
             'meili_reconcile' => '全文搜索：修复索引',
             'maintenance_tick' => '维护模式：计划的开始和结束',
+            'log_maintenance' => '日志：删除旧日志',
             'batch' => '插件批处理：:name',
         ],
         'cron' => [

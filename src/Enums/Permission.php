@@ -23,6 +23,8 @@ class Permission extends EnumBase
     public const PLUGIN_ACCESS = 'plugin_access';
     public const PLUGIN_SETTING = 'plugin_setting';
     public const LOGIN_USER = 'login_user';
+    // the logs and the IT audit report, to read (ISS02839, ISS02840)
+    public const AUDIT = 'audit';
     public const FILTER_MULTIUSER_ALL = 'filter_multiuser_all';
     public const ROLE_GROUP_ALL = 'role_group_all';
     public const ROLE_GROUP_PERMISSION = 'role_group_permission';
@@ -56,6 +58,7 @@ class Permission extends EnumBase
         self::CUSTOM_TABLE,
         self::CUSTOM_VALUE_EDIT_ALL,
         self::LOGIN_USER,
+        self::AUDIT,
         self::WORKFLOW,
         self::API_ALL,
         self::API,
@@ -100,4 +103,19 @@ class Permission extends EnumBase
         self::CUSTOM_VALUE_EXPORT,
         self::CUSTOM_VALUE_VIEW_TRASHED,
     ];
+
+    /**
+     * Whether a user may read the logs and the IT audit report: the system administrators and the
+     * role groups with "Audit" (ISS02839, ISS02840).
+     *
+     * @param mixed $user a login user; the user of the request when null
+     */
+    public static function canAudit($user = null): bool
+    {
+        $user = $user ?? \Exment::user();
+        if (!isset($user)) {
+            return false;
+        }
+        return boolval($user->hasPermission(static::SYSTEM)) || boolval($user->hasPermission(static::AUDIT));
+    }
 }

@@ -3814,6 +3814,7 @@ return [
         ],
 
         'role_type_option_system' => [
+            'audit' => ['label' => '監査', 'help' => 'ログと IT 監査のレポートを見られます（変えることはできません）。'],
             'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
             'login_user' => ['label' => 'ユーザーログイン設定', 'help' => 'ユーザーに、ログインするためのパスワード付与や、パスワードリセットなど行うことができます。<br/>※ユーザーアカウントの追加・変更は、下記の「マスター権限設定」の「ユーザー」の、「データ編集」にチェックを行ってください。'],
             'filter_multiuser_all' => ['label' => '全ユーザー・組織取得', 'help' => '「ユーザー・組織のフィルター」の設定に関わらず、全ユーザー・組織の情報を取得できます。'],
@@ -5022,6 +5023,14 @@ return [
         ],
     ],
 
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => '操作の記録',
+            'login_log' => 'ログインの記録',
+            'app_log' => 'アプリのログ',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => '決まった時間の処理',
         'description' => 'サーバーの cron（schedule:run）が決まった時間に動かす処理の一覧です。',
@@ -5084,6 +5093,7 @@ return [
             'file_server_purge' => 'ファイル共有：ごみ箱を空にする',
             'meili_reconcile' => '全文検索：索引を直す',
             'maintenance_tick' => 'メンテナンスモード：予定の開始と終了',
+            'log_maintenance' => 'ログ：古いものを消す',
             'batch' => 'プラグインのバッチ：:name',
         ],
         'cron' => [

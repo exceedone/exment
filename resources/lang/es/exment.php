@@ -3681,6 +3681,7 @@ return [
             'role_group' => 'Grupo de roles',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => 'Auditoría', 'help' => 'Los usuarios pueden leer los registros y el informe de auditoría de TI (sin cambiar nada).'],
             'system' => [
                 'label' => 'Administración del sistema',
                 'help' => 'Los usuarios pueden editar la configuración del sistema.',
@@ -4995,6 +4996,14 @@ return [
             'planned' => 'Hay un mantenimiento previsto: desde :start_at hasta :end_at. Durante ese tiempo no se podrá usar el sitio.',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => 'Registro de operaciones',
+            'login_log' => 'Registro de inicios de sesión',
+            'app_log' => 'Registro de la aplicación',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => 'Tareas programadas',
         'description' => 'Las tareas que el cron del servidor (schedule:run) ejecuta a horas fijas.',
@@ -5057,6 +5066,7 @@ return [
             'file_server_purge' => 'Archivos compartidos: vaciar la papelera',
             'meili_reconcile' => 'Búsqueda de texto completo: reparar el índice',
             'maintenance_tick' => 'Modo de mantenimiento: inicio y fin previstos',
+            'log_maintenance' => 'Registros: eliminar los antiguos',
             'batch' => 'Lote del plugin: :name',
         ],
         'cron' => [

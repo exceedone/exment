@@ -164,6 +164,7 @@ class Google
         // validation google 2fa
         if (!$g2fa->verifyKey($key, $verify_code, 5)) {
             $this->incrementLoginAttempts($request);
+            \Exceedone\Exment\Services\LogManagement\LoginRecorder::twoFactorFailed($loginuser);
 
             return back()->withInput()->withErrors([
                 'verify_code' => exmtrans('2factor.message.verify_failed')
