@@ -129,6 +129,9 @@ class TemplateExporter
         if (in_array(TemplateExportTarget::WORKFLOW, $options['export_target'])) {
             static::setTemplateWorkflow($config, $options['target_tables'] ?? [], $is_lang);
         }
+        if (in_array(TemplateExportTarget::NOTIFY, $options['export_target'])) {
+            static::setTemplateNotify($config, $options['target_tables'] ?? [], $is_lang);
+        }
 
         return $config;
     }
@@ -424,6 +427,25 @@ class TemplateExporter
             $configWorkflows[] = $workflow->exportTemplateDesignerLayout($workflow->getTemplateExportItems($is_lang));
         }
         $config['workflows'] = $configWorkflows;
+    }
+
+    /**
+     * Export the notifies of the target tables and of the workflows attached
+     * to them, with names in place of ids (NotifyTemplate).
+     *
+     * @param array<string, mixed> $config
+     * @param array<string> $target_tables
+     */
+    protected static function setTemplateNotify(array &$config, array $target_tables = [], bool $is_lang = false): void
+    {
+        $workflowNames = [];
+        foreach (Workflow::with(['workflow_tables', 'workflow_tables.custom_table'])->get() as $workflow) {
+            $attached = $workflow->workflow_tables->pluck('custom_table.table_name')->filter();
+            if (count($target_tables) === 0 || $attached->intersect($target_tables)->isNotEmpty()) {
+                $workflowNames[] = $workflow->workflow_view_name;
+            }
+        }
+        $config['notifies'] = NotifyTemplate::export($target_tables, $workflowNames, $is_lang);
     }
 
 

@@ -4075,6 +4075,7 @@ return [
             'menu' => 'Menü',
             'role_group' => 'Rollengruppe',
             'workflow' => 'Workflow',
+            'notify' => 'Benachrichtigung',
         ],
     ],
     'qrcode' => [
