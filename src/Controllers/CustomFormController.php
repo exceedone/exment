@@ -485,7 +485,7 @@ class CustomFormController extends AdminControllerTableBase
                 $form = new CustomForm();
             }
         }
-        $form->append(['show_grid_type', 'form_label_type']);
+        $form->append(['show_grid_type', 'form_label_type', 'check_missing_required']);
 
         // get form block list
         $custom_form_block_items = $this->getFormBlocks($form);
@@ -529,20 +529,9 @@ class CustomFormController extends AdminControllerTableBase
      */
     protected function missingRequiredColumns(CustomForm $form): array
     {
-        $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
-        $placed = isset($block)
-            ? $block->custom_form_columns()->where('form_column_type', FormColumnType::COLUMN)->pluck('form_column_target_id')->map(function ($id) {
-                return intval($id);
-            })->all()
-            : [];
-
-        $missing = [];
-        foreach ($this->custom_table->custom_columns as $column) {
-            if (boolval($column->getOption('required')) && !in_array(intval($column->id), $placed, true)) {
-                $missing[] = strval($column->column_view_name);
-            }
-        }
-        return $missing;
+        return $form->missingRequiredColumns()->map(function ($column) {
+            return strval($column->column_view_name);
+        })->all();
     }
 
     /**
@@ -566,6 +555,11 @@ class CustomFormController extends AdminControllerTableBase
             ->required();
 
         $form->switchbool('default_flg', exmtrans('custom_form.default_flg'))
+            ->default(false);
+
+        // the required columns this form does not have (ISS00374)
+        $form->switchbool('check_missing_required', exmtrans('custom_form.check_missing_required'))
+            ->help(exmtrans('custom_form.check_missing_required_help'))
             ->default(false);
 
 
@@ -810,6 +804,7 @@ class CustomFormController extends AdminControllerTableBase
         $form->default_flg = $request->get('default_flg');
         $form->form_label_type = $request->get('form_label_type', FormLabelType::HORIZONTAL);
         $form->show_grid_type = $request->get('show_grid_type', ShowGridType::GRID);
+        $form->check_missing_required = boolval($request->get('check_missing_required', false));
 
         $new_columns = [];
         $deletes = [];
