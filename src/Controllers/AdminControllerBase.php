@@ -12,24 +12,28 @@ use ExmentAdminCore\Admin\Layout\Content;
 * @method \ExmentAdminCore\Admin\Grid grid()
 * @method \ExmentAdminCore\Admin\Form form($id = null)
  */
-class AdminControllerBase extends Controller implements \Illuminate\Routing\Controllers\HasMiddleware
+class AdminControllerBase extends Controller
 {
     use ExmentControllerTrait;
 
     /**
-     * No middleware of the controller itself (Exment's are the groups of the routes).
+     * The page in the language of the user.
      *
-     * Declared so that Laravel makes the controller when the action runs, after the middleware,
-     * and not before them to ask it for its middleware (Controller::getMiddleware() of the host
-     * app's base controller). The constructors set the title and the header of the page with
-     * exmtrans(): made before the middleware, they were in the language of the site, not in the
-     * language of the user (UserLocaleTimezone runs after the login is known).
+     * Laravel makes the controller before the middleware run (to ask it for its middleware), so a
+     * constructor that sets the title and the header with exmtrans() reads them in the language of
+     * the site. The language of the user is applied later (UserLocaleTimezone, after the login is
+     * known): when it is another one, the constructor is run again before the action.
      *
-     * @return array<int, mixed>
+     * @param string $method
+     * @param array<mixed> $parameters
+     * @return mixed
      */
-    public static function middleware(): array
+    public function callAction($method, $parameters)
     {
-        return [];
+        if (isset($this->pageInfoLocale) && $this->pageInfoLocale !== app()->getLocale() && method_exists($this, '__construct')) {
+            app()->call([$this, '__construct']);
+        }
+        return parent::callAction($method, $parameters);
     }
 
     /**
