@@ -29,6 +29,7 @@ class SecurityCheck
         TwoFactorSecurity::class,
         WebhookSecurity::class,
         VersionSecurity::class,
+        SupportedVersionSecurity::class,
         SessionCookieSecurity::class,
     ];
 
@@ -117,7 +118,7 @@ class SecurityCheck
     }
 
     /** The items asked on the install screen: the server's, without the database. */
-    public const INSTALL_ITEMS = ['file_permission', 'app_debug', 'display_errors', 'app_key', 'app_env', 'https', 'headers', 'exposed_path', 'session_cookie'];
+    public const INSTALL_ITEMS = ['file_permission', 'app_debug', 'display_errors', 'app_key', 'app_env', 'https', 'headers', 'exposed_path', 'session_cookie', 'supported_versions'];
 
     /**
      * The problems shown on the install screen.

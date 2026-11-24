@@ -96,6 +96,15 @@ class UpdateCommand extends Command
             // not told
         }
 
+        // PHP whose support ends, a database older than the recommended version (ISS00171, ISS00216)
+        try {
+            foreach ((new \Exceedone\Exment\Services\SystemRequire\Security\SupportedVersionSecurity())->findings() as $finding) {
+                $this->warn($finding);
+            }
+        } catch (\Throwable $e) {
+            // not told
+        }
+
         $this->restoreConfigCache($configCached);
 
         return 0;

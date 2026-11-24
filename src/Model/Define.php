@@ -540,10 +540,12 @@ class Define
         'sqlsrv' => 'SQLServer',
     ];
 
+    // min: the install stops below it. recommended: the versions that still get fixes from their
+    // makers (the security check and exment:update say so below it; ISS00216)
     public const DATABASE_VERSION = [
-        'mysql' => ['min' => '5.7.8'],
-        'mariadb' => ['min' => '10.2.7'],
-        'sqlsrv' => ['min' => '13.0.0.0'],
+        'mysql' => ['min' => '5.7.8', 'recommended' => '8.0'],
+        'mariadb' => ['min' => '10.2.7', 'recommended' => '10.11'],
+        'sqlsrv' => ['min' => '13.0.0.0', 'recommended' => '13.0'],
     ];
 
     /**
