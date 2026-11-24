@@ -79,6 +79,10 @@ class ApiSettingController extends AdminControllerBase
             if (\Exment::user()->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM)) {
                 $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('api_keys')) . '"><i class="fa fa-key"></i> ' . esc_html(exmtrans('api_key.admin_header')) . '</a>');
             }
+            // temporary raises of the API rate limit (ISS00442)
+            if (\Exment::user()->isAdministrator() && \Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\ApiRateRaises::FEATURE)) {
+                $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('api_rate_raises')) . '"><i class="fa fa-tachometer"></i> ' . esc_html(exmtrans('api_rate_raise.header')) . '</a>');
+            }
         });
         return $grid;
     }
