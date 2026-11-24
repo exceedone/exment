@@ -1661,6 +1661,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Scheduled jobs (ISS02832)
+    |--------------------------------------------------------------------------
+    | The page "Scheduled jobs" (the feature scheduled_jobs) keeps the runs of each job.
+    | keep_runs: how many of the last runs of each job are kept (default 20).
+    | alert_failures: a job whose last runs failed this many times in a row is shown red,
+    |   and the system administrators are told once (the bell and a mail) (default 3).
+    */
+    'scheduled_jobs' => [
+        'keep_runs' => env('EXMENT_SCHEDULED_JOBS_KEEP_RUNS', 20),
+        'alert_failures' => env('EXMENT_SCHEDULED_JOBS_ALERT_FAILURES', 3),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | File server (ISS00293)
     |--------------------------------------------------------------------------
     | file_server_workspace_create: who may make a workspace. "admin" (system permission; the default) or "all".

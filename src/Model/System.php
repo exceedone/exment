@@ -105,6 +105,7 @@ use Cache;
  * @method static mixed maintenance_missed_schedule($arg = null)
  * @method static string|null|void site_id($arg = null)
  * @method static mixed admin_notices_sent($arg = null)
+ * @method static mixed scheduled_job_alerted($arg = null)
  * @method static string|void recaptcha_site_key($arg = null)
  * @method static string|void recaptcha_secret_key($arg = null)
  * @method static string|void recaptcha_type($arg = null)
