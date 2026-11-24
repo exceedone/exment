@@ -1,0 +1,241 @@
+{
+    "template_view_name": "申请包",
+    "description": "审批申请、费用报销、出差、付款和请假申请，含提交/批准/退回工作流、申请人和审批人角色组以及“申请与审批”菜单。",
+    "custom_tables": [
+        {
+            "table_name": "request_ringi",
+            "table_view_name": "审批申请（签呈）",
+            "description": "申请公司内部决策（采购、合同、招聘等）。",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "标题"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金额"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "期望日期"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "详情与理由"
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "附件"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense",
+            "table_view_name": "费用报销",
+            "description": "报销您垫付的费用。请在明细中附上收据。",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "标题"
+                },
+                {
+                    "column_name": "apply_date",
+                    "column_view_name": "申请日期"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "合计"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense_detail",
+            "table_view_name": "费用明细",
+            "description": "费用报销的一行明细。",
+            "custom_columns": [
+                {
+                    "column_name": "use_date",
+                    "column_view_name": "日期"
+                },
+                {
+                    "column_name": "account",
+                    "column_view_name": "科目",
+                    "options": {
+                        "select_item_valtext": "travel,差旅交通费\nmeeting,会议费\nentertainment,招待费\nsupplies,办公用品费\ncommunication,通信费\nbooks,书报费\nother,其他"
+                    }
+                },
+                {
+                    "column_name": "payee",
+                    "column_view_name": "支付对象"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金额"
+                },
+                {
+                    "column_name": "receipt",
+                    "column_view_name": "收据"
+                }
+            ]
+        },
+        {
+            "table_name": "request_trip",
+            "table_view_name": "出差申请",
+            "description": "出差前提交申请。",
+            "custom_columns": [
+                {
+                    "column_name": "destination",
+                    "column_view_name": "目的地"
+                },
+                {
+                    "column_name": "purpose",
+                    "column_view_name": "目的"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "开始日期"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "结束日期"
+                },
+                {
+                    "column_name": "transport",
+                    "column_view_name": "交通方式",
+                    "options": {
+                        "select_item_valtext": "train,火车\nshinkansen,新干线\nplane,飞机\ncar,汽车\nother,其他"
+                    }
+                },
+                {
+                    "column_name": "estimated_cost",
+                    "column_view_name": "预计费用"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "备注"
+                }
+            ]
+        },
+        {
+            "table_name": "request_payment",
+            "table_view_name": "付款申请",
+            "description": "申请支付发票款项。",
+            "custom_columns": [
+                {
+                    "column_name": "payee",
+                    "column_view_name": "收款方"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金额"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "付款期限"
+                },
+                {
+                    "column_name": "invoice",
+                    "column_view_name": "发票"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "详情"
+                }
+            ]
+        },
+        {
+            "table_name": "request_leave",
+            "table_view_name": "请假申请",
+            "description": "申请休假。",
+            "custom_columns": [
+                {
+                    "column_name": "leave_type",
+                    "column_view_name": "假期类型",
+                    "options": {
+                        "select_item_valtext": "paid,带薪年假\nhalf_am,半天（上午）\nhalf_pm,半天（下午）\nspecial,特别假\nsubstitute,调休\nabsence,缺勤\nother,其他"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "开始日期"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "结束日期"
+                },
+                {
+                    "column_name": "days",
+                    "column_view_name": "天数"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "理由"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "fb49ce9f4362a2c57793",
+            "form_view_name": "表单"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "申请与审批",
+            "menu_type": "parent_node",
+            "menu_name": "request"
+        },
+        {
+            "title": "待办任务",
+            "menu_type": "system",
+            "menu_name": "workflow_task"
+        },
+        {
+            "title": "审批申请（签呈）",
+            "menu_type": "table",
+            "menu_name": "request_ringi"
+        },
+        {
+            "title": "费用报销",
+            "menu_type": "table",
+            "menu_name": "request_expense"
+        },
+        {
+            "title": "出差申请",
+            "menu_type": "table",
+            "menu_name": "request_trip"
+        },
+        {
+            "title": "付款申请",
+            "menu_type": "table",
+            "menu_name": "request_payment"
+        },
+        {
+            "title": "请假申请",
+            "menu_type": "table",
+            "menu_name": "request_leave"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "request_applicant_group",
+            "role_group_view_name": "申请人",
+            "description": "提交申请并查看、编辑本人申请的人员。请将员工加入此组。"
+        },
+        {
+            "role_group_name": "request_approver_group",
+            "role_group_view_name": "审批人",
+            "description": "可查看所有申请并批准或退回的人员。"
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "申请与审批（标准）"
+        }
+    ]
+}

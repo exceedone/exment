@@ -80,6 +80,10 @@ class Define
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
         'data_submit_redirect' => ['type' => 'string', 'default' => null, 'group' => 'advanced'],
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
+        // the languages the users can choose (ISS02835). Empty: all the installed languages
+        'allowed_locales' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
+        // the language of the browser for a user who has not chosen one (ISS02835). On by default
+        'locale_from_browser' => ['type' => 'boolean', 'default' => '1', 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
         'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,
@@ -279,6 +283,9 @@ class Define
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE_PREFIX = "import_key_value_";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_TREE = "organization_tree";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_INDEX = "organization_parent_index";
+    // the row of the table systems that holds the generation of the cache (System::cacheGeneration)
+    public const SYSTEM_KEY_CACHE_GENERATION = "cache_generation";
+    public const SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_IDS = "organization_parent_ids";
     public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
     public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
@@ -352,6 +359,10 @@ class Define
         'tuning' => [
             'uri' => 'tuning',
             'icon' => 'fa-tachometer',
+        ],
+        'security_check' => [
+            'uri' => 'security_check',
+            'icon' => 'fa-shield',
         ],
         'maintenance' => [
             'uri' => 'maintenance',
@@ -476,6 +487,8 @@ class Define
         ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
         ['name' => 'qrcode', 'href' => 'table/:id/edit?qrcodesetting=1', 'icon' => 'fa-qrcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.qrcode', 'description' => 'qrcode.description'],
         ['name' => 'jancode', 'href' => 'table/:id/edit?jancodesetting=1', 'icon' => 'fa-barcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.jancode', 'description' => 'jancode.description'],
+        // only when the feature is used (Features::DATA_MAINTENANCE, #1829)
+        ['name' => 'data_maintenance', 'href' => 'data_maintenance/:table_name', 'icon' => 'fa-wrench', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.data_maintenance', 'description' => 'data_maintenance.description', 'feature' => 'data_maintenance'],
     ];
 
     public const CUSTOM_VALUE_TRAITS = [
@@ -605,6 +618,7 @@ class Define
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
+        ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
         ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];

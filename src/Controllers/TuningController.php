@@ -6,6 +6,7 @@ use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
+use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Exceedone\Exment\Services\SystemRequire\Tuning\ConfigCacheTuning;
 use Exceedone\Exment\Services\SystemRequire\Tuning\DebugLogTuning;
 use Illuminate\Http\Request;
@@ -41,8 +42,13 @@ class TuningController extends AdminControllerBase
         $this->AdminContent($content);
         $content->row(view('exment::tuning.index', [
             'checkResult' => SystemRequireList::make(SystemRequireCalledType::TUNING),
+            // the system requirements (PHP's limits, the permissions...), moved here from the system setting (ISS02828)
+            'requireResult' => SystemRequireList::make(SystemRequireCalledType::WEB),
             'serverActions' => static::serverActionsAllowed(),
             'actionUrl' => admin_urls('tuning', 'action'),
+            'autoItems' => (new AutoTuning())->available(),
+            // what it did last (at the setup or here)
+            'autoLast' => AutoTuning::last(),
         ]));
         return $content;
     }
@@ -60,10 +66,26 @@ class TuningController extends AdminControllerBase
             abort(403);
         }
 
+        // the tuning Exment can do by itself, the chosen items (AutoTuning)
+        if ($action === 'auto') {
+            // kept from the sites (SaaS) or the server-wide buttons off: not here
+            if (!AutoTuning::enabled()) {
+                abort(403);
+            }
+            $result = (new AutoTuning())->apply((array) $request->get('auto_tuning', []));
+            if (count($result['failed']) > 0) {
+                admin_toastr(exmtrans('tuning.action_failed'), 'error');
+            } else {
+                admin_toastr(exmtrans('tuning.action_done'));
+            }
+            return redirect(admin_url('tuning'));
+        }
+
         try {
             switch ($action) {
                 case ConfigCacheTuning::ACTION_CACHE:
-                    \Artisan::call('config:cache');
+                    // the same routine as AutoTuning (keeps the application of this request)
+                    AutoTuning::cacheConfig();
                     break;
                 case ConfigCacheTuning::ACTION_CLEAR:
                     \Artisan::call('config:clear');

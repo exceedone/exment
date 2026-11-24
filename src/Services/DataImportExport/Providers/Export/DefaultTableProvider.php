@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Services\UserTimezone;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 class DefaultTableProvider extends ProviderBase
@@ -215,6 +216,16 @@ class DefaultTableProvider extends ProviderBase
         }
 
         $convertValueFunc = function ($value, $column, $view_column_type) use ($record) {
+            // an export in the time zone of the user: the date and times in it (ISS02835)
+            if (UserTimezone::dataAsUser()) {
+                if ($view_column_type == ConditionType::COLUMN && array_get($column, 'column_type') == ColumnType::DATETIME) {
+                    return UserTimezone::formatToUser($value);
+                }
+                if ($view_column_type == ConditionType::SYSTEM && in_array($column, ['created_at', 'updated_at', 'deleted_at'], true)) {
+                    return UserTimezone::formatToUser($value);
+                }
+            }
+
             // if $view_column_type is column, get customcolumn
             if ($view_column_type == ConditionType::COLUMN) {
                 // if attachment, set url

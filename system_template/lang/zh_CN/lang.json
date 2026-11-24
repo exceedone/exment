@@ -1,0 +1,588 @@
+{
+    "template_view_name": "系统模板",
+    "description": "系统用模板，必须安装。",
+    "custom_tables": [
+        {
+            "table_name": "document",
+            "table_view_name": "文档",
+            "custom_columns": [
+                {
+                    "column_name": "document_name",
+                    "column_view_name": "文档名称"
+                },
+                {
+                    "column_name": "file_uuid",
+                    "column_view_name": "文件 UUID"
+                }
+            ]
+        },
+        {
+            "table_name": "comment",
+            "table_view_name": "评论",
+            "custom_columns": [
+                {
+                    "column_name": "comment_detail",
+                    "column_view_name": "评论详情"
+                }
+            ]
+        },
+        {
+            "table_name": "base_info",
+            "table_view_name": "基本信息",
+            "custom_columns": [
+                {
+                    "column_name": "company_name",
+                    "column_view_name": "公司名称"
+                },
+                {
+                    "column_name": "company_kana",
+                    "column_view_name": "公司名称（假名）"
+                },
+                {
+                    "column_name": "zip01",
+                    "column_view_name": "邮政编码1"
+                },
+                {
+                    "column_name": "zip02",
+                    "column_view_name": "邮政编码2"
+                },
+                {
+                    "column_name": "tel01",
+                    "column_view_name": "电话1",
+                    "options": {
+                        "placeholder": "例：03"
+                    }
+                },
+                {
+                    "column_name": "tel02",
+                    "column_view_name": "电话2",
+                    "options": {
+                        "placeholder": "例：1234"
+                    }
+                },
+                {
+                    "column_name": "tel03",
+                    "column_view_name": "电话3",
+                    "options": {
+                        "placeholder": "例：5678"
+                    }
+                },
+                {
+                    "column_name": "fax01",
+                    "column_view_name": "传真1",
+                    "options": {
+                        "placeholder": "例：03"
+                    }
+                },
+                {
+                    "column_name": "fax02",
+                    "column_view_name": "传真2",
+                    "options": {
+                        "placeholder": "例：1234"
+                    }
+                },
+                {
+                    "column_name": "fax03",
+                    "column_view_name": "传真3",
+                    "options": {
+                        "placeholder": "例：5678"
+                    }
+                },
+                {
+                    "column_name": "pref",
+                    "column_view_name": "都道府县",
+                    "options": {
+                        "select_item_valtext": "01,北海道\n02,青森县\n03,岩手县\n04,宫城县\n05,秋田县\n06,山形县\n07,福岛县\n08,茨城县\n09,栃木县\n10,群马县\n11,埼玉县\n12,千叶县\n13,东京都\n14,神奈川县\n15,新潟县\n16,富山县\n17,石川县\n18,福井县\n19,山梨县\n20,长野县\n21,岐阜县\n22,静冈县\n23,爱知县\n24,三重县\n25,滋贺县\n26,京都府\n27,大阪府\n28,兵库县\n29,奈良县\n30,和歌山县\n31,鸟取县\n32,岛根县\n33,广岛县\n34,山口县\n36,德岛县\n37,香川县\n38,爱媛县\n39,高知县\n40,福冈县\n41,佐贺县\n42,长崎县\n43,熊本县\n44,大分县\n45,宫崎县\n46,鹿儿岛县\n47,冲绳县"
+                    }
+                },
+                {
+                    "column_name": "addr01",
+                    "column_view_name": "地址"
+                },
+                {
+                    "column_name": "addr02",
+                    "column_view_name": "地址（楼栋及以后）"
+                },
+                {
+                    "column_name": "company_logo",
+                    "column_view_name": "公司标志",
+                    "options": {
+                        "help": "最佳图片尺寸为 200 x 70。"
+                    }
+                },
+                {
+                    "column_name": "company_stamp",
+                    "column_view_name": "公司印章",
+                    "options": {
+                        "help": "最佳图片尺寸为 200 x 200。"
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_name",
+                    "column_view_name": "银行账户-银行名称"
+                },
+                {
+                    "column_name": "transfer_bank_office_name",
+                    "column_view_name": "银行账户-支行名称"
+                },
+                {
+                    "column_name": "transfer_bank_office_no",
+                    "column_view_name": "银行账户-支行编号"
+                },
+                {
+                    "column_name": "transfer_bank_account_type",
+                    "column_view_name": "银行账户-账户类型",
+                    "options": {
+                        "help": "请输入账户类型，例如 [普通] 或 [活期]。"
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "银行账户-户名"
+                },
+                {
+                    "column_name": "transfer_bank_account_no",
+                    "column_view_name": "银行账户-账号"
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "银行账户-户名"
+                }
+            ]
+        },
+        {
+            "table_name": "user",
+            "table_view_name": "用户",
+            "custom_columns": [
+                {
+                    "column_name": "user_code",
+                    "column_view_name": "用户代码"
+                },
+                {
+                    "column_name": "user_name",
+                    "column_view_name": "用户名"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "电子邮箱"
+                }
+            ]
+        },
+        {
+            "table_name": "organization",
+            "table_view_name": "组织",
+            "custom_columns": [
+                {
+                    "column_name": "organization_code",
+                    "column_view_name": "组织代码"
+                },
+                {
+                    "column_name": "organization_name",
+                    "column_view_name": "组织名称"
+                },
+                {
+                    "column_name": "parent_organization",
+                    "column_view_name": "上级组织"
+                }
+            ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "邮件模板",
+            "description": "管理发送邮件时的正文等内容。",
+            "custom_columns": [
+                {
+                    "column_name": "mail_key_name",
+                    "column_view_name": "邮件键名",
+                    "options": {
+                        "help": "用于在系统中唯一标识邮件模板的键名。"
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "邮件显示名称",
+                    "options": {
+                        "help": "在列表页面显示的模板名称。"
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "模板类型",
+                    "options": {
+                        "select_item_valtext": "header,页眉\nbody,正文\nfooter,页脚"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "邮件主题",
+                    "options": {
+                        "help": "请输入要发送的邮件主题。可以使用变量。"
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "邮件正文",
+                    "options": {
+                        "help": "请输入要发送的邮件正文。可以使用变量。"
+                    }
+                },
+                {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "发件人显示名称",
+                    "options": {
+                        "help": "请输入发件人的显示名称。"
+                    }
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "附件",
+                    "options": {
+                        "help": "添加要附加到邮件的文件。"
+                    }
+                },
+                {
+                    "column_name": "custom_attachments",
+                    "column_view_name": "自定义附件",
+                    "options": {
+                        "help": "添加要附加到邮件的文件列或文档。"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "mail_send_log",
+            "table_view_name": "邮件发送历史",
+            "description": "管理邮件发送历史。",
+            "custom_columns": [
+                {
+                    "column_name": "mail_from",
+                    "column_view_name": "发件人"
+                },
+                {
+                    "column_name": "mail_to",
+                    "column_view_name": "收件人"
+                },
+                {
+                    "column_name": "mail_cc",
+                    "column_view_name": "收件人(CC)"
+                },
+                {
+                    "column_name": "mail_bcc",
+                    "column_view_name": "收件人(BCC)"
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "邮件主题"
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "邮件正文"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "发送对象用户"
+                },
+                {
+                    "column_name": "mail_template",
+                    "column_view_name": "发送的邮件模板"
+                },
+                {
+                    "column_name": "send_datetime",
+                    "column_view_name": "发送日期"
+                }
+            ]
+        },
+        {
+            "table_name": "information",
+            "table_view_name": "通知信息",
+            "description": "向用户通知的信息，可显示在仪表板等位置。",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "标题"
+                },
+                {
+                    "column_name": "body",
+                    "column_view_name": "正文"
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "显示标志",
+                    "options": {
+                        "help": "如需在列表中显示，请设置为 [是]。"
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "显示顺序",
+                    "options": {
+                        "help": "按数值从大到小的顺序显示在列表中。（数值相同时，按更新时间从新到旧排序）"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "优先级",
+                    "options": {
+                        "select_item_valtext": "1,非常低\n2,低\n3,普通\n4,高\n5,非常高"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "e6b833089cee9ad107e6",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "c38977fc14800c624894",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "cd614f0abb054f5f9adb",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "eaaae44f42d1895e43b9",
+            "form_view_name": "表单",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": "子表-用户",
+                    "form_block_target_table_name": "user"
+                }
+            ]
+        },
+        {
+            "suuid": "96c4e4f7d8a86a4ba17e",
+            "form_view_name": "表单"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "s6j3csfuc4kagb82zna3",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "s6j3csauc4kagb82zna3",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "3471e23fbff8dc65437b",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "24e34126c023857a092e",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "b6d5afcda4ce26091f36",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "99120fd4b360e15993d2",
+            "view_view_name": "通知信息列表"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "system_default_dashboard",
+            "dashboard_view_name": "默认仪表板",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "通知信息列表"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "使用指南"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Exment 新闻列表"
+                }
+            ]
+        }
+    ],
+    "role_groups": [
+        {
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "全部数据管理员组",
+            "description": "可编辑和查看所有数据的角色组。"
+        },
+        {
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "用户与组织管理组",
+            "description": "管理用户和组织的角色组。"
+        },
+        {
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "通知信息管理组",
+            "description": "管理通知信息的角色组。"
+        },
+        {
+            "role_group_name": "user_group",
+            "role_group_view_name": "用户组",
+            "description": "默认用户所属的角色组。"
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "system",
+            "menu_name": "home",
+            "title": "仪表板"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "groupware",
+            "title": "协同办公"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "file_server",
+            "title": "文件共享"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "master",
+            "title": "主数据"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "base_info",
+            "title": "基本信息"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "organization",
+            "title": "组织"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "用户"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "information",
+            "title": "通知信息"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_data",
+            "title": "设置：数据与页面"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "custom_table",
+            "title": "自定义表"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "studio",
+            "title": "Studio"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "menu",
+            "title": "菜单"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "工作流"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "邮件模板"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "通知"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "cell_style_preset",
+            "title": "显示预设"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "template",
+            "title": "模板"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_user",
+            "title": "设置：用户与权限"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "loginuser",
+            "title": "登录用户"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "role_group",
+            "title": "角色组"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "login_setting",
+            "title": "登录设置"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "API 设置"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "操作日志"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "设置：系统"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "system",
+            "title": "系统设置"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "feature",
+            "title": "功能管理"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "plugin",
+            "title": "插件"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "backup",
+            "title": "备份"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "tuning",
+            "title": "性能调优"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "安全检查"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "maintenance",
+            "title": "维护模式"
+        }
+    ]
+}

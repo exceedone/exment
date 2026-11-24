@@ -48,6 +48,23 @@
                             <a href="{{ admin_url('line/link') }}" class="btn btn-default btn-flat btn-block"><i class="fa fa-comments"></i> {{ exmtrans('line.link_menu_title') }}</a>
                         </li>
                         @endif
+                        @php($exmentLocales = \Exceedone\Exment\Services\UserLocale::allowedOptions())
+                        @if(count($exmentLocales) > 1)
+                        <li class="user-body">
+                            {{-- one button for each language (not a select: the pages have their own selects) --}}
+                            <form method="POST" action="{{ admin_url('auth/setting/locale') }}" id="exment-user-locale" class="exment-user-locale" data-nopjax>
+                                <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                                <div class="small mb-1"><i class="fa fa-language"></i> {{ exmtrans('user.locale') }}</div>
+                                <div class="d-flex flex-wrap gap-1">
+                                    @foreach($exmentLocales as $exmentLocale => $exmentLocaleLabel)
+                                    <button type="submit" name="locale" value="{{ $exmentLocale }}" lang="{{ str_replace('_', '-', $exmentLocale) }}"
+                                        class="btn btn-sm {{ $exmentLocale === \App::getLocale() ? 'btn-primary' : 'btn-default' }}"
+                                        @if($exmentLocale === \App::getLocale()) aria-current="true" @endif>{{ $exmentLocaleLabel }}</button>
+                                    @endforeach
+                                </div>
+                            </form>
+                        </li>
+                        @endif
                         <li class="user-footer">
                             @if(Admin::user()->visible('auth/setting'))
                             <div class="pull-left">

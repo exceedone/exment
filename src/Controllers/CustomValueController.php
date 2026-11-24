@@ -49,7 +49,7 @@ use Exceedone\Exment\Services\TableService;
 use Exceedone\Exment\Services\Workflow\WorkflowBulkService;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Carbon\Carbon;
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Exceedone\Exment\Facades\QrCodeFacade as QrCode;
 use Elibyy\TCPDF\Facades\TCPDF;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\RedirectResponse;
@@ -361,7 +361,20 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::CREATE
         ]);
 
-        if (!is_null($copy_id = $request->get('copy_id'))) {
+        $copy_from = $this->getCopyFromSource($request);
+        if (isset($copy_from)) {
+            // start from the values of a record of another table (#1828); the
+            // record is made only when the user saves
+            [$copy, $from_custom_value] = $copy_from;
+            $model = $copy->makeNewModel($from_custom_value);
+            $form = $this->form(null)->editing(function ($form) {
+                $this->filterCopyColumn($form->model());
+            })->replicate($model);
+            admin_info(
+                exmtrans('custom_copy.copy_from.button'),
+                exmtrans('custom_copy.copy_from.message', esc_html($copy->from_custom_table->table_view_name), esc_html($from_custom_value->getLabel()))
+            );
+        } elseif (!is_null($copy_id = $request->get('copy_id'))) {
             // ignore file and autonumber from target model
             $form = $this->form(null)->editing(function($form) {
                 $model = $form->model();
@@ -1638,6 +1651,55 @@ EOT);
     }
 
     /**
+     * The copy setting and the record the new-record form starts from.
+     *
+     * From "copy_from" (the suuid of a copy setting) and "copy_from_id" (a record
+     * of its source table). Anything that does not hold - another table's
+     * setting, a setting not on the create form, a record the user may not see -
+     * gives null, and the form opens empty.
+     *
+     * @param Request $request
+     * @return array{0: CustomCopy, 1: \Exceedone\Exment\Model\CustomValue}|null
+     */
+    protected function getCopyFromSource(Request $request): ?array
+    {
+        $uuid = $request->get('copy_from');
+        $id = $request->get('copy_from_id');
+        if (!is_string($uuid) || is_nullorempty($id)) {
+            return null;
+        }
+
+        $copy = $this->getCopyFromSetting($uuid);
+        if (!isset($copy)) {
+            return null;
+        }
+
+        $from_custom_value = getModelName($copy->from_custom_table)::find($id);
+        if (!isset($from_custom_value) || $from_custom_value->enableAccess() !== true) {
+            return null;
+        }
+        return [$copy, $from_custom_value];
+    }
+
+    /**
+     * A copy setting whose button is on this table's new-record form.
+     *
+     * @param mixed $uuid
+     * @return CustomCopy|null
+     */
+    protected function getCopyFromSetting($uuid): ?CustomCopy
+    {
+        if (!is_string($uuid)) {
+            return null;
+        }
+        /** @var CustomCopy|null $copy */
+        $copy = CustomCopy::getCreateSources($this->custom_table)->first(function ($copy) use ($uuid) {
+            return $copy->suuid === $uuid;
+        });
+        return $copy;
+    }
+
+    /**
      * get operation modal
      */
     // @phpstan-ignore-next-line
@@ -1896,9 +1958,13 @@ EOT);
                     continue;
                 }
 
-                if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
+                // the edit permission of the row (enableEdit() refuses a row in the trash)
+                if (!$custom_value->custom_table->hasPermissionEditData($custom_value)) {
                     \DB::rollback();
-                    return $response;
+                    return getAjaxResponse([
+                        'result'  => false,
+                        'message' => ErrorCode::PERMISSION_DENY()->getMessage(),
+                    ]);
                 }
 
                 $custom_value->restore();
@@ -2030,8 +2096,19 @@ EOT);
             System::setRequestSession(Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, $form_data_type);
         }
 
-        // set form
-        $this->custom_form = $this->custom_table->getPriorityForm($id);
+        // set form. getPriorityForm() loads a record + evaluates form-priority conditions; it is
+        // only needed for form pages (create/edit/show/delete/import) and for one-record-table grids
+        // (which render a form). Skip it for plain list/export pages where custom_form is never
+        // dereferenced — see the only $this->custom_form usages (show_item / form_item).
+        $skipForm = in_array($formActionType, [
+            CustomValuePageType::GRID,
+            CustomValuePageType::GRIDMODAL,
+            CustomValuePageType::EXPORT,
+        ], true) && !$this->custom_table->isOneRecord();
+
+        if (!$skipForm) {
+            $this->custom_form = $this->custom_table->getPriorityForm($id);
+        }
     }
 
     /**
@@ -2175,6 +2252,10 @@ EOT);
 
         $img_width = $this->mmToPixel($_img_width);
         $img_height = $this->mmToPixel($_img_height);
+
+        // null when the PDF could not be made (the callers check isset)
+        $tmpPath = null;
+        $fileName = null;
 
         DB::beginTransaction();
         try {

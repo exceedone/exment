@@ -30,6 +30,7 @@ use Exceedone\Exment\Tests\TestDefine;
 use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Facade;
 use Illuminate\Support\ViewErrorBag;
 use Illuminate\Testing\TestResponse;
@@ -624,6 +625,155 @@ class KanbanFixTest extends UnitTestBase
      * L4: per-value colors were looked up with a dotted path, so a value that
      * holds a dot ("v1.5") never got its color on the board.
      */
+    /**
+     * A board column that holds no record is not queried (a status of every project
+     * made a query each); the cards are the same as when every column is asked.
+     */
+    public function testEmptyBoardColumnsAreNotQueried(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $select = CustomColumn::getEloquent('select', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => $select->id,
+            'kanban_col_count' => 5,
+        ]);
+        $grid = $this->gridOf($view);
+        $keys = $this->invoke($grid, 'getBoardKeys', [$select, null, []]);
+        $kept = $this->invoke($grid, 'keysWithRecords', [$select, null, [], $keys]);
+        $this->assertSame(array_values(array_intersect($keys, $kept)), $kept, 'Only board columns of the board, in its order.');
+
+        $cards = function (array $ks) use ($grid, $select) {
+            $ids = [];
+            foreach ($ks as $key) {
+                foreach ($this->invoke($grid, 'buildColumnQuery', [$select, null, [], $key])->take(5)->get() as $record) {
+                    $ids[] = $key . ':' . $record->id;
+                }
+            }
+            sort($ids);
+            return $ids;
+        };
+        $this->assertSame($cards($keys), $cards($kept), 'The same cards as when every column is asked.');
+        foreach (array_diff($keys, $kept) as $skipped) {
+            $this->assertSame(0, $this->invoke($grid, 'buildColumnQuery', [$select, null, [], $skipped])->count(), "The column {$skipped} that is skipped holds nothing.");
+        }
+
+        // a column of several values keeps every board column
+        $multiple = CustomColumn::getEloquent('select_multiple', $table);
+        if (isset($multiple)) {
+            $all = $this->invoke($grid, 'getBoardKeys', [$multiple, null, []]);
+            $this->assertSame($all, $this->invoke($grid, 'keysWithRecords', [$multiple, null, [], $all]));
+        }
+    }
+
+    /**
+     * A card carries a text only where the browser cannot tell it: not the value itself,
+     * not a column whose label the board's lists give back (textOf in the script).
+     */
+    public function testCardsCarryOnlyTheTextsTheBrowserCannotTell(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $select = CustomColumn::getEloquent('select', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => $select->id,
+            'kanban_max_count' => 20,
+        ]);
+        $board = $this->boardOf($view);
+        $this->assertNotEmpty($board['cards']);
+        foreach ($board['cards'] as $card) {
+            foreach ((array) $card['texts'] as $name => $text) {
+                $this->assertNotSame($card['values'][$name] ?? null, $text, "the text of {$name} is its value: not sent");
+            }
+        }
+        $grid = $this->gridOf($view);
+        $this->invoke($grid, 'buildCardContext', [$select, null]);
+        $property = new \ReflectionProperty($grid, 'textlessColumns');
+        $property->setAccessible(true);
+        foreach (array_keys($property->getValue($grid)) as $name) {
+            foreach ($board['cards'] as $card) {
+                $this->assertArrayNotHasKey($name, (array) $card['texts'], "{$name}: the board gives its label back");
+            }
+        }
+    }
+
+    /**
+     * The first cards of every column in one query (a window function) are the cards a
+     * query per column reads, in the same order; without window functions the board
+     * asks column by column.
+     */
+    public function testOneQueryForTheColumnsReadsTheSameCards(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $select = CustomColumn::getEloquent('select', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => $select->id,
+            'kanban_col_count' => 2,
+        ]);
+        $grid = $this->gridOf($view);
+        $keys = $this->invoke($grid, 'getBoardKeys', [$select, null, []]);
+
+        $byColumn = function ($records) use ($select) {
+            $ids = [];
+            foreach ($records as $record) {
+                $ids[strval(array_get($record, 'value.' . $select->column_name))][] = intval($record->id);
+            }
+            ksort($ids);
+            return $ids;
+        };
+        $loop = collect();
+        foreach ($keys as $key) {
+            $loop = $loop->merge($this->invoke($grid, 'buildColumnQuery', [$select, null, [], $key])->take(2)->get());
+        }
+
+        $windowed = $this->invoke($grid, 'windowedColumnRecords', [$select, null, [], $keys, 2]);
+        if (!\Exceedone\Exment\DataItems\Grid\KanbanGrid::supportsWindowFunctions()) {
+            $this->assertNull($windowed, 'without window functions, column by column');
+            return;
+        }
+        $this->assertNotNull($windowed);
+        $this->assertSame($byColumn($loop), $byColumn($windowed));
+
+        // a database without window functions: column by column, as before
+        $property = new \ReflectionProperty(\Exceedone\Exment\DataItems\Grid\KanbanGrid::class, 'windowFunctions');
+        $property->setAccessible(true);
+        $property->setValue(null, false);
+        try {
+            $this->assertNull($this->invoke($grid, 'windowedColumnRecords', [$select, null, [], $keys, 2]));
+        } finally {
+            $property->setValue(null, null);
+        }
+    }
+
+    /**
+     * The records the cards point to are read at once for each table, not card by card.
+     */
+    public function testTheLinkedRecordsAreReadAtOnce(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $linked = $table->custom_columns->first(function ($column) {
+            return $column->column_type === \Exceedone\Exment\Enums\ColumnType::SELECT_TABLE && !$column->isMultipleEnabled() && isset($column->select_target_table);
+        });
+        if (!isset($linked)) {
+            $this->markTestSkipped('no select_table column in the test table');
+        }
+        $records = $table->getValueModel()->query()->take(50)->get()->filter(function ($record) use ($linked) {
+            return !is_nullorempty(array_get($record, 'value.' . $linked->column_name));
+        })->values();
+        if ($records->count() < 2) {
+            $this->markTestSkipped('not enough records that point to another table');
+        }
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, ['kanban_group_column_id' => CustomColumn::getEloquent('select', $table)->id]);
+        \Exceedone\Exment\Model\System::clearRequestSession();
+        $queries = 0;
+        $target = getDBTableName($linked->select_target_table);
+        \DB::listen(function ($query) use (&$queries, $target) {
+            if (strpos($query->sql, $target) !== false) {
+                $queries++;
+            }
+        });
+        $this->invoke($this->gridOf($view), 'prefetchLinkedRecords', [$records, [$linked->column_name => $linked], []]);
+        $this->assertLessThanOrEqual(1, $queries, 'one query for the linked records of every card');
+    }
+
     public function testBoardValueColorsWorkForValuesWithADot(): void
     {
         $select = $this->selectWithDottedValueColor();
@@ -1257,11 +1407,11 @@ class KanbanFixTest extends UnitTestBase
                 $count++;
             }
         };
-        \Event::listen('eloquent.retrieved: *', $listener);
+        Event::listen('eloquent.retrieved: *', $listener);
         try {
             $callback();
         } finally {
-            \Event::forget('eloquent.retrieved: *');
+            Event::forget('eloquent.retrieved: *');
         }
 
         return $count;

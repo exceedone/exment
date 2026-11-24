@@ -17,7 +17,7 @@ class WebhookUrlGuard
     /**
      * Whether Exment may post to the URL.
      */
-    public static function isAllowed(?string $url): bool
+    public static function isAllowed(?string $url, ?bool $denyPrivate = null): bool
     {
         if (is_nullorempty($url)) {
             return false;
@@ -46,7 +46,7 @@ class WebhookUrlGuard
             return false;
         }
 
-        $denyPrivate = boolval(config('exment.notify_webhook_deny_private', false));
+        $denyPrivate = $denyPrivate ?? boolval(config('exment.notify_webhook_deny_private', false));
         foreach ($ips as $ip) {
             if (!static::isAllowedIp($ip, $denyPrivate)) {
                 return false;
@@ -93,7 +93,8 @@ class WebhookUrlGuard
             return false;
         }
         // fd00:ec2::/32: AWS instance metadata over IPv6; 168.63.129.16: Azure host
-        foreach (['0.0.0.0/8', '100.64.0.0/10', '169.254.0.0/16', '127.0.0.0/8', 'fe80::/10', '::1/128', 'fd00:ec2::/32', '168.63.129.16/32'] as $cidr) {
+        // multicast (224.0.0.0/4, ff00::/8) is never a server either
+        foreach (['0.0.0.0/8', '100.64.0.0/10', '169.254.0.0/16', '127.0.0.0/8', '224.0.0.0/4', 'fe80::/10', '::1/128', 'ff00::/8', 'fd00:ec2::/32', '168.63.129.16/32'] as $cidr) {
             if (static::inCidr($ip, $cidr)) {
                 return false;
             }

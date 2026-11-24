@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Installer;
 
 use Exceedone\Exment\Enums\InitializeStatus;
+use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
 use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
 use Exceedone\Exment\Enums\SystemRequireCalledType;
 
@@ -19,12 +20,18 @@ class SystemRequireForm
         $checkResult = SystemRequireList::make(SystemRequireCalledType::INSTALL_WEB);
         // the tuning advice (ISS00414) is shown apart: it never blocks the install
         $tuningResult = SystemRequireList::make(SystemRequireCalledType::TUNING);
-        return view('exment::install.system_require', ['checkResult' => $checkResult, 'tuningResult' => $tuningResult, 'login_box_classname' => 'login-box-wide']);
+        // the security check (ISS02833): the server's items that are not right, to read; the
+        // fixes are on its page after the install (the database is not ready here)
+        $securityProblems = (new SecurityCheck())->installProblems();
+        return view('exment::install.system_require', ['checkResult' => $checkResult, 'tuningResult' => $tuningResult, 'securityProblems' => $securityProblems, 'login_box_classname' => 'login-box-wide']);
     }
 
     // @phpstan-ignore-next-line
     public function post()
     {
+        // the installer does not run again on an installed site
+        InstalledState::refuseIfInstalled();
+
         if (boolval(request()->get('refresh'))) {
             return redirect(admin_url('install'));
         }
@@ -38,6 +45,7 @@ class SystemRequireForm
             $this->setEnv($inputs);
             InstallService::forgetInputParams();
         } catch (\Exception $ex) {
+            \Log::error('Exment install: cannot write .env: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
                 'install_error' => exmtrans('install.error.cannot_write_env'),
             ]);

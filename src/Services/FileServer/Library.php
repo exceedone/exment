@@ -647,7 +647,7 @@ class Library
     /**
      * Add a new version to a file (an upload over it, a check in, a restore).
      */
-    public function addVersion(FileWorkspace $workspace, FileNode $node, string $localPath, ?string $comment = null): FileNode
+    public function addVersion(FileWorkspace $workspace, FileNode $node, string $localPath, ?string $comment = null, bool $held = false): FileNode
     {
         $this->assertFile($node);
         $this->access->authorize($workspace, $node, Level::EDIT);
@@ -661,8 +661,10 @@ class Library
         }
         $this->assertQuota($workspace, intval(filesize($localPath)));
 
-        DB::transaction(function () use ($workspace, $node, $localPath, $comment) {
-            $this->writeVersion($workspace, $node, $localPath, $comment);
+        // a file whose preview waits for a manager keeps waiting
+        $held = $held || static::isHeld($node->current_version);
+        DB::transaction(function () use ($workspace, $node, $localPath, $comment, $held) {
+            $this->writeVersion($workspace, $node, $localPath, $comment, $held);
         });
         $this->trimVersions($workspace, $node);
         $node->refresh();
@@ -708,7 +710,15 @@ class Library
     /**
      * Keep the bytes of a local file as the newest version of the node.
      */
-    protected function writeVersion(FileWorkspace $workspace, FileNode $node, string $localPath, ?string $comment): FileNodeVersion
+    /**
+     * Whether the preview of a version waits for a manager (a file from a link).
+     */
+    protected static function isHeld(?FileNodeVersion $version): bool
+    {
+        return isset($version) && $version->rendition_status === FileNodeVersion::RENDITION_HELD;
+    }
+
+    protected function writeVersion(FileWorkspace $workspace, FileNode $node, string $localPath, ?string $comment, bool $held = false): FileNodeVersion
     {
         $no = intval(FileNodeVersion::query()->where('node_id', $node->id)->max('version_no')) + 1;
         $dir = static::STORAGE_DIR . '/' . $workspace->id . '/' . $node->suuid;
@@ -748,8 +758,8 @@ class Library
         $node->updated_at = now();
         $node->save();
 
-        if ($this->forLink) {
-            // a file from people outside: no conversion and no text until someone inside opens it (ISS00410)
+        if ($this->forLink || $held) {
+            // a file from people outside (or made from one): no conversion and no text until a manager asks (ISS00410)
             $version->rendition_status = FileNodeVersion::RENDITION_HELD;
             $version->save();
         } else {
@@ -791,7 +801,7 @@ class Library
         }
         $local = $this->downloadToLocal($version);
         try {
-            return $this->addVersion($workspace, $node, $local, exmtrans('file_server.restored_from', ['no' => $version->version_no]));
+            return $this->addVersion($workspace, $node, $local, exmtrans('file_server.restored_from', ['no' => $version->version_no]), static::isHeld($version));
         } finally {
             @unlink($local);
         }
@@ -893,7 +903,7 @@ class Library
                 // into a folder that needs an approval: it waits for it
                 $this->markDraft($target, $copy);
                 $copy->save();
-                $this->writeVersion($workspace, $copy, $local, null);
+                $this->writeVersion($workspace, $copy, $local, null, static::isHeld($version));
                 if ($copy->approval_status === FileNode::APPROVAL_DRAFT) {
                     Collaboration::notify($copy, Collaboration::EVENT_APPROVAL_REQUEST, $this->access->userId(), [], Collaboration::managers($workspace, $copy));
                 }

@@ -12,11 +12,30 @@ use Exceedone\Exment\Model\CustomTable;
  */
 class InstallService
 {
+    /**
+     * The reason of a failed database connection, to show on the setup page
+     * and to log: the first line of the message (e.g. "SQLSTATE[HY000] [2002]
+     * Connection refused"), without the password typed, at most 300 characters.
+     */
+    public static function connectionErrorReason(\Throwable $ex, ?string $password = null): string
+    {
+        $message = trim(strtok($ex->getMessage(), "\n") ?: '');
+        if (!is_nullorempty($password)) {
+            $message = str_replace(strval($password), '********', $message);
+        }
+        return mb_strimwidth($message, 0, 300, '...');
+    }
+
     // @phpstan-ignore-next-line
     public static function index()
     {
         static::setSettingTmp();
         $status = static::getStatus();
+
+        // an installed site: only the first setup (/initialize) is left, never the install steps
+        if ($status != InitializeStatus::INITIALIZE) {
+            InstalledState::refuseIfInstalled();
+        }
 
         if (($response = static::redirect($status)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
@@ -32,6 +51,11 @@ class InstallService
     {
         static::setSettingTmp();
         $status = static::getStatus();
+
+        // an installed site: only the first setup (/initialize) is left, never the install steps
+        if ($status != InitializeStatus::INITIALIZE) {
+            InstalledState::refuseIfInstalled();
+        }
 
         if (($response = static::redirect($status)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;

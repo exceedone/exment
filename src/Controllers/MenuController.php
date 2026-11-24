@@ -145,7 +145,8 @@ class MenuController extends AdminControllerBase
      */
     protected function treeView()
     {
-        // with the menus of the features not used, to move or remove them
+        // with the menus of the features not used, to move or remove them, marked
+        // (Services\MenuVisibility); not taken out for the user who edits
         return new Tree((new Menu())->withHidden(), function (Tree $tree) {
             $tree->disableCreate();
 
@@ -161,7 +162,7 @@ class MenuController extends AdminControllerBase
                         break;
                     case MenuType::SYSTEM:
                         $icon = $branch['icon'];
-                        $uri = array_get(Define::MENU_SYSTEM_DEFINITION, "{$branch['menu_name']}.uri");
+                        $uri = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), "{$branch['menu_name']}.uri");
                         break;
                     case MenuType::PARENT_NODE:
                         $icon = $branch['icon'] ?? null;
@@ -487,7 +488,7 @@ class MenuController extends AdminControllerBase
         $options = [];
         switch ($type) {
             case MenuType::SYSTEM:
-                foreach (Define::MENU_SYSTEM_DEFINITION as $k => $value) {
+                foreach (\Exceedone\Exment\Services\CoreExtensions::systemMenus() as $k => $value) {
                     if (!$this->isAddSystemMenuOptions($k, $value)) {
                         continue;
                     }
@@ -522,7 +523,7 @@ class MenuController extends AdminControllerBase
         $value = $request->input('value');
         switch ($type) {
             case MenuType::SYSTEM:
-                $item = array_get(Define::MENU_SYSTEM_DEFINITION, $value);
+                $item = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), $value);
                 $result = [
                     'menu_name' => $value,
                     'title' => exmtrans("menu.system_definitions.".$value),

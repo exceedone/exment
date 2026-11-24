@@ -1,0 +1,227 @@
+{
+    "template_view_name": "자산 팩",
+    "description": "자산(QR 코드 포함), 자산 신청(구매·이동·폐기, 승인 포함), 재고 조사(명세 포함)와 대여, 자산 역할 그룹 및 \"자산\" 메뉴가 포함됩니다.",
+    "custom_tables": [
+        {
+            "table_name": "asset_item",
+            "table_view_name": "자산",
+            "description": "PC, 가구, 장비, 소모품 등입니다. 각 자산에 QR 코드를 붙이고 스캔하면 레코드가 열립니다.",
+            "custom_columns": [
+                {
+                    "column_name": "asset_no",
+                    "column_view_name": "자산 번호"
+                },
+                {
+                    "column_name": "asset_name",
+                    "column_view_name": "이름"
+                },
+                {
+                    "column_name": "category",
+                    "column_view_name": "분류",
+                    "options": {
+                        "select_item_valtext": "it,PC·IT 기기\nfurniture,가구·비품\nequipment,장비·기계\nvehicle,차량\nsupply,소모품\nother,기타"
+                    }
+                },
+                {
+                    "column_name": "location",
+                    "column_view_name": "위치"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "관리 부서"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "사용자"
+                },
+                {
+                    "column_name": "purchase_date",
+                    "column_view_name": "구매일"
+                },
+                {
+                    "column_name": "purchase_price",
+                    "column_view_name": "구매 가격"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "상태",
+                    "options": {
+                        "select_item_valtext": "in_use,사용 중\nstock,재고\nlending,대여 중\nrepair,수리 중\ndisposed,폐기"
+                    }
+                },
+                {
+                    "column_name": "photo",
+                    "column_view_name": "사진"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_request",
+            "table_view_name": "자산 신청",
+            "description": "자산의 구매·이동·폐기 신청입니다. 워크플로로 승인합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "제목"
+                },
+                {
+                    "column_name": "request_type",
+                    "column_view_name": "유형",
+                    "options": {
+                        "select_item_valtext": "purchase,구매\ntransfer,이동\ndisposal,폐기"
+                    }
+                },
+                {
+                    "column_name": "asset",
+                    "column_view_name": "자산"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "금액"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "희망일"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "사유"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake",
+            "table_view_name": "재고 조사",
+            "description": "재고 조사입니다. 자산별 결과는 명세에 입력합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "stocktake_name",
+                    "column_view_name": "재고 조사"
+                },
+                {
+                    "column_name": "stocktake_date",
+                    "column_view_name": "날짜"
+                },
+                {
+                    "column_name": "staff",
+                    "column_view_name": "담당자"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake_detail",
+            "table_view_name": "재고 조사 명세",
+            "description": "확인한 자산별 결과입니다.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "자산"
+                },
+                {
+                    "column_name": "result",
+                    "column_view_name": "결과",
+                    "options": {
+                        "select_item_valtext": "found,확인됨\nmissing,없음\ndamaged,파손"
+                    }
+                },
+                {
+                    "column_name": "location_found",
+                    "column_view_name": "발견 위치"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_lending",
+            "table_view_name": "대여",
+            "description": "대여 및 반납된 자산입니다.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "자산"
+                },
+                {
+                    "column_name": "borrower",
+                    "column_view_name": "대여자"
+                },
+                {
+                    "column_name": "lend_date",
+                    "column_view_name": "대여일"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "반납 예정일"
+                },
+                {
+                    "column_name": "return_date",
+                    "column_view_name": "반납일"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "비고"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "afef91701db2db9db4cd",
+            "form_view_name": "폼"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "자산",
+            "menu_type": "parent_node",
+            "menu_name": "asset"
+        },
+        {
+            "title": "자산",
+            "menu_type": "table",
+            "menu_name": "asset_item"
+        },
+        {
+            "title": "자산 신청",
+            "menu_type": "table",
+            "menu_name": "asset_request"
+        },
+        {
+            "title": "재고 조사",
+            "menu_type": "table",
+            "menu_name": "asset_stocktake"
+        },
+        {
+            "title": "대여",
+            "menu_type": "table",
+            "menu_name": "asset_lending"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "asset_admin_group",
+            "role_group_view_name": "자산 관리자",
+            "description": "자산, 신청, 재고 조사, 대여를 조회·작성·편집할 수 있는 사람입니다."
+        },
+        {
+            "role_group_name": "asset_member_group",
+            "role_group_view_name": "자산 이용자",
+            "description": "자산과 대여를 조회하고 자산 신청을 할 수 있는 사람입니다."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "자산 신청(표준)"
+        }
+    ]
+}

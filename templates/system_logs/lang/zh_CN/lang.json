@@ -1,0 +1,50 @@
+{
+    "template_view_name": "系统性能日志",
+    "description": "用于记录系统性能日志的模板，包括执行 URL、用户、时间和 SQL 查询。",
+    "custom_tables": [
+        {
+            "table_name": "system_logs",
+            "table_view_name": "系统性能日志",
+            "description": "记录执行的 SQL 查询、执行 URL、用户和时间等系统性能日志。",
+            "custom_columns": [
+                {
+                    "column_name": "url",
+                    "column_view_name": "执行 URL"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "执行用户"
+                },
+                {
+                    "column_name": "create_at",
+                    "column_view_name": "执行时间"
+                },
+                {
+                    "column_name": "sql",
+                    "column_view_name": "SQL"
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5160ffbedcfce843fb8e",
+            "form_view_name": "表单"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "d9ce8f6d3b288d6da84b",
+            "view_view_name": "全部记录"
+        }
+    ],
+    "custom_copies": [],
+    "admin_menu": [
+        {
+            "title": "系统性能日志",
+            "menu_type": "table",
+            "menu_name": "system_logs"
+        }
+    ]
+}

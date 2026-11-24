@@ -66,6 +66,9 @@ class DefaultForm extends FormBase
         // for lock data
         $form->hidden('updated_at');
 
+        // an application adds its own to the form (ScreenExtensions data_form.form)
+        \Exceedone\Exment\Services\ScreenExtensions::call('data_form.form', $form, $this->custom_table, $this->id);
+
         // get select_parent
         $select_parent = $request->has('select_parent') ? intval($request->get('select_parent')) : null;
         // set one:many select
@@ -353,6 +356,9 @@ EOT;
             }
         }
         foreach ($custom_form_columns as $form_column) {
+            if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                continue;
+            }
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
@@ -388,6 +394,9 @@ EOT;
             $custom_form_columns = $custom_form_block->custom_form_columns;
             // setting fields.
             foreach ($custom_form_columns as $form_column) {
+                if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                    continue;
+                }
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                     continue;
                 }
@@ -408,6 +417,12 @@ EOT;
                 }
 
                 $field->setWidth(8, 2);
+
+                // the options of the column, for the scripts of the field
+                if (method_exists($field, 'setCustomOptions')) {
+                    // @phpstan-ignore-next-line
+                    $field->setCustomOptions($form_column->custom_column->options ?? []);
+                }
                 // push field to form
                 $form->pushFieldAndOption($field, [
                     'row' => $form_column->row_no,
@@ -699,12 +714,47 @@ EOT;
                 ]));
             }
 
+            // Start the new record from a record of another table (#1828): one
+            // button for each copy setting the admin put on this form.
+            if (!$disableToolsButton && !isset($id)) {
+                $copies = \Exceedone\Exment\Model\CustomCopy::getCreateSources($custom_table);
+                foreach ($copies as $copy) {
+                    $from_table = $copy->from_custom_table;
+                    $target_class = 'copy_from_target_' . $copy->suuid;
+                    $tools->append(view('exment::tools.copy-from-button', [
+                        // one source: just "Copy from"; several: say which table
+                        'label' => \Exceedone\Exment\Model\CustomCopy::getCreateLabel($copy, count($copies) > 1),
+                        'target_class' => $target_class,
+                        // the picked record id is put after this
+                        'url' => admin_urls_query('data', $custom_table->table_name, 'create', ['copy_from' => $copy->suuid]) . '&copy_from_id=',
+                        // the search dialog of the copy-from table
+                        'modal_url' => admin_urls_query('data', $from_table->table_name, ['modalframe' => 1]),
+                        'expand' => json_encode([
+                            'target_column_class' => $target_class,
+                            'target_column_multiple' => 0,
+                            'display_table_id' => $custom_table->id,
+                        ]),
+                    ])->render());
+                }
+                if (count($copies) > 0) {
+                    Admin::script(<<<'EOT'
+$(document).off('change.exment_copy_from').on('change.exment_copy_from', 'select[data-copy-from-url]', function () {
+    var value = $(this).val();
+    if (value) {
+        window.location.href = $(this).data('copy-from-url') + encodeURIComponent(value);
+    }
+});
+EOT);
+                }
+            }
+
             if (!$disableToolsButton) {
                 PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             }
 
             if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
+                \Exceedone\Exment\Services\ScreenExtensions::call('data_form.tools', $tools, $custom_table, $id);
             }
         });
     }

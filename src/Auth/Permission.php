@@ -14,6 +14,33 @@ use ExmentAdminCore\Admin\Auth\Permission as AdminPermission;
 class Permission
 {
     /**
+     * The endpoints added by an application: endpoint => the endpoint whose rule it uses
+     * (string), or fn(Permission $permission, string $endpoint, bool $isMenu): bool.
+     *
+     * @var array<string, string|callable>
+     */
+    protected static $endpointRules = [];
+
+    /**
+     * Add an endpoint ("plugin-market" as "plugin", "ocr-setting" as "column", or a callback).
+     * An endpoint of a table ("name/{table}") is added with CoreExtensions::addTablePage().
+     *
+     * @param string|callable $rule
+     */
+    public static function extendEndpoint(string $endpoint, $rule): void
+    {
+        static::$endpointRules[$endpoint] = $rule;
+    }
+
+    /**
+     * Forget the added endpoints (tests).
+     */
+    public static function resetEndpoints(): void
+    {
+        static::$endpointRules = [];
+    }
+
+    /**
      * Summary of $role_type
      * @var string
      */
@@ -221,6 +248,15 @@ class Permission
         if (!isset($target)) {
             $target = $endpoint;
         }
+        // an endpoint added by an application (extendEndpoint()): the rule of another endpoint, or its own
+        if (array_key_exists($target, static::$endpointRules)) {
+            $rule = static::$endpointRules[$target];
+            if (is_string($rule)) {
+                $target = $rule;
+            } else {
+                return boolval(call_user_func($rule, $this, $endpoint, $isMenu));
+            }
+        }
         switch ($target) {
             case "":
             case "/":
@@ -269,6 +305,7 @@ class Permission
             case "auth/menu_arrange":
             case "auth/logs":
             case "tuning":
+            case "security_check":
             case "api_keys":
             case "maintenance":
                 if ($this->role_type == RoleType::SYSTEM) {
@@ -328,6 +365,8 @@ class Permission
             case "relation":
             case "copy":
             case "operation":
+            // data maintenance of the table (#1829): the feature is checked by the middleware admin.feature
+            case "data_maintenance":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }
@@ -384,7 +423,7 @@ class Permission
         }
 
         // if find endpoint "data/", check as data
-        $list = implode('|', array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['plugins']));
+        $list = implode('|', array_merge(\Exceedone\Exment\Services\CoreExtensions::customTableEndpoints(), ['plugins']));
         if (preg_match('/^(' . $list  . ')\/(.+)$/u', $endpoint, $matched)) {
             return $this->hasPermissionByEndpoint($matched[2], $isMenu, $matched[1], true);
         }
@@ -420,7 +459,7 @@ class Permission
             }
 
             // if $uri is "auth", get next uri.
-            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'saml', 'plugins']))) {
+            if (in_array($uri, array_merge(\Exceedone\Exment\Services\CoreExtensions::customTableEndpoints(), ['auth', 'saml', 'plugins']))) {
                 // but url is last item, return $uri.
                 if (count($uris) <= $k+1) {
                     return $uri;

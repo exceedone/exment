@@ -30,6 +30,9 @@ class IndexMissingTuning extends TuningBase
             return $this->missing;
         }
         $this->missing = [];
+        // the names of the indexes of each table, read once per table (Schema::hasCustomIndex
+        // asks the database whether the table exists and reads its indexes for every column)
+        $indexes = [];
         try {
             foreach (CustomColumn::indexEnabled()->get() as $column) {
                 $table = $column->custom_table_cache;
@@ -42,7 +45,16 @@ class IndexMissingTuning extends TuningBase
                     continue;
                 }
                 $dbColumn = $column->getIndexColumnName(false);
-                if (!hasColumn($dbTable, $dbColumn) || !\Schema::hasCustomIndex($dbTable, $dbColumn, "index_{$dbColumn}")) {
+                if (!hasColumn($dbTable, $dbColumn)) {
+                    $this->missing[] = $table->table_view_name . ' / ' . $column->column_view_name;
+                    continue;
+                }
+                if (!isset($indexes[$dbTable])) {
+                    $indexes[$dbTable] = array_map(function ($index) {
+                        return strtolower(strval($index['name'] ?? ''));
+                    }, \Schema::getIndexes($dbTable));
+                }
+                if (!in_array(strtolower("index_{$dbColumn}"), $indexes[$dbTable], true)) {
                     $this->missing[] = $table->table_view_name . ' / ' . $column->column_view_name;
                 }
             }

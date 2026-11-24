@@ -51,23 +51,29 @@ class FileShareController extends \App\Http\Controllers\Controller
             \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::LINK_OPEN, $link->workspace, $item, null, [], $link->id);
         }
         $data = ['item' => $item, 'breadcrumbs' => $this->breadcrumbs($link, $item)];
+        // the links to take away, while its maker may still download (ShareLinks::downloadAllowed)
+        $canDownload = ShareLinks::downloadAllowed($link, $item);
         if ($item->isFolder()) {
             // not what has its own permissions (ISS00410)
             $children = ShareLinks::childrenInLink($item);
-            $data['children'] = $children->map(function (FileNode $child) use ($link) {
+            $data['children'] = $children->map(function (FileNode $child) use ($link, $canDownload) {
                 return [
                     'name' => $child->name,
                     'is_folder' => $child->isFolder(),
                     'size' => $child->size,
                     'updated_at' => $child->updated_at,
                     'url' => $this->url($link, 'item/' . $child->id),
-                    'download_url' => $link->allow_download ? $this->url($link, 'download') . '?node=' . $child->id : null,
+                    'download_url' => $canDownload ? $this->url($link, 'download') . '?node=' . $child->id : null,
                 ];
             })->all();
-            $data['zip_url'] = $link->allow_download ? $this->url($link, 'download') . '?node=' . $item->id : null;
+            $data['zip_url'] = $canDownload ? $this->url($link, 'download') . '?node=' . $item->id : null;
         } else {
             $version = $item->current_version;
             $kind = isset($version) ? Preview::kind($version->mime_type, $item->name) : Preview::KIND_NONE;
+            // a link without download: what is made from the file, not the file (ViewOnly)
+            if (!$canDownload) {
+                $kind = \Exceedone\Exment\Services\FileServer\ViewOnly::kind($kind, $version);
+            }
             $text = null;
             if ($kind === Preview::KIND_TEXT && isset($version) && $version->size <= Preview::TEXT_PREVIEW_BYTES) {
                 $text = Library::disk()->get($version->path);
@@ -80,7 +86,7 @@ class FileShareController extends \App\Http\Controllers\Controller
                 'text' => $text,
                 'content_url' => $this->url($link, 'content') . '?node=' . $item->id,
                 'pdf_url' => isset($version) && isset($version->preview_path) ? $this->url($link, 'content') . '?node=' . $item->id . '&rendition=pdf' : null,
-                'download_url' => $link->allow_download ? $this->url($link, 'download') . '?node=' . $item->id : null,
+                'download_url' => $canDownload ? $this->url($link, 'download') . '?node=' . $item->id : null,
             ];
         }
         return $this->page('share', $link, $data);
@@ -116,6 +122,9 @@ class FileShareController extends \App\Http\Controllers\Controller
         $item = ShareLinks::nodeInLink($link, $request->filled('node') ? intval($request->get('node')) : null);
         if (!isset($item)) {
             abort(404);
+        }
+        if (!ShareLinks::downloadAllowed($link, $item)) {
+            abort(403);
         }
         \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::LINK_DOWNLOAD, $link->workspace, $item, null, [], $link->id);
         $library = ShareLinks::linkLibrary();
@@ -154,11 +163,17 @@ class FileShareController extends \App\Http\Controllers\Controller
             abort(404);
         }
         $version = $item->current_version;
+        $canDownload = ShareLinks::downloadAllowed($link, $item);
         if ($request->get('rendition') === 'pdf') {
             if (!isset($version->preview_path)) {
                 abort(404);
             }
             return $this->stream($version->preview_path, pathinfo($item->name, PATHINFO_FILENAME) . '.pdf', 'application/pdf', true);
+        }
+        // a link without download: never the bytes of the file (ViewOnly)
+        if (!$canDownload) {
+            \Exceedone\Exment\Services\FileServer\Audit::log(\Exceedone\Exment\Services\FileServer\Audit::VIEW, $link->workspace, $item, null, ['view_only' => 'content'], $link->id);
+            return \Exceedone\Exment\Services\FileServer\ViewOnly::response($version, $item->name);
         }
         if (!Preview::isInlineSafe($version->mime_type)) {
             abort(404);
@@ -213,7 +228,7 @@ class FileShareController extends \App\Http\Controllers\Controller
 
     protected function url(FileShareLink $link, ?string $path = null): string
     {
-        return url()->to(url_join(ShareLinks::basePath(), $link->token, $path ?? ''));
+        return url()->to(url_join(ShareLinks::basePath(), strval($link->plainToken()), $path ?? ''));
     }
 
     /**

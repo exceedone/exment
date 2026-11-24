@@ -1,0 +1,251 @@
+{
+    "template_view_name": "产品销售企业模板",
+    "description": "面向产品销售企业的模板，包含合同管理和产品管理。",
+    "custom_tables": [
+        {
+            "table_name": "client",
+            "table_view_name": "客户",
+            "description": "管理客户信息。",
+            "custom_columns": [
+                {
+                    "column_name": "client_code",
+                    "column_view_name": "客户代码"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "客户名称"
+                }
+            ]
+        },
+        {
+            "table_name": "agency",
+            "table_view_name": "代理商",
+            "custom_columns": [
+                {
+                    "column_name": "agency_code",
+                    "column_view_name": "代理商代码"
+                },
+                {
+                    "column_name": "agency_name",
+                    "column_view_name": "代理商名称"
+                }
+            ]
+        },
+        {
+            "table_name": "product",
+            "table_view_name": "产品",
+            "custom_columns": [
+                {
+                    "column_name": "product_code",
+                    "column_view_name": "产品代码"
+                },
+                {
+                    "column_name": "product_name",
+                    "column_view_name": "产品名称"
+                }
+            ]
+        },
+        {
+            "table_name": "product_version",
+            "table_view_name": "产品版本",
+            "custom_columns": [
+                {
+                    "column_name": "product_version_code",
+                    "column_view_name": "产品版本代码"
+                },
+                {
+                    "column_name": "product_version_name",
+                    "column_view_name": "产品版本名称"
+                },
+                {
+                    "column_name": "cost",
+                    "column_view_name": "成本"
+                }
+            ]
+        },
+        {
+            "table_name": "contract",
+            "table_view_name": "合同",
+            "custom_columns": [
+                {
+                    "column_name": "contract_code",
+                    "column_view_name": "合同代码"
+                },
+                {
+                    "column_name": "client",
+                    "column_view_name": "客户"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状态",
+                    "options": {
+                        "select_item_valtext": "1,咨询\n2,试用\n3,报价\n4,收费\n5,维护\n6,完成"
+                    }
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "签约日期"
+                },
+                {
+                    "column_name": "trial_start_date",
+                    "column_view_name": "试用开始日期"
+                },
+                {
+                    "column_name": "trial_end_date",
+                    "column_view_name": "试用结束日期"
+                },
+                {
+                    "column_name": "mitumorisyo_date",
+                    "column_view_name": "报价单创建日期"
+                },
+                {
+                    "column_name": "seikyusyo_date",
+                    "column_view_name": "发票创建日期"
+                },
+                {
+                    "column_name": "nyukin_planed_date",
+                    "column_view_name": "预计收款日期"
+                },
+                {
+                    "column_name": "nyukin_date",
+                    "column_view_name": "付款日期"
+                },
+                {
+                    "column_name": "attachment_files",
+                    "column_view_name": "附件"
+                },
+                {
+                    "column_name": "subscription_claim_type",
+                    "column_view_name": "月度合同/年度合同",
+                    "options": {
+                        "select_item": [
+                            "月間",
+                            "年間"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_term",
+                    "column_view_name": "合同期限（月/年）",
+                    "options": {
+                        "help": "月度合同请输入签约月数，年度合同请输入签约年数。"
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_start_date",
+                    "column_view_name": "合同开始日期"
+                },
+                {
+                    "column_name": "subscription_agreement_limit_date",
+                    "column_view_name": "合同到期日期"
+                },
+                {
+                    "column_name": "subscription_end_date",
+                    "column_view_name": "合同终止日期"
+                }
+            ]
+        },
+        {
+            "table_name": "contract_detail",
+            "table_view_name": "合同明细",
+            "custom_columns": [
+                {
+                    "column_name": "fixed_price",
+                    "column_view_name": "标价"
+                },
+                {
+                    "column_name": "comment",
+                    "column_view_name": "备注"
+                },
+                {
+                    "column_name": "product_version_id",
+                    "column_view_name": "产品版本"
+                },
+                {
+                    "column_name": "num",
+                    "column_view_name": "数量"
+                },
+                {
+                    "column_name": "zeinuki_price",
+                    "column_view_name": "不含税价格"
+                },
+                {
+                    "column_name": "tax_rate",
+                    "column_view_name": "税率"
+                },
+                {
+                    "column_name": "tax_price",
+                    "column_view_name": "税额"
+                },
+                {
+                    "column_name": "zeikomi_price",
+                    "column_view_name": "含税价格"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "29150ee399f540216b6d",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "5f861dd652ee0fbff3a2",
+            "form_view_name": "表单",
+            "custom_form_blocks": [
+                {
+                    "custom_form_columns": [
+                        {
+                            "options": {
+                                "text": "订阅合同信息"
+                            },
+                            "form_column_target_name": "header"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": "子表 - 合同明细",
+                    "form_block_target_table_name": "contract_detail"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "table",
+            "menu_name": "contract",
+            "title": "合同"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "contract2",
+            "title": "合同"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "client",
+            "title": "客户"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "product",
+            "title": "产品"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "agency",
+            "title": "代理商"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "saller",
+            "title": "销售支持(SFA)"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "manage",
+            "title": "客户管理(CRM)"
+        }
+    ]
+}

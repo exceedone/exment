@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Notifications;
+use Exceedone\Exment\Services\UserLocale;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
@@ -714,17 +715,19 @@ class NotifyService
             array_set($prms, 'system.site_name', $custom_value->label);
         }
 
-        // replace value
-        $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
-        $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
+        // replace value, in the language and the time zone of the user who receives it (ISS02835)
+        return UserLocale::runAs($user ?? '', function () use ($notify, $subject, $body, $custom_value, $custom_table, $prms, $replaceOptions, $user, $params) {
+            $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
+            $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
 
-        $sender = Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params);
-        $sender->custom_value($custom_value)
-            ->custom_table($custom_table)
-            ->user($user)
-            ->send();
+            $sender = Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params);
+            $sender->custom_value($custom_value)
+                ->custom_table($custom_table)
+                ->user($user)
+                ->send();
 
-        return $sender;
+            return $sender;
+        });
     }
 
 

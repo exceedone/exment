@@ -21,7 +21,15 @@ trait CustomTableMenuTrait
     protected function getItems()
     {
         $items = [];
-        foreach (Define::GRID_CHANGE_PAGE_MENULIST as $menu) {
+        foreach (\Exceedone\Exment\Services\CoreExtensions::tablePages() as $menu) {
+            // a page added by an application that is not for this table
+            if (is_callable($visible = array_get($menu, 'visible')) && !$visible($this->custom_table)) {
+                continue;
+            }
+            // a page of a feature that is not used
+            if (array_has($menu, 'feature') && !\Exceedone\Exment\Services\Features::allowed(strval(array_get($menu, 'feature')))) {
+                continue;
+            }
             // if same page, skip
             // if ($this->page_name == array_get($menu, 'name') && !array_has($menu, 'buttons')) {
             //     continue;

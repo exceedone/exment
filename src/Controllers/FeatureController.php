@@ -11,9 +11,11 @@ use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Features;
+use Exceedone\Exment\Services\PluginDistribution\AdminNotices;
 use Exceedone\Exment\Services\PluginDistribution\BundledPlugins;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -40,6 +42,13 @@ class FeatureController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        // the new features are on this page: the notice of the dashboard has told its news
+        try {
+            AdminNotices::markKnown(AdminNotices::newFeatureKeys());
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the new features known: ' . $e->getMessage());
+        }
+
         $roleGroups = RoleGroup::query()->orderBy('role_group_order')->orderBy('id')->get(['id', 'role_group_view_name'])
             ->map(function ($group) {
                 return ['id' => intval($group->id), 'name' => strval($group->role_group_view_name)];
@@ -123,6 +132,52 @@ class FeatureController extends AdminControllerBase
             admin_toastr($e->getMessage(), 'error');
         }
         return redirect(admin_url('feature'));
+    }
+
+    /**
+     * A release of an official plugin downloaded by hand (its zip and its
+     * signed record): checked, then installed or updated (the version before is kept).
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function bundledUpload(Request $request)
+    {
+        if (DemoMode::enabled()) {
+            admin_toastr(DemoMode::message(), 'error');
+            return redirect(admin_url('feature'));
+        }
+        if (!BundledPlugins::updatesAllowed()) {
+            admin_toastr(exmtrans('plugin_distribution.error_updates_off'), 'error');
+            return redirect(admin_url('feature'));
+        }
+        $zip = $request->file('bundled_zip');
+        $json = $request->file('bundled_json');
+        if (!$zip instanceof UploadedFile || !$json instanceof UploadedFile || !$zip->isValid() || !$json->isValid()) {
+            admin_toastr(exmtrans('plugin_distribution.error_upload_files'), 'error');
+            return redirect(admin_url('feature'));
+        }
+        try {
+            $plugin = BundledPlugins::installUploaded(strval($zip->getRealPath()), strval($json->getRealPath()));
+            admin_toastr(exmtrans('plugin_distribution.installed', [
+                'name' => $plugin->plugin_view_name,
+                'version' => $plugin->version,
+            ]));
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] an uploaded official plugin: ' . $e->getMessage());
+            admin_toastr($e->getMessage(), 'error');
+        }
+        return redirect(admin_url('feature'));
+    }
+
+    /**
+     * The × of the notice of new features (the dashboard): not told of again.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function noticesKnown(Request $request)
+    {
+        AdminNotices::markKnown(AdminNotices::newFeatureKeys());
+        return response()->json(['result' => true]);
     }
 
     /**
@@ -210,6 +265,7 @@ class FeatureController extends AdminControllerBase
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
             'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : null,
             'manual_url' => Features::manualUrl($key),
+            'action' => Features::action($key),
         ];
     }
 
@@ -310,7 +366,7 @@ class FeatureController extends AdminControllerBase
         if ($this->systemMenuExists($menuName)) {
             return;
         }
-        $define = array_get(Define::MENU_SYSTEM_DEFINITION, $menuName);
+        $define = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), $menuName);
         if (!is_array($define)) {
             return;
         }

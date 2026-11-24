@@ -17,6 +17,7 @@ use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Exceedone\Exment\Tests\TestTrait;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -90,7 +91,7 @@ class FileShareTest extends FeatureTestBase
 
     protected function shareUrl(FileShareLink $link, string $path = ''): string
     {
-        return '/' . ShareLinks::basePath() . '/' . $link->token . ($path === '' ? '' : '/' . $path);
+        return '/' . ShareLinks::basePath() . '/' . $link->plainToken() . ($path === '' ? '' : '/' . $path);
     }
 
     protected function links(Library $library): ShareLinks
@@ -103,11 +104,11 @@ class FileShareTest extends FeatureTestBase
         [$ws, $folder] = $this->sample();
         $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
         $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2))->create($ws, $folder, FileShareLink::KIND_REQUEST);
-        $this->assertNotNull(ShareLinks::resolve($link->token));
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())));
         // the maker may only upload now (as a link made before 7.2.1 by who could upload)
         FilePermission::query()->where('workspace_id', $ws->id)->whereNull('node_id')
             ->where('target_id', $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2))->update(['level' => Level::UPLOAD]);
-        $this->assertNull(ShareLinks::resolve($link->token));
+        $this->assertNull(ShareLinks::resolve(strval($link->plainToken())));
     }
 
     public function testWhoMayMakeALink(): void
@@ -265,13 +266,15 @@ class FileShareTest extends FeatureTestBase
         [$ws, , $file] = $this->sample();
         $links = $this->links($this->admin());
 
+        // no end given: 30 days by default, never past the latest end of the site
+        config(['exment.file_server_share_max_days' => 90, 'exment.file_server_share_default_days' => 30]);
+        $this->assertSame(now()->addDays(30)->format('Y-m-d'), $links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at->format('Y-m-d'));
         config(['exment.file_server_share_max_days' => 7]);
-        try {
-            $links->create($ws, $file, FileShareLink::KIND_SHARE);
-            $this->fail('a link without an end date');
-        } catch (FileServerException $e) {
-            $this->assertStringContainsString('7', $e->getMessage());
-        }
+        $this->assertSame(now()->addDays(7)->format('Y-m-d'), $links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at->format('Y-m-d'));
+        // no limit and no default: a link without an end, as before
+        config(['exment.file_server_share_max_days' => 0, 'exment.file_server_share_default_days' => 0]);
+        $this->assertNull($links->create($ws, $file, FileShareLink::KIND_SHARE)->expires_at);
+        config(['exment.file_server_share_max_days' => 7]);
         try {
             $links->create($ws, $file, FileShareLink::KIND_SHARE, ['expires_at' => now()->addDays(30)->format('Y-m-d')]);
             $this->fail('a link past the days of the site');
@@ -447,6 +450,138 @@ class FileShareTest extends FeatureTestBase
         $this->assertSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->refresh()->current_version->rendition_status);
         $this->post(admin_urls('file_server', $ws->id, 'nodes', $received->id, 'preview'), [], ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
         $this->assertNotSame(\Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD, $received->refresh()->current_version->rendition_status);
+    }
+
+    public function testAFileFromALinkStaysHeldWhenCopiedOrGivenANewVersion(): void
+    {
+        [$ws, $folder] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $this->post($this->shareUrl($link, 'upload'), ['files' => [UploadedFile::fake()->createWithContent('held.txt', 'from outside')]], ['Accept' => 'application/json'])->assertOk();
+        $received = FileNode::query()->where('parent_id', $folder->id)->where('name', 'held.txt')->firstOrFail();
+        $held = \Exceedone\Exment\Model\FileNodeVersion::RENDITION_HELD;
+        $this->assertSame($held, $received->current_version->rendition_status);
+        $first = $received->current_version;
+
+        $lib = $this->admin();
+        // a copy, a new version, a restore: still held
+        $copy = $lib->copy($ws, $received, null);
+        $this->assertSame($held, $copy->current_version->rendition_status);
+        $lib->addVersion($ws, $received, $this->local('again from inside'));
+        $this->assertSame($held, $received->refresh()->current_version->rendition_status);
+        $lib->restoreVersion($ws, $received, $first);
+        $this->assertSame($held, $received->refresh()->current_version->rendition_status);
+
+        // a file that was never held is not held by a copy or a new version
+        $file = FileNode::query()->where('parent_id', $folder->id)->where('name', 'hello.txt')->firstOrFail();
+        $this->assertNotSame($held, $lib->copy($ws, $file, null)->current_version->rendition_status);
+        $lib->addVersion($ws, $file, $this->local('hello again'));
+        $this->assertNotSame($held, $file->refresh()->current_version->rendition_status);
+    }
+
+    public function testAShareLinkStopsGivingFilesWhenTheRuleOfDownloadIsRaised(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $link = $this->links($this->libraryFor(TestDefine::TESTDATA_USER_LOGINID_USER2))->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => true]);
+        $this->assertTrue(ShareLinks::downloadAllowed($link, $file));
+        $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertOk();
+
+        // the workspace now lets only those who manage it download: the link made before follows
+        $ws->download_level = Level::MANAGE;
+        $ws->save();
+        $link = $link->fresh();
+        $this->assertNotNull(ShareLinks::resolve(strval($link->plainToken())), 'the link still opens');
+        $this->assertFalse(ShareLinks::downloadAllowed($link, $file));
+        $this->get($this->shareUrl($link, 'download') . '?node=' . $file->id)->assertStatus(403);
+    }
+
+    public function testALinkWithoutDownloadGivesNoBytesOfTheFile(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => false]);
+        $answer = $this->get($this->shareUrl($link, 'content') . '?node=' . $file->id);
+        $answer->assertStatus(403);
+        $this->assertStringNotContainsString('hello outside', strval($answer->getContent()));
+
+        $open = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['allow_download' => true]);
+        $this->assertStringContainsString('hello outside', $this->get($this->shareUrl($open, 'content') . '?node=' . $file->id)->streamedContent());
+    }
+
+    /**
+     * Two requests at the same time, each with the link as it was read before the
+     * other counted: the database decides in one UPDATE, so only one takes the last place.
+     */
+    public function testTheCountersHoldWhenTwoRequestsComeAtOnce(): void
+    {
+        [$ws, $folder, $file] = $this->sample();
+
+        // the last opening of a share link
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE, ['max_access' => 1]);
+        $first = FileShareLink::query()->findOrFail($link->id);
+        $second = FileShareLink::query()->findOrFail($link->id);
+        session()->forget(ShareLinks::COUNTED_KEY);
+        $this->assertTrue(ShareLinks::countAccess($first));
+        session()->forget(ShareLinks::COUNTED_KEY);
+        $this->assertFalse(ShareLinks::countAccess($second), 'the second, read before the first counted, does not pass');
+        $this->assertSame(1, $link->refresh()->access_count);
+
+        // the last file of a request link
+        config(['exment.file_server_request_max_files' => 1, 'exment.file_server_request_max_bytes' => 0, 'exment.file_server_request_max_file_size' => 0]);
+        $request = $this->links($this->admin())->create($ws, $folder, FileShareLink::KIND_REQUEST);
+        $a = FileShareLink::query()->findOrFail($request->id);
+        $b = FileShareLink::query()->findOrFail($request->id);
+        ShareLinks::receive($a, 'one.txt', $this->local('one'));
+        try {
+            ShareLinks::receive($b, 'two.txt', $this->local('two'));
+            $this->fail('the second file must not pass the limit');
+        } catch (FileServerException $e) {
+            $this->assertSame(413, $e->status());
+        }
+        $request->refresh();
+        $this->assertSame(1, $request->received_count);
+        $this->assertSame(3, $request->received_bytes);
+        $this->assertFalse(FileNode::query()->where('parent_id', $folder->id)->where('name', 'two.txt')->exists());
+    }
+
+    public function testTheTokenIsKeptHashed(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $link = $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE);
+        $plain = strval($link->plainToken());
+        $this->assertSame(ShareLinks::TOKEN_LENGTH, strlen($plain));
+
+        $row = \DB::table('file_share_links')->where('id', $link->id)->first();
+        $this->assertSame(hash('sha256', $plain), $row->token, 'only the sha256 is kept');
+        $this->assertStringNotContainsString($plain, strval($row->token_encrypted), 'the copy is encrypted');
+        $this->assertNotNull(ShareLinks::resolve($plain));
+        $this->assertNull(ShareLinks::resolve($row->token), 'the kept value does not open it');
+        $this->assertStringEndsWith('/' . $plain, strval(FileShareLink::query()->findOrFail($link->id)->url()));
+
+        // a link made before: the migration moves its token, and it still opens
+        $legacy = Str::random(ShareLinks::TOKEN_LENGTH);
+        \DB::table('file_share_links')->where('id', $link->id)->update(['token' => $legacy, 'token_encrypted' => null]);
+        (require base_path('vendor/exceedone/exment/database/migrations/2026_11_30_000000_hash_file_share_link_tokens.php'))->up();
+        $this->assertSame(hash('sha256', $legacy), \DB::table('file_share_links')->where('id', $link->id)->value('token'));
+        $this->assertNotNull(ShareLinks::resolve($legacy));
+        $this->assertStringEndsWith('/' . $legacy, strval(FileShareLink::query()->findOrFail($link->id)->url()));
+    }
+
+    public function testTheUrlIsShownToItsMakerAndToWhoManages(): void
+    {
+        [$ws, , $file] = $this->sample();
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER2, Level::EDIT);
+        $this->links($this->admin())->create($ws, $file, FileShareLink::KIND_SHARE);
+        $rows = function (string $loginId) use ($ws, $file) {
+            $this->be(LoginUser::findOrFail($loginId));
+            \Exceedone\Exment\Model\System::clearRequestSession();
+            $method = new \ReflectionMethod(\Exceedone\Exment\Controllers\FileServerController::class, 'linkRows');
+            $method->setAccessible(true);
+            return $method->invoke(app(\Exceedone\Exment\Controllers\FileServerController::class), $ws, $file);
+        };
+        $this->assertNotNull($rows(TestDefine::TESTDATA_USER_LOGINID_ADMIN)[0]['url'] ?? null, 'its maker');
+        $editor = $rows(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertCount(1, $editor, 'an editor sees the link');
+        $this->assertNull($editor[0]['url'], 'but not its url');
     }
 
     public function testAZipHasALimit(): void

@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment\Services\Line;
 
-use SimpleSoftwareIO\QrCode\Facades\QrCode;
+use Exceedone\Exment\Facades\QrCodeFacade as QrCode;
 
 class QrRenderer
 {
