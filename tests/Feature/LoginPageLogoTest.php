@@ -102,4 +102,11 @@ class LoginPageLogoTest extends FeatureTestBase
         $page->assertSee('<link rel="icon" href="' . asset('images/exment_favicon.png') . '"', false);
         $page->assertSee('<link rel="icon" href="' . asset(Initialize::DEFAULT_LOGO_MINI) . '" type="image/svg+xml"', false);
     }
+
+    public function testThePageTellsItsLanguage(): void
+    {
+        // as the other pages: the language of the page for the browser and the screen readers
+        $this->get(admin_url('auth/login'))->assertOk()
+            ->assertSee('<html lang="' . str_replace('_', '-', app()->getLocale()) . '">', false);
+    }
 }
