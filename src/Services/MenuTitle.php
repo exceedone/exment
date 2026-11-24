@@ -10,15 +10,16 @@ use Exceedone\Exment\Enums\MenuType;
  * admin_menu.title holds a text: the one of the language the site was installed in (or an update ran
  * in). A user who chose another language (7.2.4) kept reading the left menu in that first language.
  *
- * For the menus Exment itself made - the pages of the system (menu_type "system") and the groups
- * (menu_type "parent_node") of the install template and of the feature map - the title is shown in the
- * language of the user, as long as it is still a text Exment wrote: one of the titles the install
- * template (system_template) or the language files (menu.system_definitions) have for that menu, in
- * any language. It is then answered from the same source in the language of the user, so a user in the
+ * For the menus Exment itself made - the pages of the system (menu_type "system"), the groups
+ * (menu_type "parent_node") and the tables the install makes (menu_type "table": base_info, user,
+ * organization, information, mail_template, system_logs) - the title is shown in the language of the
+ * user, as long as it is still a text Exment wrote: one of the titles the templates of the install
+ * (system_template, templates/system_logs) or the language files (menu.system_definitions) have for
+ * that menu, in any language. It is then answered from the same source in the language of the user, so a user in the
  * language the title was written in reads exactly the stored text.
  *
- * A title somebody changed is no such text and is shown as it is. The menus of the tables, of the
- * plugins and the custom ones are never touched.
+ * A title somebody changed is no such text and is shown as it is. The menus of the other tables, of
+ * the plugins and the custom ones are never touched.
  */
 class MenuTitle
 {
@@ -27,6 +28,9 @@ class MenuTitle
 
     /** the titles of the install template, then the ones of the language files */
     protected const SOURCES = ['template', 'lang'];
+
+    /** the templates the install (and the update) of Exment imports the menus of */
+    protected const TEMPLATES = ['system_template', 'templates/system_logs'];
 
     /**
      * The known titles, for this request.
@@ -86,14 +90,15 @@ class MenuTitle
     }
 
     /**
-     * Whether a row is a menu Exment made: a page of the system or a group.
+     * Whether a row may be a menu Exment made: a page of the system, a group or a table (only the
+     * tables of the templates of the install are known, see build()).
      *
      * @param array<string, mixed> $row
      */
     public static function isTarget(array $row): bool
     {
         $type = strval(array_get($row, 'menu_type'));
-        return in_array($type, [MenuType::SYSTEM, MenuType::PARENT_NODE], true)
+        return in_array($type, [MenuType::SYSTEM, MenuType::PARENT_NODE, MenuType::TABLE], true)
             && !is_nullorempty(array_get($row, 'menu_name'));
     }
 
@@ -150,19 +155,16 @@ class MenuTitle
     {
         $known = [];
 
-        // the install template: config.json is English, lang/<locale>/lang.json the other languages
-        $template = static::packagePath('system_template');
-        $files = ['en' => $template . '/config.json'];
-        foreach (glob($template . '/lang/*/lang.json') ?: [] as $file) {
-            $files[basename(dirname($file))] = $file;
-        }
-        foreach ($files as $locale => $file) {
-            $json = is_file($file) ? json_decode(strval(file_get_contents($file)), true) : null;
-            foreach ((array)array_get((array)$json, 'admin_menu', []) as $menu) {
-                if (!is_array($menu) || !static::isTarget($menu) || !is_string(array_get($menu, 'title')) || trim($menu['title']) === '') {
-                    continue;
+        // the templates of the install: config.json is English, lang/<locale>/lang.json the other languages
+        foreach (static::templateFiles() as $locale => $files) {
+            foreach ($files as $file) {
+                $json = is_file($file) ? json_decode(strval(file_get_contents($file)), true) : null;
+                foreach ((array)array_get((array)$json, 'admin_menu', []) as $menu) {
+                    if (!is_array($menu) || !static::isTarget($menu) || !is_string(array_get($menu, 'title')) || trim($menu['title']) === '') {
+                        continue;
+                    }
+                    $known[static::key($menu)]['template'][$locale] = trim($menu['title']);
                 }
-                $known[static::key($menu)]['template'][$locale] = trim($menu['title']);
             }
         }
 
@@ -185,6 +187,24 @@ class MenuTitle
     }
 
     /**
+     * The files of the templates of the install, by language.
+     *
+     * @return array<string, array<int, string>>
+     */
+    protected static function templateFiles(): array
+    {
+        $files = [];
+        foreach (static::TEMPLATES as $template) {
+            $base = static::packagePath($template);
+            $files['en'][] = $base . '/config.json';
+            foreach (glob($base . '/lang/*/lang.json') ?: [] as $file) {
+                $files[basename(dirname($file))][] = $file;
+            }
+        }
+        return $files;
+    }
+
+    /**
      * @param array<string, mixed> $row
      */
     protected static function key(array $row): string
@@ -199,8 +219,7 @@ class MenuTitle
     {
         $stamp = [];
         $files = array_merge(
-            [static::packagePath('system_template/config.json')],
-            glob(static::packagePath('system_template/lang') . '/*/lang.json') ?: [],
+            array_merge(...array_values(static::templateFiles())),
             glob(static::packagePath('resources/lang') . '/*/exment.php') ?: []
         );
         foreach ($files as $file) {
