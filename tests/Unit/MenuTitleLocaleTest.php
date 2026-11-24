@@ -10,13 +10,17 @@ use Exceedone\Exment\Services\MenuTitle;
  * The left menu in the language of the user (ISS02858).
  *
  * admin_menu.title holds the text of the language the site was installed in. The menus Exment made
- * (the pages of the system and the groups) are shown in the language of the user while their title is
- * still a text Exment wrote; a changed title, and the menus of the tables and the plugins, stay.
+ * (the pages of the system, the groups and the tables the install makes) are shown in the language of
+ * the user while their title is still a text Exment wrote; a changed title, and the menus of the other
+ * tables and of the plugins, stay.
  */
 class MenuTitleLocaleTest extends UnitTestBase
 {
     /** the languages Exment has */
     protected const LOCALES = ['de', 'en', 'es', 'ja', 'ko', 'vi', 'zh_CN'];
+
+    /** the tables the install makes a menu for */
+    protected const SYSTEM_TABLES = ['base_info', 'organization', 'user', 'information', 'mail_template', 'system_logs'];
 
     protected function setUp(): void
     {
@@ -31,21 +35,24 @@ class MenuTitleLocaleTest extends UnitTestBase
     }
 
     /**
-     * The titles of the menus of the install template: "type|name" => locale => title.
+     * The titles of the menus of the templates of the install (system_template and the one of the
+     * performance log): "type|name" => locale => title.
      *
      * @return array<string, array<string, string>>
      */
     protected function templateTitles(): array
     {
-        $base = exment_package_path('system_template');
         $titles = [];
-        foreach (static::LOCALES as $locale) {
-            $file = $locale === 'en' ? "$base/config.json" : "$base/lang/$locale/lang.json";
-            $json = json_decode((string) file_get_contents($file), true);
-            $this->assertIsArray($json, "$file is not valid json");
-            foreach (array_get($json, 'admin_menu', []) as $menu) {
-                if (in_array(array_get($menu, 'menu_type'), [MenuType::SYSTEM, MenuType::PARENT_NODE], true)) {
-                    $titles[$menu['menu_type'] . '|' . $menu['menu_name']][$locale] = $menu['title'];
+        foreach (['system_template', 'templates/system_logs'] as $template) {
+            $base = exment_package_path($template);
+            foreach (static::LOCALES as $locale) {
+                $file = $locale === 'en' ? "$base/config.json" : "$base/lang/$locale/lang.json";
+                $json = json_decode((string) file_get_contents($file), true);
+                $this->assertIsArray($json, "$file is not valid json");
+                foreach (array_get($json, 'admin_menu', []) as $menu) {
+                    if (in_array(array_get($menu, 'menu_type'), [MenuType::SYSTEM, MenuType::PARENT_NODE, MenuType::TABLE], true)) {
+                        $titles[$menu['menu_type'] . '|' . $menu['menu_name']][$locale] = $menu['title'];
+                    }
                 }
             }
         }
@@ -90,6 +97,39 @@ class MenuTitleLocaleTest extends UnitTestBase
             }
         }
         $this->assertGreaterThan(7 * 7 * 20, $checked);
+    }
+
+    /**
+     * The tables the install makes (基本情報, 組織, ユーザー, お知らせ, 通知テンプレート, the performance log):
+     * their menus are read in the language of the user.
+     */
+    public function testTheMenusOfTheSystemTablesInEveryLanguage(): void
+    {
+        $titles = $this->templateTitles();
+        foreach (static::SYSTEM_TABLES as $name) {
+            $key = MenuType::TABLE . '|' . $name;
+            $this->assertArrayHasKey($key, $titles);
+            $this->assertCount(count(static::LOCALES), $titles[$key], "$key has a title in every language");
+            foreach ($titles[$key] as $installed => $stored) {
+                foreach ($titles[$key] as $reader => $expected) {
+                    $this->assertSame($expected, MenuTitle::localize($this->row(MenuType::TABLE, $name, $stored), $reader), "$key installed in $installed, read in $reader");
+                }
+            }
+        }
+        $this->assertSame('Base Info', MenuTitle::localize($this->row(MenuType::TABLE, 'base_info', '基本情報'), 'en'));
+        $this->assertSame('E-Mail-Vorlage', MenuTitle::localize($this->row(MenuType::TABLE, 'mail_template', '通知テンプレート'), 'de'));
+    }
+
+    public function testAChangedTitleOfASystemTableAndTheOtherTablesStay(): void
+    {
+        foreach (static::LOCALES as $locale) {
+            // a title somebody changed
+            $this->assertSame('社員', MenuTitle::localize($this->row(MenuType::TABLE, 'user', '社員'), $locale));
+            // a table somebody made, even with the text of a system table
+            $this->assertSame('ユーザー', MenuTitle::localize($this->row(MenuType::TABLE, 'my_users', 'ユーザー'), $locale));
+            // the text of another system table
+            $this->assertSame('組織', MenuTitle::localize($this->row(MenuType::TABLE, 'user', '組織'), $locale));
+        }
     }
 
     public function testAJapaneseSiteReadInEnglishAndBack(): void
@@ -163,6 +203,7 @@ class MenuTitleLocaleTest extends UnitTestBase
         $titles = $this->templateTitles();
         $ja = $titles['system|home']['ja'];
         foreach ([MenuType::TABLE, MenuType::PLUGIN, MenuType::CUSTOM] as $type) {
+            // (a table named "home" is no table of the install)
             // even with the name and the text of a menu of the system
             $this->assertSame($ja, MenuTitle::localize($this->row($type, 'home', $ja), 'en'), $type);
         }
@@ -187,7 +228,7 @@ class MenuTitleLocaleTest extends UnitTestBase
         $this->be(\Exceedone\Exment\Model\LoginUser::find(1));
         $titles = $this->templateTitles();
         $stored = [];
-        foreach (\DB::table((new Menu())->getTable())->whereIn('menu_type', [MenuType::SYSTEM, MenuType::PARENT_NODE])->get() as $menu) {
+        foreach (\DB::table((new Menu())->getTable())->whereIn('menu_type', [MenuType::SYSTEM, MenuType::PARENT_NODE, MenuType::TABLE])->get() as $menu) {
             $stored[intval($menu->id)] = (array) $menu;
         }
         $this->assertNotEmpty($stored);
@@ -195,6 +236,7 @@ class MenuTitleLocaleTest extends UnitTestBase
         $before = \App::getLocale();
         try {
             $seen = 0;
+            $tables = 0;
             foreach (['en', 'ja', 'vi'] as $locale) {
                 \App::setLocale($locale);
                 foreach ((new Menu())->allNodes() as $node) {
@@ -206,6 +248,7 @@ class MenuTitleLocaleTest extends UnitTestBase
                     if (in_array($row['title'], array_get($titles, $key, []), true)) {
                         $this->assertSame($titles[$key][$locale], $node['title'], "$key in $locale");
                         $seen++;
+                        $tables += $row['menu_type'] === MenuType::TABLE ? 1 : 0;
                     }
                 }
                 // the export of a template / the import: as stored
@@ -216,6 +259,7 @@ class MenuTitleLocaleTest extends UnitTestBase
                 }
             }
             $this->assertGreaterThan(0, $seen, 'the site has menus with a title of the install template');
+            $this->assertGreaterThan(0, $tables, 'the site has menus of the system tables with a title of the install template');
         } finally {
             \App::setLocale($before);
         }
