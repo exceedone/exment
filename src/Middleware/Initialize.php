@@ -167,6 +167,66 @@ class Initialize
     }
 
     /**
+     * The Exment logo of the login pages, for a site without its own logo: the same file as
+     * the side menu. The light letters when the page color chosen on the login setting is a
+     * dark one (and no image covers it). Null when public/images is not published yet: the
+     * page then shows the site name as text, as before.
+     *
+     * @param string|null $background_color the page color of the login setting
+     * @param bool $has_background_image a background image is set
+     */
+    public static function loginDefaultLogo(?string $background_color = null, bool $has_background_image = false): ?string
+    {
+        if (!static::defaultLogoExists(static::DEFAULT_LOGO)) {
+            return null;
+        }
+        if (!$has_background_image && static::isDarkColor($background_color) && static::defaultLogoExists(static::DEFAULT_LOGO_DARK)) {
+            return asset(static::DEFAULT_LOGO_DARK);
+        }
+        return asset(static::DEFAULT_LOGO);
+    }
+
+    /**
+     * The icons of Exment for a page of a site without its own favicon: the ones of the
+     * install pages. An empty array when public/images is not published yet.
+     *
+     * @return array<int, array{href: string, type: string|null, sizes: string|null}>
+     */
+    public static function defaultFavicons(): array
+    {
+        $icons = [];
+        if (static::defaultLogoExists('images/exment_favicon.png')) {
+            $icons[] = ['href' => asset('images/exment_favicon.png'), 'type' => null, 'sizes' => '32x32'];
+        }
+        if (static::defaultLogoExists(static::DEFAULT_LOGO_MINI)) {
+            $icons[] = ['href' => asset(static::DEFAULT_LOGO_MINI), 'type' => 'image/svg+xml', 'sizes' => null];
+        }
+        return $icons;
+    }
+
+    /**
+     * A color "#rgb" or "#rrggbb" that dark letters cannot be read on.
+     */
+    protected static function isDarkColor(?string $color): bool
+    {
+        if (!is_string($color) || !preg_match('/^#([0-9a-f]{3}|[0-9a-f]{6})$/i', trim($color), $m)) {
+            return false;
+        }
+        $hex = $m[1];
+        if (strlen($hex) === 3) {
+            $hex = $hex[0] . $hex[0] . $hex[1] . $hex[1] . $hex[2] . $hex[2];
+        }
+        [$r, $g, $b] = array_map('hexdec', str_split($hex, 2));
+        // relative luminance (WCAG); below it, the light letters stand out more than the dark ones
+        $channel = function ($v) {
+            $v = $v / 255;
+            return $v <= 0.03928 ? $v / 12.92 : pow(($v + 0.055) / 1.055, 2.4);
+        };
+        $luminance = 0.2126 * $channel($r) + 0.7152 * $channel($g) + 0.0722 * $channel($b);
+        return $luminance < 0.179;
+    }
+
+    /**
      * @param bool $setDatabase
      * @return void
      */
