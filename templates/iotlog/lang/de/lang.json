@@ -1,0 +1,188 @@
+{
+    "template_view_name": "IoT-Log-Verwaltung",
+    "description": "Eine Vorlage zum Erfassen und Auswerten von IoT-Logs.",
+    "custom_tables": [
+        {
+            "table_name": "logcode",
+            "table_view_name": "Log-Code-Stammdaten",
+            "description": "Log-Code-Stammdaten",
+            "custom_columns": [
+                {
+                    "column_name": "log_code",
+                    "column_view_name": "Log-Code"
+                },
+                {
+                    "column_name": "log_name",
+                    "column_view_name": "Log-Name"
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "Erläuterung"
+                }
+            ]
+        },
+        {
+            "table_name": "hardware",
+            "table_view_name": "Hardware-Stammdaten",
+            "description": "Hardware-Stammdaten.",
+            "custom_columns": [
+                {
+                    "column_name": "hardware_code",
+                    "column_view_name": "Hardware-Code"
+                },
+                {
+                    "column_name": "hardware_name",
+                    "column_view_name": "Hardware-Name"
+                },
+                {
+                    "column_name": "uuid",
+                    "column_view_name": "Hardware-UUID"
+                }
+            ]
+        },
+        {
+            "table_name": "hardware-serial",
+            "table_view_name": "Hardware-Seriennummern",
+            "description": "Seriennummern, die auf Grundlage der Hardware-Stammdaten vergeben werden.",
+            "custom_columns": [
+                {
+                    "column_name": "memo",
+                    "column_view_name": "Notiz",
+                    "options": {
+                        "help": "Bitte tragen Sie hier ggf. eine Notiz ein."
+                    }
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "Hardware"
+                },
+                {
+                    "column_name": "serial_no",
+                    "column_view_name": "Seriennummer",
+                    "options": {
+                        "help": "Die jedem Endgerät zugewiesene Seriennummer."
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "log_history",
+            "table_view_name": "Log-Verlauf",
+            "description": "Verwalten Sie die von IoT-Endgeräten gesendeten Logs.",
+            "custom_columns": [
+                {
+                    "column_name": "logcode",
+                    "column_view_name": "Log-Code"
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "Hardware-Seriennummer"
+                },
+                {
+                    "column_name": "occurrence_datetime",
+                    "column_view_name": "Zeitpunkt des Ereignisses"
+                },
+                {
+                    "column_name": "lat",
+                    "column_view_name": "Breitengrad"
+                },
+                {
+                    "column_name": "lng",
+                    "column_view_name": "Längengrad"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "c03e6c34df112ebd302e",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "9eb9f3c99e115882f4a7",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "465c8b6dcd419e8f03b0",
+            "form_view_name": "Formular"
+        },
+        {
+            "suuid": "68c35937eb03daa535bf",
+            "form_view_name": "Formular"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "191b41ce150b891f1755",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "0a25c546e8469d710ffe",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "e21ec506aef176e138b9",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "b6510c5fa37b7f7a7a45",
+            "view_view_name": "Standardansicht"
+        },
+        {
+            "suuid": "42edfad1fd3e209edf04",
+            "view_view_name": "Auswertung nach Log-Code",
+            "custom_view_summaries": [
+                {
+                    "view_column_name": "Anzahl der Fälle",
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "id"
+                }
+            ]
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "iotlog_dashboard",
+            "dashboard_view_name": "Dashboard IoT-Log-Verwaltung",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Informationsliste"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Log-Liste"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "IoT-Log-Verwaltung",
+            "menu_type": "parent_node",
+            "menu_name": "iot"
+        },
+        {
+            "title": "Log-Code-Stammdaten",
+            "menu_type": "table",
+            "menu_name": "logcode"
+        },
+        {
+            "title": "Hardware-Stammdaten",
+            "menu_type": "table",
+            "menu_name": "hardware"
+        },
+        {
+            "title": "Hardware-Seriennummern",
+            "menu_type": "table",
+            "menu_name": "hardware-serial"
+        },
+        {
+            "title": "Log-Verlauf",
+            "menu_type": "table",
+            "menu_name": "log_history"
+        }
+    ]
+}

@@ -1,0 +1,162 @@
+{
+    "template_view_name": "Gói nhân sự",
+    "description": "Bộ gồm danh sách nhân viên và thủ tục vào làm & nghỉ việc (có công việc), các nhóm vai trò nhân sự và nhân viên, cùng menu \"Nhân sự & hành chính\".",
+    "custom_tables": [
+        {
+            "table_name": "hr_employee",
+            "table_view_name": "Nhân viên",
+            "description": "Danh sách nhân viên, liên kết với người dùng đăng nhập.",
+            "custom_columns": [
+                {
+                    "column_name": "employee_no",
+                    "column_view_name": "Mã nhân viên"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Người dùng"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Bộ phận"
+                },
+                {
+                    "column_name": "position",
+                    "column_view_name": "Chức vụ"
+                },
+                {
+                    "column_name": "employment_type",
+                    "column_view_name": "Hình thức làm việc",
+                    "options": {
+                        "select_item_valtext": "regular,Chính thức\ncontract,Hợp đồng\npart_time,Bán thời gian\ndispatch,Nhân viên phái cử\nofficer,Ban lãnh đạo"
+                    }
+                },
+                {
+                    "column_name": "join_date",
+                    "column_view_name": "Ngày vào làm"
+                },
+                {
+                    "column_name": "extension",
+                    "column_view_name": "Số máy lẻ"
+                },
+                {
+                    "column_name": "work_location",
+                    "column_view_name": "Nơi làm việc"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Trạng thái",
+                    "options": {
+                        "select_item_valtext": "active,Đang làm việc\nleave,Đang nghỉ phép dài hạn\nretired,Đã nghỉ việc"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure",
+            "table_view_name": "Vào làm & nghỉ việc",
+            "description": "Thủ tục vào làm, nghỉ việc và điều chuyển. Nhập các công việc vào phần chi tiết và đánh dấu khi hoàn thành.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Tiêu đề"
+                },
+                {
+                    "column_name": "procedure_type",
+                    "column_view_name": "Loại",
+                    "options": {
+                        "select_item_valtext": "join,Vào làm\nleave,Nghỉ việc\ntransfer,Điều chuyển"
+                    }
+                },
+                {
+                    "column_name": "person_name",
+                    "column_view_name": "Người liên quan"
+                },
+                {
+                    "column_name": "employee",
+                    "column_view_name": "Nhân viên"
+                },
+                {
+                    "column_name": "scheduled_date",
+                    "column_view_name": "Ngày"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Trạng thái",
+                    "options": {
+                        "select_item_valtext": "todo,Cần làm\ndoing,Đang thực hiện\ndone,Hoàn tất"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Người phụ trách"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Ghi chú"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure_task",
+            "table_view_name": "Công việc",
+            "description": "Một công việc trong thủ tục.",
+            "custom_columns": [
+                {
+                    "column_name": "task",
+                    "column_view_name": "Công việc"
+                },
+                {
+                    "column_name": "assignee",
+                    "column_view_name": "Người được giao"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Hạn"
+                },
+                {
+                    "column_name": "done",
+                    "column_view_name": "Hoàn tất"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0748bf896060b0c25e21",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Nhân sự & hành chính",
+            "menu_type": "parent_node",
+            "menu_name": "hr"
+        },
+        {
+            "title": "Nhân viên",
+            "menu_type": "table",
+            "menu_name": "hr_employee"
+        },
+        {
+            "title": "Vào làm & nghỉ việc",
+            "menu_type": "table",
+            "menu_name": "hr_procedure"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "hr_admin_group",
+            "role_group_view_name": "Nhân sự & hành chính",
+            "description": "Người xem, tạo và chỉnh sửa danh sách nhân viên và các thủ tục."
+        },
+        {
+            "role_group_name": "hr_member_group",
+            "role_group_view_name": "Nhân viên",
+            "description": "Người xem danh sách nhân viên."
+        }
+    ]
+}

@@ -1,0 +1,141 @@
+{
+    "template_view_name": "Quản lý khách hàng",
+    "description": "Quản lý khách hàng đơn giản. Bằng cách đăng ký nhóm lớn và nhóm nhỏ của khách hàng, bạn có thể tìm kiếm khách hàng theo nhóm.",
+    "custom_tables": [
+        {
+            "table_name": "major_class",
+            "table_view_name": "Nhóm lớn",
+            "description": "Nhóm lớn",
+            "custom_columns": [
+                {
+                    "column_name": "major_class_code",
+                    "column_view_name": "Mã nhóm lớn"
+                },
+                {
+                    "column_name": "major_class_name",
+                    "column_view_name": "Tên nhóm lớn"
+                }
+            ]
+        },
+        {
+            "table_name": "minor_class",
+            "table_view_name": "Nhóm nhỏ",
+            "description": "Nhóm nhỏ",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Nhóm lớn"
+                },
+                {
+                    "column_name": "minor_class_code",
+                    "column_view_name": "Mã nhóm nhỏ"
+                },
+                {
+                    "column_name": "minor_class_name",
+                    "column_view_name": "Tên nhóm nhỏ"
+                }
+            ]
+        },
+        {
+            "table_name": "client_manage",
+            "table_view_name": "Thông tin khách hàng",
+            "description": "Thông tin khách hàng",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "Nhóm lớn"
+                },
+                {
+                    "column_name": "minor_class",
+                    "column_view_name": "Nhóm nhỏ"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "Tên khách hàng"
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "Mã bưu chính"
+                },
+                {
+                    "column_name": "street_address",
+                    "column_view_name": "Địa chỉ"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "Điện thoại"
+                },
+                {
+                    "column_name": "fax",
+                    "column_view_name": "FAX"
+                },
+                {
+                    "column_name": "mail",
+                    "column_view_name": "Địa chỉ email"
+                },
+                {
+                    "column_name": "hp",
+                    "column_view_name": "Trang web"
+                },
+                {
+                    "column_name": "available_flg",
+                    "column_view_name": "Cờ hiệu lực"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "9b7cdef69121669e53f3",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "874049a23fa54616587e",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "d72abe95f6a2bd472bee",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "901117b47cad43291ed6",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "58c28b1a750f81b6621a",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "1e425a576a67c5d993f2",
+            "view_view_name": "Tất cả thông tin khách hàng"
+        },
+        {
+            "suuid": "bc5692520c4d124b4815",
+            "view_view_name": "Thông tin khách hàng còn hiệu lực"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Quản lý khách hàng",
+            "menu_type": "parent_node",
+            "menu_name": "client_manage_parent"
+        },
+        {
+            "title": "Nhóm lớn",
+            "menu_type": "table",
+            "menu_name": "major_class"
+        },
+        {
+            "title": "Nhóm nhỏ",
+            "menu_type": "table",
+            "menu_name": "minor_class"
+        },
+        {
+            "title": "Thông tin khách hàng",
+            "menu_type": "table",
+            "menu_name": "client_manage"
+        }
+    ]
+}

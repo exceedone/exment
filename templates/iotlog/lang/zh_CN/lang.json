@@ -1,0 +1,188 @@
+{
+    "template_view_name": "IoT 日志管理",
+    "description": "用于收集和分析 IoT 日志的模板。",
+    "custom_tables": [
+        {
+            "table_name": "logcode",
+            "table_view_name": "日志代码主数据",
+            "description": "日志代码主数据",
+            "custom_columns": [
+                {
+                    "column_name": "log_code",
+                    "column_view_name": "日志代码"
+                },
+                {
+                    "column_name": "log_name",
+                    "column_view_name": "日志名称"
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "说明"
+                }
+            ]
+        },
+        {
+            "table_name": "hardware",
+            "table_view_name": "硬件主数据",
+            "description": "硬件主数据信息。",
+            "custom_columns": [
+                {
+                    "column_name": "hardware_code",
+                    "column_view_name": "硬件代码"
+                },
+                {
+                    "column_name": "hardware_name",
+                    "column_view_name": "硬件名称"
+                },
+                {
+                    "column_name": "uuid",
+                    "column_view_name": "硬件 UUID"
+                }
+            ]
+        },
+        {
+            "table_name": "hardware-serial",
+            "table_view_name": "硬件序列号信息",
+            "description": "根据硬件主数据信息发放的序列号信息。",
+            "custom_columns": [
+                {
+                    "column_name": "memo",
+                    "column_view_name": "备忘",
+                    "options": {
+                        "help": "如有备忘，请填写。"
+                    }
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "硬件"
+                },
+                {
+                    "column_name": "serial_no",
+                    "column_view_name": "序列号",
+                    "options": {
+                        "help": "分配给每台终端的序列号。"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "log_history",
+            "table_view_name": "日志历史",
+            "description": "管理从 IoT 终端发送的日志。",
+            "custom_columns": [
+                {
+                    "column_name": "logcode",
+                    "column_view_name": "日志代码"
+                },
+                {
+                    "column_name": "hardware",
+                    "column_view_name": "硬件序列号"
+                },
+                {
+                    "column_name": "occurrence_datetime",
+                    "column_view_name": "发生日期时间"
+                },
+                {
+                    "column_name": "lat",
+                    "column_view_name": "纬度"
+                },
+                {
+                    "column_name": "lng",
+                    "column_view_name": "经度"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "c03e6c34df112ebd302e",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "9eb9f3c99e115882f4a7",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "465c8b6dcd419e8f03b0",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "68c35937eb03daa535bf",
+            "form_view_name": "表单"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "191b41ce150b891f1755",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "0a25c546e8469d710ffe",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "e21ec506aef176e138b9",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "b6510c5fa37b7f7a7a45",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "42edfad1fd3e209edf04",
+            "view_view_name": "按日志代码汇总",
+            "custom_view_summaries": [
+                {
+                    "view_column_name": "对象件数",
+                    "view_column_table_name": "log_history",
+                    "view_column_target_name": "id"
+                }
+            ]
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "iotlog_dashboard",
+            "dashboard_view_name": "IoT 日志管理仪表板",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "通知列表"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "日志列表"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "IoT 日志管理",
+            "menu_type": "parent_node",
+            "menu_name": "iot"
+        },
+        {
+            "title": "日志代码主数据",
+            "menu_type": "table",
+            "menu_name": "logcode"
+        },
+        {
+            "title": "硬件主数据",
+            "menu_type": "table",
+            "menu_name": "hardware"
+        },
+        {
+            "title": "硬件序列号信息",
+            "menu_type": "table",
+            "menu_name": "hardware-serial"
+        },
+        {
+            "title": "日志历史",
+            "menu_type": "table",
+            "menu_name": "log_history"
+        }
+    ]
+}

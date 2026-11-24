@@ -1,0 +1,241 @@
+{
+    "template_view_name": "Antrags-Paket",
+    "description": "Genehmigungsanträge, Spesenabrechnungen, Dienstreise-, Zahlungs- und Urlaubsanträge mit einem Workflow zum Einreichen / Genehmigen / Zurückgeben, Rollengruppen für Antragsteller und Genehmiger und ein Menü „Anträge & Genehmigungen“.",
+    "custom_tables": [
+        {
+            "table_name": "request_ringi",
+            "table_view_name": "Genehmigungsantrag (Ringi)",
+            "description": "Beantragen Sie eine interne Entscheidung (Einkäufe, Verträge, Einstellungen usw.).",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Betreff"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Betrag"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Wunschtermin"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Details und Begründung"
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Anhänge"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense",
+            "table_view_name": "Spesenabrechnung",
+            "description": "Lassen Sie sich verauslagte Kosten erstatten. Hängen Sie die Belege an die Positionen an.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Betreff"
+                },
+                {
+                    "column_name": "apply_date",
+                    "column_view_name": "Abrechnungsdatum"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Summe"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense_detail",
+            "table_view_name": "Spesenposition",
+            "description": "Eine Position einer Spesenabrechnung.",
+            "custom_columns": [
+                {
+                    "column_name": "use_date",
+                    "column_view_name": "Datum"
+                },
+                {
+                    "column_name": "account",
+                    "column_view_name": "Konto",
+                    "options": {
+                        "select_item_valtext": "travel,Reisekosten\nmeeting,Besprechungen\nentertainment,Bewirtung\nsupplies,Büromaterial\ncommunication,Kommunikation\nbooks,Bücher und Zeitungen\nother,Sonstiges"
+                    }
+                },
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Empfänger"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Betrag"
+                },
+                {
+                    "column_name": "receipt",
+                    "column_view_name": "Beleg"
+                }
+            ]
+        },
+        {
+            "table_name": "request_trip",
+            "table_view_name": "Dienstreiseantrag",
+            "description": "Beantragen Sie eine Dienstreise vor Reiseantritt.",
+            "custom_columns": [
+                {
+                    "column_name": "destination",
+                    "column_view_name": "Reiseziel"
+                },
+                {
+                    "column_name": "purpose",
+                    "column_view_name": "Zweck"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Startdatum"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Enddatum"
+                },
+                {
+                    "column_name": "transport",
+                    "column_view_name": "Verkehrsmittel",
+                    "options": {
+                        "select_item_valtext": "train,Zug\nshinkansen,Shinkansen\nplane,Flugzeug\ncar,Auto\nother,Sonstiges"
+                    }
+                },
+                {
+                    "column_name": "estimated_cost",
+                    "column_view_name": "Geschätzte Kosten"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        },
+        {
+            "table_name": "request_payment",
+            "table_view_name": "Zahlungsantrag",
+            "description": "Beantragen Sie die Bezahlung einer Rechnung.",
+            "custom_columns": [
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Zahlungsempfänger"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Betrag"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Fälligkeitsdatum"
+                },
+                {
+                    "column_name": "invoice",
+                    "column_view_name": "Rechnung"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Details"
+                }
+            ]
+        },
+        {
+            "table_name": "request_leave",
+            "table_view_name": "Urlaubsantrag",
+            "description": "Beantragen Sie Urlaub.",
+            "custom_columns": [
+                {
+                    "column_name": "leave_type",
+                    "column_view_name": "Urlaubsart",
+                    "options": {
+                        "select_item_valtext": "paid,Bezahlter Urlaub\nhalf_am,Halber Tag (vormittags)\nhalf_pm,Halber Tag (nachmittags)\nspecial,Sonderurlaub\nsubstitute,Ersatzfeiertag\nabsence,Abwesenheit\nother,Sonstiges"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Startdatum"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Enddatum"
+                },
+                {
+                    "column_name": "days",
+                    "column_view_name": "Tage"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Begründung"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "fb49ce9f4362a2c57793",
+            "form_view_name": "Formular"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Anträge & Genehmigungen",
+            "menu_type": "parent_node",
+            "menu_name": "request"
+        },
+        {
+            "title": "Offene Aufgaben",
+            "menu_type": "system",
+            "menu_name": "workflow_task"
+        },
+        {
+            "title": "Genehmigungsantrag (Ringi)",
+            "menu_type": "table",
+            "menu_name": "request_ringi"
+        },
+        {
+            "title": "Spesenabrechnung",
+            "menu_type": "table",
+            "menu_name": "request_expense"
+        },
+        {
+            "title": "Dienstreiseantrag",
+            "menu_type": "table",
+            "menu_name": "request_trip"
+        },
+        {
+            "title": "Zahlungsantrag",
+            "menu_type": "table",
+            "menu_name": "request_payment"
+        },
+        {
+            "title": "Urlaubsantrag",
+            "menu_type": "table",
+            "menu_name": "request_leave"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "request_applicant_group",
+            "role_group_view_name": "Antragsteller",
+            "description": "Personen, die Anträge stellen und ihre eigenen sehen und bearbeiten. Ordnen Sie hier die Mitarbeiter zu."
+        },
+        {
+            "role_group_name": "request_approver_group",
+            "role_group_view_name": "Genehmiger",
+            "description": "Personen, die alle Anträge sehen und sie genehmigen oder zurückgeben."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Anträge und Genehmigungen (Standard)"
+        }
+    ]
+}

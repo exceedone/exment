@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Services\UserTimezone;
 
 /**
  * Kanban view.
@@ -309,7 +310,8 @@ class KanbanGrid extends GridBase
                 'hook' => $this->getEditorHook(),
             ],
             'embed' => $this->isEmbed() ? ['type' => $this->embed_parent_type, 'id' => $this->embed_parent_id] : null,
-            'now' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
+            // the date and times of the cards are in the time zone of the user, and so is now (ISS02835)
+            'now' => UserTimezone::nowString(),
 
             'source' => $is_workflow ? static::SOURCE_WORKFLOW : static::SOURCE_COLUMN,
             'workflow_key' => static::WORKFLOW_KEY,
@@ -669,6 +671,7 @@ class KanbanGrid extends GridBase
         // but the filter panel and "only mine" have to see all of them, or
         // the second person on a card is invisible to both.
         $multiple_columns = [];
+        $datetime_columns = [];
         foreach ($value_columns as $column_name => $custom_column) {
             $item = CustomItem::getItem($custom_column);
             if (isset($item)) {
@@ -676,6 +679,9 @@ class KanbanGrid extends GridBase
             }
             if ($custom_column->isMultipleEnabled()) {
                 $multiple_columns[$column_name] = true;
+            }
+            if (array_get($custom_column, 'column_type') == ColumnType::DATETIME) {
+                $datetime_columns[$column_name] = true;
             }
         }
 
@@ -702,6 +708,10 @@ class KanbanGrid extends GridBase
                 $item->setCustomValue($record);
                 $raw = $item->value();
                 $values[$column_name] = static::normalizeKey($raw);
+                // a date and time in the time zone of the user, as its text and the edit of the deadline (ISS02835)
+                if (isset($datetime_columns[$column_name])) {
+                    $values[$column_name] = UserTimezone::formatToUser($values[$column_name]);
+                }
                 // the text only where the browser cannot tell it (textOf in the board
                 // script): not for a column whose label it puts back from its lists,
                 // not where it is the value itself (a subject, a date, a number)
@@ -781,7 +791,7 @@ class KanbanGrid extends GridBase
             $card = [
                 'id' => $record->id,
                 'label' => strval($record->getLabel()),
-                'entered' => isset($entered) ? \Carbon\Carbon::parse($entered)->format('Y-m-d H:i:s') : '',
+                'entered' => isset($entered) ? UserTimezone::display($entered, UserTimezone::DB_FORMAT) : '',
                 // the edit lock: a write from the board sends it back, so a
                 // record somebody else saved since this card was read is
                 // refused instead of overwritten (CustomTable::validatorLock)
@@ -1348,8 +1358,64 @@ class KanbanGrid extends GridBase
         if (!empty($hide_keys)) {
             $this->applyBoardKeys($query, $group_column, $workflow, $hide_keys, true);
         }
+        $this->selectStoredColumns($query);
 
         return $query;
+    }
+
+
+    /** @var array<string, array<int, string>> table => its columns that are not index columns */
+    protected static $stored_columns = [];
+
+    /**
+     * Read the record's own columns, not the index columns (column_<hash>).
+     *
+     * Those are generated from value - MySQL / MariaDB compute each one from
+     * the JSON of every row read - and a card never reads them: the model
+     * takes its values from value. On a table of 2,400 issues with long
+     * texts and twenty index columns, a board column query took 1.5s with
+     * `table.*` and 0.08s without them. The columns stay usable in where and
+     * order by, which is all the board asks of them.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
+     * @return void
+     */
+    protected function selectStoredColumns($query)
+    {
+        $base = $query->getQuery();
+        $table = getDBTableName($this->custom_table);
+        $all = $table . '.*';
+        // something else chose the columns: leave it alone
+        if (!is_null($base->columns) && !in_array($all, $base->columns, true)) {
+            return;
+        }
+        if (!array_key_exists($table, static::$stored_columns)) {
+            try {
+                $columns = \Schema::connection($query->getModel()->getConnectionName())->getColumnListing($table);
+            } catch (\Throwable $e) {
+                $columns = [];
+            }
+            static::$stored_columns[$table] = array_values(array_filter($columns, function ($column) {
+                return strpos($column, 'column_') !== 0;
+            }));
+        }
+        $stored = static::$stored_columns[$table];
+        if (empty($stored) || !in_array('id', $stored, true) || !in_array('value', $stored, true)) {
+            return;
+        }
+        $qualified = array_map(function ($column) use ($table) {
+            return $table . '.' . $column;
+        }, $stored);
+        if (is_null($base->columns)) {
+            $base->columns = $qualified;
+            return;
+        }
+        $at = array_search($all, $base->columns, true);
+        if ($at === false || !is_int($at)) {
+            $base->columns = array_merge($base->columns, $qualified);
+            return;
+        }
+        array_splice($base->columns, $at, 1, $qualified);
     }
 
 
@@ -1785,6 +1851,74 @@ class KanbanGrid extends GridBase
         return \Exment::isSqlServer() ? "try_convert(float, $expr)" : $expr;
     }
 
+    /** How long the column figures are kept, at most (seconds). */
+    protected const STATS_CACHE_SECONDS = 300;
+
+    /**
+     * The rows of the column figures, kept for a few minutes.
+     *
+     * The aggregate groups on columns MySQL / MariaDB compute from each row's
+     * JSON, over every record of the board - 0.8s on ex1task for a project of
+     * 2,400 issues - while the figures only move when a record does. They are
+     * kept until the table changes (its count and newest update, and the
+     * newest workflow step), for the same reader, view and query (filters,
+     * the embedding record), and never longer than STATS_CACHE_SECONDS.
+     *
+     * The ages are exact all the same: a kept row's age sums grow by its
+     * count times the seconds since it was read. Only the count of overdue
+     * cards (kb_breach) can lag, by those few minutes at most.
+     *
+     * @param \Illuminate\Database\Query\Builder $query the grouped aggregate
+     * @param Workflow|null $workflow
+     * @return array<int, \stdClass>
+     */
+    protected function statsRows($query, $workflow): array
+    {
+        $read = function () use ($query) {
+            return $query->get()->map(function ($row) {
+                return (array) $row;
+            })->all();
+        };
+        try {
+            $db_table = getDBTableName($this->custom_table);
+            $stamp = \DB::table($db_table)->selectRaw('count(*) as n, max(updated_at) as at')->whereNull('deleted_at')->first();
+            $wf = isset($workflow)
+                ? \DB::table('workflow_values')->where('morph_type', $this->custom_table->table_name)->max('updated_at')
+                : null;
+            $key = 'exment:kanban_stats:' . md5(strval(json_encode([
+                \Exment::getUserId(),
+                $this->custom_view->id,
+                strval($this->custom_view->updated_at),
+                // the SQL carries this second (sqlNow()); the kept ages are moved on by the
+                // seconds since instead, so the clock must not make every key a new one
+                preg_replace("/cast\('\d{4}-\d\d-\d\d \d\d:\d\d:\d\d' as datetime\)|convert\(datetime2, '\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d', 126\)/", 'now', $query->toSql()),
+                $query->getBindings(),
+                intval($stamp->n ?? 0),
+                strval($stamp->at ?? ''),
+                strval($wf),
+            ])));
+            $kept = \Cache::get($key);
+            if (!is_array($kept) || !isset($kept['at'], $kept['rows'])) {
+                $kept = ['at' => time(), 'rows' => $read()];
+                \Cache::put($key, $kept, static::STATS_CACHE_SECONDS);
+            }
+        } catch (\Throwable $e) {
+            $kept = ['at' => time(), 'rows' => $read()];
+        }
+
+        $elapsed = max(0, time() - intval($kept['at']));
+        return array_map(function (array $row) use ($elapsed) {
+            if ($elapsed > 0) {
+                $row['kb_seconds'] = floatval($row['kb_seconds'] ?? 0) + intval($row['kb_count'] ?? 0) * $elapsed;
+                if (array_key_exists('kb_agesum', $row)) {
+                    $row['kb_agesum'] = floatval($row['kb_agesum']) + intval($row['kb_agen'] ?? 0) * $elapsed;
+                }
+            }
+            return (object) $row;
+        }, $kept['rows']);
+    }
+
+
     /**
      * Count, total and average age of every board column, straight from the
      * database.
@@ -1902,7 +2036,7 @@ class KanbanGrid extends GridBase
 
         $real_keys = $this->getRealBoardKeys($group_column);
         $stats = [];
-        foreach ($base->select($selects)->groupBy($groups)->get() as $row) {
+        foreach ($this->statsRows($base->select($selects)->groupBy($groups), $workflow) as $row) {
             $raw = $row->kb_key;
             $key = (is_null($raw) || $raw === '') ? null : strval($raw);
             if (isset($workflow)) {

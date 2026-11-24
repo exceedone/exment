@@ -1,7 +1,7 @@
 <p class="commentline_header">
 <small>
     {!! $comment->created_user_avatar !!}
-    &nbsp;{{ $comment->created_at }}
+    &nbsp;{{ \Exceedone\Exment\Services\UserTimezone::display($comment->created_at) }}
 </small>
 
 &nbsp;

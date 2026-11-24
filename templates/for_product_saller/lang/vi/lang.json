@@ -1,0 +1,251 @@
+{
+    "template_view_name": "Mẫu cho công ty bán sản phẩm",
+    "description": "Đây là mẫu dành cho công ty bán sản phẩm, bao gồm quản lý hợp đồng và quản lý sản phẩm.",
+    "custom_tables": [
+        {
+            "table_name": "client",
+            "table_view_name": "Khách hàng",
+            "description": "Quản lý thông tin khách hàng.",
+            "custom_columns": [
+                {
+                    "column_name": "client_code",
+                    "column_view_name": "Mã khách hàng"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "Tên khách hàng"
+                }
+            ]
+        },
+        {
+            "table_name": "agency",
+            "table_view_name": "Đại lý",
+            "custom_columns": [
+                {
+                    "column_name": "agency_code",
+                    "column_view_name": "Mã đại lý"
+                },
+                {
+                    "column_name": "agency_name",
+                    "column_view_name": "Tên đại lý"
+                }
+            ]
+        },
+        {
+            "table_name": "product",
+            "table_view_name": "Sản phẩm",
+            "custom_columns": [
+                {
+                    "column_name": "product_code",
+                    "column_view_name": "Mã sản phẩm"
+                },
+                {
+                    "column_name": "product_name",
+                    "column_view_name": "Tên sản phẩm"
+                }
+            ]
+        },
+        {
+            "table_name": "product_version",
+            "table_view_name": "Phiên bản sản phẩm",
+            "custom_columns": [
+                {
+                    "column_name": "product_version_code",
+                    "column_view_name": "Mã phiên bản sản phẩm"
+                },
+                {
+                    "column_name": "product_version_name",
+                    "column_view_name": "Tên phiên bản sản phẩm"
+                },
+                {
+                    "column_name": "cost",
+                    "column_view_name": "Giá vốn"
+                }
+            ]
+        },
+        {
+            "table_name": "contract",
+            "table_view_name": "Hợp đồng",
+            "custom_columns": [
+                {
+                    "column_name": "contract_code",
+                    "column_view_name": "Mã hợp đồng"
+                },
+                {
+                    "column_name": "client",
+                    "column_view_name": "Khách hàng"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Trạng thái",
+                    "options": {
+                        "select_item_valtext": "1,Hỏi thông tin\n2,Dùng thử\n3,Báo giá\n4,Yêu cầu thanh toán\n5,Bảo trì\n6,Hoàn tất"
+                    }
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "Ngày hợp đồng"
+                },
+                {
+                    "column_name": "trial_start_date",
+                    "column_view_name": "Ngày bắt đầu dùng thử"
+                },
+                {
+                    "column_name": "trial_end_date",
+                    "column_view_name": "Ngày kết thúc dùng thử"
+                },
+                {
+                    "column_name": "mitumorisyo_date",
+                    "column_view_name": "Ngày lập báo giá"
+                },
+                {
+                    "column_name": "seikyusyo_date",
+                    "column_view_name": "Ngày lập hóa đơn"
+                },
+                {
+                    "column_name": "nyukin_planed_date",
+                    "column_view_name": "Ngày dự kiến nhận tiền"
+                },
+                {
+                    "column_name": "nyukin_date",
+                    "column_view_name": "Ngày nhận tiền"
+                },
+                {
+                    "column_name": "attachment_files",
+                    "column_view_name": "Tệp đính kèm"
+                },
+                {
+                    "column_name": "subscription_claim_type",
+                    "column_view_name": "Hợp đồng tháng/Hợp đồng năm",
+                    "options": {
+                        "select_item": [
+                            "月間",
+                            "年間"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_term",
+                    "column_view_name": "Thời hạn hợp đồng (tháng / năm)",
+                    "options": {
+                        "help": "Vui lòng nhập số tháng muốn ký nếu là hợp đồng tháng, hoặc số năm muốn ký nếu là hợp đồng năm."
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_start_date",
+                    "column_view_name": "Ngày bắt đầu hợp đồng"
+                },
+                {
+                    "column_name": "subscription_agreement_limit_date",
+                    "column_view_name": "Ngày hết hạn hợp đồng"
+                },
+                {
+                    "column_name": "subscription_end_date",
+                    "column_view_name": "Ngày kết thúc hợp đồng"
+                }
+            ]
+        },
+        {
+            "table_name": "contract_detail",
+            "table_view_name": "Chi tiết hợp đồng",
+            "custom_columns": [
+                {
+                    "column_name": "fixed_price",
+                    "column_view_name": "Giá niêm yết"
+                },
+                {
+                    "column_name": "comment",
+                    "column_view_name": "Nhận xét"
+                },
+                {
+                    "column_name": "product_version_id",
+                    "column_view_name": "Phiên bản sản phẩm"
+                },
+                {
+                    "column_name": "num",
+                    "column_view_name": "Số lượng"
+                },
+                {
+                    "column_name": "zeinuki_price",
+                    "column_view_name": "Giá chưa thuế"
+                },
+                {
+                    "column_name": "tax_rate",
+                    "column_view_name": "Thuế suất"
+                },
+                {
+                    "column_name": "tax_price",
+                    "column_view_name": "Tiền thuế"
+                },
+                {
+                    "column_name": "zeikomi_price",
+                    "column_view_name": "Giá đã gồm thuế"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "29150ee399f540216b6d",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "5f861dd652ee0fbff3a2",
+            "form_view_name": "Biểu mẫu",
+            "custom_form_blocks": [
+                {
+                    "custom_form_columns": [
+                        {
+                            "options": {
+                                "text": "Thông tin hợp đồng thuê bao"
+                            },
+                            "form_column_target_name": "header"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": "Bảng con - Chi tiết hợp đồng",
+                    "form_block_target_table_name": "contract_detail"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "table",
+            "menu_name": "contract",
+            "title": "Hợp đồng"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "contract2",
+            "title": "Hợp đồng"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "client",
+            "title": "Khách hàng"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "product",
+            "title": "Sản phẩm"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "agency",
+            "title": "Đại lý"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "saller",
+            "title": "Hỗ trợ bán hàng (SFA)"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "manage",
+            "title": "Quản lý khách hàng (CRM)"
+        }
+    ]
+}

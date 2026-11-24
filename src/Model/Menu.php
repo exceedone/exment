@@ -427,7 +427,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     break;
                 case MenuType::SYSTEM:
                     // a system menu row may have only its menu_name
-                    $defines = array_get(Define::MENU_SYSTEM_DEFINITION, array_get($row, 'menu_target') ?: $row['menu_name']);
+                    $defines = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), array_get($row, 'menu_target') ?: $row['menu_name']);
                     // if not set menu icon, set Define's default icon.
                     if (is_nullorempty($row['icon'])) {
                         $row['icon'] = array_get($defines, 'icon');
@@ -501,7 +501,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                     }
                     break;
                 case MenuType::SYSTEM:
-                    $menus = collect(Define::MENU_SYSTEM_DEFINITION)->filter(function ($system_menu, $key) use (&$json) {
+                    $menus = collect(\Exceedone\Exment\Services\CoreExtensions::systemMenus())->filter(function ($system_menu, $key) use (&$json) {
                         return $key == $json['menu_target_name'];
                     })->each(function ($system_menu, $key) use (&$json) {
                         $json['menu_target'] = $key;
@@ -520,7 +520,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         if (!isset($json['icon'])) {
             switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $json['icon'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'] . ".icon");
+                    $json['icon'] = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), $json['menu_name'] . ".icon");
                     break;
                 case MenuType::TABLE:
                     $json['icon'] = array_get(CustomTable::getEloquent($json['menu_name']), 'options.icon');
@@ -535,7 +535,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         if (!isset($json['uri'])) {
             switch ($json['menu_type']) {
                 case MenuType::SYSTEM:
-                    $json['uri'] = array_get(Define::MENU_SYSTEM_DEFINITION, $json['menu_name'] . ".uri");
+                    $json['uri'] = array_get(\Exceedone\Exment\Services\CoreExtensions::systemMenus(), $json['menu_name'] . ".uri");
                     break;
                 case MenuType::TABLE:
                     $json['uri'] = $json['menu_name'];

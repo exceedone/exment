@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Form\Field;
 
 class Text extends \ExmentAdminCore\Admin\Form\Field\Text
 {
+    use HasCustomOptions;
+
     public function render()
     {
         $suggest_url = array_get($this->attributes, 'suggest_url');

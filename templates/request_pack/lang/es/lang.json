@@ -1,0 +1,241 @@
+{
+    "template_view_name": "Paquete de solicitudes",
+    "description": "Solicitudes de aprobación, reembolsos de gastos, solicitudes de viaje de trabajo, de pago y de permisos, con un flujo de trabajo de envío / aprobación / devolución, grupos de roles de solicitantes y aprobadores, y un menú \"Solicitudes y aprobaciones\".",
+    "custom_tables": [
+        {
+            "table_name": "request_ringi",
+            "table_view_name": "Solicitud de aprobación (ringi)",
+            "description": "Solicite una decisión interna (compras, contratos, contrataciones, etc.).",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Asunto"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Importe"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Fecha deseada"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Detalles y motivo"
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Archivos adjuntos"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense",
+            "table_view_name": "Reembolso de gastos",
+            "description": "Solicite el reembolso de los gastos que pagó. Adjunte los recibos a las líneas.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Asunto"
+                },
+                {
+                    "column_name": "apply_date",
+                    "column_view_name": "Fecha de solicitud"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Total"
+                }
+            ]
+        },
+        {
+            "table_name": "request_expense_detail",
+            "table_view_name": "Línea de gasto",
+            "description": "Una línea de un reembolso de gastos.",
+            "custom_columns": [
+                {
+                    "column_name": "use_date",
+                    "column_view_name": "Fecha"
+                },
+                {
+                    "column_name": "account",
+                    "column_view_name": "Concepto",
+                    "options": {
+                        "select_item_valtext": "travel,Viajes\nmeeting,Reuniones\nentertainment,Atenciones a clientes\nsupplies,Suministros\ncommunication,Comunicaciones\nbooks,Libros y periódicos\nother,Otros"
+                    }
+                },
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Pagado a"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Importe"
+                },
+                {
+                    "column_name": "receipt",
+                    "column_view_name": "Recibo"
+                }
+            ]
+        },
+        {
+            "table_name": "request_trip",
+            "table_view_name": "Solicitud de viaje de trabajo",
+            "description": "Solicite la autorización antes de un viaje de trabajo.",
+            "custom_columns": [
+                {
+                    "column_name": "destination",
+                    "column_view_name": "Destino"
+                },
+                {
+                    "column_name": "purpose",
+                    "column_view_name": "Propósito"
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Fecha de inicio"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Fecha de fin"
+                },
+                {
+                    "column_name": "transport",
+                    "column_view_name": "Transporte",
+                    "options": {
+                        "select_item_valtext": "train,Tren\nshinkansen,Shinkansen\nplane,Avión\ncar,Automóvil\nother,Otros"
+                    }
+                },
+                {
+                    "column_name": "estimated_cost",
+                    "column_view_name": "Costo estimado"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        },
+        {
+            "table_name": "request_payment",
+            "table_view_name": "Solicitud de pago",
+            "description": "Solicite el pago de una factura.",
+            "custom_columns": [
+                {
+                    "column_name": "payee",
+                    "column_view_name": "Pagar a"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Importe"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Fecha de vencimiento"
+                },
+                {
+                    "column_name": "invoice",
+                    "column_view_name": "Factura"
+                },
+                {
+                    "column_name": "detail",
+                    "column_view_name": "Detalles"
+                }
+            ]
+        },
+        {
+            "table_name": "request_leave",
+            "table_view_name": "Solicitud de permiso",
+            "description": "Solicite un permiso.",
+            "custom_columns": [
+                {
+                    "column_name": "leave_type",
+                    "column_view_name": "Tipo de permiso",
+                    "options": {
+                        "select_item_valtext": "paid,Vacaciones pagadas\nhalf_am,Medio día (mañana)\nhalf_pm,Medio día (tarde)\nspecial,Permiso especial\nsubstitute,Día compensatorio\nabsence,Ausencia\nother,Otros"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Fecha de inicio"
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Fecha de fin"
+                },
+                {
+                    "column_name": "days",
+                    "column_view_name": "Días"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Motivo"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "fb49ce9f4362a2c57793",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Solicitudes y aprobaciones",
+            "menu_type": "parent_node",
+            "menu_name": "request"
+        },
+        {
+            "title": "Tareas pendientes",
+            "menu_type": "system",
+            "menu_name": "workflow_task"
+        },
+        {
+            "title": "Solicitud de aprobación (ringi)",
+            "menu_type": "table",
+            "menu_name": "request_ringi"
+        },
+        {
+            "title": "Reembolso de gastos",
+            "menu_type": "table",
+            "menu_name": "request_expense"
+        },
+        {
+            "title": "Solicitud de viaje de trabajo",
+            "menu_type": "table",
+            "menu_name": "request_trip"
+        },
+        {
+            "title": "Solicitud de pago",
+            "menu_type": "table",
+            "menu_name": "request_payment"
+        },
+        {
+            "title": "Solicitud de permiso",
+            "menu_type": "table",
+            "menu_name": "request_leave"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "request_applicant_group",
+            "role_group_view_name": "Solicitantes",
+            "description": "Personas que crean solicitudes y ven y editan las suyas. Incluya aquí al personal."
+        },
+        {
+            "role_group_name": "request_approver_group",
+            "role_group_view_name": "Aprobadores",
+            "description": "Personas que ven todas las solicitudes y las aprueban o devuelven."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Solicitudes y aprobaciones (estándar)"
+        }
+    ]
+}
