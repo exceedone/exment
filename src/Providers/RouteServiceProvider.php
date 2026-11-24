@@ -581,6 +581,16 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
             $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');
             $router->get("webapi/{tableKey}/operation-filter-value", 'ApiTableController@getOperationFilterValue');
+
+            // a page of a plugin that is not there (no such plugin, or no such page of it): Exment's
+            // error page with 404, as for a table that is not there. A fallback route, matched after
+            // all the others, so the routes of the plugins come first. The files of a plugin
+            // (".../public/...") are not pages: they stay a plain 404.
+            $router->any('plugins/{pluginPath}', 'ErrorController@notFound')
+                ->where('pluginPath', '(?!(?:[^/]+/)*public/).+')
+                // not the check of the plugin's permission: there is no plugin page to allow
+                ->withoutMiddleware('admin.permission')
+                ->fallback();
         });
     }
 
