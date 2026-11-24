@@ -209,7 +209,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $this->dumpDatabase($tempDir);
 
         // get all table list
-        $tables = \Schema::getTableListing();
+        $tables = \Illuminate\Support\Facades\Schema::getTableListing();
 
         // backup each table
         foreach ($tables as $name) {
@@ -238,7 +238,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $file->setCsvControl("\t");
 
         // get column definition
-        $columns = \Schema::getColumnDefinitions($table);
+        $columns = \Illuminate\Support\Facades\Schema::getColumnDefinitions($table);
 
         // get output field name list (not virtual column)
         $outcols = [];
@@ -251,7 +251,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $file->fputcsv($outcols);
 
         // execute backup. contains soft deleted table
-        \DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols) {
+        \Illuminate\Support\Facades\DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols) {
             foreach ($rows as $row) {
                 $array = (array)$row;
                 $row = array_map(function ($key) use ($array) {
@@ -273,7 +273,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     public function restoreDatabase($dirFullPath)
     {
         try {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
             // get table connect info
             $host = config('database.connections.mysql.host', '');
@@ -296,12 +296,12 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
             // restore table definition
             $def = path_join($dirFullPath, config('exment.backup_info.def_file'));
-            if (\File::exists($def)) {
+            if (\Illuminate\Support\Facades\File::exists($def)) {
                 $backupTables = $this->getDefinitionTables($def);
 
                 $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($def));
                 exec($command, $output, $return_var);
-                \File::delete($def);
+                \Illuminate\Support\Facades\File::delete($def);
 
                 // a definition that did not load leaves the database half replaced: keep the rest as it is
                 if ($return_var == 0) {
@@ -310,7 +310,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             }
 
             // get insert sql file for each tables
-            $files = array_filter(\File::files($dirFullPath), function ($file) {
+            $files = array_filter(\Illuminate\Support\Facades\File::files($dirFullPath), function ($file) {
                 $filename = $file->getFilename();
                 // ignore "view_" file. (Bug fix v3.6.7)
                 return preg_match('/.+\.sql$/i', $filename) && !preg_match('/^view_.*/i', $filename);
@@ -320,14 +320,14 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($file->getRealPath()));
 
                 $table = $file->getBasename('.' . $file->getExtension());
-                if (\Schema::hasTable($table)) {
-                    \DB::table($table)->truncate();
+                if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                    \Illuminate\Support\Facades\DB::table($table)->truncate();
                 }
 
                 exec($command);
             }
         } finally {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
     }
 
@@ -340,7 +340,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     protected function getDefinitionTables($def): array
     {
-        preg_match_all('/^CREATE TABLE (?:IF NOT EXISTS )?`((?:[^`]|``)+)`/m', \File::get($def), $matches);
+        preg_match_all('/^CREATE TABLE (?:IF NOT EXISTS )?`((?:[^`]|``)+)`/m', \Illuminate\Support\Facades\File::get($def), $matches);
 
         return array_map(function ($table) {
             return str_replace('``', '`', $table);
@@ -365,8 +365,8 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      */
     protected function dropTablesNotInBackup(array $backupTables)
     {
-        foreach ($this->getTablesNotInBackup($backupTables, \Schema::getTableListing()) as $table) {
-            \DB::statement('DROP TABLE IF EXISTS ' . $this->getQueryGrammar()->wrap($table));
+        foreach ($this->getTablesNotInBackup($backupTables, \Illuminate\Support\Facades\Schema::getTableListing()) as $table) {
+            \Illuminate\Support\Facades\DB::statement('DROP TABLE IF EXISTS ' . $this->getQueryGrammar()->wrap($table));
         }
     }
 
@@ -433,8 +433,8 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     {
         $tables = [];
 
-        foreach (\File::glob(path_join(exment_package_path(), 'database', 'migrations', '*.php')) as $file) {
-            if (!preg_match_all('/(?:Schema::|->)create\(\s*(?:[\'"]([A-Za-z0-9_]+)[\'"]|SystemTableName::([A-Za-z0-9_]+))/', \File::get($file), $matches, PREG_SET_ORDER)) {
+        foreach (\Illuminate\Support\Facades\File::glob(path_join(exment_package_path(), 'database', 'migrations', '*.php')) as $file) {
+            if (!preg_match_all('/(?:Schema::|->)create\(\s*(?:[\'"]([A-Za-z0-9_]+)[\'"]|SystemTableName::([A-Za-z0-9_]+))/', \Illuminate\Support\Facades\File::get($file), $matches, PREG_SET_ORDER)) {
                 continue;
             }
 
@@ -467,7 +467,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     {
         // get tsv files in target folder
         /** @phpstan-ignore-next-line */
-        $files = array_filter(\File::files($dirFullPath), function ($file) {
+        $files = array_filter(\Illuminate\Support\Facades\File::files($dirFullPath), function ($file) {
             return preg_match('/.+\.tsv$/i', $file);
         });
 
@@ -476,16 +476,16 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $charset = config('database.connections.mysql.charset', 'utf8mb4');
 
         try {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
+            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
             // load table data from tsv file
             foreach ($files as $file) {
                 $table = $file->getBasename('.' . $file->getExtension());
 
-                if (!\Schema::hasTable($table)) {
+                if (!\Illuminate\Support\Facades\Schema::hasTable($table)) {
                     continue;
                 }
-                \DB::table($table)->truncate();
+                \Illuminate\Support\Facades\DB::table($table)->truncate();
 
                 $cmd = <<<__EOT__
                 LOAD DATA local INFILE '%s'
@@ -505,12 +505,12 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                     parent_id = nullif(parent_id, 0)
 __EOT__;
                 $query = sprintf($cmd, addslashes($file->getPathName()), $table, $charset);
-                $cnt = \DB::connection()->getpdo()->exec($query);
+                $cnt = \Illuminate\Support\Facades\DB::connection()->getpdo()->exec($query);
 
                 //return $cnt;
             }
         } finally {
-            \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
+            \Illuminate\Support\Facades\DB::statement('SET FOREIGN_KEY_CHECKS=1;');
         }
     }
 
@@ -520,7 +520,7 @@ __EOT__;
     public function createView($viewName, $query)
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
-        \DB::statement("
+        \Illuminate\Support\Facades\DB::statement("
             CREATE OR REPLACE VIEW $viewName
             AS " . $query->toSql(), $query->getBindings());
     }
@@ -529,7 +529,7 @@ __EOT__;
     public function dropView($viewName)
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
-        \DB::statement("DROP VIEW IF EXISTS " . $viewName);
+        \Illuminate\Support\Facades\DB::statement("DROP VIEW IF EXISTS " . $viewName);
     }
 
 

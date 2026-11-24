@@ -42,7 +42,7 @@ class PluginDiskLazyTest extends UnitTestBase
 
     protected function tearDown(): void
     {
-        \File::deleteDirectory($this->root);
+        \Illuminate\Support\Facades\File::deleteDirectory($this->root);
         Storage::forgetDisk(['plugin_sync', 'plugin_local']);
         parent::tearDown();
     }
@@ -91,10 +91,10 @@ class PluginDiskLazyTest extends UnitTestBase
     {
         $plugin = $this->plugin();
         $this->copy($plugin, $plugin->updated_at->format('YmdHis'));
-        $local = \Exment::replaceBackToSlash(Storage::disk('plugin_local')->path($plugin->getPath()));
+        $local = \Exceedone\Exment\Facades\ExmentFacade::replaceBackToSlash(Storage::disk('plugin_local')->path($plugin->getPath()));
 
         $this->assertSame(rtrim($local, '/'), rtrim($plugin->getLocalFullPath(), '/'));
-        $this->assertSame(rtrim($local, '/'), rtrim(\Exment::replaceBackToSlash($plugin->getFullPath()), '/'));
+        $this->assertSame(rtrim($local, '/'), rtrim(\Exceedone\Exment\Facades\ExmentFacade::replaceBackToSlash($plugin->getFullPath()), '/'));
         $plugin->requirePlugin();
     }
 

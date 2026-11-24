@@ -109,7 +109,7 @@ class DashboardFilterReviewFixedTest extends SecurityRegressionTestCase
         $mark = uniqid('list_');
         // stored the way the engine stores a list: its non-ASCII text escaped ("\u6771\u4eac")
         // where the database keeps JSON as text (MariaDB, SQL Server), as is on MySQL
-        $flags = \ExmentDB::isUseUnicodeMultipleColumn() ? 0 : JSON_UNESCAPED_UNICODE;
+        $flags = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn() ? 0 : JSON_UNESCAPED_UNICODE;
         foreach ([['1', '2'], ['2'], ['3'], ['12'], '1', ['東京', '2']] as $list) {
             DB::table($table)->insert([
                 'suuid' => short_uuid(),

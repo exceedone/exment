@@ -131,7 +131,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]));
 
         /** @var Model\CustomValue $custom_value */
-        $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exment::user()->base_user->id)->first();
+        $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id)->first();
         $target_id = $custom_value->id;
         $this->post(admin_url("data/$target_table_name/$target_id/operationClick"), [
             'suuid' => array_get($operation, 'suuid')
@@ -140,7 +140,7 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         /** @var Model\CustomValue $custom_value */
         $custom_value = $target_table->getValueModel()->find($target_id);
-        $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
+        $this->assertEquals($custom_value->getValue('user')->id, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id);
         $this->assertEquals($custom_value->getValue('date'), '2021-01-01');
     }
 
@@ -268,7 +268,7 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         foreach ($custom_values as $custom_value) {
             $organization = $custom_value->getValue('organization');
-            $this->assertEquals($custom_value->getValue('organization')->id, \Exment::user()->belong_organizations->first()->id);
+            $this->assertEquals($custom_value->getValue('organization')->id, \Exceedone\Exment\Facades\ExmentFacade::user()->belong_organizations->first()->id);
             $this->assertEquals($custom_value->getValue('yesno'), '1');
         }
 
@@ -573,7 +573,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type');
         $this->assertEquals($custom_value->getValue('date'), $lastYearDate);
-        $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
+        $this->assertEquals($custom_value->getValue('user')->id, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id);
 
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation multiple type update', 'value[text]')
@@ -585,7 +585,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         $thisYearDate = Carbon::createFromDate($today->year, 1, 31)->addDays(-1)->format('Y-m-d');
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
         $this->assertEquals($custom_value->getValue('text'), 'operation multiple type update');
-        $this->assertEquals($custom_value->getValue('user')->id, \Exment::user()->base_user->id);
+        $this->assertEquals($custom_value->getValue('user')->id, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id);
 
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation multiple type change date', 'value[text]')
@@ -712,7 +712,7 @@ class CCustomOperationTest extends ExmentKitTestCase
         ]));
 
         /** @var Model\CustomValue $custom_value */
-        $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exment::user()->base_user->id)->first();
+        $custom_value = $target_table->getValueModel()->where('value->user', '<>', \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->id)->first();
         $target_id = $custom_value->id;
         $this->post(admin_url("data/$target_table_name/$target_id/operationClick"), [
             'suuid' => array_get($operation, 'suuid')

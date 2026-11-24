@@ -40,7 +40,7 @@ trait InstallUpdateTrait
 
         $file = path_join($this->directory, 'bootstrap.php');
 
-        if (\File::exists($file)) {
+        if (\Illuminate\Support\Facades\File::exists($file)) {
             return;
         }
 
@@ -74,7 +74,7 @@ trait InstallUpdateTrait
     {
         $dirpath = $this->directory;
 
-        if (\File::exists($dirpath)) {
+        if (\Illuminate\Support\Facades\File::exists($dirpath)) {
             return;
         }
 

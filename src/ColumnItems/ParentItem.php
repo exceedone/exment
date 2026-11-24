@@ -320,11 +320,11 @@ class ParentItem implements ItemInterface
 
         if (isset($group_condition)) {
             /** @phpstan-ignore-next-line */
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
+            $result = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
         }
         // if sql server and created_at, set datetime cast
         else {
-            $result = \Exment::wrapColumn($table_column_name);
+            $result = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($table_column_name);
         }
 
         return $result;

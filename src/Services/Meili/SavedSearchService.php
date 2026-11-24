@@ -325,7 +325,7 @@ class SavedSearchService
             return true;
         }
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$user || $user->isAdministrator()) {
             return true;
         }
@@ -365,7 +365,7 @@ class SavedSearchService
         $rows = [];
         if (!empty($qualified)) {
             try {
-                $rows = \DB::table('custom_columns')
+                $rows = \Illuminate\Support\Facades\DB::table('custom_columns')
                     ->join('custom_tables', 'custom_tables.id', '=', 'custom_columns.custom_table_id')
                     ->whereIn('custom_columns.column_name', array_column($qualified, 'column'))
                     ->get(['custom_columns.column_name as _column', 'custom_tables.table_name as _table']);

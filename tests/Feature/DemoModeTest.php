@@ -298,7 +298,7 @@ class DemoModeTest extends FeatureTestBase
         ]));
 
         $this->assertSame($before, $this->passwordOf(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->assertTrue(\Hash::check(self::ADMIN_PASSWORD, $this->passwordOf(TestDefine::TESTDATA_USER_LOGINID_ADMIN)));
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check(self::ADMIN_PASSWORD, $this->passwordOf(TestDefine::TESTDATA_USER_LOGINID_ADMIN)));
     }
 
     public function testThePasswordOfAnotherUserIsNotReset(): void
@@ -573,6 +573,6 @@ class DemoModeTest extends FeatureTestBase
             'password' => 'NewPassw0rd1',
             'password_confirmation' => 'NewPassw0rd1',
         ])->assertRedirect(admin_url('auth/login'));
-        $this->assertTrue(\Hash::check('NewPassw0rd1', $this->passwordOf(TestDefine::TESTDATA_USER_LOGINID_ADMIN)));
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('NewPassw0rd1', $this->passwordOf(TestDefine::TESTDATA_USER_LOGINID_ADMIN)));
     }
 }

@@ -198,7 +198,7 @@ class Preview
         try {
             FileServerRenditionJob::dispatch($version->id);
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not queue the preview of version ' . $version->id . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not queue the preview of version ' . $version->id . ': ' . $e->getMessage());
         }
     }
 
@@ -301,7 +301,7 @@ class Preview
                 }
             }
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not make the preview of version ' . $version->id . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not make the preview of version ' . $version->id . ': ' . $e->getMessage());
             $status = FileNodeVersion::RENDITION_FAILED;
         } finally {
             if (isset($local)) {
@@ -456,7 +456,7 @@ class Preview
             $result = Library::tempPath('pdf_');
             rename($pdf, $result);
         }
-        \File::deleteDirectory($work);
+        \Illuminate\Support\Facades\File::deleteDirectory($work);
         return $result;
     }
 
@@ -502,7 +502,7 @@ class Preview
                 $response = $request->attach('files', $stream, 'input.' . $ext)
                     ->post($url . '/forms/libreoffice/convert');
             } catch (\Throwable $e) {
-                \Log::warning('[FileServer] the converter could not be reached: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('[FileServer] the converter could not be reached: ' . $e->getMessage());
                 return null;
             } finally {
                 if (is_resource($stream)) {
@@ -517,7 +517,7 @@ class Preview
                 continue;
             }
             if ($status !== 200 || intval($response->header('Content-Length') ?: 0) > $maxPdf) {
-                \Log::warning('[FileServer] the converter answered ' . $status . ' for a .' . $ext . ' file');
+                \Illuminate\Support\Facades\Log::warning('[FileServer] the converter answered ' . $status . ' for a .' . $ext . ' file');
                 return null;
             }
             return static::receivePdf($response->toPsrResponse()->getBody(), $maxPdf, $ext);
@@ -560,7 +560,7 @@ class Preview
             $ok = false;
         }
         if (!$ok) {
-            \Log::warning('[FileServer] the answer of the converter for a .' . $ext . ' file was not a PDF in ' . $max . ' bytes');
+            \Illuminate\Support\Facades\Log::warning('[FileServer] the answer of the converter for a .' . $ext . ' file was not a PDF in ' . $max . ' bytes');
             @unlink($result);
             return null;
         }

@@ -63,7 +63,7 @@ class ScheduleCommand extends Command
         try {
             \Exceedone\Exment\Services\PluginDistribution\AdminNotices::deliver();
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
         }
     }
 
@@ -95,7 +95,7 @@ class ScheduleCommand extends Command
 
         // get target
         $target = System::backup_target();
-        \Artisan::call('exment:backup', !is_nullorempty($target) ? ['--target' => $target, '--schedule' => 1] : []);
+        \Illuminate\Support\Facades\Artisan::call('exment:backup', !is_nullorempty($target) ? ['--target' => $target, '--schedule' => 1] : []);
 
         System::backup_automatic_executed($now);
     }
@@ -125,7 +125,7 @@ class ScheduleCommand extends Command
             return;
         }
 
-        $exitCode = \Artisan::call('exment:log-clear', [
+        $exitCode = \Illuminate\Support\Facades\Artisan::call('exment:log-clear', [
             '--keep-days' => (string)(int)$keepDays,
             '--force'     => true,
         ]);
@@ -217,7 +217,7 @@ class ScheduleCommand extends Command
         $pluginBatches = Plugin::getBatches();
 
         foreach ($pluginBatches as $pluginBatch) {
-            \Artisan::call("exment:batch", ['--uuid' => $pluginBatch->uuid]);
+            \Illuminate\Support\Facades\Artisan::call("exment:batch", ['--uuid' => $pluginBatch->uuid]);
         }
     }
 
@@ -229,6 +229,6 @@ class ScheduleCommand extends Command
             return;
         }
 
-        \Log::debug($log);
+        \Illuminate\Support\Facades\Log::debug($log);
     }
 }

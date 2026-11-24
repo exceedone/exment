@@ -57,7 +57,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = CustomTable::where('table_name', 'user')->first();
         $table_name = 'exm__' . array_get($row, 'suuid');
 
-        $cnt = \DB::table($table_name)->whereNull('deleted_at')->count();
+        $cnt = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->count();
 
         if ($cnt < 2) {
             $data = [
@@ -85,7 +85,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = CustomTable::where('table_name', 'organization')->first();
         $table_name = 'exm__' . array_get($row, 'suuid');
 
-        $cnt = \DB::table($table_name)->whereNull('deleted_at')->count();
+        $cnt = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->count();
 
         if ($cnt == 0) {
             $data = [
@@ -120,7 +120,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = CustomTable::getEloquent('exmenttest_data');
         $table_name = \getDBTableName($row);
 
-        $pre_cnt = \DB::table($table_name)->whereNull('deleted_at')->count();
+        $pre_cnt = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->count();
 
         // Create custom data
         $filePath = $this->getTextFilePath();
@@ -151,10 +151,10 @@ class DCustomDataTest extends ExmentKitTestCase
                 ->select(['1'], 'value[organization][]')
                 ->press('admin-submit')
                 ->seePageIs('/admin/data/exmenttest_data')
-                ->assertEquals($pre_cnt + 1, \DB::table($table_name)->whereNull('deleted_at')->count())
+                ->assertEquals($pre_cnt + 1, \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->count())
         ;
         // Get new data row
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
+        $row = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
         // Check custom data
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
                 // @phpstan-ignore-next-line
@@ -188,7 +188,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = CustomTable::getEloquent('exmenttest_data');
         $table_name = \getDBTableName($row);
 
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
+        $row = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         // Update custom data(checkbox field)
         $data = [
@@ -217,7 +217,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $row = CustomTable::getEloquent('exmenttest_data');
         $table_name = \getDBTableName($row);
 
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
+        $row = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         // Update custom data
         $this->visit(admin_url('data/exmenttest_data/'. $row->id . '/edit'))
@@ -339,7 +339,7 @@ class DCustomDataTest extends ExmentKitTestCase
         $table_name = \getDBTableName('custom_value_view_all');
         $colname1 = CustomColumn::getEloquent('index_text', 'custom_value_view_all')->getIndexColumnName();
         $sort_str = "_sort%5Bcolumn%5D={$table_name}.{$colname1}&_sort%5Btype%5D=-1&_sort%5Bdirect%5D=1";
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('value->index_text', 'desc')->first();
+        $row = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->orderBy('value->index_text', 'desc')->first();
         $row = json_decode($row->value);
 
         // Check custom view data

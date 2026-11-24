@@ -63,7 +63,7 @@ class BackupDiskService extends DiskServiceBase
         $localSyncDisk = $localSyncDiskItem->disk();
 
         // download zip
-        \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
 
         $stream = $disk->readStream($diskItem->filePath());
         $localSyncDisk->writeStream($localSyncDiskItem->filePath(), $stream);

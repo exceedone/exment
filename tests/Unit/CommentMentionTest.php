@@ -125,7 +125,7 @@ class CommentMentionTest extends UnitTestBase
 
         // a child whose parent record is shared with dev1-userC by name
         $child = CustomTable::getEloquent('child_table');
-        \DB::table('custom_tables')->where('id', $child->id)
+        \Illuminate\Support\Facades\DB::table('custom_tables')->where('id', $child->id)
             ->update(['options' => json_encode(array_merge($child->options ?? [], ['inherit_parent_permission' => '1']))]);
         $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         $childRecord = $this->recordCreatedBy(CustomTable::getEloquent('child_table'), intval(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 6);
@@ -206,7 +206,7 @@ class CommentMentionTest extends UnitTestBase
      */
     private function sharesOf(CustomValue $record): array
     {
-        return \DB::table('custom_value_authoritables')
+        return \Illuminate\Support\Facades\DB::table('custom_value_authoritables')
             ->where('parent_id', $record->id)
             ->where('parent_type', $record->custom_table->table_name)
             ->orderBy('id')
@@ -217,7 +217,7 @@ class CommentMentionTest extends UnitTestBase
 
     private function share(CustomValue $record, string $type, int $target_id): void
     {
-        \DB::table('custom_value_authoritables')->insert([
+        \Illuminate\Support\Facades\DB::table('custom_value_authoritables')->insert([
             'parent_id' => $record->id,
             'parent_type' => $record->custom_table->table_name,
             'authoritable_type' => Permission::CUSTOM_VALUE_VIEW,

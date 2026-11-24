@@ -37,7 +37,7 @@ class TemplateFormPriorityTest extends UnitTestBase
     {
         $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
         $formIds = CustomForm::where('custom_table_id', $table->id)->pluck('id');
-        \DB::table('custom_form_priorities')->whereIn('custom_form_id', $formIds)->delete();
+        \Illuminate\Support\Facades\DB::table('custom_form_priorities')->whereIn('custom_form_id', $formIds)->delete();
         $form = CustomForm::where('custom_table_id', $table->id)->firstOrFail();
         $priority = new CustomFormPriority();
         $priority->custom_form_id = $form->id;
@@ -59,7 +59,7 @@ class TemplateFormPriorityTest extends UnitTestBase
         $this->assertSame([$form->suuid], array_column($config['custom_form_priorities'], 'suuid'));
 
         // The importer puts the priorities back into their form.
-        \DB::table('custom_form_priorities')->where('custom_form_id', $form->id)->delete();
+        \Illuminate\Support\Facades\DB::table('custom_form_priorities')->where('custom_form_id', $form->id)->delete();
         (new TemplateImporter())->import([
             'custom_forms' => $config['custom_forms'],
             'custom_form_priorities' => $config['custom_form_priorities'],
@@ -69,7 +69,7 @@ class TemplateFormPriorityTest extends UnitTestBase
         $this->assertSame('or', $imported->first()->condition_join);
 
         // A template written before this still carries them inside the form.
-        \DB::table('custom_form_priorities')->where('custom_form_id', $form->id)->delete();
+        \Illuminate\Support\Facades\DB::table('custom_form_priorities')->where('custom_form_id', $form->id)->delete();
         $nested = array_map(function ($exported) use ($config, $form) {
             if (array_get($exported, 'suuid') === $form->suuid) {
                 $exported['custom_form_priorities'] = $config['custom_form_priorities'][0]['custom_form_priorities'];
@@ -80,7 +80,7 @@ class TemplateFormPriorityTest extends UnitTestBase
         $this->assertSame(1, CustomFormPriority::where('custom_form_id', $form->id)->count(), 'A priority inside the form must still be imported.');
 
         // A table without priorities leaves the template as it always was.
-        \DB::table('custom_form_priorities')->whereIn('custom_form_id', $formIds)->delete();
+        \Illuminate\Support\Facades\DB::table('custom_form_priorities')->whereIn('custom_form_id', $formIds)->delete();
         System::clearCache();
         $config = [];
         $export->invokeArgs(null, [&$config, [$table->table_name], false]);

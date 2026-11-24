@@ -152,7 +152,7 @@ class PluginTest extends FeatureTestBase
         $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
         $this->assertTrue(isset($trash_value));
 
-        \Artisan::call('exment:batch', ['--name' => 'TestPluginBatch']);
+        \Illuminate\Support\Facades\Artisan::call('exment:batch', ['--name' => 'TestPluginBatch']);
 
         $trash_value = $custom_table->getValueModel()->withTrashed()->find($id);
         $this->assertTrue(is_null($trash_value));
@@ -191,13 +191,13 @@ class PluginTest extends FeatureTestBase
         $pre_cnt = getModelName('parent_table')::where('value->init_text', 'plugin_unit_test')->count();
 
         $import_path = storage_path(path_join_os('app', 'import', 'unittest'));
-        if (\File::exists($import_path)) {
-            \File::deleteDirectory($import_path);
+        if (\Illuminate\Support\Facades\File::exists($import_path)) {
+            \Illuminate\Support\Facades\File::deleteDirectory($import_path);
         }
-        \Exment::makeDirectory($import_path);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($import_path);
         $source_path = exment_package_path("tests/tmpfile/Feature/plugin_import");
-        \File::copyDirectory($source_path, $import_path);
-        $files = \File::files($import_path);
+        \Illuminate\Support\Facades\File::copyDirectory($source_path, $import_path);
+        $files = \Illuminate\Support\Facades\File::files($import_path);
 
         /** @var Plugin $plugin */
         $plugin = Plugin::where('plugin_name', 'TestPluginImport')->first();
@@ -249,12 +249,12 @@ class PluginTest extends FeatureTestBase
         try {
             $file = $pluginClass->execute();
             $this->assertTrue(isset($file));
-            $this->assertTrue(\File::exists($file));
+            $this->assertTrue(\Illuminate\Support\Facades\File::exists($file));
         }
         // Delete if exception
         finally {
-            if (isset($file) && is_string($file) && \File::exists($file)) {
-                \File::delete($file);
+            if (isset($file) && is_string($file) && \Illuminate\Support\Facades\File::exists($file)) {
+                \Illuminate\Support\Facades\File::delete($file);
             }
         }
     }
@@ -288,12 +288,12 @@ class PluginTest extends FeatureTestBase
         try {
             $file = $pluginClass->execute();
             $this->assertTrue(isset($file));
-            $this->assertTrue(\File::exists($file));
+            $this->assertTrue(\Illuminate\Support\Facades\File::exists($file));
         }
         // Delete if exception
         finally {
-            if (isset($file) && is_string($file) && \File::exists($file)) {
-                \File::delete($file);
+            if (isset($file) && is_string($file) && \Illuminate\Support\Facades\File::exists($file)) {
+                \Illuminate\Support\Facades\File::delete($file);
             }
         }
     }
@@ -332,7 +332,7 @@ class PluginTest extends FeatureTestBase
      */
     public function testBatchGlobalFunction()
     {
-        $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginGlobalFunction']);
+        $result = \Illuminate\Support\Facades\Artisan::call('exment:batch', ['--name' => 'TestPluginGlobalFunction']);
         $this->assertTrue($result === 0);
     }
 
@@ -343,7 +343,7 @@ class PluginTest extends FeatureTestBase
      */
     public function testBatchStaticFunction()
     {
-        $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginStaticFunction']);
+        $result = \Illuminate\Support\Facades\Artisan::call('exment:batch', ['--name' => 'TestPluginStaticFunction']);
         $this->assertTrue($result === 0);
     }
 
@@ -354,7 +354,7 @@ class PluginTest extends FeatureTestBase
      */
     public function testBatchTrait()
     {
-        $result = \Artisan::call('exment:batch', ['--name' => 'TestPluginTrait']);
+        $result = \Illuminate\Support\Facades\Artisan::call('exment:batch', ['--name' => 'TestPluginTrait']);
         $this->assertTrue($result === 0);
     }
     /**
@@ -366,6 +366,6 @@ class PluginTest extends FeatureTestBase
     {
         // TestPluginError divides by zero: the error has to reach the caller
         $this->expectException(\DivisionByZeroError::class);
-        \Artisan::call('exment:batch', ['--name' => 'TestPluginError']);
+        \Illuminate\Support\Facades\Artisan::call('exment:batch', ['--name' => 'TestPluginError']);
     }
 }

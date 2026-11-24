@@ -37,7 +37,7 @@ trait BuilderTrait
 
         // get DB values
         /** @phpstan-ignore-next-line */
-        $dbValueQuery = \DB::table($table);
+        $dbValueQuery = \Illuminate\Support\Facades\DB::table($table);
 
         if ($dbValueFilter) {
             $dbValueFilter($dbValueQuery);
@@ -56,7 +56,7 @@ trait BuilderTrait
             })) {
                 $inserts[] = $value;
                 /** @phpstan-ignore-next-line */
-                \DB::table($table)->insert($value);
+                \Illuminate\Support\Facades\DB::table($table)->insert($value);
             }
         }
 
@@ -66,7 +66,7 @@ trait BuilderTrait
                 return $matchFilter($dbValue, $value);
             })) {
                 /** @phpstan-ignore-next-line */
-                $dbDeleteQuery = \DB::table($table);
+                $dbDeleteQuery = \Illuminate\Support\Facades\DB::table($table);
                 if (!$dbDeleteFilter) {
                     continue;
                 }
@@ -195,7 +195,7 @@ trait BuilderTrait
     protected function getUniqueIndexDefinitions($tableName, $columnName, $unique)
     {
         /** @phpstan-ignore-next-line */
-        if (!\Schema::hasTable($tableName)) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) {
             return collect([]);
         }
 
@@ -220,7 +220,7 @@ trait BuilderTrait
     protected function getConstraints($tableName, $columnName): array
     {
         /** @phpstan-ignore-next-line */
-        if (!\Schema::hasTable($tableName)) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) {
             return [];
         }
 
@@ -278,7 +278,7 @@ trait BuilderTrait
     public function alterIndexColumn($db_table_name, $db_column_name, $index_name, $json_column_name, CustomColumn $custom_column)
     {
         /** @phpstan-ignore-next-line */
-        if (!\Schema::hasTable($db_table_name)) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable($db_table_name)) {
             return;
         }
 
@@ -302,7 +302,7 @@ trait BuilderTrait
     public function dropIndexColumn($db_table_name, $db_column_name, $index_name)
     {
         /** @phpstan-ignore-next-line */
-        if (!\Schema::hasTable($db_table_name)) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable($db_table_name)) {
             return;
         }
 
@@ -310,18 +310,18 @@ trait BuilderTrait
 
         // check index name
         /** @phpstan-ignore-next-line */
-        if (\Schema::hasCustomIndex($db_table_name, $db_column_name, $index_name)) {
+        if (\Illuminate\Support\Facades\Schema::hasCustomIndex($db_table_name, $db_column_name, $index_name)) {
             /** @phpstan-ignore-next-line */
-            \Schema::table($db_table_name, function (Blueprint $table) use ($index_name) {
+            \Illuminate\Support\Facades\Schema::table($db_table_name, function (Blueprint $table) use ($index_name) {
                 $table->dropIndex($index_name);
             });
         }
 
         // check column name
         /** @phpstan-ignore-next-line */
-        if (\Schema::hasColumn($db_table_name, $db_column_name)) {
+        if (\Illuminate\Support\Facades\Schema::hasColumn($db_table_name, $db_column_name)) {
             /** @phpstan-ignore-next-line */
-            \Schema::table($db_table_name, function (Blueprint $table) use ($db_column_name) {
+            \Illuminate\Support\Facades\Schema::table($db_table_name, function (Blueprint $table) use ($db_column_name) {
                 $table->dropColumn($db_column_name);
             });
         }
@@ -338,7 +338,7 @@ trait BuilderTrait
     public function dropConstraints($tableName, $columnName): void
     {
         /** @phpstan-ignore-next-line */
-        if (!\Schema::hasTable($tableName)) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable($tableName)) {
             return;
         }
 

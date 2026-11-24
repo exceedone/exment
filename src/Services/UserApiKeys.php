@@ -183,7 +183,7 @@ class UserApiKeys
 
         // the keys a user has at once: counted and made in one transaction, with the row of the user
         // locked, so requests at the same time cannot all pass the count
-        $key = \DB::transaction(function () use ($userId, $values) {
+        $key = \Illuminate\Support\Facades\DB::transaction(function () use ($userId, $values) {
             getModelName(SystemTableName::USER)::query()->where('id', $userId)->lockForUpdate()->first();
             $active = UserApiKey::where('user_id', $userId)->whereNull('revoked_at')->where('expires_at', '>', Carbon::now())->count();
             if ($active >= static::maxActiveKeys()) {
@@ -325,7 +325,7 @@ class UserApiKeys
                     })
                     ->update(['last_refused_at' => $now, 'last_refused_reason' => $why]);
                 if ($written > 0) {
-                    \Log::info('[Exment] an API key was refused: ' . $why . " (key {$key->id})");
+                    \Illuminate\Support\Facades\Log::info('[Exment] an API key was refused: ' . $why . " (key {$key->id})");
                 }
             }
             return null;
@@ -343,7 +343,7 @@ class UserApiKeys
         if (!isset($key)) {
             // logged, but at most once a minute an address (random keys are not a line each)
             RateLimiter::attempt('apikey-log:' . static::siteHash() . ':' . $request->ip(), 1, function () use ($request) {
-                \Log::info('[Exment] an unknown API key was refused (from ' . $request->ip() . ')');
+                \Illuminate\Support\Facades\Log::info('[Exment] an unknown API key was refused (from ' . $request->ip() . ')');
             }, 60);
             return $refuse('unknown');
         }
@@ -391,7 +391,7 @@ class UserApiKeys
         UserApiKey::where('id', $key->id)->update([
             'last_used_at' => Carbon::now(),
             'last_used_ip' => substr((string)$request->ip(), 0, 64),
-            'use_count' => \DB::raw('use_count + 1'),
+            'use_count' => \Illuminate\Support\Facades\DB::raw('use_count + 1'),
         ]);
 
         $login_user->withAccessToken(new UserApiKeyToken($key));
@@ -616,7 +616,7 @@ class UserApiKeys
             $sender->send();
             return $sender;
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the mail of an API key was not sent: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the mail of an API key was not sent: ' . $e->getMessage());
             return null;
         }
     }

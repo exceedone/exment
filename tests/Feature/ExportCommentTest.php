@@ -40,16 +40,16 @@ class ExportCommentTest extends FeatureTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         $this->dirpath = storage_path(path_join_os('app', 'export', 'unittest_comment'));
-        if (\File::exists($this->dirpath)) {
-            \File::deleteDirectory($this->dirpath);
+        if (\Illuminate\Support\Facades\File::exists($this->dirpath)) {
+            \Illuminate\Support\Facades\File::deleteDirectory($this->dirpath);
         }
-        \Exment::makeDirectory($this->dirpath);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($this->dirpath);
     }
 
     protected function tearDown(): void
     {
-        if ($this->dirpath !== '' && \File::exists($this->dirpath)) {
-            \File::deleteDirectory($this->dirpath);
+        if ($this->dirpath !== '' && \Illuminate\Support\Facades\File::exists($this->dirpath)) {
+            \Illuminate\Support\Facades\File::deleteDirectory($this->dirpath);
         }
         parent::tearDown();
     }
@@ -152,7 +152,7 @@ class ExportCommentTest extends FeatureTestBase
      */
     private function export(array $params): array
     {
-        $result = \Artisan::call('exment:export', array_merge([
+        $result = \Illuminate\Support\Facades\Artisan::call('exment:export', array_merge([
             'table_name' => self::TABLE_NAME,
             '--format' => 'xlsx',
             '--dirpath' => $this->dirpath,
@@ -160,7 +160,7 @@ class ExportCommentTest extends FeatureTestBase
         $this->assertSame(0, $result);
 
         $file_path = path_join($this->dirpath, self::TABLE_NAME . '.xlsx');
-        $this->assertTrue(\File::exists($file_path));
+        $this->assertTrue(\Illuminate\Support\Facades\File::exists($file_path));
 
         return $this->_getXlsxArray($file_path);
     }

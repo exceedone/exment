@@ -293,7 +293,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $action = $this->findAction($cv, 'middle_action');
         $options = $action->options;
         $options['flow_next_count'] = '2';
-        \DB::table('workflow_actions')->where('id', $action->id)->update(['options' => json_encode($options)]);
+        \Illuminate\Support\Facades\DB::table('workflow_actions')->where('id', $action->id)->update(['options' => json_encode($options)]);
         System::clearCache();
 
         $lineUserId = 'Upostbackrepeat';
@@ -407,7 +407,7 @@ class LinePostbackWorkflowTest extends FeatureTestBase
         $action = $this->findAction($cv, 'middle_action');
         $options = $action->options;
         $options['flow_next_count'] = '2';
-        \DB::table('workflow_actions')->where('id', $action->id)->update(['options' => json_encode($options)]);
+        \Illuminate\Support\Facades\DB::table('workflow_actions')->where('id', $action->id)->update(['options' => json_encode($options)]);
         System::clearCache();
         $this->findAction($cv, 'middle_action')->executeAction($cv, []);
         $cv = $this->reload($cv);

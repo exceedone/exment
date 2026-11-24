@@ -36,7 +36,7 @@ class NumberRenderTest extends TestCase
      */
     protected function renderNumber($fillValue, ?\Closure $configure = null): string
     {
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
 
@@ -269,7 +269,7 @@ class NumberRenderTest extends TestCase
      */
     public function testValidationNumericValuePasses(): void
     {
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
 
@@ -287,7 +287,7 @@ class NumberRenderTest extends TestCase
      */
     public function testValidationNonNumericStringFails(): void
     {
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
 
@@ -305,7 +305,7 @@ class NumberRenderTest extends TestCase
      */
     public function testValidationDateStringFailsNumericRule(): void
     {
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
         $this->initAllTest();
 

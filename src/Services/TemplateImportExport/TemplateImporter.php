@@ -191,7 +191,7 @@ class TemplateImporter
                 continue;
             }
 
-            $locale = \App::getLocale();
+            $locale = \Illuminate\Support\Facades\App::getLocale();
             try {
                 // @phpstan-ignore-next-line
                 $dirname = pathinfo($path)['dirname'];
@@ -230,7 +230,7 @@ class TemplateImporter
 
         $templates_path = $this->getTemplatePath();
         $paths = File::glob("$templates_path/*/config.json");
-        $locale = \App::getLocale();
+        $locale = \Illuminate\Support\Facades\App::getLocale();
         foreach ($paths as $path) {
             try {
                 // @phpstan-ignore-next-line
@@ -689,7 +689,7 @@ class TemplateImporter
         $this->import($json, $system_flg, $is_update);
 
         if (!$is_update) {
-            $locale = \App::getLocale();
+            $locale = \Illuminate\Support\Facades\App::getLocale();
             // get lang datafile
             $dataPath = path_join($basePath, 'data', $locale);
 
@@ -754,7 +754,7 @@ class TemplateImporter
     {
         System::clearCache();
 
-        \ExmentDB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
             // tables for default form and views
             $createDefaultTables = [];
 
@@ -925,8 +925,8 @@ class TemplateImporter
         }
 
         // patch use_label_flg
-        \Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
-        \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
+        \Illuminate\Support\Facades\Artisan::call('exment:patchdata', ['action' => 'use_label_flg']);
+        \Illuminate\Support\Facades\Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
 
         System::clearCache();
     }
@@ -998,7 +998,7 @@ class TemplateImporter
         }
 
         // merge language file
-        $locale = \App::getLocale();
+        $locale = \Illuminate\Support\Facades\App::getLocale();
         $langpath = "$basePath/lang/$locale/lang.json";
 
         if (File::exists($langpath)) {

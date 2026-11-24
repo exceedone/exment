@@ -38,7 +38,7 @@ class AppKey
             }
         } catch (\Throwable $e) {
             // .env cannot be written: the install screen says so; this request still works
-            \Log::warning('Exment install: cannot write APP_KEY to .env: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('Exment install: cannot write APP_KEY to .env: ' . $e->getMessage());
         }
         // this request too
         config(['app.key' => $key]);

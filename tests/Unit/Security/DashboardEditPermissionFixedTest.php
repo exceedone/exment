@@ -267,7 +267,7 @@ class DashboardEditPermissionFixedTest extends SecurityRegressionTestCase
                 continue;
             }
             $this->asUser($login);
-            if (\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::SYSTEM)) {
                 continue;
             }
             if ($tableId === null || !CustomTable::getEloquent($tableId)->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {

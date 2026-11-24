@@ -208,7 +208,7 @@ class Notify extends ModelBase
         // Now only column.
         $custom_column = CustomColumn::getEloquent(array_get($this, 'trigger_settings.notify_target_column'));
         // Exment helper class not recognized
-        $query_key = \Exment::getOptionKey($custom_column->id, true, $custom_column->custom_table_id, array_get($this, 'trigger_settings'));
+        $query_key = \Exceedone\Exment\Facades\ExmentFacade::getOptionKey($custom_column->id, true, $custom_column->custom_table_id, array_get($this, 'trigger_settings'));
 
         $this->_schedule_date_column_item = ColumnItems\CustomItem::getItem($custom_column, null, $query_key);
 
@@ -272,7 +272,7 @@ class Notify extends ModelBase
                     }
                     // throw mailsend Exception
                     catch (TransportExceptionInterface $ex) {
-                        \Log::error($ex);
+                        \Illuminate\Support\Facades\Log::error($ex);
                     }
                 }
             }
@@ -414,7 +414,7 @@ class Notify extends ModelBase
                 // throw mailsend Exception
                 catch (TransportExceptionInterface $ex) {
                     // Laravel facade Log not recognized
-                    \Log::error($ex);
+                    \Illuminate\Support\Facades\Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
                 }
@@ -491,7 +491,7 @@ class Notify extends ModelBase
                 // throw mailsend Exception
                 catch (TransportExceptionInterface $ex) {
                     // Laravel facade Log not recognized
-                    \Log::error($ex);
+                    \Illuminate\Support\Facades\Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
                 }
@@ -641,7 +641,7 @@ class Notify extends ModelBase
                 // throw mailsend Exception
                 catch (TransportExceptionInterface $ex) {
                     // Laravel facade Log not recognized
-                    \Log::error($ex);
+                    \Illuminate\Support\Facades\Log::error($ex);
                     // show warning message
                     admin_warning(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
                 }
@@ -744,7 +744,7 @@ class Notify extends ModelBase
         }
 
         // Exment helper class not recognized
-        $loginuser = \Exment::user();
+        $loginuser = \Exceedone\Exment\Facades\ExmentFacade::user();
         $values = $values->unique()->filter(function ($value) use ($loginuser) {
             if (is_nullorempty($loginuser)) {
                 return true;
@@ -771,7 +771,7 @@ class Notify extends ModelBase
     {
         // if $user is myself, return false
         // Exment helper class not recognized
-        $loginuser = \Exment::user();
+        $loginuser = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$this->isNotifyMyself()) {
             if ($checkHistory && !is_nullorempty($loginuser)) {
                 // system alert: only the user who did it (another user with the same mail address still gets it, #1668)

@@ -40,7 +40,7 @@ class RouteServiceProvider extends ServiceProvider
                     Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
                 ];
             }
-            $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
+            $login_user = \Exceedone\Exment\Facades\ExmentFacade::user()?? \Illuminate\Support\Facades\Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
             return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
         });
     }

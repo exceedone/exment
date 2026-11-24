@@ -26,7 +26,7 @@ class NotifyNavbar extends ModelBase
 
         // add global scope
         static::addGlobalScope('target_user', function ($builder) {
-            return $builder->where('target_user_id', \Exment::getUserId())
+            return $builder->where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
                 ->orderBy('read_flg', 'asc')->orderBy('created_at', 'desc');
         });
 
@@ -48,11 +48,11 @@ class NotifyNavbar extends ModelBase
      */
     public static function navbarCacheKey(): ?string
     {
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         if (is_nullorempty($userId)) {
             return null;
         }
-        $version = (int) \Cache::get(static::navbarVersionKey($userId), 0);
+        $version = (int) \Illuminate\Support\Facades\Cache::get(static::navbarVersionKey($userId), 0);
         return 'exment_notify_nav_' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . '_' . $userId . '_' . $version . '_' . app()->getLocale();
     }
 
@@ -70,7 +70,7 @@ class NotifyNavbar extends ModelBase
         foreach ($userIds as $userId) {
             try {
                 $key = static::navbarVersionKey($userId);
-                \Cache::forever($key, (int) \Cache::get($key, 0) + 1);
+                \Illuminate\Support\Facades\Cache::forever($key, (int) \Illuminate\Support\Facades\Cache::get($key, 0) + 1);
             } catch (\Throwable $ex) {
                 // the cache ends after one interval anyway
             }
@@ -99,7 +99,7 @@ class NotifyNavbar extends ModelBase
      */
     public static function getTargetTableOptions(): array
     {
-        $user_id = \Exment::getUserId();
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         if (is_null($user_id)) {
             return [];
         }

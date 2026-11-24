@@ -47,7 +47,7 @@ class OperationValueType extends EnumBase
                 return \Carbon\Carbon::now();
 
             case static::LOGIN_USER:
-                $login_user = \Exment::user();
+                $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 return $login_user ? $login_user->getUserId() : null;
 
             case static::CREATED_USER:
@@ -57,7 +57,7 @@ class OperationValueType extends EnumBase
 
                 // no break
             case static::BERONG_ORGANIZATIONS:
-                $login_user = \Exment::user();
+                $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 if (is_null($login_user)) {
                     return null;
                 }

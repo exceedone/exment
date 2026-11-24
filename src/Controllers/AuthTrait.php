@@ -90,7 +90,7 @@ trait AuthTrait
                     /** @phpstan-ignore-next-line */
                     if ( $oauth_setting->getOption('oauth_option_single_logout') == 1 && method_exists($socialite_provider, 'getLogoutUrl')  ) {
                         /** @phpstan-ignore-next-line */
-                        return redirect( $socialite_provider->getLogoutUrl( \URL::route('exment.login') ) );
+                        return redirect( $socialite_provider->getLogoutUrl( \Illuminate\Support\Facades\URL::route('exment.login') ) );
                     }
                 }
                 break;
@@ -99,7 +99,7 @@ trait AuthTrait
         }
 
         /** @phpstan-ignore-next-line */
-        return redirect(\URL::route('exment.login'));
+        return redirect(\Illuminate\Support\Facades\URL::route('exment.login'));
     }
 
     /**
@@ -120,7 +120,7 @@ trait AuthTrait
         /** @phpstan-ignore-next-line */
         if (!isset($login_setting) || is_nullorempty($login_setting->getOption('saml_idp_ssout_url'))) {
             /** @phpstan-ignore-next-line */
-            return redirect(\URL::route('exment.login'));
+            return redirect(\Illuminate\Support\Facades\URL::route('exment.login'));
         }
 
         $saml2Auth = LoginSetting::getSamlAuth($provider_name);

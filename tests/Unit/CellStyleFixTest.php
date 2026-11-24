@@ -102,7 +102,7 @@ class CellStyleFixTest extends UnitTestBase
      */
     protected function storedOptions(CustomColumn $custom_column): array
     {
-        $json = \DB::table('custom_columns')->where('id', $custom_column->id)->value('options');
+        $json = \Illuminate\Support\Facades\DB::table('custom_columns')->where('id', $custom_column->id)->value('options');
         $options = json_decode_ex($json, true);
 
         return is_array($options) ? $options : [];
@@ -229,7 +229,7 @@ class CellStyleFixTest extends UnitTestBase
         // was stored.
         $options = $stored;
         $options['grid_style'] = static::HOSTILE_STYLE;
-        \DB::table('custom_columns')->where('id', $custom_column->id)->update(['options' => json_encode($options)]);
+        \Illuminate\Support\Facades\DB::table('custom_columns')->where('id', $custom_column->id)->update(['options' => json_encode($options)]);
 
         $reloaded = $this->freshColumn(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS, 'text');
         $this->assertSame(static::HOSTILE_STYLE, $reloaded->getOption('grid_style'), 'Fixture: the bad value must be stored before the second save.');

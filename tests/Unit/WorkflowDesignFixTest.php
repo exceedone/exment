@@ -484,8 +484,8 @@ class WorkflowDesignFixTest extends UnitTestBase
         }));
 
         $written = null;
-        \DB::listen(function (QueryExecuted $query) use (&$written, $workflow, $spare) {
-            if (isset($written) || \DB::transactionLevel() < 2) {
+        \Illuminate\Support\Facades\DB::listen(function (QueryExecuted $query) use (&$written, $workflow, $spare) {
+            if (isset($written) || \Illuminate\Support\Facades\DB::transactionLevel() < 2) {
                 return;
             }
             if (strpos($query->sql, 'workflow_values') === false || stripos($query->sql, 'distinct') === false) {
@@ -578,8 +578,8 @@ class WorkflowDesignFixTest extends UnitTestBase
         $payload = $this->withActionRedrawn($this->payloadOf($this->designData($workflow)), $actions['done']);
 
         $written = null;
-        \DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
-            if (isset($written) || \DB::transactionLevel() < 2) {
+        \Illuminate\Support\Facades\DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
+            if (isset($written) || \Illuminate\Support\Facades\DB::transactionLevel() < 2) {
                 return;
             }
             if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
@@ -894,8 +894,8 @@ class WorkflowDesignFixTest extends UnitTestBase
             'condition_value' => 'abc',
         ];
         $conditionsOf = function (WorkflowAction $action) {
-            $header_ids = \DB::table('workflow_condition_headers')->where('workflow_action_id', $action->id)->pluck('id');
-            return \DB::table('conditions')->where('morph_type', 'workflow_condition_header')
+            $header_ids = \Illuminate\Support\Facades\DB::table('workflow_condition_headers')->where('workflow_action_id', $action->id)->pluck('id');
+            return \Illuminate\Support\Facades\DB::table('conditions')->where('morph_type', 'workflow_condition_header')
                 ->whereIn('morph_id', $header_ids)->get(['condition_type', 'condition_key', 'target_column_id', 'condition_value'])
                 ->map(function ($row) {
                     return (array)$row;
@@ -1000,8 +1000,8 @@ class WorkflowDesignFixTest extends UnitTestBase
         $payload = $this->withActionDeleted($this->payloadOf($this->designData($workflow)), $actions['done'], $status['n2']);
 
         $written = null;
-        \DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
-            if (isset($written) || \DB::transactionLevel() < 2) {
+        \Illuminate\Support\Facades\DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
+            if (isset($written) || \Illuminate\Support\Facades\DB::transactionLevel() < 2) {
                 return;
             }
             if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
@@ -1102,8 +1102,8 @@ class WorkflowDesignFixTest extends UnitTestBase
         $payload = $this->withActionMovedToStart($this->payloadOf($this->designData($workflow)), $actions['done']);
 
         $written = null;
-        \DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
-            if (isset($written) || \DB::transactionLevel() < 2) {
+        \Illuminate\Support\Facades\DB::listen(function (QueryExecuted $query) use (&$written, $actions, $status) {
+            if (isset($written) || \Illuminate\Support\Facades\DB::transactionLevel() < 2) {
                 return;
             }
             if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
@@ -1137,7 +1137,7 @@ class WorkflowDesignFixTest extends UnitTestBase
         $value = new WorkflowValue();
         $value->workflow_id = $action->workflow_id;
         $value->morph_type = SystemTableName::USER;
-        $value->morph_id = \Exment::getUserId();
+        $value->morph_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $value->workflow_action_id = $action->id;
         // the start status is not a row: an action from it leaves no "from"
         $value->workflow_status_from_id = is_numeric($action->status_from) ? $action->status_from : null;
@@ -1436,7 +1436,7 @@ class WorkflowDesignFixTest extends UnitTestBase
         $value = new WorkflowValue();
         $value->workflow_id = $action->workflow_id;
         $value->morph_type = SystemTableName::USER;
-        $value->morph_id = \Exment::getUserId();
+        $value->morph_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $value->workflow_action_id = $action->id;
         $value->workflow_status_from_id = $action->status_from;
         $value->workflow_status_to_id = $status_to;

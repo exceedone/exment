@@ -54,7 +54,7 @@ class LineAccountLinker
         }
 
         RateLimiter::clear($attemptKey);
-        \DB::transaction(function () use ($holder, $link, $lineUserId) {
+        \Illuminate\Support\Facades\DB::transaction(function () use ($holder, $link, $lineUserId) {
             // linked to a deleted user, which nobody can unlink on the web any more
             if ($holder) {
                 $holder->unlink();

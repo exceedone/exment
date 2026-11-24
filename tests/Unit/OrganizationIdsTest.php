@@ -79,7 +79,7 @@ class OrganizationIdsTest extends UnitTestBase
         $organizations = getModelName(SystemTableName::ORGANIZATION)::query()->orderBy('id')->get();
         $this->assertGreaterThan(1, $organizations->count());
         $queries = 0;
-        \DB::listen(function () use (&$queries) {
+        \Illuminate\Support\Facades\DB::listen(function () use (&$queries) {
             $queries++;
         });
 
@@ -109,7 +109,7 @@ class OrganizationIdsTest extends UnitTestBase
         $parentId = intval(array_get($child->value, 'parent_organization'));
         $parent = $model::find($parentId);
 
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         try {
             System::clearRequestSession();
             $this->assertContains($child->id, $parent->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_UPPER));
@@ -120,7 +120,7 @@ class OrganizationIdsTest extends UnitTestBase
 
             $this->assertNotContains($child->id, $parent->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_UPPER));
         } finally {
-            \DB::rollBack();
+            \Illuminate\Support\Facades\DB::rollBack();
             System::clearCache();
         }
     }

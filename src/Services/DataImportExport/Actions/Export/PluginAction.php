@@ -100,8 +100,8 @@ class PluginAction extends CustomTableAction
         }
         // Delete if exception
         finally {
-            if (isset($file) && is_string($file) && \File::exists($file)) {
-                \File::delete($file);
+            if (isset($file) && is_string($file) && \Illuminate\Support\Facades\File::exists($file)) {
+                \Illuminate\Support\Facades\File::delete($file);
             }
         }
     }

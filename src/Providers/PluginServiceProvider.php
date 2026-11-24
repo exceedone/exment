@@ -191,7 +191,7 @@ class PluginServiceProvider extends ServiceProvider
             return;
         }
 
-        $config = \File::get($config_path);
+        $config = \Illuminate\Support\Facades\File::get($config_path);
         $json = json_decode_ex($config, true);
 
         if (!$plugin->matchPluginType($plugin_type)) {

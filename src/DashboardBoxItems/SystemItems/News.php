@@ -196,7 +196,7 @@ class News
             $query = $this->getQuery();
             $this->items = static::filterItems(is_array($items) ? $items : [], (int)$query['per_page'], (int)$query['page'], (int)$query['categories']);
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
         }
     }
 }

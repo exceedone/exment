@@ -124,7 +124,7 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
     public function execute($from_custom_value, $inputs = null)
     {
         $to_custom_value = null;
-        \ExmentDB::transaction(function () use (&$to_custom_value, $from_custom_value, $inputs) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use (&$to_custom_value, $from_custom_value, $inputs) {
             $to_custom_value = static::saveCopyModel(
                 $this->custom_copy_columns,
                 $this->custom_copy_input_columns,

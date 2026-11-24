@@ -82,7 +82,7 @@ class McpServerTest extends ApiTestBase
     protected function mcp(string $bearer, $message, array $headers = []): \Illuminate\Testing\TestResponse
     {
         // each request signs in again, as on a real server (the test app keeps the guards)
-        \Auth::forgetGuards();
+        \Illuminate\Support\Facades\Auth::forgetGuards();
         return $this->call('POST', admin_urls('api', 'mcp'), [], [], [], $this->transformHeadersToServerVars([
             'Authorization' => "Bearer $bearer",
             'Content-Type' => 'application/json',
@@ -205,13 +205,13 @@ class McpServerTest extends ApiTestBase
         $this->setFeatures([Features::MCP => ['enabled' => true, 'role_groups' => null], Features::API_KEYS => ['enabled' => true, 'role_groups' => null]]);
         $user2 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2);
         $table = CustomTable::getEloquent('custom_value_edit');
-        $all = \DB::table(getDBTableName($table))->whereNull('deleted_at')->pluck('id')->map('intval')->all();
+        $all = \Illuminate\Support\Facades\DB::table(getDBTableName($table))->whereNull('deleted_at')->pluck('id')->map('intval')->all();
         $this->be($user2);
         System::clearRequestSession();
         $visible = $table->getValueQuery()->pluck('id')->map('intval')->all();
         $hidden = array_values(array_diff($all, $visible));
         $this->assertNotEmpty($hidden, 'user2 cannot see some records of custom_value_edit');
-        \Auth::logout();
+        \Illuminate\Support\Facades\Auth::logout();
 
         $key = $this->key(TestDefine::TESTDATA_USER_LOGINID_USER2);
         // a table user2 may not see (as Api2Test::testDenyGetTableUser): not listed, and the same answer as no table
@@ -278,7 +278,7 @@ class McpServerTest extends ApiTestBase
     public function testTheAttachmentsAreLimited(): void
     {
         $key = $this->key();
-        $id = (int)\DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
+        $id = (int)\Illuminate\Support\Facades\DB::table(getDBTableName('custom_value_edit'))->whereNull('deleted_at')->value('id');
         $documentModel = getModelName(SystemTableName::DOCUMENT);
         for ($i = 0; $i < 5; $i++) {
             $document = new $documentModel();

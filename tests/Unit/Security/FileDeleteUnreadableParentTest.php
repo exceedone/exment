@@ -49,7 +49,7 @@ class FileDeleteUnreadableParentTest extends SecurityRegressionTestCase
         $parent->save();
 
         $uuid = make_uuid();
-        \DB::table('files')->insert([
+        \Illuminate\Support\Facades\DB::table('files')->insert([
             'uuid' => $uuid,
             'local_dirname' => $table->table_name,
             'local_filename' => $uuid . '.txt',
@@ -58,7 +58,7 @@ class FileDeleteUnreadableParentTest extends SecurityRegressionTestCase
             'parent_type' => $table->table_name,
         ]);
 
-        return [$table, $parent, \DB::table('files')->where('uuid', $uuid)->first()];
+        return [$table, $parent, \Illuminate\Support\Facades\DB::table('files')->where('uuid', $uuid)->first()];
     }
 
     /**
@@ -71,7 +71,7 @@ class FileDeleteUnreadableParentTest extends SecurityRegressionTestCase
         $user = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         if (isset($custom_value) && isset($permission)) {
-            \DB::table('custom_value_authoritables')->insert([
+            \Illuminate\Support\Facades\DB::table('custom_value_authoritables')->insert([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $custom_value->custom_table->table_name,
                 'authoritable_type' => $permission,

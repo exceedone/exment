@@ -124,7 +124,7 @@ class UserApiKeyPageTest extends FeatureTestBase
     public function testTheRefusalIsShown(): void
     {
         [$key] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'refused key', UserApiKeys::readOnlyScopes());
-        \DB::table('user_api_keys')->where('id', $key->id)->update(['last_refused_at' => now(), 'last_refused_reason' => 'ip']);
+        \Illuminate\Support\Facades\DB::table('user_api_keys')->where('id', $key->id)->update(['last_refused_at' => now(), 'last_refused_reason' => 'ip']);
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->get(admin_url('auth/api_keys'))->assertOk()->assertSee(exmtrans('api_key.refusals.ip'));
         $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
@@ -236,7 +236,7 @@ class UserApiKeyPageTest extends FeatureTestBase
      */
     public function testAUserOfSsoSignsInAgain(): void
     {
-        \DB::table('login_users')->where('id', TestDefine::TESTDATA_USER_LOGINID_USER1)->update(['login_provider' => 'test_sso']);
+        \Illuminate\Support\Facades\DB::table('login_users')->where('id', TestDefine::TESTDATA_USER_LOGINID_USER1)->update(['login_provider' => 'test_sso']);
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
         config(['exment.api_key_max_days_sso' => 30]);
 
@@ -297,7 +297,7 @@ class UserApiKeyPageTest extends FeatureTestBase
     public function testAnOldRefusalIsNotShown(): void
     {
         [$key] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'used again', UserApiKeys::readOnlyScopes());
-        \DB::table('user_api_keys')->where('id', $key->id)->update([
+        \Illuminate\Support\Facades\DB::table('user_api_keys')->where('id', $key->id)->update([
             'last_refused_at' => now()->subHour(), 'last_refused_reason' => 'ip', 'last_used_at' => now(),
         ]);
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
@@ -396,11 +396,11 @@ class UserApiKeyPageTest extends FeatureTestBase
 
         // the guard of the pages directly (what the SSO controllers call in the end)
         $this->flushSession();
-        \Auth::guard('admin')->login(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        \Illuminate\Support\Facades\Auth::guard('admin')->login(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->assertTrue(UserApiKeys::signedInRecently());
         // not the API
         $this->flushSession();
-        \Auth::guard('adminapi')->setUser(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        \Illuminate\Support\Facades\Auth::guard('adminapi')->setUser(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
         $this->assertFalse(UserApiKeys::signedInRecently());
     }
 }

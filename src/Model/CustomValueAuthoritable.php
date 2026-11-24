@@ -44,7 +44,7 @@ class CustomValueAuthoritable extends ModelBase
             return;
         }
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return;
         }
@@ -142,10 +142,10 @@ class CustomValueAuthoritable extends ModelBase
 
         // if sync, not contains
         if ($sync) {
-            $belong_orgs = \Exment::user()->belong_organizations;
+            $belong_orgs = \Exceedone\Exment\Facades\ExmentFacade::user()->belong_organizations;
             $delete_user_organizations = $beforesaved_user_organizations->filter(function ($beforesaved_user_organization) use ($belong_orgs, $total_user_organizations) {
                 // skip self user
-                if (array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exment::getUserId()
+                if (array_get($beforesaved_user_organization, 'authoritable_target_id') == \Exceedone\Exment\Facades\ExmentFacade::getUserId()
                     && array_get($beforesaved_user_organization, 'authoritable_user_org_type') == SystemTableName::USER) {
                     return false;
                 }
@@ -357,7 +357,7 @@ class CustomValueAuthoritable extends ModelBase
             ]);
         }
 
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
 
         try {
             // get user and org
@@ -382,7 +382,7 @@ class CustomValueAuthoritable extends ModelBase
                     ];
                 });
 
-                $shares = array_merge($shares, \Schema::insertDelete(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, $user_organizations, [
+                $shares = array_merge($shares, \Illuminate\Support\Facades\Schema::insertDelete(SystemTableName::CUSTOM_VALUE_AUTHORITABLE, $user_organizations, [
                     'dbValueFilter' => function (&$model) use ($custom_value, $item) {
                         $model->where('parent_type', $custom_value->custom_table->table_name)
                         ->where('parent_id', $custom_value->id)
@@ -401,7 +401,7 @@ class CustomValueAuthoritable extends ModelBase
                     },
                 ]));
             }
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
 
             // send notify
             $shares = collect($shares)->map(function ($share) {
@@ -416,7 +416,7 @@ class CustomValueAuthoritable extends ModelBase
             ]);
         } catch (\Exception $exception) {
             //TODO:error handling
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
             throw $exception;
         }
     }
@@ -453,7 +453,7 @@ class CustomValueAuthoritable extends ModelBase
             ]);
 
             if ($ignoreLoginUser && $key == SystemTableName::USER) {
-                $user_id = \Exment::getUserId();
+                $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
                 $optionItem = $optionItem->filter(function ($user, $id) use ($user_id) {
                     return $id != $user_id;
                 });

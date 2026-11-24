@@ -62,10 +62,10 @@ trait SummaryItemTrait
             $result = "$summary_condition($wrapCastColumn)";
         } elseif (isset($group_condition)) {
             /** @phpstan-ignore-next-line */
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, false);
+            $result = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, false);
         } else {
             /** @phpstan-ignore-next-line */
-            $result = \Exment::wrapColumn($value_table_column);
+            $result = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($value_table_column);
         }
 
         return $result;
@@ -89,10 +89,10 @@ trait SummaryItemTrait
 
         if (isset($group_condition) && !$asSqlAsName) {
             /** @phpstan-ignore-next-line */
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, !$asSelect);
+            $result = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString($group_condition, $value_table_column, !$asSelect);
         } else {
             /** @phpstan-ignore-next-line */
-            $result = $is_wrapped? $value_table_column: \Exment::wrapColumn($value_table_column);
+            $result = $is_wrapped? $value_table_column: \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($value_table_column);
         }
 
         return $result;
@@ -111,7 +111,7 @@ trait SummaryItemTrait
 
         if ($this->isMultipleEnabled()) {
             /** @phpstan-ignore-next-line */
-            $value_table_column = \Exment::wrapColumn($value_table_column);
+            $value_table_column = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($value_table_column);
             $value_table_column = "CASE WHEN {$value_table_column} = '[]' THEN NULL ELSE {$value_table_column} END";
             $is_wrapped = true;
         }

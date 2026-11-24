@@ -51,7 +51,7 @@ abstract class FileImportTestBase extends FeatureTestBase
             $this->initAllTest();
             $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
             $import_path = $this->getImportPath();
-            \Exment::makeDirectory($import_path);
+            \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($import_path);
 
             $sourceDir = $this->getSourceFilePath();
             $dirs = scandir($sourceDir);
@@ -61,10 +61,10 @@ abstract class FileImportTestBase extends FeatureTestBase
                 }
                 $sourceFullDir = path_join_os($sourceDir, $dir);
                 $importFullDir = path_join_os($import_path, $dir);
-                if (\File::exists($importFullDir)) {
+                if (\Illuminate\Support\Facades\File::exists($importFullDir)) {
                     continue;
                 }
-                \File::copyDirectory($sourceFullDir, $importFullDir);
+                \Illuminate\Support\Facades\File::copyDirectory($sourceFullDir, $importFullDir);
             }
         } catch (\Exception $ex) {
         }

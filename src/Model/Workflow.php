@@ -436,7 +436,7 @@ class Workflow extends ModelBase
 
         $problem = static::templateImportProblem($json);
         if (isset($problem)) {
-            \Log::warning('Exment template import: workflow "' . strval(array_get($json, 'workflow_view_name')) . '" imported inactive, ' . $problem . '.');
+            \Illuminate\Support\Facades\Log::warning('Exment template import: workflow "' . strval(array_get($json, 'workflow_view_name')) . '" imported inactive, ' . $problem . '.');
             foreach (array_keys((array)array_get($json, 'workflow_tables', [])) as $index) {
                 $json['workflow_tables'][$index]['active_flg'] = 0;
             }

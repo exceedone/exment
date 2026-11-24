@@ -55,7 +55,7 @@ class StatusSelects extends Select
     {
         $configs = array_merge([
             'allowClear'  => true,
-            'language' =>  \App::getLocale(),
+            'language' =>  \Illuminate\Support\Facades\App::getLocale(),
             'placeholder' => [
                 'id'   => '',
                 'text' => $this->label,

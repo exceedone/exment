@@ -9,7 +9,7 @@ class CoreFixes3Test extends UnitTestBase
     public function testTheRedirectRoutesAreControllers(): void
     {
         foreach (['template/import', 'template/export', 'role'] as $uri) {
-            $route = collect(\Route::getRoutes()->getRoutes())->first(function ($route) use ($uri) {
+            $route = collect(\Illuminate\Support\Facades\Route::getRoutes()->getRoutes())->first(function ($route) use ($uri) {
                 return in_array('GET', $route->methods(), true) && str_ends_with($route->uri(), $uri);
             });
             $this->assertNotNull($route, $uri);

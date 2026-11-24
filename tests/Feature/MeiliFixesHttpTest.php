@@ -169,7 +169,7 @@ class MeiliFixesHttpTest extends FeatureTestBase
         foreach (LoginUser::all() as $user) {
             $this->be($user);
             System::clearRequestSession();
-            $exmentUser = \Exment::user();
+            $exmentUser = \Exceedone\Exment\Facades\ExmentFacade::user();
             if ($exmentUser && !$exmentUser->isAdministrator()) {
                 return $user;
             }

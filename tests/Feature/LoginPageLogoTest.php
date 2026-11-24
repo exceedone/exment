@@ -20,7 +20,7 @@ class LoginPageLogoTest extends FeatureTestBase
     {
         parent::setUp();
         $this->initAllTest();
-        \DB::table(System::getTableName())->whereIn('system_name', ['site_logo', 'site_favicon', 'login_page_image', 'login_background_color'])->delete();
+        \Illuminate\Support\Facades\DB::table(System::getTableName())->whereIn('system_name', ['site_logo', 'site_favicon', 'login_page_image', 'login_background_color'])->delete();
         System::clearCache();
         // the favicon of a site set by an earlier test stays in admin-core (a static value, typed
         // string there, so it is emptied through reflection: null means "no favicon")

@@ -50,7 +50,7 @@ class LineWebhookController extends Controller
         if (is_nullorempty($eventId)) {
             return true;
         }
-        return \Cache::add('line_webhook_event.' . $eventId, 1, 60 * 60 * 25);
+        return \Illuminate\Support\Facades\Cache::add('line_webhook_event.' . $eventId, 1, 60 * 60 * 25);
     }
 
     /**
@@ -60,7 +60,7 @@ class LineWebhookController extends Controller
     {
         $eventId = $event['webhookEventId'] ?? null;
         if (!is_nullorempty($eventId)) {
-            \Cache::forget('line_webhook_event.' . $eventId);
+            \Illuminate\Support\Facades\Cache::forget('line_webhook_event.' . $eventId);
         }
     }
 

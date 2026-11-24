@@ -317,7 +317,7 @@ class TextExtractor
             $process->run();
             return $process->isSuccessful();
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not take the text: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not take the text: ' . $e->getMessage());
             return false;
         }
     }

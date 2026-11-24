@@ -15,7 +15,7 @@ abstract class UserEqUserBase extends ViewFilterBase
 
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
-        $user_id = \Exment::getUserId();
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         if ($user_id) {
             $mark = $this->getMark();
             if ($this->column_item->isMultipleEnabled()) {
@@ -45,7 +45,7 @@ abstract class UserEqUserBase extends ViewFilterBase
         }
 
         foreach ($value as $v) {
-            if (isMatchString($v, \Exment::getUserId())) {
+            if (isMatchString($v, \Exceedone\Exment\Facades\ExmentFacade::getUserId())) {
                 return $this->isExists();
             }
         }

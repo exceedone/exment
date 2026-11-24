@@ -5,7 +5,7 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Model\Define;
-use File;
+use Illuminate\Support\Facades\File;
 
 class BulkInsertCommand extends Command
 {
@@ -109,7 +109,7 @@ class BulkInsertCommand extends Command
         $tempdir = getFullpath(date('YmdHis'), Define::DISKNAME_ADMIN_TMP);
 
         // create temp directory if not exists
-        \Exment::makeDirectory($tempdir);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($tempdir);
 
         // convert csv file to tsv file
         $outputpath = $this->convertTsv($tempdir, $file);
@@ -270,6 +270,6 @@ class BulkInsertCommand extends Command
             parent_id = nullif(parent_id, 0)
 __EOT__;
         $query = sprintf($cmd, addslashes($file->getPathName()), $targets[0]);
-        $cnt = \DB::connection()->getpdo()->exec($query);
+        $cnt = \Illuminate\Support\Facades\DB::connection()->getpdo()->exec($query);
     }
 }

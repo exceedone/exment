@@ -88,7 +88,7 @@ class DataMaintenanceController extends AdminControllerTableBase
             return redirect($back);
         }
 
-        $result = (new AttachmentCleanup($this->custom_table, $kinds, $before))->execute(intval(\Exment::user()->id));
+        $result = (new AttachmentCleanup($this->custom_table, $kinds, $before))->execute(intval(\Exceedone\Exment\Facades\ExmentFacade::user()->id));
         admin_toastr(exmtrans('data_maintenance.attachments.done', [
             'files' => $result['files'],
             'records' => $result['records'],

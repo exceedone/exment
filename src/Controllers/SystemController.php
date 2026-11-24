@@ -31,7 +31,7 @@ use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 class SystemController extends AdminControllerBase
 {
@@ -45,7 +45,7 @@ class SystemController extends AdminControllerBase
      */
     protected static function screenLook(): array
     {
-        return [System::site_skin(), \Exment::isModernUi()];
+        return [System::site_skin(), \Exceedone\Exment\Facades\ExmentFacade::isModernUi()];
     }
 
     use InitializeFormTrait;
@@ -67,7 +67,7 @@ class SystemController extends AdminControllerBase
         // load the whole page once (the "saved" message is kept for that load).
         if (session()->pull(static::SESSION_KEY_RELOAD_PAGE)) {
             session()->keep(['toastr']);
-            \Admin::script('window.location.reload();');
+            \ExmentAdminCore\Admin\Facades\Admin::script('window.location.reload();');
         }
 
         if ($request->has('advanced')) {
@@ -392,8 +392,8 @@ class SystemController extends AdminControllerBase
      */
     protected function getVersionBox()
     {
-        list($latest, $current) = \Exment::getExmentVersion();
-        $version = \Exment::checkLatestVersion();
+        list($latest, $current) = \Exceedone\Exment\Facades\ExmentFacade::getExmentVersion();
+        $version = \Exceedone\Exment\Facades\ExmentFacade::checkLatestVersion();
         $showLink = false;
 
         $form = new WidgetForm();
@@ -422,7 +422,7 @@ class SystemController extends AdminControllerBase
             //if(boolval(config('exment.system_update_display_disabled', false))){
             $manualUrl = exmtrans('common.message.label_link', [
                         'label' => exmtrans('system.call_update_howto'),
-                        'link' => \Exment::getManualUrl('update'),
+                        'link' => \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('update'),
                     ]);
             $form->display(exmtrans('system.call_update_howto'))
                         ->displayText($manualUrl)
@@ -481,7 +481,7 @@ class SystemController extends AdminControllerBase
 
     //     $manualUrl = exmtrans('common.message.label_link', [
     //         'label' => exmtrans('system.release_note'),
-    //         'link' => \Exment::getManualUrl('release_note'),
+    //         'link' => \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('release_note'),
     //     ]);
     //     $form->description($manualUrl)->escape(false);
 
@@ -587,7 +587,7 @@ class SystemController extends AdminControllerBase
             ]);
         }
 
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
         $test_mail_to = $request->get('test_mail_to');
 
         try {
@@ -604,7 +604,7 @@ class SystemController extends AdminControllerBase
         }
         // throw mailsend Exception
         catch (TransportExceptionInterface $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             return getAjaxResponse([
                 'result'  => false,

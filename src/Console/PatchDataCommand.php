@@ -262,20 +262,20 @@ class PatchDataCommand extends Command
     protected function patchMailTemplate($mail_key_names = [])
     {
         // get vendor folder
-        $locale = \App::getLocale();
+        $locale = \Illuminate\Support\Facades\App::getLocale();
         $templates_data_path = exment_package_path('system_template/data');
         $path = path_join($templates_data_path, $locale, "mail_template.xlsx");
         // if exists, execute data copy
-        if (!\File::exists($path)) {
+        if (!\Illuminate\Support\Facades\File::exists($path)) {
             $path = path_join($templates_data_path, "mail_template.xlsx");
             // if exists, execute data copy
-            if (!\File::exists($path)) {
+            if (!\Illuminate\Support\Facades\File::exists($path)) {
                 return;
             }
         }
 
-        $table_name = \File::name($path);
-        $format = \File::extension($path);
+        $table_name = \Illuminate\Support\Facades\File::name($path);
+        $format = \Illuminate\Support\Facades\File::extension($path);
         $custom_table = CustomTable::getEloquent($table_name);
 
         // execute import
@@ -301,7 +301,7 @@ class PatchDataCommand extends Command
         $json = $template->getMergeJson();
 
         try {
-            \ExmentDB::transaction(function () use ($json, $target_column_name, $target_table_name) {
+            \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($json, $target_column_name, $target_table_name) {
                 // re-loop columns. because we have to get other column id --------------------------------------------------
                 foreach (array_get($json, "custom_tables", []) as $table) {
                     // find tables. --------------------------------------------------
@@ -368,7 +368,7 @@ class PatchDataCommand extends Command
                 }
             });
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
         }
     }
 
@@ -400,7 +400,7 @@ class PatchDataCommand extends Command
                         $v = array_get($commaValue, "value.{$column->column_name}");
                         $v = rmcomma($v);
 
-                        \DB::table($dbTableName)->where('id', $commaValue->id)->update(["value->{$column->column_name}" => $v]);
+                        \Illuminate\Support\Facades\DB::table($dbTableName)->where('id', $commaValue->id)->update(["value->{$column->column_name}" => $v]);
                     }
                 });
         }
@@ -413,7 +413,7 @@ class PatchDataCommand extends Command
      */
     protected function convertSelectTableColumn()
     {
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         try {
             $custom_tables = CustomTable::all();
             // loop for table
@@ -457,9 +457,9 @@ class PatchDataCommand extends Command
                         }
                     });
             }
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
         } catch (\Exception $ex) {
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
             throw $ex;
         }
     }
@@ -542,8 +542,8 @@ class PatchDataCommand extends Command
             $column_name = $index_custom_column->column_name;
             $column_type = $index_custom_column->column_item->getVirtualColumnTypeName();
 
-            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $index_custom_column);
+            \Illuminate\Support\Facades\Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            \Illuminate\Support\Facades\Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $index_custom_column);
         }
     }
 
@@ -638,7 +638,7 @@ class PatchDataCommand extends Command
         $templates_data_path = exment_package_path('system_template');
         $configPath = "$templates_data_path/config.json";
 
-        $json = json_decode_ex(\File::get($configPath), true);
+        $json = json_decode_ex(\Illuminate\Support\Facades\File::get($configPath), true);
 
         // re-loop columns. because we have to get other column id --------------------------------------------------
         // @phpstan-ignore-next-line
@@ -765,12 +765,12 @@ class PatchDataCommand extends Command
     // @phpstan-ignore-next-line
     protected function patchSystemAuthoritable()
     {
-        if (!\Schema::hasTable('system_authoritable')) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('system_authoritable')) {
             return;
         }
 
         ///// move system admin to System
-        $system_authoritable = \DB::table('system_authoritable')
+        $system_authoritable = \Illuminate\Support\Facades\DB::table('system_authoritable')
         ->where('morph_type', 'system')
         ->where('role_id', 1)
         ->get();
@@ -802,13 +802,13 @@ class PatchDataCommand extends Command
     // @phpstan-ignore-next-line
     protected function patchValueAuthoritable()
     {
-        if (!\Schema::hasTable('roles') || !\Schema::hasTable('value_authoritable') || !\Schema::hasTable(CustomValueAuthoritable::getTableName())) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('roles') || !\Illuminate\Support\Facades\Schema::hasTable('value_authoritable') || !\Illuminate\Support\Facades\Schema::hasTable(CustomValueAuthoritable::getTableName())) {
             return;
         }
 
         ///// value_auth to custom_value_auth
         // get role info
-        $valueRoles = \DB::table('roles')
+        $valueRoles = \Illuminate\Support\Facades\DB::table('roles')
             ->where('role_type', RoleType::VALUE)
             ->get();
 
@@ -826,7 +826,7 @@ class PatchDataCommand extends Command
         }
 
         //get value_auth
-        $value_authoritable = \DB::table('value_authoritable')
+        $value_authoritable = \Illuminate\Support\Facades\DB::table('value_authoritable')
             ->get();
         $custom_value_authoritables = [];
         foreach ($value_authoritable as $v) {
@@ -849,7 +849,7 @@ class PatchDataCommand extends Command
             ];
         }
 
-        \DB::table(CustomValueAuthoritable::getTableName())
+        \Illuminate\Support\Facades\DB::table(CustomValueAuthoritable::getTableName())
             ->insert($custom_value_authoritables);
     }
 
@@ -861,7 +861,7 @@ class PatchDataCommand extends Command
     protected function updateRoleMenu()
     {
         // remove "role" menu
-        \DB::table('admin_menu')
+        \Illuminate\Support\Facades\DB::table('admin_menu')
             ->where('menu_type', 'system')
             ->where('menu_target', 'role')
             ->update([
@@ -939,7 +939,7 @@ class PatchDataCommand extends Command
     {
         // get app/$pathName folder
         $beforeFolder = app_path($pathName);
-        if (!\File::isDirectory($beforeFolder)) {
+        if (!\Illuminate\Support\Facades\File::isDirectory($beforeFolder)) {
             return;
         }
 
@@ -953,7 +953,7 @@ class PatchDataCommand extends Command
                 continue;
             }
             $oldPath = path_join($beforeFolder, $before);
-            \File::move($oldPath, getFullpath($before, $diskName));
+            \Illuminate\Support\Facades\File::move($oldPath, getFullpath($before, $diskName));
         }
     }
 
@@ -1149,7 +1149,7 @@ class PatchDataCommand extends Command
 
         $func($query, 'system_value', function ($item) {
             $value = array_get($item, "system_value");
-            $item->system_value = \Exment::replaceBackToSlash($value);
+            $item->system_value = \Exceedone\Exment\Facades\ExmentFacade::replaceBackToSlash($value);
         });
     }
 
@@ -1164,7 +1164,7 @@ class PatchDataCommand extends Command
             return;
         }
 
-        \ExmentDB::transaction(function () {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () {
             // modify custom table file column
             CustomTable::all()->each(function ($custom_table) {
                 $dbName = getDBTableName($custom_table);
@@ -1172,7 +1172,7 @@ class PatchDataCommand extends Command
                     return;
                 }
 
-                $query = \DB::table("$dbName as custom_value")
+                $query = \Illuminate\Support\Facades\DB::table("$dbName as custom_value")
                     ->join(SystemTableName::REVISION, function ($join) use ($custom_table) {
                         $join->on('custom_value.id', 'revisions.revisionable_id');
                         $join->where('revisions.revisionable_type', $custom_table->table_name);
@@ -1197,10 +1197,10 @@ class PatchDataCommand extends Command
                     }
 
                     // delete target revision
-                    \DB::table(SystemTableName::REVISION)->where('id', $revision_id)->delete();
+                    \Illuminate\Support\Facades\DB::table(SystemTableName::REVISION)->where('id', $revision_id)->delete();
 
                     // re-set revision_no
-                    $reset_revisions = \DB::table(SystemTableName::REVISION)
+                    $reset_revisions = \Illuminate\Support\Facades\DB::table(SystemTableName::REVISION)
                         ->where('revisionable_id', array_get($r, 'revisionable_id'))
                         ->where('revisionable_type', array_get($r, 'revisionable_type'))
                         ->orderBy('revision_no')
@@ -1209,7 +1209,7 @@ class PatchDataCommand extends Command
 
                     foreach ($reset_revisions as $index => $reset_revision) {
                         $reset_r = (array)$reset_revision;
-                        \DB::table(SystemTableName::REVISION)->where('id', $reset_r['id'])->update(['revision_no' => ($index + 1)]);
+                        \Illuminate\Support\Facades\DB::table(SystemTableName::REVISION)->where('id', $reset_r['id'])->update(['revision_no' => ($index + 1)]);
                     }
                 }
             });
@@ -1224,7 +1224,7 @@ class PatchDataCommand extends Command
     protected function setLoginTypeSso()
     {
         // patch login provider already logined.
-        \DB::table('login_users')->whereNotNull('login_provider')->where('login_type', LoginType::PURE)->update(['login_type' => LoginType::OAUTH]);
+        \Illuminate\Support\Facades\DB::table('login_users')->whereNotNull('login_provider')->where('login_type', LoginType::PURE)->update(['login_type' => LoginType::OAUTH]);
 
 
         // update system value
@@ -1458,7 +1458,7 @@ class PatchDataCommand extends Command
             return;
         }
 
-        \ExmentDB::transaction(function () use ($classes) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($classes) {
             foreach ($classes as $c) {
                 $c::all()->each(function ($v) {
                     if (!is_nullorempty($v->suuid)) {
@@ -1852,7 +1852,7 @@ class PatchDataCommand extends Command
             return;
         }
 
-        $disk = \Storage::disk(config('admin.upload.disk'));
+        $disk = \Illuminate\Support\Facades\Storage::disk(config('admin.upload.disk'));
 
         // Remove file eloquent, If not contains custom value data.
         Model\File::where('parent_type', $custom_table->table_name)
@@ -1975,7 +1975,7 @@ class PatchDataCommand extends Command
         $custom_table_user = CustomTable::getEloquent(SystemTableName::USER);
         $custom_table_organization = CustomTable::getEloquent(SystemTableName::ORGANIZATION);
 
-        \ExmentDB::transaction(function () use ($custom_table_user, $custom_table_organization) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($custom_table_user, $custom_table_organization) {
             CustomColumn::get()
             ->each(function ($custom_column) use ($custom_table_user, $custom_table_organization) {
                 if ($custom_column->column_type != Enums\ColumnType::SELECT_TABLE) {
@@ -2008,7 +2008,7 @@ class PatchDataCommand extends Command
      */
     protected function setFileType()
     {
-        \ExmentDB::transaction(function () {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () {
             // get file_type is null
             Model\File::whereNull('file_type')->get()
             ->each(function ($file) {
@@ -2043,7 +2043,7 @@ class PatchDataCommand extends Command
      */
     protected function patchCustomViewSummaryViewPivot()
     {
-        \ExmentDB::transaction(function () {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () {
             $classNames = [CustomViewSummary::class, CustomViewColumn::class];
             foreach ($classNames as $className) {
                 // get all CustomViewSummary
@@ -2103,7 +2103,7 @@ class PatchDataCommand extends Command
      */
     protected function patchNotifyTime()
     {
-        \ExmentDB::transaction(function () {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () {
             // get all CustomViewSummary
             Notify::where('notify_trigger', Enums\NotifyTrigger::TIME)
             ->get()
@@ -2166,7 +2166,7 @@ class PatchDataCommand extends Command
      */
     protected function setFileParent()
     {
-        \ExmentDB::transaction(function () {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () {
             $column_key = CustomColumn::getEloquent('file_uuid', SystemTableName::DOCUMENT)->getQueryKey();
             // get file_type is null
             Model\File::where('file_type', '2')->whereNull('parent_id')->get()
@@ -2195,7 +2195,7 @@ class PatchDataCommand extends Command
         if (!$user_table) {
             return;
         }
-        \ExmentDB::transaction(function () use ($user_table) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($user_table) {
             foreach ($user_table->custom_columns as $custom_column) {
                 switch ($custom_column->column_name) {
                     case 'user_code':
@@ -2223,7 +2223,7 @@ class PatchDataCommand extends Command
      */
     protected function carryWorkflowValueAuthorities()
     {
-        if (!\Schema::hasTable(SystemTableName::WORKFLOW_VALUE) || !\Schema::hasTable(SystemTableName::WORKFLOW_VALUE_AUTHORITY)) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable(SystemTableName::WORKFLOW_VALUE) || !\Illuminate\Support\Facades\Schema::hasTable(SystemTableName::WORKFLOW_VALUE_AUTHORITY)) {
             return;
         }
 
@@ -2232,7 +2232,7 @@ class PatchDataCommand extends Command
         Model\WorkflowValue::where('latest_flg', true)
             ->where('action_executed_flg', true)
             ->whereNotExists(function ($query) {
-                $query->select(\DB::raw(1))
+                $query->select(\Illuminate\Support\Facades\DB::raw(1))
                     ->from(SystemTableName::WORKFLOW_VALUE_AUTHORITY)
                     ->whereColumn(SystemTableName::WORKFLOW_VALUE_AUTHORITY . '.workflow_value_id', SystemTableName::WORKFLOW_VALUE . '.id');
             })

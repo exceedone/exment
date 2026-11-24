@@ -46,7 +46,7 @@ class Morph
     {
         // morphMap
         try {
-            //if(!canConnection() || !\Schema::hasTable(SystemTableName::CUSTOM_TABLE)){
+            //if(!canConnection() || !\Illuminate\Support\Facades\Schema::hasTable(SystemTableName::CUSTOM_TABLE)){
             if (!canConnection() || !hasTable(SystemTableName::CUSTOM_TABLE)) {
                 return;
             }

@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
  * Scenario: .env has no EXMENT_INITIALIZE=1, DB connection is wrong.
  * User completes install wizard and clicks "initialize data" on the final step.
  *
- * Bug A: InitializeForm::post() — \DB::beginTransaction() is OUTSIDE the try block.
+ * Bug A: InitializeForm::post() — \Illuminate\Support\Facades\DB::beginTransaction() is OUTSIDE the try block.
  *        If DB fails at beginTransaction → unhandled QueryException → 500.
  *        Even if inside the try, catch block has no return → returns null → PHP/Laravel error.
  *
@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\DB;
 class InitializeFormErrorTest extends FeatureTestBase
 {
     /**
-     * Bug A: When DB throws at \DB::beginTransaction() (which is OUTSIDE the try block),
+     * Bug A: When DB throws at \Illuminate\Support\Facades\DB::beginTransaction() (which is OUTSIDE the try block),
      * InitializeForm::post() must NOT let the exception propagate uncaught.
      * It must return a proper RedirectResponse with an error message.
      *
@@ -33,7 +33,7 @@ class InitializeFormErrorTest extends FeatureTestBase
      */
     public function testInitializeFormDbExceptionMustReturnRedirectNotPropagate(): void
     {
-        // Mock \DB::beginTransaction() to throw (simulates SQLSTATE[HY000][2054] or connection fail)
+        // Mock \Illuminate\Support\Facades\DB::beginTransaction() to throw (simulates SQLSTATE[HY000][2054] or connection fail)
         DB::shouldReceive('beginTransaction')
             ->once()
             ->andThrow(new \RuntimeException('SQLSTATE[HY000] [2054] The server requested authentication method unknown to the client'));

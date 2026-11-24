@@ -325,7 +325,7 @@ class Permission
             case "plugins":
                 return $this->validatePluginPermission($endpoint);
             case "notify":
-                $user = \Exment::user();
+                $user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 return $user ? $user->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE) : false;
             case "loginuser":
                 if ($this->role_type == RoleType::SYSTEM) {

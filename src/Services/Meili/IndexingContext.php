@@ -31,7 +31,7 @@ final class IndexingContext
      */
     public static function run(callable $callback)
     {
-        $guard = \Auth::guard(\Exment::getGuard());
+        $guard = \Illuminate\Support\Facades\Auth::guard(\Exceedone\Exment\Facades\ExmentFacade::getGuard());
         $user = $guard->user();
 
         // A queue worker or a console command has no viewer to begin with.

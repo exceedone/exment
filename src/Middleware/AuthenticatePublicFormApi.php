@@ -18,8 +18,8 @@ class AuthenticatePublicFormApi extends \ExmentAdminCore\Admin\Middleware\Authen
      */
     public function handle($request, Closure $next)
     {
-        if (\Auth::guard(Define::AUTHENTICATE_KEY_PUBLIC_FORM)->check()) {
-            \Exment::setGuard(Define::AUTHENTICATE_KEY_PUBLIC_FORM);
+        if (\Illuminate\Support\Facades\Auth::guard(Define::AUTHENTICATE_KEY_PUBLIC_FORM)->check()) {
+            \Exceedone\Exment\Facades\ExmentFacade::setGuard(Define::AUTHENTICATE_KEY_PUBLIC_FORM);
         } else {
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }

@@ -241,11 +241,11 @@ class LineInstallerTest extends FeatureTestBase
     public function testCustomTableCanBeDeletedWhenWorkflowTaskReadsTableIsAbsent(): void
     {
         $reads = (new \Exceedone\Exment\Model\WorkflowTaskRead())->getTable();
-        if (\Schema::hasTable("{$reads}_zz_bak")) {
-            if (\Schema::hasTable($reads)) {
-                \Schema::drop("{$reads}_zz_bak");
+        if (\Illuminate\Support\Facades\Schema::hasTable("{$reads}_zz_bak")) {
+            if (\Illuminate\Support\Facades\Schema::hasTable($reads)) {
+                \Illuminate\Support\Facades\Schema::drop("{$reads}_zz_bak");
             } else {
-                \DB::statement("RENAME TABLE `{$reads}_zz_bak` TO `{$reads}`");
+                \Illuminate\Support\Facades\DB::statement("RENAME TABLE `{$reads}_zz_bak` TO `{$reads}`");
             }
         }
         $probeName = 'zz_line_rollback_probe';
@@ -257,14 +257,14 @@ class LineInstallerTest extends FeatureTestBase
         ]);
         \Exceedone\Exment\Model\System::clearCache();
 
-        \DB::statement("RENAME TABLE `{$reads}` TO `{$reads}_zz_bak`");
+        \Illuminate\Support\Facades\DB::statement("RENAME TABLE `{$reads}` TO `{$reads}_zz_bak`");
         try {
             $probe->delete();
             \Exceedone\Exment\Model\System::clearCache();
 
             $this->assertNull(CustomTable::find($probe->id), 'custom table row must be deleted even without workflow_task_reads');
         } finally {
-            \DB::statement("RENAME TABLE `{$reads}_zz_bak` TO `{$reads}`");
+            \Illuminate\Support\Facades\DB::statement("RENAME TABLE `{$reads}_zz_bak` TO `{$reads}`");
             CustomTable::where('table_name', $probeName)->delete();
             \Exceedone\Exment\Model\System::clearCache();
         }

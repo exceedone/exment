@@ -28,7 +28,7 @@ class NotifyNav implements Renderable
      */
     public static function userKey(): string
     {
-        return md5(admin_url() . '|' . (string) \Exment::getUserId());
+        return md5(admin_url() . '|' . (string) \Exceedone\Exment\Facades\ExmentFacade::getUserId());
     }
 
     public function render()

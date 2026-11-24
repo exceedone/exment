@@ -120,10 +120,10 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
 
         ///// maybe sql server cannot replace bindings... so replace
         foreach ($query->getBindings() as $binding) {
-            $sql = preg_replace('/\?/', \Exment::wrapValue($binding), $sql, 1);
+            $sql = preg_replace('/\?/', \Exceedone\Exment\Facades\ExmentFacade::wrapValue($binding), $sql, 1);
         }
 
-        \DB::statement($sql);
+        \Illuminate\Support\Facades\DB::statement($sql);
     }
 
 
@@ -131,6 +131,6 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     public function dropView($viewName)
     {
         $viewName = $this->getQueryGrammar()->wrapTable($viewName);
-        \DB::statement("DROP VIEW IF EXISTS " . $viewName);
+        \Illuminate\Support\Facades\DB::statement("DROP VIEW IF EXISTS " . $viewName);
     }
 }

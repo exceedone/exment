@@ -14,7 +14,7 @@ class WorkflowStartView
     public static function createWorkflowStartView()
     {
         /////// first query. not has workflow value's custom value
-        return \DB::table(SystemTableName::WORKFLOW_TABLE)
+        return \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)
         ->join(SystemTableName::WORKFLOW, function ($join) {
             $join->on(SystemTableName::WORKFLOW_TABLE . '.workflow_id', SystemTableName::WORKFLOW . ".id")
             ;

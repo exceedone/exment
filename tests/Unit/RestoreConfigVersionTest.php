@@ -26,7 +26,7 @@ class RestoreConfigVersionTest extends UnitTestBase
         parent::setUp();
 
         $this->restore = (new Restore())->initBackupRestore('restore_config_version_test');
-        \File::ensureDirectoryExists($this->restore->diskService()->tmpDiskItem()->dirFullPath());
+        \Illuminate\Support\Facades\File::ensureDirectoryExists($this->restore->diskService()->tmpDiskItem()->dirFullPath());
     }
 
     protected function tearDown(): void
@@ -72,7 +72,7 @@ class RestoreConfigVersionTest extends UnitTestBase
      */
     public function testConfigIsSkippedForABrokenVersionFile()
     {
-        \File::put($this->versionFilePath(), 'not json');
+        \Illuminate\Support\Facades\File::put($this->versionFilePath(), 'not json');
         $this->assertFalse($this->canRestoreConfig());
 
         $this->writeVersionFile(['exment' => 'v7.0.0']);
@@ -85,7 +85,7 @@ class RestoreConfigVersionTest extends UnitTestBase
      */
     protected function writeVersionFile(array $versions)
     {
-        \File::put($this->versionFilePath(), json_encode($versions, JSON_THROW_ON_ERROR));
+        \Illuminate\Support\Facades\File::put($this->versionFilePath(), json_encode($versions, JSON_THROW_ON_ERROR));
     }
 
     /**

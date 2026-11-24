@@ -26,7 +26,7 @@ class CurrentPasswordRule implements Rule
         if (is_null($value)) {
             return true;
         }
-        return LoginUserProvider::ValidateCredential(\Exment::user(), ['password' => $value]);
+        return LoginUserProvider::ValidateCredential(\Exceedone\Exment\Facades\ExmentFacade::user(), ['password' => $value]);
     }
 
     /**

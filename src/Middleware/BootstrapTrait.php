@@ -21,7 +21,7 @@ trait BootstrapTrait
         static $ver = null;
         if (!isset($ver)) {
             /** @phpstan-ignore-next-line */
-            $ver = \Exment::getExmentCurrentVersion();
+            $ver = \Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion();
         }
         if (!isset($ver)) {
             $ver = date('YmdHis');

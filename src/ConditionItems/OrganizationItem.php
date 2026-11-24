@@ -41,7 +41,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $ids = \Exment::user()->belong_organizations->pluck('id')->toArray();
+        $ids = \Exceedone\Exment\Facades\ExmentFacade::user()->belong_organizations->pluck('id')->toArray();
         return $this->compareValue($condition, $ids);
     }
 
@@ -90,7 +90,7 @@ class OrganizationItem extends ConditionDetailBase implements ConditionItemInter
     // @phpstan-ignore-next-line
     public static function setWorkflowConditionQuery($query, $tableName, $custom_table)
     {
-        $ids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+        $ids = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->belong_organizations->pluck('id')->toArray();
         $query->orWhere(function ($query) use ($ids) {
             $query->whereIn('authority_related_id', $ids)
                 ->where('authority_related_type', ConditionTypeDetail::ORGANIZATION()->lowerkey());

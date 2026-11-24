@@ -142,7 +142,7 @@ class FileMetadataTest extends FeatureTestBase
         $this->assertSame(1200, $file->metadata['amount']);
 
         // the values are kept as written (the search of the database finds them)
-        $raw = \DB::table('file_nodes')->where('id', $file->id)->value('metadata');
+        $raw = \Illuminate\Support\Facades\DB::table('file_nodes')->where('id', $file->id)->value('metadata');
         $this->assertStringContainsString('A 社', strval($raw));
 
         // not a choice, not a number, a required column emptied

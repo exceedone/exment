@@ -66,7 +66,7 @@ class NotifyAlertPerUserTest extends UnitTestBase
         $notify->save();
         System::clearCache();
 
-        \Auth::guard('admin')->login(LoginUser::where('base_user_id', $actor->id)->first());
+        \Illuminate\Support\Facades\Auth::guard('admin')->login(LoginUser::where('base_user_id', $actor->id)->first());
         $table->getValueModel()->setValue('text', 'notify_alert_per_user')->save();
 
         $names = [$actor->id => 'admin', $user1->id => 'user1', $user2->id => 'user2'];

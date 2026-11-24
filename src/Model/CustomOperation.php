@@ -300,15 +300,15 @@ class CustomOperation extends ModelBase
         }
 
         // Update value
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         try {
             foreach ($custom_values as $custom_value) {
                 $updates = $this->getUpdateValues($custom_value, $inputs);
                 $custom_value->setValueStrictly($updates)->save();
             }
-            \DB::commit();
+            \Illuminate\Support\Facades\DB::commit();
         } catch (\Exception $ex) {
-            \DB::rollback();
+            \Illuminate\Support\Facades\DB::rollback();
             if ($ex instanceof ValidationException) {
 
                 // @phpstan-ignore-next-line

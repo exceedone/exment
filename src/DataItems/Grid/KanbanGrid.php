@@ -1391,7 +1391,7 @@ class KanbanGrid extends GridBase
         }
         if (!array_key_exists($table, static::$stored_columns)) {
             try {
-                $columns = \Schema::connection($query->getModel()->getConnectionName())->getColumnListing($table);
+                $columns = \Illuminate\Support\Facades\Schema::connection($query->getModel()->getConnectionName())->getColumnListing($table);
             } catch (\Throwable $e) {
                 $columns = [];
             }
@@ -1449,8 +1449,8 @@ class KanbanGrid extends GridBase
             $base->orders = null;
             $base->limit = null;
             $base->offset = null;
-            $expr = \DB::connection()->getQueryGrammar()->wrap($this->columnKey($group_column));
-            $base->columns = [\DB::raw('distinct ' . $expr . ' as kb_key')];
+            $expr = \Illuminate\Support\Facades\DB::connection()->getQueryGrammar()->wrap($this->columnKey($group_column));
+            $base->columns = [\Illuminate\Support\Facades\DB::raw('distinct ' . $expr . ' as kb_key')];
             $present = array_map(function ($value) {
                 return is_null($value) ? '' : strval($value);
             }, $base->pluck('kb_key')->all());
@@ -1484,7 +1484,7 @@ class KanbanGrid extends GridBase
             return static::$windowFunctions;
         }
         try {
-            $connection = \DB::connection();
+            $connection = \Illuminate\Support\Facades\DB::connection();
             $driver = $connection->getDriverName();
             if ($driver === 'sqlsrv') {
                 return static::$windowFunctions = true;
@@ -1530,7 +1530,7 @@ class KanbanGrid extends GridBase
             if (!empty($base->bindings['order']) || !empty($base->unions) || isset($base->limit) || isset($base->offset)) {
                 return null;
             }
-            $grammar = \DB::connection()->getQueryGrammar();
+            $grammar = \Illuminate\Support\Facades\DB::connection()->getQueryGrammar();
             $orders = [];
             foreach ($base->orders ?? [] as $order) {
                 if (isset($order['column'])) {
@@ -1572,7 +1572,7 @@ class KanbanGrid extends GridBase
             }
             return $records;
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] kanban: one query for the columns: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] kanban: one query for the columns: ' . $e->getMessage());
             return null;
         }
     }
@@ -1609,7 +1609,7 @@ class KanbanGrid extends GridBase
      */
     protected function applyLaneKey($query, $lane_column, string $lane)
     {
-        $grammar = \DB::connection()->getQueryGrammar();
+        $grammar = \Illuminate\Support\Facades\DB::connection()->getQueryGrammar();
         $expr = $grammar->wrap($this->columnKey($lane_column));
 
         if ($lane === static::EMPTY_KEY) {
@@ -1799,7 +1799,7 @@ class KanbanGrid extends GridBase
     protected function sqlNow(): string
     {
         $now = \Carbon\Carbon::now();
-        return \Exment::isSqlServer()
+        return \Exceedone\Exment\Facades\ExmentFacade::isSqlServer()
             ? "convert(datetime2, '" . $now->format('Y-m-d\TH:i:s') . "', 126)"
             : "cast('" . $now->format('Y-m-d H:i:s') . "' as datetime)";
     }
@@ -1821,7 +1821,7 @@ class KanbanGrid extends GridBase
     protected function sqlSecondsSince(string $from): string
     {
         $now = $this->sqlNow();
-        return \Exment::isSqlServer()
+        return \Exceedone\Exment\Facades\ExmentFacade::isSqlServer()
             ? "datediff_big(second, $from, $now)"
             : "timestampdiff(second, $from, $now)";
     }
@@ -1848,7 +1848,7 @@ class KanbanGrid extends GridBase
      */
     protected function sqlNumeric(string $expr): string
     {
-        return \Exment::isSqlServer() ? "try_convert(float, $expr)" : $expr;
+        return \Exceedone\Exment\Facades\ExmentFacade::isSqlServer() ? "try_convert(float, $expr)" : $expr;
     }
 
     /** How long the column figures are kept, at most (seconds). */
@@ -1881,12 +1881,12 @@ class KanbanGrid extends GridBase
         };
         try {
             $db_table = getDBTableName($this->custom_table);
-            $stamp = \DB::table($db_table)->selectRaw('count(*) as n, max(updated_at) as at')->whereNull('deleted_at')->first();
+            $stamp = \Illuminate\Support\Facades\DB::table($db_table)->selectRaw('count(*) as n, max(updated_at) as at')->whereNull('deleted_at')->first();
             $wf = isset($workflow)
-                ? \DB::table('workflow_values')->where('morph_type', $this->custom_table->table_name)->max('updated_at')
+                ? \Illuminate\Support\Facades\DB::table('workflow_values')->where('morph_type', $this->custom_table->table_name)->max('updated_at')
                 : null;
             $key = 'exment:kanban_stats:' . md5(strval(json_encode([
-                \Exment::getUserId(),
+                \Exceedone\Exment\Facades\ExmentFacade::getUserId(),
                 $this->custom_view->id,
                 strval($this->custom_view->updated_at),
                 // the SQL carries this second (sqlNow()); the kept ages are moved on by the
@@ -1897,10 +1897,10 @@ class KanbanGrid extends GridBase
                 strval($stamp->at ?? ''),
                 strval($wf),
             ])));
-            $kept = \Cache::get($key);
+            $kept = \Illuminate\Support\Facades\Cache::get($key);
             if (!is_array($kept) || !isset($kept['at'], $kept['rows'])) {
                 $kept = ['at' => time(), 'rows' => $read()];
-                \Cache::put($key, $kept, static::STATS_CACHE_SECONDS);
+                \Illuminate\Support\Facades\Cache::put($key, $kept, static::STATS_CACHE_SECONDS);
             }
         } catch (\Throwable $e) {
             $kept = ['at' => time(), 'rows' => $read()];
@@ -1960,7 +1960,7 @@ class KanbanGrid extends GridBase
         $base->limit = null;
         $base->offset = null;
 
-        $grammar = \DB::connection()->getQueryGrammar();
+        $grammar = \Illuminate\Support\Facades\DB::connection()->getQueryGrammar();
         $table_expr = $grammar->wrapTable($db_table);
 
         if (isset($workflow)) {
@@ -1970,7 +1970,7 @@ class KanbanGrid extends GridBase
             // this same query and reads workflow_status_to_id without a table
             // in front; a second table holding that column made the name
             // ambiguous and the whole board failed.
-            $latest = \DB::table('workflow_values')
+            $latest = \Illuminate\Support\Facades\DB::table('workflow_values')
                 ->select([
                     'morph_id as kb_mid',
                     'workflow_status_to_id as kb_status',
@@ -1991,26 +1991,26 @@ class KanbanGrid extends GridBase
         }
 
         $selects = [
-            \DB::raw($group_expr . ' as kb_key'),
-            \DB::raw('count(*) as kb_count'),
-            \DB::raw('sum(' . $this->sqlSecondsSince($entered_expr) . ') as kb_seconds'),
+            \Illuminate\Support\Facades\DB::raw($group_expr . ' as kb_key'),
+            \Illuminate\Support\Facades\DB::raw('count(*) as kb_count'),
+            \Illuminate\Support\Facades\DB::raw('sum(' . $this->sqlSecondsSince($entered_expr) . ') as kb_seconds'),
         ];
         if (isset($sum_column)) {
-            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($sum_column))) . ') as kb_sum');
+            $selects[] = \Illuminate\Support\Facades\DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($sum_column))) . ') as kb_sum');
         }
         if (isset($wip_column)) {
-            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($wip_column))) . ') as kb_load');
+            $selects[] = \Illuminate\Support\Facades\DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($wip_column))) . ') as kb_load');
         }
         // the KPI row is counted here as well: it sits right above these column
         // heads, so it has to be reading the same table, not the page
         if (isset($assignee_column)) {
             $who = $grammar->wrap($this->columnKey($assignee_column));
-            $selects[] = \DB::raw("sum(case when $who is null or $who = '' then 1 else 0 end) as kb_unassigned");
+            $selects[] = \Illuminate\Support\Facades\DB::raw("sum(case when $who is null or $who = '' then 1 else 0 end) as kb_unassigned");
         }
         if (isset($limit_column)) {
             $due = $grammar->wrap($this->columnKey($limit_column));
             $now = $this->sqlNow();
-            $selects[] = \DB::raw("sum(case when $due is not null and $due <> '' and $due < $now then 1 else 0 end) as kb_breach");
+            $selects[] = \Illuminate\Support\Facades\DB::raw("sum(case when $due is not null and $due <> '' and $due < $now then 1 else 0 end) as kb_breach");
         }
         if (isset($age_column)) {
             $since = $grammar->wrap($this->columnKey($age_column));
@@ -2019,19 +2019,19 @@ class KanbanGrid extends GridBase
             // begun to age. Averaged in, it counted as negative days and could
             // drag the figure below zero. The blank check stays first so the
             // date arithmetic only ever sees a date.
-            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else $elapsed end) as kb_agesum");
-            $selects[] = \DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else 1 end) as kb_agen");
+            $selects[] = \Illuminate\Support\Facades\DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else $elapsed end) as kb_agesum");
+            $selects[] = \Illuminate\Support\Facades\DB::raw("sum(case when $since is null or $since = '' then 0 when $elapsed < 0 then 0 else 1 end) as kb_agen");
         }
 
         // one more grouping level: the swimlane the view was set up with
         $lane_expr = isset($lane_column) ? $grammar->wrap($this->columnKey($lane_column)) : null;
         if (isset($lane_expr)) {
-            $selects[] = \DB::raw($lane_expr . ' as kb_lane');
+            $selects[] = \Illuminate\Support\Facades\DB::raw($lane_expr . ' as kb_lane');
         }
 
-        $groups = [\DB::raw($group_expr)];
+        $groups = [\Illuminate\Support\Facades\DB::raw($group_expr)];
         if (isset($lane_expr)) {
-            $groups[] = \DB::raw($lane_expr);
+            $groups[] = \Illuminate\Support\Facades\DB::raw($lane_expr);
         }
 
         $real_keys = $this->getRealBoardKeys($group_column);
@@ -2231,14 +2231,14 @@ class KanbanGrid extends GridBase
      */
     protected function applyKeyword($query, string $keyword, array $value_columns)
     {
-        $grammar = \DB::connection()->getQueryGrammar();
+        $grammar = \Illuminate\Support\Facades\DB::connection()->getQueryGrammar();
         // the wildcards belong to us, not to whatever the user typed
         $like = '%' . str_replace(['\\', '%', '_'], ['\\\\', '\%', '\_'], $keyword) . '%';
 
         $applied = 0;
         $query->where(function ($q) use ($value_columns, $keyword, $like, $grammar, &$applied) {
             foreach ($value_columns as $custom_column) {
-                $expr = \DB::raw($grammar->wrap($this->columnKey($custom_column)));
+                $expr = \Illuminate\Support\Facades\DB::raw($grammar->wrap($this->columnKey($custom_column)));
 
                 if (static::isSelectableColumn($custom_column)) {
                     $keys = $this->keywordKeys($custom_column, $keyword);
@@ -3430,13 +3430,13 @@ class KanbanGrid extends GridBase
         // a select_table only holds people when the table it points at does
         $column_type = static::normalizedColumnType($mine_column);
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return [];
         }
 
         if ($column_type == ColumnType::USER) {
-            $user_id = \Exment::getUserId();
+            $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             return is_nullorempty($user_id) ? [] : [strval($user_id)];
         }
 
@@ -3472,7 +3472,7 @@ class KanbanGrid extends GridBase
     protected function lookupMyKeys($mine_column)
     {
         $target = $mine_column->select_target_table;
-        $user_id = \Exment::getUserId();
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         if (!isset($target) || is_nullorempty($user_id)) {
             return [];
         }

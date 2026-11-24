@@ -77,7 +77,7 @@ class SavedSearchBar
     public static function canShareAll(): bool
     {
         try {
-            $user = \Exment::user();
+            $user = \Exceedone\Exment\Facades\ExmentFacade::user();
             return $user !== null && $user->hasPermission(Permission::SYSTEM);
         } catch (\Throwable $e) {
             return false;
@@ -95,7 +95,7 @@ class SavedSearchBar
         try {
             $query = RoleGroup::orderBy('role_group_order');
             if (!self::canShareAll()) {
-                $base = \Exment::user()?->base_user;
+                $base = \Exceedone\Exment\Facades\ExmentFacade::user()?->base_user;
                 $query->whereIn('id', $base ? $base->belong_role_groups_all()->pluck('id')->all() : []);
             }
             return $query->get()
@@ -124,7 +124,7 @@ class SavedSearchBar
             }
             $query = getModelName($table)::query();
             if (!self::canShareAll()) {
-                $base = \Exment::user()?->base_user;
+                $base = \Exceedone\Exment\Facades\ExmentFacade::user()?->base_user;
                 $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_custom_value(), JoinedOrgFilterType::ONLY_JOIN);
                 $query->whereIn('id', $base ? (array) $base->getOrganizationIdsForQuery($enum) : []);
             }

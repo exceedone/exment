@@ -113,7 +113,7 @@ class Condition extends ModelBase
 
         $id = static::templateColumnRefToId($ref);
         if (is_null($id)) {
-            \Log::warning('Exment template import: condition skipped, column "' . strval($ref) . '" does not exist on this system.');
+            \Illuminate\Support\Facades\Log::warning('Exment template import: condition skipped, column "' . strval($ref) . '" does not exist on this system.');
             return TemplateImportResult::CONITNUE;
         }
 

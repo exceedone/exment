@@ -43,7 +43,7 @@ class LineActingUser
      */
     public static function runAs(LoginUser $loginUser, \Closure $callback)
     {
-        $guard = \Auth::guard(config('admin.auth.guard', 'admin'));
+        $guard = \Illuminate\Support\Facades\Auth::guard(config('admin.auth.guard', 'admin'));
         System::clearRequestSession();
         $guard->login($loginUser);
         try {

@@ -843,7 +843,7 @@ class LaravelAdminFieldTest extends TestCase
      */
     protected function _testLaravelField(\Closure $fieldOptionCallback, $value, bool $testResult, array $errors = [])
     {
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
 
         $this->initAllTest();

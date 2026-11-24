@@ -100,7 +100,7 @@ class PermissionInheritParentTest extends UnitTestBase
         $user = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER2);
 
         if (isset($custom_value) && isset($permission)) {
-            \DB::table('custom_value_authoritables')->insert([
+            \Illuminate\Support\Facades\DB::table('custom_value_authoritables')->insert([
                 'parent_id' => $custom_value->id,
                 'parent_type' => $custom_value->custom_table->table_name,
                 'authoritable_type' => $permission,

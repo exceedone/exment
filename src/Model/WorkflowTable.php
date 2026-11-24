@@ -86,7 +86,7 @@ class WorkflowTable extends ModelBase
         $table_name = array_get($json, 'table_name');
         $custom_table = is_nullorempty($table_name) ? null : CustomTable::where('table_name', $table_name)->first();
         if (!isset($custom_table)) {
-            \Log::warning('Exment template import: workflow table skipped, table "' . strval($table_name) . '" does not exist on this system.');
+            \Illuminate\Support\Facades\Log::warning('Exment template import: workflow table skipped, table "' . strval($table_name) . '" does not exist on this system.');
             return TemplateImportResult::CONITNUE;
         }
 
@@ -118,7 +118,7 @@ class WorkflowTable extends ModelBase
             return;
         }
 
-        \Log::warning('Exment template import: workflow imported inactive on table "' . $table_name . '", another workflow is active for an overlapping period or the period is invalid.');
+        \Illuminate\Support\Facades\Log::warning('Exment template import: workflow imported inactive on table "' . $table_name . '", another workflow is active for an overlapping period or the period is invalid.');
         $json['active_flg'] = 0;
         $json['active_start_date'] = null;
         $json['active_end_date'] = null;

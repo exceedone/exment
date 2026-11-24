@@ -334,7 +334,7 @@ class KanbanFixTest extends UnitTestBase
 
         $expected = [];
         foreach ($target->getValueModel()->query()->get() as $row) {
-            if (strval(array_get($row->value, 'user')) === strval(\Exment::getUserId())) {
+            if (strval(array_get($row->value, 'user')) === strval(\Exceedone\Exment\Facades\ExmentFacade::getUserId())) {
                 $expected[] = strval($row->id);
             }
         }
@@ -365,7 +365,7 @@ class KanbanFixTest extends UnitTestBase
         );
         $options = $lookup->options ?? [];
         $options['select_target_view'] = $sorted->id;
-        \DB::table('custom_columns')->where('id', $lookup->id)->update(['options' => json_encode($options)]);
+        \Illuminate\Support\Facades\DB::table('custom_columns')->where('id', $lookup->id)->update(['options' => json_encode($options)]);
 
         $view = $this->createKanbanView('pivot_table', [
             'kanban_group_column_id' => CustomColumn::getEloquent('parent', $table)->id,
@@ -526,7 +526,7 @@ class KanbanFixTest extends UnitTestBase
         $record = $table->getValueModel()->query()->find(7);
         $value = $record->value;
         $value['text'] = 'R&D <b>';
-        \DB::table(getDBTableName($table))->where('id', 7)->update(['value' => json_encode($value)]);
+        \Illuminate\Support\Facades\DB::table(getDBTableName($table))->where('id', 7)->update(['value' => json_encode($value)]);
 
         $view = $this->createKanbanView(static::WORKFLOW_TABLE, ['kanban_source' => KanbanGrid::SOURCE_WORKFLOW], [
             ['column' => 'text'],
@@ -764,7 +764,7 @@ class KanbanFixTest extends UnitTestBase
         \Exceedone\Exment\Model\System::clearRequestSession();
         $queries = 0;
         $target = getDBTableName($linked->select_target_table);
-        \DB::listen(function ($query) use (&$queries, $target) {
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$queries, $target) {
             if (strpos($query->sql, $target) !== false) {
                 $queries++;
             }
@@ -877,7 +877,7 @@ class KanbanFixTest extends UnitTestBase
 
         // somebody else saves the record after the board was read
         $other_save = \Carbon\Carbon::parse($card['updated_at'])->subMinutes(5)->format('Y-m-d H:i:s');
-        \DB::table(getDBTableName($table))->where('id', $card['id'])->update(['updated_at' => $other_save]);
+        \Illuminate\Support\Facades\DB::table(getDBTableName($table))->where('id', $card['id'])->update(['updated_at' => $other_save]);
 
         [$status, $body] = $this->callBoardWrite($table, intval($card['id']), ['select' => $target], $card['updated_at']);
         $this->assertSame(400, $status, 'A move sent with a stale lock is refused.');
@@ -888,7 +888,7 @@ class KanbanFixTest extends UnitTestBase
         [$status, $saved] = $this->callBoardWrite($table, intval($card['id']), ['select' => $target], $other_save);
         $this->assertSame(200, $status, 'A move sent with the current lock goes through.');
         $this->assertSame($target, $this->storedValue($table, intval($card['id']), 'select'));
-        $stored_lock = \DB::table(getDBTableName($table))->where('id', $card['id'])->value('updated_at');
+        $stored_lock = \Illuminate\Support\Facades\DB::table(getDBTableName($table))->where('id', $card['id'])->value('updated_at');
         $this->assertSame(\Carbon\Carbon::parse($stored_lock)->format('Y-m-d H:i:s'), $saved['updated_at'] ?? null, 'The answer is the lock the next write sends.');
 
         // and that lock is accepted by the next write of the same card
@@ -1179,7 +1179,7 @@ class KanbanFixTest extends UnitTestBase
      */
     protected function storedValue(CustomTable $table, int $id, string $column_name)
     {
-        $value = \DB::table(getDBTableName($table))->where('id', $id)->value('value');
+        $value = \Illuminate\Support\Facades\DB::table(getDBTableName($table))->where('id', $id)->value('value');
         return array_get(json_decode(strval($value), true) ?? [], $column_name);
     }
 
@@ -1198,8 +1198,8 @@ class KanbanFixTest extends UnitTestBase
             return $action->action_name == 'action3';
         });
         $this->assertNotNull($action, 'Precondition: the fixture workflow has the send-back action.');
-        \DB::table('workflow_values')->where('morph_type', $table->table_name)->where('morph_id', $id)->update(['latest_flg' => 0]);
-        \DB::table('workflow_values')->insert([
+        \Illuminate\Support\Facades\DB::table('workflow_values')->where('morph_type', $table->table_name)->where('morph_id', $id)->update(['latest_flg' => 0]);
+        \Illuminate\Support\Facades\DB::table('workflow_values')->insert([
             'workflow_id' => $workflow->id,
             'morph_type' => $table->table_name,
             'morph_id' => $id,
@@ -1230,7 +1230,7 @@ class KanbanFixTest extends UnitTestBase
     {
         $block = $form->custom_form_blocks()->where('form_block_type', FormBlockType::DEFAULT)->first();
         $this->assertNotNull($block);
-        $updated = \DB::table('custom_form_columns')
+        $updated = \Illuminate\Support\Facades\DB::table('custom_form_columns')
             ->where('custom_form_block_id', $block->id)
             ->where('form_column_target_id', $column->id)
             ->update(['options' => json_encode($options)]);
@@ -1406,11 +1406,11 @@ class KanbanFixTest extends UnitTestBase
                 $count++;
             }
         };
-        \Event::listen('eloquent.retrieved: *', $listener);
+        \Illuminate\Support\Facades\Event::listen('eloquent.retrieved: *', $listener);
         try {
             $callback();
         } finally {
-            \Event::forget('eloquent.retrieved: *');
+            \Illuminate\Support\Facades\Event::forget('eloquent.retrieved: *');
         }
 
         return $count;

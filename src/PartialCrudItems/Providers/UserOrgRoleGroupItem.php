@@ -24,7 +24,7 @@ class UserOrgRoleGroupItem extends ProviderBase
             return;
         }
 
-        if (!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])) {
             return;
         }
 
@@ -54,7 +54,7 @@ class UserOrgRoleGroupItem extends ProviderBase
             return;
         }
 
-        if (!\Exment::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])) {
             return;
         }
 
@@ -72,7 +72,7 @@ class UserOrgRoleGroupItem extends ProviderBase
             ];
         });
 
-        \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_groups, [
+        \Illuminate\Support\Facades\Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_groups, [
             'dbValueFilter' => function (&$model) use ($id) {
                 $model->where('role_group_target_id', $id)
                     ->where('role_group_user_org_type', $this->custom_table->table_name);

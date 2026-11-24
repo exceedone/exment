@@ -146,6 +146,6 @@ class UnitPerformanceTest extends TestCase
         $time = microtime(true) - $time_start;
 
         $millisecond = $time * 1000;
-        \Log::debug("{$funcName} : {$millisecond} millisecond");
+        \Illuminate\Support\Facades\Log::debug("{$funcName} : {$millisecond} millisecond");
     }
 }

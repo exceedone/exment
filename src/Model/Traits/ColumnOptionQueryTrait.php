@@ -24,7 +24,7 @@ trait ColumnOptionQueryTrait
     protected static function getOptionKey($column_key, $append_table = true, $table_id = null, $options = [])
     {
 
-        return \Exment::getOptionKey($column_key, $append_table, $table_id, $options);
+        return \Exceedone\Exment\Facades\ExmentFacade::getOptionKey($column_key, $append_table, $table_id, $options);
     }
 
     /**

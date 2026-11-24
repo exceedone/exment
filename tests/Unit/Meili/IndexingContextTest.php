@@ -25,7 +25,7 @@ class IndexingContextTest extends UnitTestBase
 
         // Both halves matter: the guard keeps the user in a property AND reads
         // it back from the session when that property is empty.
-        $guard = \Auth::guard(\Exment::getGuard());
+        $guard = \Illuminate\Support\Facades\Auth::guard(\Exceedone\Exment\Facades\ExmentFacade::getGuard());
         session()->put($guard->getName(), $user->getAuthIdentifier());
         $guard->setUser($user);
 
@@ -35,15 +35,15 @@ class IndexingContextTest extends UnitTestBase
     public function testTheBlockRunsWithNoViewer(): void
     {
         $user = $this->loginSomeone();
-        $this->assertNotNull(\Exment::user());
+        $this->assertNotNull(\Exceedone\Exment\Facades\ExmentFacade::user());
 
-        $inside = IndexingContext::run(fn () => \Exment::user());
+        $inside = IndexingContext::run(fn () => \Exceedone\Exment\Facades\ExmentFacade::user());
 
         $this->assertNull($inside, 'the document must be built with no viewer');
-        $this->assertNotNull(\Exment::user(), 'the viewer must be back afterwards');
+        $this->assertNotNull(\Exceedone\Exment\Facades\ExmentFacade::user(), 'the viewer must be back afterwards');
         $this->assertSame(
             $user->getAuthIdentifier(),
-            session()->get(\Auth::guard(\Exment::getGuard())->getName())
+            session()->get(\Illuminate\Support\Facades\Auth::guard(\Exceedone\Exment\Facades\ExmentFacade::getGuard())->getName())
         );
     }
 
@@ -94,14 +94,14 @@ class IndexingContextTest extends UnitTestBase
                 throw new \RuntimeException('meilisearch is down');
             });
         } finally {
-            $this->assertNotNull(\Exment::user());
+            $this->assertNotNull(\Exceedone\Exment\Facades\ExmentFacade::user());
         }
     }
 
     /** A queue worker has no viewer to begin with: nothing to swap, nothing to clear. */
     public function testWithNoViewerTheCacheIsLeftAlone(): void
     {
-        \Auth::guard(\Exment::getGuard())->logout();
+        \Illuminate\Support\Facades\Auth::guard(\Exceedone\Exment\Facades\ExmentFacade::getGuard())->logout();
         System::setRequestSession('meili_indexing_probe_worker', 'kept');
 
         IndexingContext::run(fn () => null);

@@ -18,7 +18,7 @@ abstract class ExistsBase extends ViewFilterBase
         $isMultiple = $this->column_item->isMultipleEnabled();
         $query_value = jsonToArray($query_value);
 
-        $isUseUnicode = \ExmentDB::isUseUnicodeMultipleColumn();
+        $isUseUnicode = \Exceedone\Exment\Facades\ExmentDBFacade::isUseUnicodeMultipleColumn();
         $query_value = collect($query_value)->map(function ($val) use ($isMultiple, $isUseUnicode) {
             return $isMultiple && $isUseUnicode ? json_list_item($val) : $val;
         })->toArray();

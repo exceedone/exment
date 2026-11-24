@@ -86,7 +86,7 @@ class CarbonNumericSettingTest extends FeatureTestBase
 
         (new Email())->insertVerify();
 
-        $row = \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+        $row = \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->where('login_user_id', $loginUser->id)
             ->orderByDesc('id')
             ->first();

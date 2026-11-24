@@ -194,7 +194,7 @@ class Uploader
 
     protected static function remove(FileUploadSession $session): void
     {
-        \File::deleteDirectory(static::dir($session->id));
+        \Illuminate\Support\Facades\File::deleteDirectory(static::dir($session->id));
         $session->delete();
     }
 

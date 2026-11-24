@@ -223,7 +223,7 @@ class AdminNotices
                     ]);
                     $navbar->save();
                 } catch (\Throwable $e) {
-                    \Log::warning('[Exment] the notice to the administrators: ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::warning('[Exment] the notice to the administrators: ' . $e->getMessage());
                 }
                 if (!$notice['mail']) {
                     continue;
@@ -237,7 +237,7 @@ class AdminNotices
                         ]);
                     }
                 } catch (\Throwable $e) {
-                    \Log::warning('[Exment] the mail of the notice to the administrators: ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::warning('[Exment] the mail of the notice to the administrators: ' . $e->getMessage());
                 }
             }
         }

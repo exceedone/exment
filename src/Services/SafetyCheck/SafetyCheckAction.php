@@ -77,7 +77,7 @@ class SafetyCheckAction
                     ->orderBy('id', 'desc')
                     ->pluck('id');
 
-                return \DB::transaction(function () use ($answerTable, $eventIds, $userId, $text) {
+                return \Illuminate\Support\Facades\DB::transaction(function () use ($answerTable, $eventIds, $userId, $text) {
                     $answerRow = null;
                     foreach ($eventIds as $eventId) {
                         $row = self::findAnswerRow($answerTable, $eventId, $userId);
@@ -134,7 +134,7 @@ class SafetyCheckAction
             return false;
         }
 
-        return \DB::transaction(function () use ($answerTable, $eventId, $userId, $status, $channel, $comment) {
+        return \Illuminate\Support\Facades\DB::transaction(function () use ($answerTable, $eventId, $userId, $status, $channel, $comment) {
             $answerRow = self::findAnswerRow($answerTable, $eventId, $userId);
             if (!$answerRow) {
                 return false;

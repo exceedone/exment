@@ -71,7 +71,7 @@ class MeiliSavedSearch extends ModelBase
      */
     public static function listForCurrentUser()
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$user) {
             return collect();
         }
@@ -143,7 +143,7 @@ class MeiliSavedSearch extends ModelBase
      */
     public function canManage(): bool
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$user) {
             return false;
         }

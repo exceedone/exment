@@ -51,7 +51,7 @@ class FileSearch
         try {
             FileServerTextJob::dispatch($version->id);
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not queue the text of version ' . $version->id . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not queue the text of version ' . $version->id . ': ' . $e->getMessage());
         }
     }
 
@@ -76,7 +76,7 @@ class FileSearch
                 static::putText($node, $version, $result[0], FileNodeText::STATUS_DONE, $result[1]);
             }
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not take the text of version ' . $version->id . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not take the text of version ' . $version->id . ': ' . $e->getMessage());
             static::putText($node, $version, null, FileNodeText::STATUS_FAILED, null);
         } finally {
             if (isset($local)) {
@@ -139,7 +139,7 @@ class FileSearch
                 $index->deleteDocuments($remove);
             }
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not update the search index: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not update the search index: ' . $e->getMessage());
         }
     }
 
@@ -267,7 +267,7 @@ class FileSearch
                 return intval($hit['id'] ?? 0);
             }, $result->getHits());
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] the search of Meilisearch failed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] the search of Meilisearch failed: ' . $e->getMessage());
             return null;
         }
         if (count($ids) === 0) {

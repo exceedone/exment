@@ -34,7 +34,7 @@ class DataLinks
      */
     public static function tables(): Collection
     {
-        if (!isset(\Exment::user()->base_user)) {
+        if (!isset(\Exceedone\Exment\Facades\ExmentFacade::user()->base_user)) {
             return collect();
         }
         /** @var Collection<int, CustomTable> $tables */

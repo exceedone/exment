@@ -194,7 +194,7 @@ class AutoTuningTest extends UnitTestBase
         // log the new administrator in to it and lose the login
         AutoTuning::$artisan = null;
         $app = app();
-        \Artisan::command('exment-test:auto-tuning-swap', function () {
+        \Illuminate\Support\Facades\Artisan::command('exment-test:auto-tuning-swap', function () {
             \Illuminate\Container\Container::setInstance(new \Illuminate\Container\Container());
         });
         AutoTuning::artisan('exment-test:auto-tuning-swap');

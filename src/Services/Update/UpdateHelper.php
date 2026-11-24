@@ -18,7 +18,7 @@ class UpdateHelper extends UpdateHelperBase
     {
         foreach ($dependencies as $name => $version) {
             // EXMENT_COMPOSER_PATH is one program (a path or "composer"), passed as one quoted argument
-            $composer = escapeshellarg(\Exment::getComposerPath());
+            $composer = escapeshellarg(\Exceedone\Exment\Facades\ExmentFacade::getComposerPath());
             //$output = shell_exec("composer require {$name}={$version} --no-scripts");
             chdir(base_path());
             exec("{$composer} require {$name}={$version} --no-scripts", $output, $return_var);

@@ -48,7 +48,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
         $func = $isNot ? 'whereNotExists' : 'whereExists';
         $builder->{$func}(function ($query) use ($values, $fromRaw, $tableNameWrap, $tableNameWrapAs) {
-            $query->select(\DB::raw(1))
+            $query->select(\Illuminate\Support\Facades\DB::raw(1))
                 // fromRaw is wrapped.
                 ->fromRaw($fromRaw)
                 // $tableNameWrapAs and $tableNameWrap is wrapped.
@@ -85,7 +85,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
         $func = $isNot ? 'whereNotExists' : 'whereExists';
         $builder->{$func}(function ($query) use ($baseColumn, $fromRaw, $tableNameWrap, $tableNameWrapAs) {
-            $query->select(\DB::raw(1))
+            $query->select(\Illuminate\Support\Facades\DB::raw(1))
                 // fromRaw is wrapped.
                 ->fromRaw($fromRaw)
                 // $tableNameWrapAs and $tableNameWrap is wrapped.

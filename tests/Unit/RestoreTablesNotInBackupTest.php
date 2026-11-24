@@ -22,7 +22,7 @@ class RestoreTablesNotInBackupTest extends UnitTestBase
     {
         parent::setUp();
 
-        if (!(\DB::connection() instanceof MySqlConnection)) {
+        if (!(\Illuminate\Support\Facades\DB::connection() instanceof MySqlConnection)) {
             $this->markTestSkipped('restore of the database runs on MySQL / MariaDB only');
         }
     }
@@ -170,6 +170,6 @@ class RestoreTablesNotInBackupTest extends UnitTestBase
         $reflection = new \ReflectionMethod(MySqlConnection::class, $method);
         $reflection->setAccessible(true);
 
-        return $reflection->invokeArgs(\DB::connection(), $args);
+        return $reflection->invokeArgs(\Illuminate\Support\Facades\DB::connection(), $args);
     }
 }

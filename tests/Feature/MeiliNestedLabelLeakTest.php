@@ -221,7 +221,7 @@ class MeiliNestedLabelLeakTest extends FeatureTestBase
         $a = CustomTable::getEloquent(self::A);
 
         // Built with no viewer, exactly as the indexer does.
-        \Auth::guard('admin')->logout();
+        \Illuminate\Support\Facades\Auth::guard('admin')->logout();
         System::clearRequestSession();
         $mapper = new DocumentMapper();
         $columns = $a->getFreewordSearchColumns();
@@ -332,7 +332,7 @@ class MeiliNestedLabelLeakTest extends FeatureTestBase
             $this->be($user);
             System::clearRequestSession();
 
-            $exmentUser = \Exment::user();
+            $exmentUser = \Exceedone\Exment\Facades\ExmentFacade::user();
             if (!$exmentUser || $exmentUser->isAdministrator()) {
                 continue;
             }

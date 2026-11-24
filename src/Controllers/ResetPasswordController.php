@@ -12,7 +12,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
-use Password;
+use Illuminate\Support\Facades\Password;
 
 class ResetPasswordController extends Controller
 {
@@ -179,7 +179,7 @@ class ResetPasswordController extends Controller
         $broker = $this->broker();
         $expire = (int)config('auth.passwords.exment_admins.expire', 60);
         // get email by table 'password_resets'
-        $records = \DB::table(SystemTableName::PASSWORD_RESET)->get()->toArray();
+        $records = \Illuminate\Support\Facades\DB::table(SystemTableName::PASSWORD_RESET)->get()->toArray();
 
         foreach ($records as $record) {
             // skip expired records (same expiry rule as PasswordBroker::tokenExpired)

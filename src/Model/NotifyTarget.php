@@ -263,7 +263,7 @@ class NotifyTarget
 
             foreach ($values as $value) {
                 $func = NotifyTargetType::getNotifyFuncByTable($key);
-                \Exment::pushCollection($list, static::{$func}($value));
+                \Exceedone\Exment\Facades\ExmentFacade::pushCollection($list, static::{$func}($value));
             }
         }
 

@@ -19,7 +19,7 @@ class UpdateService
     // @phpstan-ignore-next-line
     public static function update(array $options = [])
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         $options = array_merge([
             'maintenance' => true, // whether execute maintenance
@@ -29,7 +29,7 @@ class UpdateService
 
         try {
             if (boolval($options['maintenance'])) {
-                \Artisan::call('down');
+                \Illuminate\Support\Facades\Artisan::call('down');
             }
 
             if (boolval($options['backup'])) {
@@ -43,7 +43,7 @@ class UpdateService
             }
         } finally {
             if (boolval($options['maintenance'])) {
-                \Artisan::call('up');
+                \Illuminate\Support\Facades\Artisan::call('up');
             }
         }
     }
@@ -105,6 +105,6 @@ class UpdateService
     public static function callPublish()
     {
         // the administrator chose the update: the database is updated also on a production site
-        \Artisan::call('exment:update', ['--force' => true]);
+        \Illuminate\Support\Facades\Artisan::call('exment:update', ['--force' => true]);
     }
 }

@@ -267,7 +267,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 // Create pivot table
                 if (!hasTable($pivot_table_name)) {
                     // Laravel facade Schema not recognized
-                    \Schema::createRelationValueTable($pivot_table_name);
+                    \Illuminate\Support\Facades\Schema::createRelationValueTable($pivot_table_name);
                 }
 
                 return $custom_value->belongsToMany(getModelName($child_custom_table), $pivot_table_name, "parent_id", "child_id")->withPivot("id");
@@ -286,7 +286,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
                 // Create pivot table
                 if (!hasTable($pivot_table_name)) {
                     // Laravel facade Schema not recognized
-                    \Schema::createRelationValueTable($pivot_table_name);
+                    \Illuminate\Support\Facades\Schema::createRelationValueTable($pivot_table_name);
                 }
 
                 return $custom_value->belongsToMany(getModelName($parent_custom_table, true), $pivot_table_name, "child_id", "parent_id")->withPivot("id");
@@ -361,7 +361,7 @@ class CustomRelation extends ModelBase implements Interfaces\TemplateImporterInt
 
             $pivot_table_name = $model->getRelationName();
             if (!hasTable($pivot_table_name)) {
-                \Schema::createRelationValueTable($pivot_table_name);
+                \Illuminate\Support\Facades\Schema::createRelationValueTable($pivot_table_name);
             }
         });
 

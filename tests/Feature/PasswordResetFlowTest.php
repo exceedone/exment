@@ -30,8 +30,8 @@ class PasswordResetFlowTest extends FeatureTestBase
     public function testResetPasswordByTokenSucceeds(): void
     {
         $login_user = $this->loginUserWithEmail();
-        $old_hash = \DB::table('login_users')->where('id', $login_user->id)->value('password');
-        $token = \Password::broker('exment_admins')->createToken($login_user);
+        $old_hash = \Illuminate\Support\Facades\DB::table('login_users')->where('id', $login_user->id)->value('password');
+        $token = \Illuminate\Support\Facades\Password::broker('exment_admins')->createToken($login_user);
 
         $this->get(admin_url('auth/reset/' . $token))->assertStatus(200);
 
@@ -39,24 +39,24 @@ class PasswordResetFlowTest extends FeatureTestBase
         $response = $this->postReset($token, $new, $new);
 
         $response->assertRedirect();
-        $stored = \DB::table('login_users')->where('id', $login_user->id)->value('password');
+        $stored = \Illuminate\Support\Facades\DB::table('login_users')->where('id', $login_user->id)->value('password');
         $this->assertNotSame($old_hash, $stored, 'password should be updated');
         $this->assertTrue(Hash::check($new, $stored), 'new password must be usable');
-        $this->assertSame(0, \DB::table('password_reset_tokens')->where('email', $login_user->email)->count(), 'token should be consumed');
+        $this->assertSame(0, \Illuminate\Support\Facades\DB::table('password_reset_tokens')->where('email', $login_user->email)->count(), 'token should be consumed');
     }
 
     public function testResetPasswordValidationErrorRedirectsBack(): void
     {
         $login_user = $this->loginUserWithEmail();
-        $old_hash = \DB::table('login_users')->where('id', $login_user->id)->value('password');
-        $token = \Password::broker('exment_admins')->createToken($login_user);
+        $old_hash = \Illuminate\Support\Facades\DB::table('login_users')->where('id', $login_user->id)->value('password');
+        $token = \Illuminate\Support\Facades\Password::broker('exment_admins')->createToken($login_user);
 
         // confirmation mismatch -> validation error, not 500
         $response = $this->postReset($token, 'Reset-Flow-2026!', 'Different-2026!');
 
         $response->assertStatus(302);
         $response->assertSessionHasErrors('password');
-        $this->assertSame($old_hash, \DB::table('login_users')->where('id', $login_user->id)->value('password'), 'password must not change');
+        $this->assertSame($old_hash, \Illuminate\Support\Facades\DB::table('login_users')->where('id', $login_user->id)->value('password'), 'password must not change');
     }
 
     // ------------------------------------------------------------------ //

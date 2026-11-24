@@ -68,7 +68,7 @@ class NotifyTest extends FeatureTestBase
     {
         $this->init(true);
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $password = make_password();
         $mail_template = $this->getMailTemplate($is_newuser ? MailKeyName::CREATE_USER : MailKeyName::RESET_PASSWORD_ADMIN);
 
@@ -105,7 +105,7 @@ class NotifyTest extends FeatureTestBase
     {
         $this->init(true);
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $token = make_uuid();
         $mail_template = $this->getMailTemplate(MailKeyName::RESET_PASSWORD);
 
@@ -139,7 +139,7 @@ class NotifyTest extends FeatureTestBase
     {
         $this->init(true);
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $verify_code = random_int(100000, 999999);
         $valid_period_datetime = Carbon::now()->addMinutes(config('exment.login_2factor_valid_period', 10));
         $mail_template = $this->getMailTemplate(MailKeyName::VERIFY_2FACTOR);
@@ -193,7 +193,7 @@ class NotifyTest extends FeatureTestBase
             $target_date = Carbon::today()->addDays($notify_day)->format('Y-m-d');
 
             // Login user.
-            $user_id = \Exment::user()->base_user_id;
+            $user_id = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id;
 
             // change notify setting
             /** @var Notify $notify */
@@ -213,7 +213,7 @@ class NotifyTest extends FeatureTestBase
                 'value->date' => $target_date,
             ]);
 
-            \Artisan::call('exment:notifyschedule');
+            \Illuminate\Support\Facades\Artisan::call('exment:notifyschedule');
 
             $data = NotifyNavbar::withoutGlobalScopes()
                 ->where('target_user_id', $model->created_user_id)
@@ -238,7 +238,7 @@ class NotifyTest extends FeatureTestBase
         $this->init(false);
 
         // Login user.
-        $user_id = \Exment::user()->base_user_id;
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id;
 
         /** @var Notify $notify */
         $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();
@@ -284,7 +284,7 @@ class NotifyTest extends FeatureTestBase
     public function testNotifyWorkflow()
     {
         $this->init(false);
-        $user_id = \Exment::user()->base_user_id;
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id;
 
         /** @var Model\Workflow $workflow */
         $workflow = Model\Workflow::where('workflow_view_name', 'workflow_common_company')->first();

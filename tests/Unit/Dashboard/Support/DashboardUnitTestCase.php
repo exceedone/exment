@@ -106,6 +106,6 @@ abstract class DashboardUnitTestCase extends TestCase
      */
     protected function wrap(string $qualified): string
     {
-        return \DB::getQueryGrammar()->wrap($qualified);
+        return \Illuminate\Support\Facades\DB::getQueryGrammar()->wrap($qualified);
     }
 }

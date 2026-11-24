@@ -194,7 +194,7 @@ class ReleaseVerifier
         } catch (\Throwable $e) {
             // below
         }
-        $version = \Exment::version(false);
+        $version = \Exceedone\Exment\Facades\ExmentFacade::version(false);
         return is_string($version) && $version !== '' ? $version : null;
     }
 

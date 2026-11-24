@@ -8,7 +8,7 @@ class MemorySize extends SystemRequireBase
 {
     public function __construct()
     {
-        $memory_limit = \Exment::getFileMegaSizeValue(ini_get('memory_limit'));
+        $memory_limit = \Exceedone\Exment\Facades\ExmentFacade::getFileMegaSizeValue(ini_get('memory_limit'));
         $this->result = $memory_limit;
     }
 
@@ -55,6 +55,6 @@ class MemorySize extends SystemRequireBase
 
     public function getSettingUrl(): ?string
     {
-        return \Exment::getManualUrl('additional_php_ini');
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('additional_php_ini');
     }
 }

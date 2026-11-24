@@ -297,7 +297,7 @@ class SafetyCheckSender
             $update['value->' . $key] = $value;
         }
         try {
-            \DB::table(getDBTableName($eventValue->custom_table))->where('id', $eventValue->id)->update($update);
+            \Illuminate\Support\Facades\DB::table(getDBTableName($eventValue->custom_table))->where('id', $eventValue->id)->update($update);
         } catch (\Throwable $e) {
             Log::warning('safety check send progress not saved', ['event_id' => $eventValue->id, 'exception' => $e]);
         }
@@ -313,7 +313,7 @@ class SafetyCheckSender
      */
     public static function updateEvent($eventValue, array $values): void
     {
-        $saved = \DB::transaction(function () use ($eventValue, $values) {
+        $saved = \Illuminate\Support\Facades\DB::transaction(function () use ($eventValue, $values) {
             $current = $eventValue->newQueryWithoutScopes()->whereKey($eventValue->getKey())->lockForUpdate()->first();
             if (!$current) {
                 return false;
@@ -363,7 +363,7 @@ class SafetyCheckSender
         return MailSender::make(MailKeyName::SAFETY_CHECK_MAIL, $userValue)
             ->user($userValue)
             ->custom_value($eventValue)
-            ->finalUser(!is_null(\Exment::getUserId()))
+            ->finalUser(!is_null(\Exceedone\Exment\Facades\ExmentFacade::getUserId()))
             ->prms([
                 'safety_title' => $title,
                 'safety_body'  => $body,

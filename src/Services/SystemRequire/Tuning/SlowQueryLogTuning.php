@@ -31,10 +31,10 @@ class SlowQueryLogTuning extends TuningBase
             return $this->variables;
         }
         try {
-            if (!in_array(\DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            if (!in_array(\Illuminate\Support\Facades\DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
                 return $this->variables = false;
             }
-            return $this->variables = $this->readRows(\DB::select("SHOW VARIABLES WHERE Variable_name IN ('slow_query_log', 'long_query_time', 'log_output')"));
+            return $this->variables = $this->readRows(\Illuminate\Support\Facades\DB::select("SHOW VARIABLES WHERE Variable_name IN ('slow_query_log', 'long_query_time', 'log_output')"));
         } catch (\Throwable $e) {
             return $this->variables = false;
         }

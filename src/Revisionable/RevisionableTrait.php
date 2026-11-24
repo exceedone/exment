@@ -234,7 +234,7 @@ trait RevisionableTrait
                     }
                 }
                 $this->saveData($revisions);
-                \Event::dispatch('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
+                \Illuminate\Support\Facades\Event::dispatch('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
             }
         }
     }
@@ -270,7 +270,7 @@ trait RevisionableTrait
 
             if (count($revisions) > 0) {
                 $this->saveData($revisions);
-                \Event::dispatch('revisionable.created', array('model' => $this, 'revisions' => $revisions));
+                \Illuminate\Support\Facades\Event::dispatch('revisionable.created', array('model' => $this, 'revisions' => $revisions));
             }
         }
     }
@@ -298,7 +298,7 @@ trait RevisionableTrait
                     'deleted_at' => new \DateTime(),
                 );
                 $this->saveData($revisions);
-                \Event::dispatch('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
+                \Illuminate\Support\Facades\Event::dispatch('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
             } elseif ($this->isRevisionableTrigger($this->getDeletedAtColumn())) {
                 $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
                 $revisions[] = array(
@@ -314,7 +314,7 @@ trait RevisionableTrait
                     'deleted_at' => new \DateTime(),
                 );
                 $this->saveData($revisions);
-                \Event::dispatch('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
+                \Illuminate\Support\Facades\Event::dispatch('revisionable.deleted', array('model' => $this, 'revisions' => $revisions));
             }
         }
     }
@@ -358,7 +358,7 @@ trait RevisionableTrait
                     'updated_at' => new \DateTime(),
                 );
                 $this->saveData($revisions);
-                \Event::dispatch('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
+                \Illuminate\Support\Facades\Event::dispatch('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
             } elseif ($this->isRevisionableTrigger($this->getDeletedAtColumn())) {
                 $triggerKey = array_get($this->doKeepTrigger, $this->getDeletedAtColumn());
                 $revisions[] = array(
@@ -372,7 +372,7 @@ trait RevisionableTrait
                     'updated_at' => new \DateTime(),
                 );
                 $this->saveData($revisions);
-                \Event::dispatch('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
+                \Illuminate\Support\Facades\Event::dispatch('revisionable.saved', array('model' => $this, 'revisions' => $revisions));
             }
         }
     }
@@ -395,8 +395,8 @@ trait RevisionableTrait
             ) {
                 $user = $class::user();
                 return isset($user) ? $user->getUserId() : null;
-            } elseif (\Auth::check()) {
-                return \Auth::user()->getAuthIdentifier();
+            } elseif (\Illuminate\Support\Facades\Auth::check()) {
+                return \Illuminate\Support\Facades\Auth::user()->getAuthIdentifier();
             }
         } catch (\Exception $e) {
             return null;

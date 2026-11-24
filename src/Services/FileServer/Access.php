@@ -43,12 +43,12 @@ class Access
      */
     public static function current(): self
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         // the file server not used (Feature management): no one may do anything
         if (!isset($user) || !Library::featureEnabled()) {
             return new self(null, false, []);
         }
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         return new self(isset($userId) ? intval($userId) : null, boolval($user->hasPermission(Permission::SYSTEM)));
     }
 

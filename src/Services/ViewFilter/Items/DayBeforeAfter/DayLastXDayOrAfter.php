@@ -36,6 +36,6 @@ class DayLastXDayOrAfter extends DayBeforeAfterBase
     {
         $today = \Exceedone\Exment\Services\UserTimezone::today();
         $target_day = $today->addDays(-1 * intval($conditionValue));
-        return \Exment::getCarbonOnlyDay($value)->gte($target_day);
+        return \Exceedone\Exment\Facades\ExmentFacade::getCarbonOnlyDay($value)->gte($target_day);
     }
 }

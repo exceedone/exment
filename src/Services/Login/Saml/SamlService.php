@@ -251,12 +251,12 @@ class SamlService implements LoginServiceInterface
 
             return LoginService::getLoginResult(true, [], [], $custom_login_user);
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             // @phpstan-ignore-next-line
             return LoginService::getLoginResult(SsoLoginErrorType::UNDEFINED_ERROR, exmtrans('login.sso_provider_error'), [$ex]);
@@ -286,11 +286,11 @@ class SamlService implements LoginServiceInterface
         }
 
         $path = base_path(static::getCerKeysPath($name, $login_setting));
-        if (!\File::exists($path)) {
+        if (!\Illuminate\Support\Facades\File::exists($path)) {
             return trydecrypt($login_setting->getOption($name));
         }
 
-        return \File::get($path);
+        return \Illuminate\Support\Facades\File::get($path);
     }
 
     /**

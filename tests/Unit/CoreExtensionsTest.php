@@ -100,8 +100,8 @@ class CoreExtensionsTest extends UnitTestBase
         \Exceedone\Exment\Exment::versionUpdateUrlUsing(function () {
             return admin_url('sample-update');
         });
-        $this->assertSame(['9.9.9', '9.9.8'], \Exment::getExmentVersion());
-        $this->assertSame(admin_url('sample-update'), \Exment::versionUpdateUrl());
+        $this->assertSame(['9.9.9', '9.9.8'], \Exceedone\Exment\Facades\ExmentFacade::getExmentVersion());
+        $this->assertSame(admin_url('sample-update'), \Exceedone\Exment\Facades\ExmentFacade::versionUpdateUrl());
     }
 
     public function testAScreenPlaceCallsWhatWasAdded(): void

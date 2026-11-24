@@ -57,7 +57,7 @@ class SafetyCheckCommentTest extends FeatureTestBase
      */
     protected function backdateRowUpdatedAt($rowId, \Carbon\Carbon $to): void
     {
-        \DB::table(getDBTableName(CustomTable::getEloquent('safety_check_answer')))
+        \Illuminate\Support\Facades\DB::table(getDBTableName(CustomTable::getEloquent('safety_check_answer')))
             ->where('id', $rowId)
             ->update(['updated_at' => $to->format('Y-m-d H:i:s')]);
     }

@@ -33,7 +33,7 @@ class ChangePasswordCoverageTest extends FeatureTestBase
             'password_confirmation' => 'NewPassw0rd1',
         ])->assertRedirect()->assertSessionHasErrors('current_password');
 
-        $this->assertTrue(\Hash::check(self::ADMIN_CURRENT_PASSWORD, LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN)->password));
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check(self::ADMIN_CURRENT_PASSWORD, LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN)->password));
     }
 
     public function testMismatchedConfirmationIsRejected(): void
@@ -44,7 +44,7 @@ class ChangePasswordCoverageTest extends FeatureTestBase
             'password_confirmation' => 'NewPassw0rd2-different',
         ])->assertRedirect()->assertSessionHasErrors('password');
 
-        $this->assertTrue(\Hash::check(self::ADMIN_CURRENT_PASSWORD, LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN)->password));
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check(self::ADMIN_CURRENT_PASSWORD, LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN)->password));
     }
 
     public function testValidChangeUpdatesThePasswordAndRedirectsToLogin(): void
@@ -56,7 +56,7 @@ class ChangePasswordCoverageTest extends FeatureTestBase
         ])->assertRedirect(admin_url('auth/login'));
 
         $admin = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
-        $this->assertTrue(\Hash::check('NewPassw0rd1', $admin->password));
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('NewPassw0rd1', $admin->password));
         $this->assertFalse(boolval($admin->password_reset_flg));
     }
 }

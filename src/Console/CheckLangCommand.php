@@ -95,7 +95,7 @@ class CheckLangCommand extends Command
                 }
             } else {
                 // only the file of that language (not the fallback language)
-                if (!\Lang::hasForLocale(implode(".", $langKeys), $lang)) {
+                if (!\Illuminate\Support\Facades\Lang::hasForLocale(implode(".", $langKeys), $lang)) {
                     $langKey = implode(".", $langKeys);
                     $this->warn("{$lang} {$langKey}");
                     $this->missingCount++;

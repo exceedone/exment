@@ -52,7 +52,7 @@ class SkeletonMigrationReconciler
         }
 
         $ran = $this->migrator->getRepository()->getRan();
-        $schema = \DB::connection($this->migrator->getConnection())->getSchemaBuilder();
+        $schema = \Illuminate\Support\Facades\DB::connection($this->migrator->getConnection())->getSchemaBuilder();
 
         $result = [];
         foreach ($this->migrator->getMigrationFiles([$this->path]) as $name => $file) {

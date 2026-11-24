@@ -69,14 +69,14 @@ class AuthSamlController extends \ExmentAdminCore\Admin\Controllers\AuthControll
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             if ($ex->hasAdminError()) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
 
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => exmtrans('login.sso_provider_error')]
             );
@@ -133,14 +133,14 @@ class AuthSamlController extends \ExmentAdminCore\Admin\Controllers\AuthControll
         // Sso exception
         catch (SsoLoginErrorException $ex) {
             if ($ex->hasAdminError()) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
 
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => $ex->getSsoErrorMessage()]
             );
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return redirect($error_url)->withInput()->withErrors(
                 ['sso_error' => exmtrans('login.sso_provider_error')]
             );
@@ -160,6 +160,6 @@ class AuthSamlController extends \ExmentAdminCore\Admin\Controllers\AuthControll
         $this->guard()->logout();
         $request->session()->invalidate();
 
-        return redirect(\URL::route('exment.login')); //may be set a configurable default
+        return redirect(\Illuminate\Support\Facades\URL::route('exment.login')); //may be set a configurable default
     }
 }

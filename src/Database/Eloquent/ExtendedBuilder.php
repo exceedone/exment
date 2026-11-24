@@ -59,7 +59,7 @@ class ExtendedBuilder extends Builder
         // so a string value such as '01' stays a string. Inlining it as the number 01 made
         // FIND_IN_SET(01, '01') fail and emptied the later pages (#1718).
         $query = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toBase()->toRawSql();
-        return $this->join(\DB::raw('(' . $query . ') s'), function ($join) use ($table) {
+        return $this->join(\Illuminate\Support\Facades\DB::raw('(' . $query . ') s'), function ($join) use ($table) {
             $join->whereRaw($table . '.id in (s.sid)');
         })->get($columns);
     }

@@ -271,8 +271,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public static function placeSystemMenuAfter(string $menuName, string $afterName): void
     {
         $table = config('admin.database.menu_table', 'admin_menu');
-        $menu = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $menuName)->first();
-        $after = \DB::table($table)->where('menu_type', 'system')->where('menu_name', $afterName)->first();
+        $menu = \Illuminate\Support\Facades\DB::table($table)->where('menu_type', 'system')->where('menu_name', $menuName)->first();
+        $after = \Illuminate\Support\Facades\DB::table($table)->where('menu_type', 'system')->where('menu_name', $afterName)->first();
         if (!isset($menu, $after) || intval($menu->parent_id) !== intval($after->parent_id)) {
             return;
         }
@@ -280,8 +280,8 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         if (intval($menu->order) === $order + 1) {
             return;
         }
-        \DB::table($table)->where('parent_id', $after->parent_id)->where('id', '<>', $menu->id)->where('order', '>', $order)->increment('order');
-        \DB::table($table)->where('id', $menu->id)->update(['order' => $order + 1]);
+        \Illuminate\Support\Facades\DB::table($table)->where('parent_id', $after->parent_id)->where('id', '<>', $menu->id)->where('order', '>', $order)->increment('order');
+        \Illuminate\Support\Facades\DB::table($table)->where('id', $menu->id)->update(['order' => $order + 1]);
     }
 
     public static function systemTitle(string $menuName): string

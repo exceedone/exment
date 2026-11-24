@@ -186,10 +186,10 @@ abstract class GridBase
                     }
                 } else {
                     if ($filter_raw->is_multiple) {
-                        $column = \DB::getQueryGrammar()->wrapJsonExtract($value_table_column);
+                        $column = \Illuminate\Support\Facades\DB::getQueryGrammar()->wrapJsonExtract($value_table_column);
                         $model->whereRaw("$column = ?", [$filter_raw->view_filter_condition_value_text]);
                     } else {
-                        $column = \DB::getQueryGrammar()->getDateFormatString($filter_raw->view_group_condition, $value_table_column);
+                        $column = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString($filter_raw->view_group_condition, $value_table_column);
                         $model->whereRaw("$column = ?", [$query_value]);
                     }
                 }
@@ -594,7 +594,7 @@ SCRIPT);
     {
         if ($this->custom_table->enableTableMenuButton()) {
             $button = new Tools\CustomTableMenuButton('data', $this->custom_table);
-            $tools[] = \Exment::getRender($grid_tool ? $button->gridTool() : $button);
+            $tools[] = \Exceedone\Exment\Facades\ExmentFacade::getRender($grid_tool ? $button->gridTool() : $button);
         }
     }
 
@@ -609,7 +609,7 @@ SCRIPT);
     {
         if ($this->custom_table->enableViewMenuButton()) {
             $button = new Tools\CustomViewMenuButton($this->custom_table, $this->custom_view);
-            $tools[] = \Exment::getRender($grid_tool ? $button->gridTool() : $button);
+            $tools[] = \Exceedone\Exment\Facades\ExmentFacade::getRender($grid_tool ? $button->gridTool() : $button);
         }
     }
 
@@ -627,7 +627,7 @@ SCRIPT);
         }
 
         if ($this->custom_table->enableCreate(true) === true) {
-            $tools[] = \Exment::getRender(view('exment::custom-value.new-button', [
+            $tools[] = \Exceedone\Exment\Facades\ExmentFacade::getRender(view('exment::custom-value.new-button', [
                 'table_name' => $this->custom_table->table_name,
                 'grid_tool' => $grid_tool,
             ]));
@@ -663,7 +663,7 @@ SCRIPT);
             $import === true
         ))->setCustomTable($this->custom_table);
 
-        $tools[] = \Exment::getRender($grid_tool ? $button->gridTool() : $button);
+        $tools[] = \Exceedone\Exment\Facades\ExmentFacade::getRender($grid_tool ? $button->gridTool() : $button);
     }
 
     /**

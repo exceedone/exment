@@ -274,7 +274,7 @@ class SafetyCheckWebAnswerTest extends FeatureTestBase
         $model::retrieved(function ($row_model) use (&$deleted, $row) {
             if (!$deleted && (int) $row_model->getKey() === (int) $row->id) {
                 $deleted = true;
-                \DB::table($row_model->getTable())->where($row_model->getKeyName(), $row_model->getKey())->delete();
+                \Illuminate\Support\Facades\DB::table($row_model->getTable())->where($row_model->getKeyName(), $row_model->getKey())->delete();
             }
         });
 

@@ -110,7 +110,7 @@ class MailSendJob extends Notification implements ShouldQueue
                 $mail_template->getValue('mail_body'),
                 $this->notify_id ?? -1,
                 $this->userId,
-                \Exment::getUserId() ?? null,
+                \Exceedone\Exment\Facades\ExmentFacade::getUserId() ?? null,
                 $this->mailHistory->getParentId(),
                 $this->mailHistory->getParentType()
             ));

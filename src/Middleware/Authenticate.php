@@ -32,8 +32,8 @@ class Authenticate extends \ExmentAdminCore\Admin\Middleware\Authenticate
             return redirect()->guest(admin_base_path('initialize'));
         }
 
-        if (\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check()) {
-            \Exment::setGuard(Define::AUTHENTICATE_KEY_WEB);
+        if (\Illuminate\Support\Facades\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check()) {
+            \Exceedone\Exment\Facades\ExmentFacade::setGuard(Define::AUTHENTICATE_KEY_WEB);
         } else {
             return redirect()->guest(admin_base_path('auth/login'));
         }

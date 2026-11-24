@@ -121,8 +121,8 @@ class DocumentExcelService
             $this->saveFile($writer);
 
             // remove tmpfile
-            \File::delete($this->getAdminTmpFullPath());
-            \File::delete($this->getFullPathTmp());
+            \Illuminate\Support\Facades\File::delete($this->getAdminTmpFullPath());
+            \Illuminate\Support\Facades\File::delete($this->getFullPathTmp());
 
             return true;
         } finally {
@@ -371,7 +371,7 @@ class DocumentExcelService
     {
         // create directory
         $dir_fullpath = getFullpath('document', config('admin.upload.disk'));
-        \Exment::makeDirectory($dir_fullpath);
+        \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($dir_fullpath);
         //return getFullpath('document', config('admin.upload.disk'));
         return 'document';
     }
@@ -420,8 +420,8 @@ class DocumentExcelService
 
         $file = path_join($this->getDirPath(), $this->getUniqueFileName());
         // copy admin_tmp to admin
-        $stream = \Storage::disk(Define::DISKNAME_ADMIN_TMP)->readStream($file);
-        \Storage::disk(Define::DISKNAME_ADMIN)->writeStream($file, $stream);
+        $stream = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN_TMP)->readStream($file);
+        \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN)->writeStream($file, $stream);
 
         try {
             fclose($stream);
@@ -444,7 +444,7 @@ class DocumentExcelService
         $diskService->syncFromDisk();
 
         $path = $diskService->localSyncDiskItem()->fileFullPath();
-        if (!\File::exists($path)) {
+        if (!\Illuminate\Support\Facades\File::exists($path)) {
             return null;
         }
 

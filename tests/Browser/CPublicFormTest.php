@@ -43,7 +43,7 @@ class CPublicFormTest extends ExmentKitTestCase
      */
     public function testDisplayPublicForm()
     {
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         // Check public form list and setting
         $this->visit(admin_url('form/custom_value_edit_all'))
                 ->seePageIs(admin_url('form/custom_value_edit_all'))
@@ -118,7 +118,7 @@ class CPublicFormTest extends ExmentKitTestCase
                 ->seeInElement('label', '公開有効期限')
                 ->seeInElement('label', '公開有効期限')
         ;
-        \DB::rollback();
+        \Illuminate\Support\Facades\DB::rollback();
     }
     // Create public form
 
@@ -128,7 +128,7 @@ class CPublicFormTest extends ExmentKitTestCase
      */
     public function testAddPublicFormSuccess()
     {
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         $pre_cnt = PublicForm::count();
 
         /** @var CustomTable $table */
@@ -341,7 +341,7 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Get new data row
         $table_name = \getDBTableName($table);
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
+        $row = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
@@ -368,7 +368,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->dontSeeInElement('td', 'Public Form Unit Test')
         ;
 
-        \DB::rollback();
+        \Illuminate\Support\Facades\DB::rollback();
     }
 
     // Update public form
@@ -379,7 +379,7 @@ class CPublicFormTest extends ExmentKitTestCase
      */
     public function testUpdatePublicFormSuccess()
     {
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         $pre_cnt = PublicForm::count();
 
         /** @var CustomTable $table */
@@ -578,12 +578,12 @@ class CPublicFormTest extends ExmentKitTestCase
 
         // Get new data row
         $table_name = \getDBTableName($table);
-        $row = \DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
+        $row = \Illuminate\Support\Facades\DB::table($table_name)->whereNull('deleted_at')->orderBy('id', 'desc')->first();
 
         $this->visit(admin_url('data/custom_value_edit_all/'. $row->id . '/edit'))
             ->seeInField('value[text]', 'unit test text')
         ;
-        \DB::rollback();
+        \Illuminate\Support\Facades\DB::rollback();
     }
 
     // Create Public Form Fail --Nothing Input--
@@ -607,7 +607,7 @@ class CPublicFormTest extends ExmentKitTestCase
      */
     public function testAddFailOutOfTerm()
     {
-        \DB::beginTransaction();
+        \Illuminate\Support\Facades\DB::beginTransaction();
         /** @var CustomTable $table */
         $table = CustomTable::where('table_name', 'custom_value_edit_all')->first();
         /** @var CustomForm $target_form */
@@ -637,7 +637,7 @@ class CPublicFormTest extends ExmentKitTestCase
             ->seeOuterElement('body', exmtrans('error.public_form_not_found'))
         ;
 
-        \DB::rollback();
+        \Illuminate\Support\Facades\DB::rollback();
     }
 
     // View Public Form Fail --Out of term--

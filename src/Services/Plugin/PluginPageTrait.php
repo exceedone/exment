@@ -17,7 +17,7 @@ trait PluginPageTrait
     public function _getLoadView()
     {
         $base_path = $this->plugin->getFullPath(path_join('resources', 'views'));
-        if (!\File::exists($base_path)) {
+        if (!\Illuminate\Support\Facades\File::exists($base_path)) {
             return null;
         }
 
@@ -35,7 +35,7 @@ trait PluginPageTrait
     public function _getLoadTranslation()
     {
         $base_path = $this->plugin->getFullPath(path_join('resources', 'lang'));
-        if (!\File::exists($base_path)) {
+        if (!\Illuminate\Support\Facades\File::exists($base_path)) {
             return null;
         }
 

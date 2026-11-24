@@ -48,7 +48,7 @@ class LoginUserColumnItem extends ColumnItem
                 return true;
             });
 
-        $orgids = \Exment::user()->base_user->belong_organizations->pluck('id')->toArray();
+        $orgids = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->belong_organizations->pluck('id')->toArray();
         // @phpstan-ignore-next-line
         $query->orWhere(function ($query) use ($orgids, $workflow, $workflow_actions) {
             foreach ($workflow_actions as $workflow_action) {
@@ -84,9 +84,9 @@ class LoginUserColumnItem extends ColumnItem
 
                             if ($custom_column->column_type == ColumnType::USER) {
                                 if ($custom_column->isMultipleEnabled()) {
-                                    $query->whereInArrayString("{$queryKey}{$custom_column->column_name}", \Exment::getUserId());
+                                    $query->whereInArrayString("{$queryKey}{$custom_column->column_name}", \Exceedone\Exment\Facades\ExmentFacade::getUserId());
                                 } else {
-                                    $query->where("{$queryKey}{$custom_column->column_name}", \Exment::getUserId());
+                                    $query->where("{$queryKey}{$custom_column->column_name}", \Exceedone\Exment\Facades\ExmentFacade::getUserId());
                                 }
                             } else {
                                 $query->whereIn("{$queryKey}{$custom_column->column_name}", $orgids);
@@ -213,7 +213,7 @@ class LoginUserColumnItem extends ColumnItem
             // If $workflow_value is empty, this flow is first. So get as login user
             $getAsLoginUser = is_nullorempty($wv);
             if ($getAsLoginUser) {
-                $created_user_id = \Exment::getUserId();
+                $created_user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             } else {
                 $created_user_id = $wv->created_user_id;
             }

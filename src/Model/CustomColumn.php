@@ -397,10 +397,10 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         // is listed on the settings screen as if it existed, and a bookmarked
         // search using it returns nothing without a word. One by one, so each
         // delete reindexes the table and re-applies the index settings.
-        // \Schema::hasTable, not the hasTable() helper: that one builds a DBAL
+        // \Illuminate\Support\Facades\Schema::hasTable, not the hasTable() helper: that one builds a DBAL
         // connection hardcoded to pdo_mysql, so on SQL Server it fails, caches an
         // empty table list and this cleanup would never run.
-        if (\Schema::hasTable((new MeiliFilterSetting())->getTable())) {
+        if (\Illuminate\Support\Facades\Schema::hasTable((new MeiliFilterSetting())->getTable())) {
             $items = MeiliFilterSetting::where('custom_table_id', $this->custom_table_id)
                 ->where('column_name', $this->column_name)
                 ->get();
@@ -574,20 +574,20 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         //  if index_enabled = false, and exists, then drop index
         // if column exists and (index_enabled = false or forceDropIndex)
         if ($exists && ($forceDropIndex || (!boolval($index_enabled)))) {
-            \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+            \Illuminate\Support\Facades\Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
             System::clearCache();
         }
         // if index_enabled = true, not exists, then create index
         elseif ($index_enabled && !$exists) {
-            \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
+            \Illuminate\Support\Facades\Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
             System::clearCache();
         }
         // checking multiple enabled change
         else {
             $original = jsonToArray($this->getOriginal('options'));
             if (boolval(array_get($original, 'multiple_enabled')) !== boolval(array_get($this, 'options.multiple_enabled'))) {
-                \Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
-                \Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
+                \Illuminate\Support\Facades\Schema::dropIndexColumn($db_table_name, $db_column_name, $index_name);
+                \Illuminate\Support\Facades\Schema::alterIndexColumn($db_table_name, $db_column_name, $index_name, $column_name, $this);
                 System::clearCache();
             }
         }

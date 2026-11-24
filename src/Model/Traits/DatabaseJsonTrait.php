@@ -173,7 +173,7 @@ trait DatabaseJsonTrait
     {
         if ($value instanceof \Carbon\Carbon) {
 
-            return \Exment::carbonToArray($value);
+            return \Exceedone\Exment\Facades\ExmentFacade::carbonToArray($value);
         }
 
         return $value;

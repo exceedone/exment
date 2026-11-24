@@ -371,7 +371,7 @@ class UserTimezoneScreensTest extends UnitTestBase
      */
     protected function storedValue(CustomTable $table, int $id, string $column_name)
     {
-        $value = \DB::table(getDBTableName($table))->where('id', $id)->value('value');
+        $value = \Illuminate\Support\Facades\DB::table(getDBTableName($table))->where('id', $id)->value('value');
         return array_get(json_decode(strval($value), true) ?? [], $column_name);
     }
 

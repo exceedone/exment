@@ -15,7 +15,7 @@ use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Carbon\Carbon;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 class LogController extends AdminControllerBase
 {

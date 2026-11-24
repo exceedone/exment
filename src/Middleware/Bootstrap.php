@@ -103,7 +103,7 @@ class Bootstrap
         // not even requested. It goes after grid_tools.css because it
         // overrides that file's colors with the same selectors, and equal
         // selectors are settled by order.
-        if (\Exment::isModernUi()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::isModernUi()) {
             static::setCssJsList([
                 'vendor/exment/css/modern.css',
             ], true, true);
@@ -170,7 +170,7 @@ class Bootstrap
         }
 
         // get exment version
-        $ver = \Exment::getExmentCurrentVersion();
+        $ver = \Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion();
         if (!isset($ver)) {
             $ver = date('YmdHis');
         }

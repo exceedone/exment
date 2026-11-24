@@ -14,18 +14,18 @@ class ScheduledJobsCronWordsTest extends UnitTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->locale = \App::getLocale();
+        $this->locale = \Illuminate\Support\Facades\App::getLocale();
     }
 
     protected function tearDown(): void
     {
-        \App::setLocale($this->locale);
+        \Illuminate\Support\Facades\App::setLocale($this->locale);
         parent::tearDown();
     }
 
     public function testJapanese(): void
     {
-        \App::setLocale('ja');
+        \Illuminate\Support\Facades\App::setLocale('ja');
         $cases = [
             '* * * * *' => '毎分',
             '*/5 * * * *' => '5 分おき',
@@ -52,7 +52,7 @@ class ScheduledJobsCronWordsTest extends UnitTestBase
 
     public function testEnglish(): void
     {
-        \App::setLocale('en');
+        \Illuminate\Support\Facades\App::setLocale('en');
         $this->assertSame('Every minute', CronWords::describe('* * * * *'));
         $this->assertSame('Every 10 minutes', CronWords::describe('*/10 * * * *'));
         $this->assertSame('Every hour', CronWords::describe('0 * * * *'));
@@ -63,7 +63,7 @@ class ScheduledJobsCronWordsTest extends UnitTestBase
 
     public function testTheJobsOfExmentHaveWords(): void
     {
-        \App::setLocale('ja');
+        \Illuminate\Support\Facades\App::setLocale('ja');
         // the expressions of ExmentServiceProvider::registerSchedule
         $this->assertSame('毎時', CronWords::describe('0 * * * *'));
         $this->assertSame('毎日 3:30', CronWords::describe('30 3 * * *'));

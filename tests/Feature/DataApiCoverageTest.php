@@ -107,7 +107,7 @@ class DataApiCoverageTest extends ApiTestBase
      */
     public function testTheNavbarPollsAreCachedAndAnswerNotModified(): void
     {
-        $user_id = \Exment::getUserId();
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         // a bulk update skips the model events: it says itself that the bell changed
         NotifyNavbar::where('target_user_id', $user_id)->update(['read_flg' => 1]);
         NotifyNavbar::navbarCacheForget($user_id);
@@ -153,7 +153,7 @@ class DataApiCoverageTest extends ApiTestBase
 
     public function testTheNavbarNotificationsAndWorkflowTasks(): void
     {
-        $user_id = \Exment::getUserId();
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         // the navbar lists the user's unread notifications; leave only one unread
         NotifyNavbar::where('target_user_id', $user_id)->update(['read_flg' => 1]);
         $notify = Notify::where('notify_trigger', NotifyTrigger::BUTTON)->first();

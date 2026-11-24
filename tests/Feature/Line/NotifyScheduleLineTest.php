@@ -53,7 +53,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
     {
         $hh = Carbon::now()->format('G');
         $targetDate = Carbon::today()->addDays(100)->format('Y-m-d');
-        $loginUserId = \Exment::user()->base_user_id;
+        $loginUserId = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id;
 
         /** @var Notify $notify */
         $notify = Notify::where('notify_trigger', NotifyTrigger::TIME)->first();
@@ -180,7 +180,7 @@ class NotifyScheduleLineTest extends FeatureTestBase
         Bus::fake();
         [, , , , $lineUserId] = $this->setupTimeReminder();
 
-        \Artisan::call('exment:notifyschedule');
+        \Illuminate\Support\Facades\Artisan::call('exment:notifyschedule');
 
         Bus::assertDispatchedAfterResponse(LineSendJob::class, function ($job) use ($lineUserId) {
             return $this->jobProperty($job, 'to') === $lineUserId;

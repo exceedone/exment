@@ -71,7 +71,7 @@ abstract class SecurityBase extends SystemRequireBase
 
     public function getSettingUrl(): ?string
     {
-        return \Exment::getManualUrl('security_check');
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('security_check');
     }
 
     /** What to set, shown under the item (a line of .env, a command...). */

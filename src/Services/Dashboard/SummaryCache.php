@@ -105,7 +105,7 @@ class SummaryCache
      */
     protected static function viewer(): ?array
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (is_null($user)) {
             return null;
         }

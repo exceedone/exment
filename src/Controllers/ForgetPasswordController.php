@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Foundation\Auth\SendsPasswordResetEmails;
 use App\Http\Controllers\Controller;
 use Exceedone\Exment\Enums\LoginType;
-use Password;
+use Illuminate\Support\Facades\Password;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 class ForgetPasswordController extends Controller
@@ -70,7 +70,7 @@ class ForgetPasswordController extends Controller
                         ? $this->sendResetLinkResponse($request, $response)
                         : $this->sendResetLinkFailedResponse($request, $response);
         } catch (TransportExceptionInterface $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return back()->with('status_error', exmtrans('error.mailsend_failed'));
         }
     }
@@ -86,7 +86,7 @@ class ForgetPasswordController extends Controller
     {
         // 'passwords.throttled' lives in the app's lang files (published from lang_vendor without --force),
         // so an app installed before the key existed has no translation for the current locale.
-        if ($response == Password::RESET_THROTTLED && !\Lang::has($response, null, false)) {
+        if ($response == Password::RESET_THROTTLED && !\Illuminate\Support\Facades\Lang::has($response, null, false)) {
             $response = 'exment::exment.login.password_reset_throttled';
         }
 

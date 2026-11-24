@@ -14,8 +14,8 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
-use Validator;
-use DB;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class BackupController extends AdminControllerBase
 {
@@ -205,7 +205,7 @@ class BackupController extends AdminControllerBase
      */
     public function save(Request $request)
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
         $data = $request->all();
 
         $target = System::backup_target();
@@ -317,7 +317,7 @@ class BackupController extends AdminControllerBase
      */
     public function import(Request $request)
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         // validation
         $validator = Validator::make($request->all(), [
@@ -372,13 +372,13 @@ class BackupController extends AdminControllerBase
             // re-uploading; abandoned files are collected by the host tmp sweeper.
             if (isset($filename)) {
                 try {
-                    \Storage::disk(Define::DISKNAME_ADMIN_TMP)->delete($filename);
+                    \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN_TMP)->delete($filename);
                 } catch (\Throwable $e) {
                     // cleanup must never break a successful restore response
                 }
             }
             admin_toastr(exmtrans('backup.message.restore_file_success'));
-            \Auth::guard('admin')->logout();
+            \Illuminate\Support\Facades\Auth::guard('admin')->logout();
             $request->session()->invalidate();
 
             return response()->json([
@@ -405,7 +405,7 @@ class BackupController extends AdminControllerBase
      */
     public function restore(Request $request)
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         $data = $request->all();
 
@@ -422,7 +422,7 @@ class BackupController extends AdminControllerBase
 
         if (isset($result) && $result === 0) {
             admin_toastr(exmtrans('backup.message.restore_file_success'));
-            \Auth::guard('admin')->logout();
+            \Illuminate\Support\Facades\Auth::guard('admin')->logout();
             $request->session()->invalidate();
 
             return response()->json([

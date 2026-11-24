@@ -65,7 +65,7 @@ class McpServer
             return static::error($id, $e->rpcCode, $e->getMessage());
         } catch (\Throwable $e) {
             // an error of Exment: a JSON-RPC error without its details (they go to the log)
-            \Log::error('[Exment] MCP: ' . $e->getMessage(), ['exception' => $e]);
+            \Illuminate\Support\Facades\Log::error('[Exment] MCP: ' . $e->getMessage(), ['exception' => $e]);
             return static::error($id, -32603, 'Internal error.');
         }
     }
@@ -82,7 +82,7 @@ class McpServer
                 return [
                     'protocolVersion' => in_array($asked, static::PROTOCOL_VERSIONS, true) ? $asked : static::PROTOCOL_VERSIONS[0],
                     'capabilities' => ['tools' => ['listChanged' => false]],
-                    'serverInfo' => ['name' => static::NAME, 'version' => strval(\Exment::getExmentCurrentVersion() ?? '')],
+                    'serverInfo' => ['name' => static::NAME, 'version' => strval(\Exceedone\Exment\Facades\ExmentFacade::getExmentCurrentVersion() ?? '')],
                     'instructions' => static::instructions(),
                 ];
             case 'ping':

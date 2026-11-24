@@ -53,7 +53,7 @@ class Auth2factorGoogleRouteTest extends FeatureTestBase
 
     private function storeRegisterCode(): void
     {
-        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::EMAIL_CODE_VERIFY)->insert([
             'login_user_id' => $this->admin->id,
             'email' => $this->admin->email,
             'verify_code' => self::REGISTER_CODE,

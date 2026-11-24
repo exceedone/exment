@@ -24,12 +24,12 @@ class RequestPackTemplateTest extends UnitTestBase
             $this->assertIsArray($config);
             return $config;
         }
-        $current = \App::getLocale();
+        $current = \Illuminate\Support\Facades\App::getLocale();
         try {
-            \App::setLocale($locale);
+            \Illuminate\Support\Facades\App::setLocale($locale);
             return (new TemplateImporter())->getMergeJson($json, ['basePath' => $base]);
         } finally {
-            \App::setLocale($current);
+            \Illuminate\Support\Facades\App::setLocale($current);
         }
     }
 

@@ -45,7 +45,7 @@ class UserApiKeyController extends AdminControllerBase
     public function index(Request $request, Content $content, ?string $newKey = null, ?string $error = null, ?string $errorLink = null)
     {
         $this->abortUnlessAllowed();
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         $tables = CustomTable::filterList(null, ['permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE])
             ->map(function ($table) {
@@ -95,7 +95,7 @@ class UserApiKeyController extends AdminControllerBase
             admin_toastr(DemoMode::message(), 'error');
             return redirect(admin_url('auth/api_keys'));
         }
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         // a user who signs in with a password says it again (a key acts as the user). The check does
         // not count toward the lockout of the login page, so it has its own limit of tries.
@@ -164,11 +164,11 @@ class UserApiKeyController extends AdminControllerBase
     public function revoke(Request $request, string $id)
     {
         $this->abortUnlessAllowed();
-        $key = UserApiKey::where('id', $id)->where('user_id', \Exment::user()->base_user_id)->first();
+        $key = UserApiKey::where('id', $id)->where('user_id', \Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id)->first();
         if (!isset($key)) {
             abort(404);
         }
-        UserApiKeys::revoke($key, (int)\Exment::user()->base_user_id);
+        UserApiKeys::revoke($key, (int)\Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id);
         admin_toastr(exmtrans('api_key.message_revoked'));
         return redirect(admin_url('auth/api_keys'));
     }
@@ -227,7 +227,7 @@ class UserApiKeyController extends AdminControllerBase
             abort(404);
         }
         $wasActive = $key->isActive();
-        UserApiKeys::revoke($key, (int)\Exment::user()->base_user_id);
+        UserApiKeys::revoke($key, (int)\Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id);
         if ($wasActive) {
             UserApiKeys::mailRevokedByAdmin($key->user_id, 1);
         }
@@ -243,7 +243,7 @@ class UserApiKeyController extends AdminControllerBase
     public function adminRevokeUser(Request $request, string $userId)
     {
         $this->abortUnlessAdministrator();
-        $count =UserApiKeys::revokeAllOfUser(intval($userId), (int)\Exment::user()->base_user_id);
+        $count =UserApiKeys::revokeAllOfUser(intval($userId), (int)\Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id);
         UserApiKeys::mailRevokedByAdmin(intval($userId), $count);
         admin_toastr(exmtrans('api_key.message_revoked_user', $count));
         return redirect(admin_url('api_keys'));
@@ -288,7 +288,7 @@ class UserApiKeyController extends AdminControllerBase
      */
     protected static function maxDaysOfLogin(): int
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         return UserApiKeys::maxDays(isset($user) && UserApiKeys::isSsoLogin($user));
     }
 
@@ -307,7 +307,7 @@ class UserApiKeyController extends AdminControllerBase
      */
     protected function asksPassword(): bool
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         // (the login of SSO has a provider: it signs in again instead, see store())
         return isset($user) && $user->login_type == LoginType::PURE && !UserApiKeys::isSsoLogin($user) && !DemoMode::enabled();
     }
@@ -318,7 +318,7 @@ class UserApiKeyController extends AdminControllerBase
      */
     protected function abortUnlessAdministrator(): void
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user) || !$user->isAdministrator()) {
             abort(403);
         }

@@ -205,7 +205,7 @@ class FileController extends AdminControllerBase
         try {
             $exists = Storage::disk(config('admin.upload.disk'))->exists($path);
         } catch (\Exception $e) {
-            \Log::warning('FileController::downloadFile - storage check failed: ' . $e->getMessage(), ['path' => $path]);
+            \Illuminate\Support\Facades\Log::warning('FileController::downloadFile - storage check failed: ' . $e->getMessage(), ['path' => $path]);
             $exists = false;
         }
 
@@ -346,7 +346,7 @@ class FileController extends AdminControllerBase
         }
 
         // if not has delete setting, abort 403
-        if (!$options['asApi'] && boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exment::getUserId()) {
+        if (!$options['asApi'] && boolval(config('exment.file_delete_useronly', false)) && $data->created_user_id != \Exceedone\Exment\Facades\ExmentFacade::getUserId()) {
             abort(403);
         }
 
@@ -354,8 +354,8 @@ class FileController extends AdminControllerBase
         // not saved yet) has no record permission to ask: only the user who
         // uploaded it, or an administrator, deletes it.
         if (is_nullorempty($data->parent_id) || is_nullorempty($data->parent_type)) {
-            $login_user = \Exment::user();
-            if (!$login_user || (!$login_user->isAdministrator() && !isMatchString($data->created_user_id, \Exment::getUserId()))) {
+            $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
+            if (!$login_user || (!$login_user->isAdministrator() && !isMatchString($data->created_user_id, \Exceedone\Exment\Facades\ExmentFacade::getUserId()))) {
                 if ($options['asApi']) {
                     return abortJson(403, ErrorCode::PERMISSION_DENY());
                 }
@@ -538,7 +538,7 @@ class FileController extends AdminControllerBase
             $rules['file'][] = new ImageRule();
         }
 
-        $validator = \Validator::make($request->all(), $rules);
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $rules);
         if ($validator->fails()) {
             return response()->json(array_get($validator->errors()->toArray(), 'file'), 400);
         }
@@ -667,7 +667,7 @@ class FileController extends AdminControllerBase
             FileType::PUBLIC_FORM,
             FileType::CUSTOM_FORM_COLUMN,
         ];
-        if (!in_array((string) $data->file_type, $publicFileTypes, true) && is_null(\Exment::user())) {
+        if (!in_array((string) $data->file_type, $publicFileTypes, true) && is_null(\Exceedone\Exment\Facades\ExmentFacade::user())) {
             if ($options['asApi']) {
                 return abortJson(403, ErrorCode::PERMISSION_DENY());
             }

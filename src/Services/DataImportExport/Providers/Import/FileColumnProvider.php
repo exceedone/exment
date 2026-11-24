@@ -182,7 +182,7 @@ class FileColumnProvider extends ProviderBase
                     'table_name' => $this->custom_table->table_name,
                 ]);
             } elseif ($validate_column->column_type == ColumnType::IMAGE) {
-                $extention = \File::extension($file_name);
+                $extention = \Illuminate\Support\Facades\File::extension($file_name);
                 if (!in_array($extention, Define::IMAGE_RULE_EXTENSIONS)) {
                     $errors[] = trans('validation.image', ['attribute' => $file_name]);
                 }
@@ -231,7 +231,7 @@ class FileColumnProvider extends ProviderBase
         $custom_column = CustomColumn::getEloquent($column_name, $this->custom_table);
 
         // get file
-        $file = \File::get($fileFullPath);
+        $file = \Illuminate\Support\Facades\File::get($fileFullPath);
 
         // save file info
         $exmentfile = ExmentFile::storeAs(FileType::CUSTOM_VALUE_COLUMN, $file, $this->custom_table->table_name, $displayFileName)
@@ -271,7 +271,7 @@ class FileColumnProvider extends ProviderBase
 
         // get file
         $file_path = path_join($this->fileDirFullPath, $file_name);
-        if (!\File::exists($file_path)) {
+        if (!\Illuminate\Support\Facades\File::exists($file_path)) {
             return null;
         }
 

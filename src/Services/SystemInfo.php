@@ -27,7 +27,7 @@ class SystemInfo
      */
     public static function items(): array
     {
-        list(, $current) = \Exment::getExmentVersion();
+        list(, $current) = \Exceedone\Exment\Facades\ExmentFacade::getExmentVersion();
         $items = [
             'Exment' => static::orUnknown($current),
         ];
@@ -67,7 +67,7 @@ class SystemInfo
     public static function database(): string
     {
         try {
-            $connection = \DB::connection();
+            $connection = \Illuminate\Support\Facades\DB::connection();
             $version = $connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION);
             return trim($connection->getDriverName() . ' ' . (is_scalar($version) ? strval($version) : ''));
         } catch (\Throwable $ex) {

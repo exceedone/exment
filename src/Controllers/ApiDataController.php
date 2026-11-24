@@ -24,7 +24,7 @@ use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Exceedone\Exment\Services\UserTimezone;
 use Carbon\Carbon;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Api about target table's data
@@ -570,7 +570,7 @@ class ApiDataController extends AdminControllerTableBase
             ], ErrorCode::VALIDATION_ERROR());
         }
 
-        \ExmentDB::transaction(function () use ($custom_values, $forceDelete) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($custom_values, $forceDelete) {
             foreach ($custom_values as $custom_value) {
                 if ($forceDelete) {
                     $custom_value->forceDelete();
@@ -1397,7 +1397,7 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         // get target ids
-        $ids = \DB::query()->fromSub($query, 'sub')->pluck('id');
+        $ids = \Illuminate\Support\Facades\DB::query()->fromSub($query, 'sub')->pluck('id');
 
         $result = clone $model;
         // return as eloquent
@@ -1537,7 +1537,7 @@ class ApiDataController extends AdminControllerTableBase
                 $file = File::storeAs(FileType::CUSTOM_VALUE_COLUMN, array_get($fileInfo, 'data'), $custom_table->table_name, array_get($fileInfo, 'name'));
 
                 // save file info
-                \Exment::setFileRequestSession(
+                \Exceedone\Exment\Facades\ExmentFacade::setFileRequestSession(
                     $file,
                     $custom_column->column_name,
                     $custom_table,

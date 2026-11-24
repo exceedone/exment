@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Config;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Carbon\Carbon;
-use Storage;
-use Cache;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Cache;
 
 /**
  * System definition.
@@ -324,7 +324,7 @@ class System extends ModelBase
             return static::$cacheGeneration;
         }
         try {
-            $value = \DB::table((new static())->getTable())
+            $value = \Illuminate\Support\Facades\DB::table((new static())->getTable())
                 ->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION)->value('system_value');
         } catch (\Throwable $e) {
             // no database yet (the install): nothing is shared with another server
@@ -342,7 +342,7 @@ class System extends ModelBase
     {
         $generation = dechex(time()) . bin2hex(random_bytes(4));
         try {
-            \DB::table((new static())->getTable())->updateOrInsert(
+            \Illuminate\Support\Facades\DB::table((new static())->getTable())->updateOrInsert(
                 ['system_name' => Define::SYSTEM_KEY_CACHE_GENERATION],
                 ['system_value' => $generation]
             );
@@ -424,14 +424,14 @@ class System extends ModelBase
             } elseif ($driver === 'database') {
                 $default = strval(config('cache.default'));
                 $prefix = strval(Cache::store()->getStore()->getPrefix()) . static::STORE_KEY_PREFIX;
-                \DB::connection(config("cache.stores.{$default}.connection"))
+                \Illuminate\Support\Facades\DB::connection(config("cache.stores.{$default}.connection"))
                     ->table(strval(config("cache.stores.{$default}.table", 'cache')))
                     ->where('key', 'like', addcslashes($prefix, '%_\\') . '%')
                     ->delete();
             }
         } catch (\Throwable $e) {
             // the values of the generation before are not read in any case
-            \Log::debug('[Exment] the kept cache was not removed: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::debug('[Exment] the kept cache was not removed: ' . $e->getMessage());
         }
     }
 
@@ -472,7 +472,7 @@ class System extends ModelBase
     public static function clearCacheAfterCommit(?string $connection = null): void
     {
         try {
-            \DB::connection($connection)->afterCommit(function () {
+            \Illuminate\Support\Facades\DB::connection($connection)->afterCommit(function () {
                 static::clearCache();
             });
         } catch (\Throwable $ex) {

@@ -231,7 +231,7 @@ class MeiliPermissionScreensTest extends FeatureTestBase
             $this->be($user);
             System::clearRequestSession();
 
-            $exmentUser = \Exment::user();
+            $exmentUser = \Exceedone\Exment\Facades\ExmentFacade::user();
             if (!$exmentUser || $exmentUser->isAdministrator()) {
                 continue;
             }

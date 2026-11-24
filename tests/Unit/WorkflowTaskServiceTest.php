@@ -45,7 +45,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
      */
     protected function init(string $loginId = TestDefine::TESTDATA_USER_LOGINID_USER1)
     {
-        if (!\Schema::hasTable('workflow_task_reads')) {
+        if (!\Illuminate\Support\Facades\Schema::hasTable('workflow_task_reads')) {
             $this->markTestSkipped('table workflow_task_reads is missing - run "php artisan migrate" first');
         }
 
@@ -78,7 +78,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $service->markSeen([$key, $key]);
 
         $parsed = WorkflowTaskService::parseTaskKey($key);
-        $count = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+        $count = WorkflowTaskRead::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
             ->where('custom_table_id', $parsed[0])
             ->where('morph_id', $parsed[1])
             ->count();
@@ -97,11 +97,11 @@ class WorkflowTaskServiceTest extends UnitTestBase
     {
         $this->init();
 
-        $before = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
+        $before = WorkflowTaskRead::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())->count();
 
         (new WorkflowTaskService())->markSeen(['']);
 
-        $after = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())->count();
+        $after = WorkflowTaskRead::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())->count();
 
         $this->assertSame($before, $after, 'empty task keys must not be stored');
     }
@@ -117,7 +117,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->init();
 
         $key = WorkflowTaskService::taskKey(999999, 888888);
-        $userA = \Exment::getUserId();
+        $userA = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
 
         (new WorkflowTaskService())->markSeen([$key]);
 
@@ -130,7 +130,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
         $this->be($other);
 
-        $this->assertNotSame($userA, \Exment::getUserId());
+        $this->assertNotSame($userA, \Exceedone\Exment\Facades\ExmentFacade::getUserId());
         $this->assertNotContains($key, (new WorkflowTaskService())->seenKeys(), 'seen state leaked to another user');
     }
 
@@ -205,7 +205,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // start from a known state
         (new WorkflowTaskService())->markAllUnseen();
 
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $before = WorkflowTaskRead::where('target_user_id', $userId)->count();
 
         // keys nobody may store: a table that does not exist, a record that does not exist,
@@ -252,7 +252,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     {
         $this->init();
 
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $connection->flushQueryLog();
         $connection->enableQueryLog();
 
@@ -281,7 +281,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->init();
 
         $controller = new WorkflowTaskController();
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $before = WorkflowTaskRead::where('target_user_id', $userId)->count();
 
         $inputs = [
@@ -326,7 +326,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $flood[] = WorkflowTaskService::taskKey(4294967295, $i);
         }
 
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $before = WorkflowTaskRead::where('target_user_id', $userId)->count();
 
         $response = (new WorkflowTaskController())->rowCheck(
@@ -447,7 +447,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // push every workflow out of its active period (rolled back after the test)
-        \DB::table(SystemTableName::WORKFLOW_TABLE)->update([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)->update([
             'active_start_date' => \Carbon\Carbon::today()->subDays(10)->toDateString(),
             'active_end_date'   => \Carbon\Carbon::today()->subDays(5)->toDateString(),
         ]);
@@ -522,12 +522,12 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }));
 
         // the workflows in use on the table, as the 利用設定 screen saves them (rolled back after the test)
-        $original = \DB::table(SystemTableName::WORKFLOW_TABLE)
+        $original = \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)
             ->where('custom_table_id', $tableId)
             ->where('active_flg', 1)
             ->get(['id', 'active_flg', 'active_start_date', 'active_end_date']);
         $set = function (array $values) use ($original) {
-            \DB::table(SystemTableName::WORKFLOW_TABLE)->whereIn('id', $original->pluck('id')->all())->update($values);
+            \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)->whereIn('id', $original->pluck('id')->all())->update($values);
             System::clearCache();
         };
         $listed = function () use ($keys) {
@@ -559,7 +559,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // step 5: put back as it was
         foreach ($original as $row) {
-            \DB::table(SystemTableName::WORKFLOW_TABLE)->where('id', $row->id)->update([
+            \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)->where('id', $row->id)->update([
                 'active_flg' => $row->active_flg,
                 'active_start_date' => $row->active_start_date,
                 'active_end_date' => $row->active_end_date,
@@ -596,7 +596,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // a second workflow on the same table, its period over, its start named otherwise - a new
         // one: a workflow of the dataset can be in use on other tables, where its start is the start
         $name = 'workflow task start probe';
-        $otherId = \DB::table('workflows')->insertGetId([
+        $otherId = \Illuminate\Support\Facades\DB::table('workflows')->insertGetId([
             'suuid' => short_uuid(),
             'workflow_type' => $current->workflow_type,
             'workflow_view_name' => 'workflow task test',
@@ -605,7 +605,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'created_at' => \Carbon\Carbon::now(),
             'updated_at' => \Carbon\Carbon::now(),
         ]);
-        \DB::table(SystemTableName::WORKFLOW_TABLE)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)->insert([
             'workflow_id' => $otherId,
             'custom_table_id' => $custom_table->id,
             'active_flg' => 1,
@@ -644,7 +644,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         return $custom_value->getWorkflowActions(true, true)->contains(function ($action) use ($custom_value) {
-            return !WorkflowValue::isAlreadyExecuted($action->id, $custom_value, \Exment::user()->base_user);
+            return !WorkflowValue::isAlreadyExecuted($action->id, $custom_value, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user);
         });
     }
 
@@ -661,7 +661,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('no un-actioned workflow task for this user in the test dataset');
         }
 
-        \DB::table(SystemTableName::WORKFLOW_TABLE)->update(['active_flg' => 0]);
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)->update(['active_flg' => 0]);
         \Exceedone\Exment\Model\System::clearCache();
 
         $this->assertCount(0, (new WorkflowTaskService())->getTasks());
@@ -681,7 +681,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     {
         // deliberately does NOT call init(): this check only needs the schema,
         // so it still runs on a database without the Exment test dataset.
-        $column = \DB::selectOne(
+        $column = \Illuminate\Support\Facades\DB::selectOne(
             'SELECT COLUMN_TYPE ct FROM information_schema.columns
              WHERE table_schema = DATABASE() AND table_name = ? AND COLUMN_NAME = ?',
             ['notify_navbars', 'notify_id']
@@ -761,7 +761,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
         $userIds = range(900001, 900400);
 
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $connection->flushQueryLog();
         $connection->enableQueryLog();
         try {
@@ -883,11 +883,11 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $org->setValue('organization_code', 'workflow_task_test_org');
         $org->setValue('organization_name', 'workflow task test');
         $org->save();
-        \DB::table(\Exceedone\Exment\Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER))->insert([
+        \Illuminate\Support\Facades\DB::table(\Exceedone\Exment\Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER))->insert([
             ['parent_id' => $org->id, 'child_id' => $withAccess],
             ['parent_id' => $org->id, 'child_id' => $withoutAccess],
         ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
             'related_id' => $org->id,
             'related_type' => 'organization',
             'workflow_action_id' => $start->id,
@@ -949,7 +949,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // a role of their own on a table
         $now = \Carbon\Carbon::now();
         $grant = function (CustomTable $table, string $permission) use ($userId, $now): void {
-            $roleGroupId = \DB::table('role_groups')->insertGetId([
+            $roleGroupId = \Illuminate\Support\Facades\DB::table('role_groups')->insertGetId([
                 'role_group_name' => 'workflow_task_test_' . $table->table_name,
                 'role_group_view_name' => 'workflow task test',
                 'role_group_order' => 0,
@@ -957,7 +957,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
-            \DB::table('role_group_permissions')->insert([
+            \Illuminate\Support\Facades\DB::table('role_group_permissions')->insert([
                 'role_group_id' => $roleGroupId,
                 'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
                 'role_group_target_id' => $table->id,
@@ -965,7 +965,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 'created_at' => $now,
                 'updated_at' => $now,
             ]);
-            \DB::table('role_group_user_organizations')->insert([
+            \Illuminate\Support\Facades\DB::table('role_group_user_organizations')->insert([
                 'role_group_id' => $roleGroupId,
                 'role_group_user_org_type' => SystemTableName::USER,
                 'role_group_target_id' => $userId,
@@ -994,7 +994,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // every record of the parent table; the record is shared with nobody, so only that opens it
         $grant($parent, \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_EDIT_ALL);
-        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+        \Illuminate\Support\Facades\DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
             ->where('parent_type', $child->table_name)
             ->where('parent_id', $childRecord->id)
             ->delete();
@@ -1002,7 +1002,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // stored, not set on $child: the record reads its table through the cache
         // (CustomValue::getCustomTableAttribute()), and System::clearCache() hands out a new instance
-        \DB::table(SystemTableName::CUSTOM_TABLE)->where('id', $child->id)->update([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::CUSTOM_TABLE)->where('id', $child->id)->update([
             'options' => json_encode(array_merge((array)$child->options, ['inherit_parent_permission' => '1'])),
         ]);
         System::clearCache();
@@ -1015,7 +1015,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame([$userId], $mayOpen([$userId]), 'inheriting the permission of the parent, the record is open to them');
 
         // thousands of members: not one statement carries more values than SQL Server takes
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $connection->flushQueryLog();
         $connection->enableQueryLog();
         try {
@@ -1080,7 +1080,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // the first may open the shared records of the table
         $now = \Carbon\Carbon::now();
-        $roleGroupId = \DB::table('role_groups')->insertGetId([
+        $roleGroupId = \Illuminate\Support\Facades\DB::table('role_groups')->insertGetId([
             'role_group_name' => 'workflow_task_test_shared_records',
             'role_group_view_name' => 'workflow task test',
             'role_group_order' => 0,
@@ -1088,7 +1088,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'created_at' => $now,
             'updated_at' => $now,
         ]);
-        \DB::table('role_group_permissions')->insert([
+        \Illuminate\Support\Facades\DB::table('role_group_permissions')->insert([
             'role_group_id' => $roleGroupId,
             'role_group_permission_type' => \Exceedone\Exment\Enums\RoleType::TABLE,
             'role_group_target_id' => $custom_table->id,
@@ -1096,7 +1096,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'created_at' => $now,
             'updated_at' => $now,
         ]);
-        \DB::table('role_group_user_organizations')->insert([
+        \Illuminate\Support\Facades\DB::table('role_group_user_organizations')->insert([
             'role_group_id' => $roleGroupId,
             'role_group_user_org_type' => SystemTableName::USER,
             'role_group_target_id' => $sharedOnly,
@@ -1109,17 +1109,17 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $org->setValue('organization_code', 'workflow_task_test_org');
         $org->setValue('organization_name', 'workflow task test');
         $org->save();
-        \DB::table(\Exceedone\Exment\Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER))->insert([
+        \Illuminate\Support\Facades\DB::table(\Exceedone\Exment\Model\CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER))->insert([
             ['parent_id' => $org->id, 'child_id' => $sharedOnly],
             ['parent_id' => $org->id, 'child_id' => $everyRecord],
         ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
             'related_id' => $org->id,
             'related_type' => 'organization',
             'workflow_action_id' => $start->id,
         ]);
         // the record is shared with nobody: only the roles with every record open it
-        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
+        \Illuminate\Support\Facades\DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)
             ->where('parent_type', $custom_table->table_name)
             ->where('parent_id', $custom_value->id)
             ->delete();
@@ -1148,7 +1148,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertNotContains($sharedOnly, $told1, 'the colleague who may not open the record must not be told about it');
 
         // shared with their organization, the record is open to them - and they are told
-        \DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::CUSTOM_VALUE_AUTHORITABLE)->insert([
             'parent_id' => $custom_value->id,
             'parent_type' => $custom_table->table_name,
             'authoritable_type' => \Exceedone\Exment\Enums\Permission::CUSTOM_VALUE_VIEW,
@@ -1263,7 +1263,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // an id no user record can have
         $login->base_user_id = 2147483000;
         $login->login_type = 'pure';
-        $login->password = \Hash::make(bin2hex(random_bytes(16)));
+        $login->password = \Illuminate\Support\Facades\Hash::make(bin2hex(random_bytes(16)));
         $login->save();
 
         /** @var LoginUser $loginUser */
@@ -1311,7 +1311,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $login = new LoginUser();
         $login->base_user_id = $base->id;
         $login->login_type = 'pure';
-        $login->password = \Hash::make(bin2hex(random_bytes(16)));
+        $login->password = \Illuminate\Support\Facades\Hash::make(bin2hex(random_bytes(16)));
         $login->save();
 
         /** @var LoginUser $loginUser */
@@ -1321,8 +1321,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // the work-user query is the expensive one, and it is the only thing that reads these
         // two views - so this collects the SQL of every table a query really was built for
         $workUserQueries = [];
-        \DB::listen(function ($query) use (&$workUserQueries) {
-            if (\Str::contains($query->sql, ['view_workflow_value_unions', 'view_workflow_start'])) {
+        \Illuminate\Support\Facades\DB::listen(function ($query) use (&$workUserQueries) {
+            if (\Illuminate\Support\Str::contains($query->sql, ['view_workflow_value_unions', 'view_workflow_start'])) {
                 $workUserQueries[] = $query->sql;
             }
         });
@@ -1940,15 +1940,15 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // second step: two approvers out of user1 and user2 (rolled back after the test)
-        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
             'options' => json_encode(array_merge((array)$second->options, [
                 'work_target_type' => 'fix',
                 'flow_next_type' => 'some',
                 'flow_next_count' => '2',
             ])),
         ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
             ['related_id' => $user1->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
             ['related_id' => $user2->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
         ]);
@@ -1956,7 +1956,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $dbTable = getDBTableName($custom_table);
         $latest = function ($morphId) use ($custom_table) {
-            return \DB::table(SystemTableName::WORKFLOW_VALUE)
+            return \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_VALUE)
                 ->where('morph_type', $custom_table->table_name)
                 ->where('morph_id', $morphId)
                 ->where('latest_flg', 1);
@@ -1979,8 +1979,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // the action ran on the 10th and somebody edited the record on the 20th; the other record
         // was last edited on the 15th
         $latest($acted['morph_id'])->update(['created_at' => '2001-01-10 10:00:00']);
-        \DB::table($dbTable)->where('id', $acted['morph_id'])->update(['updated_at' => '2001-01-20 10:00:00']);
-        \DB::table($dbTable)->where('id', $waiting['morph_id'])->update(['updated_at' => '2001-01-15 10:00:00']);
+        \Illuminate\Support\Facades\DB::table($dbTable)->where('id', $acted['morph_id'])->update(['updated_at' => '2001-01-20 10:00:00']);
+        \Illuminate\Support\Facades\DB::table($dbTable)->where('id', $waiting['morph_id'])->update(['updated_at' => '2001-01-15 10:00:00']);
 
         $updatedAt = function () use ($filter) {
             return (new WorkflowTaskService($filter))->getTasks()->mapWithKeys(function ($row) {
@@ -2067,15 +2067,15 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $user1 = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1);
 
         // the second step takes the record back to the start, pressed by user1 alone
-        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
             'options' => json_encode(array_merge((array)$second->options, [
                 'work_target_type' => 'fix',
                 'flow_next_type' => 'some',
                 'flow_next_count' => '1',
             ])),
         ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
             'related_id' => $user1->base_user_id,
             'related_type' => 'user',
             'workflow_action_id' => $second->id,
@@ -2085,7 +2085,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $dbTable = getDBTableName($custom_table);
         $latest = function ($morphId) use ($custom_table) {
-            return \DB::table(SystemTableName::WORKFLOW_VALUE)
+            return \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_VALUE)
                 ->where('morph_type', $custom_table->table_name)
                 ->where('morph_id', $morphId)
                 ->where('latest_flg', 1);
@@ -2110,7 +2110,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'precondition: the second step took the record back to the start'
         );
         $latest($task['morph_id'])->update(['created_at' => '2001-01-06 10:00:00']);
-        \DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-03 10:00:00']);
+        \Illuminate\Support\Facades\DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-03 10:00:00']);
         System::clearCache();
 
         $updatedAt = function () use ($filter, $task) {
@@ -2121,7 +2121,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame('2001-01-03 10:00:00', $updatedAt(), 'back at the start, the 更新日時 must be the record\'s own, not the time it was taken back');
 
         // an edit there moves it, as on a record never sent on - and the date filter follows
-        \DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-25 10:00:00']);
+        \Illuminate\Support\Facades\DB::table($dbTable)->where('id', $task['morph_id'])->update(['updated_at' => '2001-01-25 10:00:00']);
         $this->assertSame('2001-01-25 10:00:00', $updatedAt(), 'an edit of a record back at the start must move its 更新日時');
         $onDay = function (string $day) use ($filter) {
             return array_column($this->walk($filter + ['from' => $day, 'to' => $day]), 'task_key');
@@ -2340,7 +2340,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // pairs, not a map: as a key, '1' would be the integer 1 here too
         foreach ([['1', '1'], [' 承認待ち ', '承認待ち']] as [$stored, $offered]) {
             // renamed in the settings (DatabaseTransactions rolls it back)
-            \DB::table((new WorkflowStatus())->getTable())->where('id', $statusId)->update(['status_name' => $stored]);
+            \Illuminate\Support\Facades\DB::table((new WorkflowStatus())->getTable())->where('id', $statusId)->update(['status_name' => $stored]);
             System::clearCache();
 
             $expected = $this->keysOf(array_filter($this->walk([]), function ($row) use ($stored) {
@@ -2474,7 +2474,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $all = (new WorkflowTaskService())->countAll();
 
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $connection->flushQueryLog();
         $connection->enableQueryLog();
         try {
@@ -2517,7 +2517,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $needles = ['%', '_', '50%', 'A_B', '\\', '[x]', '[', ']'];
         foreach ($needles as $needle) {
             foreach ($texts as $text) {
-                $row = \DB::selectOne('SELECT CASE WHEN ? LIKE ? THEN 1 ELSE 0 END AS found', [$text, $pattern->invoke(null, $needle)]);
+                $row = \Illuminate\Support\Facades\DB::selectOne('SELECT CASE WHEN ? LIKE ? THEN 1 ELSE 0 END AS found', [$text, $pattern->invoke(null, $needle)]);
                 $this->assertSame(str_contains($text, $needle), (int)$row->found === 1, (string)json_encode(['text' => $text, 'typed' => $needle]));
             }
         }
@@ -2526,7 +2526,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // shouldReceive() is declared as returning an expectation OR a higher order message, and
         // only the first has andReturn(); a single method name always gives the expectation
         /** @var \Mockery\Expectation $sqlServer */
-        $sqlServer = \Exment::partialMock()->shouldReceive('isSqlServer');
+        $sqlServer = \Exceedone\Exment\Facades\ExmentFacade::partialMock()->shouldReceive('isSqlServer');
         $sqlServer->andReturn(true);
         $this->assertSame('%50[%]%', $pattern->invoke(null, '50%'));
         $this->assertSame('%A[_]B%', $pattern->invoke(null, 'A_B'));
@@ -2547,7 +2547,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     private function filterScenario(): array
     {
         // start from a known state: nothing seen, nothing taken off the list
-        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exment::getUserId())->delete();
+        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())->delete();
 
         $all = $this->walk([]);
         $byTable = [];
@@ -2650,7 +2650,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     {
         $custom_table = CustomTable::getEloquent($task['custom_table_id']);
 
-        \DB::table(getDBTableName($custom_table))->where('id', $task['morph_id'])->update(['updated_at' => $at]);
+        \Illuminate\Support\Facades\DB::table(getDBTableName($custom_table))->where('id', $task['morph_id'])->update(['updated_at' => $at]);
     }
 
     /**
@@ -2697,7 +2697,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     private function openList(array $query): array
     {
         if (is_null($this->listData)) {
-            \View::creator('exment::workflow_task.index', function ($view) {
+            \Illuminate\Support\Facades\View::creator('exment::workflow_task.index', function ($view) {
                 $this->listData = $view->getData();
             });
         }
@@ -2784,7 +2784,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // start from a known state (DatabaseTransactions rolls this back)
-        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exment::getUserId())->delete();
+        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())->delete();
 
         list($marked, $untouched) = $withRows;
         (new WorkflowTaskService(['custom_table_id' => $marked]))->markAllSeen();
@@ -2895,7 +2895,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             WorkflowTaskRead::withoutGlobalScopes()
                 ->where('custom_table_id', $task['custom_table_id'])
                 ->where('morph_id', $task['morph_id'])
-                ->where('target_user_id', '<>', \Exment::getUserId())
+                ->where('target_user_id', '<>', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
                 ->count(),
             'deleting my task wrote a mark for another user'
         );
@@ -2918,7 +2918,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         $controller = new WorkflowTaskController();
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $before = WorkflowTaskRead::where('target_user_id', $userId)->count();
 
         $malformed = [
@@ -3056,7 +3056,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         $rows = [];
-        foreach ([\Exment::getUserId(), $user2->base_user_id] as $userId) {
+        foreach ([\Exceedone\Exment\Facades\ExmentFacade::getUserId(), $user2->base_user_id] as $userId) {
             foreach ([[$custom_table->id, 1], [$custom_table->id, 2], [$other->id, 999999]] as [$customTableId, $morphId]) {
                 $rows[] = ['target_user_id' => $userId, 'custom_table_id' => $customTableId, 'morph_id' => $morphId, 'hidden_flg' => $morphId === 2];
             }
@@ -3089,7 +3089,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // every task unread (DatabaseTransactions rolls this back), and no answer cached from before
-        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exment::getUserId())->delete();
+        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())->delete();
         WorkflowTaskService::navbarCacheForget();
 
         $api = new \Exceedone\Exment\Controllers\ApiController();
@@ -3152,7 +3152,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $actedAt = \Carbon\Carbon::parse(WorkflowValue::where('morph_type', $custom_table->table_name)
             ->where('morph_id', $task['morph_id'])
             ->max('created_at'));
-        $marks = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+        $marks = WorkflowTaskRead::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
             ->where('custom_table_id', $task['custom_table_id'])
             ->where('morph_id', $task['morph_id']);
 
@@ -3255,7 +3255,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame(400, $response->getStatusCode());
         $this->assertSame(exmtrans('workflow_task.message.delete_notfound'), array_get($answer, 'swaltext'));
         $this->assertTrue(array_get($answer, 'reload'), 'the screen must draw the list again, without the row of the deleted record');
-        $this->assertSame(0, WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+        $this->assertSame(0, WorkflowTaskRead::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
             ->where('custom_table_id', $task['custom_table_id'])
             ->where('morph_id', $task['morph_id'])
             ->count(), 'a refused delete wrote a mark');
@@ -3315,7 +3315,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->init();
 
         // every task unread, and no navbar answer cached from before (rolled back after the test)
-        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exment::getUserId())->delete();
+        WorkflowTaskRead::withoutGlobalScopes()->where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())->delete();
         WorkflowTaskService::navbarCacheForget();
         $tasks = (new WorkflowTaskService())->getTasks();
         $this->assertGreaterThan(1, $tasks->count(), 'the test dataset must give this user two tasks');
@@ -3354,7 +3354,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // a user with no task (every workflow switched off): the navbar polled on the Japanese
         // screen, and at once on the English one
-        \DB::table(SystemTableName::WORKFLOW_TABLE)->update(['active_flg' => 0]);
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_TABLE)->update(['active_flg' => 0]);
         System::clearCache();
         WorkflowTaskService::navbarCacheForget();
         $api = new \Exceedone\Exment\Controllers\ApiController();
@@ -3608,7 +3608,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $before = $marks();
         foreach ([SystemTableName::DOCUMENT, SystemTableName::USER] as $tableName) {
             $custom_table = CustomTable::getEloquent($tableName);
-            $id = isset($custom_table) ? \DB::table(getDBTableName($custom_table))->whereNull('deleted_at')->value('id') : null;
+            $id = isset($custom_table) ? \Illuminate\Support\Facades\DB::table(getDBTableName($custom_table))->whereNull('deleted_at')->value('id') : null;
             if (!isset($id)) {
                 continue;
             }
@@ -3669,7 +3669,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertSame(1, (new WorkflowTaskService(['custom_table_id' => (string)$first['custom_table_id'], 'q' => '#' . $first['morph_id']]))->countRemoved());
 
         // a mark of a record that is nobody's task: there is no such record
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         WorkflowTaskRead::insert([
             'target_user_id' => $userId,
             'custom_table_id' => $first['custom_table_id'],
@@ -3699,7 +3699,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $custom_table = CustomTable::getEloquent($task['custom_table_id']);
         $now = \Carbon\Carbon::now()->format('Y-m-d H:i:s');
 
-        \DB::table(SystemTableName::WORKFLOW_VALUE)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_VALUE)->insert([
             'suuid' => short_uuid(),
             'workflow_id' => Workflow::getWorkflowByTable($custom_table)->id,
             'morph_type' => $custom_table->table_name,
@@ -3822,14 +3822,14 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // halves part ways: the record page drops an empty value before comparing (so "<>" and
         // "is not the login user" are true for it and a reversed header keeps it), while "<>" in
         // SQL drops NULL and NOT (NULL) is NULL. They are start-status tasks of their creator.
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $now = \Carbon\Carbon::now();
         foreach ([
             ['text' => 'workflow task test: no values', 'odd_even' => 'odd', 'multiples_of_3' => '1'],
             ['text' => 'workflow task test: no odd_even', 'user' => (string)$userId, 'date' => '2026-11-19', 'integer' => '1600', 'email' => 'test1@example.com'],
             ['text' => 'workflow task test: empty strings', 'odd_even' => '', 'email' => '', 'user' => ''],
         ] as $value) {
-            \DB::table(getDBTableName($custom_table))->insert([
+            \Illuminate\Support\Facades\DB::table(getDBTableName($custom_table))->insert([
                 'value' => json_encode($value),
                 'created_user_id' => $userId,
                 'updated_user_id' => $userId,
@@ -3919,7 +3919,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
                     'condition_value' => $value,
                 ]);
             }
-            \DB::table((new WorkflowConditionHeader())->getTable())->where('id', $header->id)->update([
+            \Illuminate\Support\Facades\DB::table((new WorkflowConditionHeader())->getTable())->where('id', $header->id)->update([
                 'options' => json_encode(['condition_join' => $join, 'condition_reverse' => $reverse ? '1' : '0']),
             ]);
             System::clearCache();
@@ -4047,7 +4047,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
                 $headers = $planHeaders->invoke(null, $action, $custom_table, $tableName);
                 $this->assertNotNull($headers, "{$name} {$operator} must be decided in SQL");
-                $query = \DB::table($tableName)->whereIn($tableName . '.id', $ids);
+                $query = \Illuminate\Support\Facades\DB::table($tableName)->whereIn($tableName . '.id', $ids);
                 $query->where(function ($query) use ($whereHeaders, $service, $headers, $custom_table) {
                     $whereHeaders->invoke($service, $query, $headers, $custom_table);
                 });
@@ -4254,11 +4254,11 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('needs user2 in the test dataset');
         }
 
-        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $second->id)->update([
             'options' => json_encode(array_merge((array)$second->options, ['work_target_type' => 'fix'] + $options)),
         ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
             ['related_id' => $user1->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
             ['related_id' => $user2->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
         ]);
@@ -4300,7 +4300,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // a 代理申請 on the start status, for the login user alone
         $now = \Carbon\Carbon::now();
-        $actionId = \DB::table(SystemTableName::WORKFLOW_ACTION)->insertGetId([
+        $actionId = \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_ACTION)->insertGetId([
             'workflow_id' => $workflow->id,
             'status_from' => Define::WORKFLOW_START_KEYNAME,
             'action_name' => 'workflow task test: special',
@@ -4309,7 +4309,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'created_at' => $now,
             'updated_at' => $now,
         ]);
-        \DB::table((new WorkflowConditionHeader())->getTable())->insert([
+        \Illuminate\Support\Facades\DB::table((new WorkflowConditionHeader())->getTable())->insert([
             'workflow_action_id' => $actionId,
             'status_to' => $status->id,
             'enabled_flg' => 1,
@@ -4317,8 +4317,8 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'created_at' => $now,
             'updated_at' => $now,
         ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
-            'related_id' => \Exment::getUserId(),
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+            'related_id' => \Exceedone\Exment\Facades\ExmentFacade::getUserId(),
             'related_type' => 'user',
             'workflow_action_id' => $actionId,
         ]);
@@ -4412,17 +4412,17 @@ class WorkflowTaskServiceTest extends UnitTestBase
             ->where('morph_id', $scenario['id'])
             ->where('latest_flg', true)
             ->first();
-        \DB::table(SystemTableName::WORKFLOW_VALUE_AUTHORITY)->where('workflow_value_id', $newest->id)->delete();
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_VALUE_AUTHORITY)->where('workflow_value_id', $newest->id)->delete();
 
         $this->be($scenario['approvers']['user2']);
         $this->assertTrue($scenario['recordPageOffers'](), 'precondition: the record page still asks user2 to approve');
         $this->assertFalse($scenario['listed'](), 'precondition: without the picks on the newest value, the list misses the task');
 
-        $this->assertSame(0, \Artisan::call('exment:patchdata', ['action' => 'workflow_value_authorities']));
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:patchdata', ['action' => 'workflow_value_authorities']));
         $this->assertTrue($scenario['listed'](), 'the patch did not give user2 the task back');
 
         $picks = function () use ($scenario) {
-            return \DB::table(SystemTableName::WORKFLOW_VALUE_AUTHORITY)
+            return \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_VALUE_AUTHORITY)
                 ->join(SystemTableName::WORKFLOW_VALUE, SystemTableName::WORKFLOW_VALUE . '.id', SystemTableName::WORKFLOW_VALUE_AUTHORITY . '.workflow_value_id')
                 ->where(SystemTableName::WORKFLOW_VALUE . '.morph_type', $scenario['custom_table']->table_name)
                 ->where(SystemTableName::WORKFLOW_VALUE . '.morph_id', $scenario['id'])
@@ -4436,7 +4436,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 ->all();
         };
         $before = $picks();
-        $this->assertSame(0, \Artisan::call('exment:patchdata', ['action' => 'workflow_value_authorities']));
+        $this->assertSame(0, \Illuminate\Support\Facades\Artisan::call('exment:patchdata', ['action' => 'workflow_value_authorities']));
         $this->assertSame($before, $picks(), 'running the patch again must change nothing');
     }
 
@@ -4483,18 +4483,18 @@ class WorkflowTaskServiceTest extends UnitTestBase
             $this->markTestSkipped('needs user1 and user2 in the test dataset');
         }
 
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $second->id)->delete();
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->insert([
             ['related_id' => $user1->base_user_id, 'related_type' => 'user', 'workflow_action_id' => $second->id],
         ]);
-        \DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $third->id)->update([
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_ACTION)->where('id', $third->id)->update([
             'options' => json_encode(array_merge((array)$third->options, [
                 'work_target_type' => 'action_select',
                 'flow_next_type' => 'some',
                 'flow_next_count' => '2',
             ])),
         ]);
-        \DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $third->id)->delete();
+        \Illuminate\Support\Facades\DB::table(SystemTableName::WORKFLOW_AUTHORITY)->where('workflow_action_id', $third->id)->delete();
         System::clearCache();
 
         // one of user1's own records, still at the start
@@ -4535,7 +4535,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
                 $custom_value = $custom_table->getValueModel($id);
 
                 return $custom_value->getWorkflowActions(true, true)->contains('id', $third->id)
-                    && !WorkflowValue::isAlreadyExecuted($third->id, $custom_value, \Exment::user()->base_user);
+                    && !WorkflowValue::isAlreadyExecuted($third->id, $custom_value, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user);
             },
             'listed' => function () use ($filter, $key) {
                 System::clearCache();
@@ -4595,7 +4595,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             return getDBTableName(CustomTable::getEloquent($customTableId));
         });
 
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $connection->flushQueryLog();
         $connection->enableQueryLog();
 
@@ -4659,36 +4659,36 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // the store the tests run on, whichever it is
         $key = (string)WorkflowTaskService::navbarCacheKey();
-        \Cache::put($key, ['count' => 1], 60);
+        \Illuminate\Support\Facades\Cache::put($key, ['count' => 1], 60);
         WorkflowTaskService::navbarCacheForget();
         $this->assertNotSame($key, WorkflowTaskService::navbarCacheKey(), 'an own write must move the key');
-        $this->assertFalse(\Cache::has($key), 'the payload of the old version must not stay behind');
+        $this->assertFalse(\Illuminate\Support\Facades\Cache::has($key), 'the payload of the old version must not stay behind');
 
-        if (!in_array(\DB::getDriverName(), ['mysql', 'mariadb'], true)) {
+        if (!in_array(\Illuminate\Support\Facades\DB::getDriverName(), ['mysql', 'mariadb'], true)) {
             $this->markTestSkipped('the database store part creates its table the MySQL way');
         }
 
-        \DB::statement('CREATE TEMPORARY TABLE wf_task_cache_probe (`key` VARCHAR(255) NOT NULL PRIMARY KEY, `value` MEDIUMTEXT NOT NULL, `expiration` INT NOT NULL)');
-        $store = new \Illuminate\Cache\DatabaseStore(\DB::connection(), 'wf_task_cache_probe');
-        \Cache::extend('wf_task_database', function () use ($store) {
-            return \Cache::repository($store);
+        \Illuminate\Support\Facades\DB::statement('CREATE TEMPORARY TABLE wf_task_cache_probe (`key` VARCHAR(255) NOT NULL PRIMARY KEY, `value` MEDIUMTEXT NOT NULL, `expiration` INT NOT NULL)');
+        $store = new \Illuminate\Cache\DatabaseStore(\Illuminate\Support\Facades\DB::connection(), 'wf_task_cache_probe');
+        \Illuminate\Support\Facades\Cache::extend('wf_task_database', function () use ($store) {
+            return \Illuminate\Support\Facades\Cache::repository($store);
         });
         config(['cache.stores.wf_task_database' => ['driver' => 'wf_task_database']]);
-        $default = \Cache::getDefaultDriver();
-        \Cache::setDefaultDriver('wf_task_database');
+        $default = \Illuminate\Support\Facades\Cache::getDefaultDriver();
+        \Illuminate\Support\Facades\Cache::setDefaultDriver('wf_task_database');
 
         try {
-            $this->assertFalse(\Cache::increment('wf_task_probe'), 'this store must answer increment() the way the database store does');
+            $this->assertFalse(\Illuminate\Support\Facades\Cache::increment('wf_task_probe'), 'this store must answer increment() the way the database store does');
 
             $key = (string)WorkflowTaskService::navbarCacheKey();
-            \Cache::put($key, ['count' => 1], 60);
+            \Illuminate\Support\Facades\Cache::put($key, ['count' => 1], 60);
             WorkflowTaskService::navbarCacheForget();
 
             $this->assertNotSame($key, WorkflowTaskService::navbarCacheKey(), 'on the database store an own write must move the key too');
-            $this->assertFalse(\Cache::has($key), 'and remove the payload of the old version');
+            $this->assertFalse(\Illuminate\Support\Facades\Cache::has($key), 'and remove the payload of the old version');
         } finally {
-            \Cache::setDefaultDriver($default);
-            \DB::statement('DROP TEMPORARY TABLE IF EXISTS wf_task_cache_probe');
+            \Illuminate\Support\Facades\Cache::setDefaultDriver($default);
+            \Illuminate\Support\Facades\DB::statement('DROP TEMPORARY TABLE IF EXISTS wf_task_cache_probe');
         }
     }
 
@@ -4712,7 +4712,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     {
         $this->init();
 
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $original = app('db.transactions');
         // Laravel 11+ is told which connections the wrapper belongs to and skips that many
         $manager = new \Illuminate\Foundation\Testing\DatabaseTransactionsManager([$connection->getName()]);
@@ -4760,7 +4760,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $first = $controller->workflowTaskPage($request);
 
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $connection->flushQueryLog();
         $connection->enableQueryLog();
 
@@ -4819,7 +4819,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         $countQueries = function (callable $work) {
-            $connection = \DB::connection();
+            $connection = \Illuminate\Support\Facades\DB::connection();
             $connection->flushQueryLog();
             $connection->enableQueryLog();
 
@@ -4886,7 +4886,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // read only: every unseen count is zero by construction
         $service = new WorkflowTaskService(['seen' => '1']);
-        $connection = \DB::connection();
+        $connection = \Illuminate\Support\Facades\DB::connection();
         $connection->flushQueryLog();
         $connection->enableQueryLog();
 

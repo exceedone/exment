@@ -82,9 +82,9 @@ class BackupRestore extends SystemRequireBase
     {
         switch ($this->result) {
             case SystemRequireResult::WARNING:
-                return \Exment::getManualUrl('backup_sqlserver');
+                return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('backup_sqlserver');
             case SystemRequireResult::NG:
-                return \Exment::getManualUrl('troubleshooting');
+                return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('troubleshooting');
         }
         return null;
     }

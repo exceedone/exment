@@ -23,7 +23,7 @@ class McpController extends AdminControllerBase
         try {
             return $this->answer($request);
         } catch (\Throwable $e) {
-            \Log::error('[Exment] MCP: ' . $e->getMessage(), ['exception' => $e]);
+            \Illuminate\Support\Facades\Log::error('[Exment] MCP: ' . $e->getMessage(), ['exception' => $e]);
             return response()->json(McpServer::error(null, -32603, 'Internal error.'), 500);
         }
     }
@@ -33,7 +33,7 @@ class McpController extends AdminControllerBase
      */
     protected function answer(Request $request)
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return response()->json(McpServer::error(null, -32001, 'Not signed in.'), 401);
         }

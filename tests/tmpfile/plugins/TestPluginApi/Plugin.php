@@ -6,7 +6,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Plugin\PluginApiBase;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 class Plugin extends PluginApiBase
 {

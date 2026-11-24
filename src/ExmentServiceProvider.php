@@ -2,7 +2,7 @@
 
 namespace Exceedone\Exment;
 
-use Storage;
+use Illuminate\Support\Facades\Storage;
 use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Middleware as AdminMiddleware;
 use ExmentAdminCore\Admin\AdminServiceProvider as ServiceProvider;
@@ -554,12 +554,12 @@ class ExmentServiceProvider extends ServiceProvider
         }
 
         if (config('admin.https') || config('admin.secure')) {
-            \URL::forceScheme('https');
+            \Illuminate\Support\Facades\URL::forceScheme('https');
             // @phpstan-ignore-next-line
             $this->app['request']->server->set('HTTPS', true);
         }
         if (boolval(config('admin.use_app_url', false))) {
-            \URL::forceRootUrl(config('app.url'));
+            \Illuminate\Support\Facades\URL::forceRootUrl(config('app.url'));
         }
     }
 
@@ -730,7 +730,7 @@ class ExmentServiceProvider extends ServiceProvider
             return new Providers\PublicFormUserProvider($app['hash'], LoginUser::class);
         });
 
-        \Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {
+        \Illuminate\Support\Facades\Validator::resolver(function ($translator, $data, $rules, $messages, $customAttributes) {
             return new ExmentCustomValidator($translator, $data, $rules, $messages, $customAttributes);
         });
 

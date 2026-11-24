@@ -41,7 +41,7 @@ class CalendarGrid extends GridBase
             // 'createUrl' => admin_url("data/$table_name/create"),
             // 'new' => trans('admin.new'),
             'tools' => $tools,
-            'locale' => \App::getLocale(),
+            'locale' => \Illuminate\Support\Facades\App::getLocale(),
         ]);
     }
 

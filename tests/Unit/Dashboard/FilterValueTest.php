@@ -112,7 +112,7 @@ class FilterValueTest extends DashboardUnitTestCase
     {
         // SQL Server fails the whole query on a CAST of a text that is no number
         /** @var \Mockery\Expectation $sqlServer */
-        $sqlServer = \Exment::partialMock()->shouldReceive('isSqlServer');
+        $sqlServer = \Exceedone\Exment\Facades\ExmentFacade::partialMock()->shouldReceive('isSqlServer');
         $sqlServer->andReturn(true);
         $score = $this->wrap('exm__fake.value->score');
         $this->assertSame("TRY_CAST({$score} AS DECIMAL(22,8))", FilterValue::compareExpr(new FakeCustomColumn('score', 'integer')));
@@ -191,7 +191,7 @@ class FilterValueTest extends DashboardUnitTestCase
     public function testApplyOnMultipleColumnOnSqlServerSplitsTheList(): void
     {
         /** @var \Mockery\Expectation $sqlServer */
-        $sqlServer = \Exment::partialMock()->shouldReceive('isSqlServer');
+        $sqlServer = \Exceedone\Exment\Facades\ExmentFacade::partialMock()->shouldReceive('isSqlServer');
         $sqlServer->andReturn(true);
         $q = new FakeQuery();
         FilterValue::apply($q, $this->multiple('select_table', true), ['in' => ['1', '2']]);

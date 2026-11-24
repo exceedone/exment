@@ -77,7 +77,7 @@ class LoginSettingController extends AdminControllerBase
         });
         $grid->column('login_view_name', exmtrans('login.login_view_name'));
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->display(function ($active_flg) {
-            return \Exment::getTrueMark($active_flg);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($active_flg);
         })->escape(false);
 
         $grid->filter(function ($filter) {
@@ -85,7 +85,7 @@ class LoginSettingController extends AdminControllerBase
 
             $filter->equal('login_type', exmtrans("login.login_type"))->select(LoginType::transArrayFilter('login.login_type_options', LoginType::SETTING()));
             $filter->like('login_view_name', exmtrans("login.login_view_name"));
-            $filter->like('active_flg', exmtrans("plugin.active_flg"))->radio(\Exment::getYesNoAllOption());
+            $filter->like('active_flg', exmtrans("plugin.active_flg"))->radio(\Exceedone\Exment\Facades\ExmentFacade::getYesNoAllOption());
         });
 
         $grid->disableExport();
@@ -307,7 +307,7 @@ class LoginSettingController extends AdminControllerBase
                 $attributes['options.oauth_provider_name'] = exmtrans('login.oauth_provider_name');
             }
 
-            $validator = \Validator::make($input, $rules, [], $attributes);
+            $validator = \Illuminate\Support\Facades\Validator::make($input, $rules, [], $attributes);
             if ($validator->fails()) {
                 $message->merge($validator->errors());
             }
@@ -544,7 +544,7 @@ class LoginSettingController extends AdminControllerBase
 
             return $login_setting->getLoginServiceClassName()::loginTest($request, $login_setting);
         } catch (SsoLoginErrorException $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $ex->getSsoAdminErrorMessage()]);
 
@@ -552,7 +552,7 @@ class LoginSettingController extends AdminControllerBase
 
             // if error, redirect edit page
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             list($result, $message, $adminMessage, $custom_login_user) = LoginService::getLoginResult(false, exmtrans('login.sso_provider_error'), [$ex]);
             session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $adminMessage]);
@@ -581,7 +581,7 @@ class LoginSettingController extends AdminControllerBase
 
             return redirect($this->getEditUrl($id, true));
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             list($result, $message, $adminMessage, $custom_login_user) = LoginService::getLoginResult(false, exmtrans('login.sso_provider_error'), [$ex]);
             session([Define::SYSTEM_KEY_SESSION_SSO_TEST_MESSAGE => $adminMessage]);
@@ -746,7 +746,7 @@ class LoginSettingController extends AdminControllerBase
      */
     public function auth_2factor_verify()
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // set 2factor params
         $verify_code = random_int(100000, 999999);
@@ -775,7 +775,7 @@ class LoginSettingController extends AdminControllerBase
         }
         // throw mailsend Exception
         catch (TransportExceptionInterface $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return getAjaxResponse([
                 'result'  => false,
                 'toastr' => exmtrans('error.mailsend_failed'),
@@ -817,7 +817,7 @@ class LoginSettingController extends AdminControllerBase
         });
 
         $body = $form->render();
-        $script = \Admin::purescript()->render();
+        $script = \ExmentAdminCore\Admin\Facades\Admin::purescript()->render();
         return [
             'body'  => $body,
             'script' => $script,

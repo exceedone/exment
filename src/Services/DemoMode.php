@@ -242,7 +242,7 @@ class DemoMode
             return true;
         }
 
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $base_user = $login_user ? $login_user->base_user : null;
         if (!$base_user instanceof CustomValue) {
             return false;

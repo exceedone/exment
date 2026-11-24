@@ -580,7 +580,7 @@ class WorkflowTaskService
      */
     private function hasAnyAccess(CustomTable $custom_table): bool
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return false;
         }
@@ -614,7 +614,7 @@ class WorkflowTaskService
      *
      * They can come apart: the user record is soft deleted when somebody leaves the company,
      * but login_users keeps its row. That account can still sign in, and the work-user
-     * conditions then read \Exment::user()->base_user->belong_organizations on a null
+     * conditions then read \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->belong_organizations on a null
      * base_user - a fatal error. The navbar runs on EVERY admin page, so without this guard
      * one leftover login row white-screens the whole back office for that account.
      *
@@ -625,9 +625,9 @@ class WorkflowTaskService
      */
     private function hasBaseUser(): bool
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
-        return isset($user) && isset($user->base_user) && !is_nullorempty(\Exment::getUserId());
+        return isset($user) && isset($user->base_user) && !is_nullorempty(\Exceedone\Exment\Facades\ExmentFacade::getUserId());
     }
 
     /**
@@ -710,7 +710,7 @@ class WorkflowTaskService
     private function markSubQuery(CustomTable $custom_table, string $tableName, ?bool $hidden = null): \Closure
     {
         $readTable = $this->readTableName();
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
 
         return function ($sub) use ($readTable, $tableName, $custom_table, $userId, $hidden) {
             $sub->selectRaw('1')
@@ -862,7 +862,7 @@ class WorkflowTaskService
      */
     private static function taskUpdatedAt(string $tableName): array
     {
-        return [\DB::getQueryGrammar()->wrap($tableName . '.updated_at'), []];
+        return [\Illuminate\Support\Facades\DB::getQueryGrammar()->wrap($tableName . '.updated_at'), []];
     }
 
     /**
@@ -876,7 +876,7 @@ class WorkflowTaskService
     {
         [$updatedAt, $bindings] = self::taskUpdatedAt($tableName);
 
-        return $query->selectRaw($updatedAt . ' as ' . \DB::getQueryGrammar()->wrap(self::UPDATED_AT), $bindings);
+        return $query->selectRaw($updatedAt . ' as ' . \Illuminate\Support\Facades\DB::getQueryGrammar()->wrap(self::UPDATED_AT), $bindings);
     }
 
     /**
@@ -1031,7 +1031,7 @@ class WorkflowTaskService
         }
 
         $valueTable = SystemTableName::WORKFLOW_VALUE;
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
 
         return function ($query, string $viewName) use ($checks, $special, $narrowStart, $startWorkflowId, $custom_table, $tableName, $valueTable, $userId) {
             // the start half: the workflow in use today, or nothing to start at all
@@ -1301,7 +1301,7 @@ class WorkflowTaskService
      */
     private static function containsPattern(string $value): string
     {
-        $escaped = \Exment::isSqlServer()
+        $escaped = \Exceedone\Exment\Facades\ExmentFacade::isSqlServer()
             ? str_replace(['[', '%', '_'], ['[[]', '[%]', '[_]'], $value)
             : str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $value);
 
@@ -1551,7 +1551,7 @@ class WorkflowTaskService
 
         // a mark that outlived its task (the record went to somebody else by an edit, or was
         // deleted) lets its table through here; the COUNT below finds nothing there
-        $customTableIds = WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+        $customTableIds = WorkflowTaskRead::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
             ->where('hidden_flg', true)
             ->distinct()
             ->pluck('custom_table_id');
@@ -1889,7 +1889,7 @@ class WorkflowTaskService
      */
     public function seenKeys(): array
     {
-        return WorkflowTaskRead::where('target_user_id', \Exment::getUserId())
+        return WorkflowTaskRead::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
             ->select(['custom_table_id', 'morph_id'])
             ->get()
             ->map(function ($read) {
@@ -1914,7 +1914,7 @@ class WorkflowTaskService
             return [];
         }
 
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $seen = [];
 
         foreach (self::idChunks($byTable) as $group) {
@@ -2015,12 +2015,12 @@ class WorkflowTaskService
      */
     public static function navbarCacheKey(): ?string
     {
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         if (is_nullorempty($userId)) {
             return null;
         }
 
-        $version = (int)\Cache::get(self::navbarVersionKey($userId), 0);
+        $version = (int)\Illuminate\Support\Facades\Cache::get(self::navbarVersionKey($userId), 0);
 
         return 'exment_workflow_task_nav_' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . '_' . $userId . '_' . $version . '_' . app()->getLocale();
     }
@@ -2050,7 +2050,7 @@ class WorkflowTaskService
      */
     public static function navbarCacheForget(): void
     {
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         if (is_nullorempty($userId)) {
             return;
         }
@@ -2059,7 +2059,7 @@ class WorkflowTaskService
             // The payload of the version that ends here is never read again, and expiring does
             // not remove it: the file store deletes an expired entry only when that very key is
             // read. Left alone, every own write kept one dead file on disk until cache:clear.
-            \Cache::forget((string)static::navbarCacheKey());
+            \Illuminate\Support\Facades\Cache::forget((string)static::navbarCacheKey());
 
             // Read and write back, not increment(): the database and memcached stores answer
             // false for a key that does not exist yet and store nothing, so there the version
@@ -2067,7 +2067,7 @@ class WorkflowTaskService
             // here may store the same number; the version still moves off the one any poll can
             // have cached, which is all it is for.
             $versionKey = self::navbarVersionKey($userId);
-            \Cache::forever($versionKey, (int)\Cache::get($versionKey, 0) + 1);
+            \Illuminate\Support\Facades\Cache::forever($versionKey, (int)\Illuminate\Support\Facades\Cache::get($versionKey, 0) + 1);
         } catch (\Throwable $ex) {
             // a cache backend refusing the write must never break the action being performed
         }
@@ -2093,7 +2093,7 @@ class WorkflowTaskService
     public static function navbarCacheForgetAfterCommit(): void
     {
         try {
-            \DB::afterCommit(function () {
+            \Illuminate\Support\Facades\DB::afterCommit(function () {
                 static::navbarCacheForget();
             });
         } catch (\Throwable $ex) {
@@ -2125,7 +2125,7 @@ class WorkflowTaskService
             return;
         }
 
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
 
         $byTable = self::keysByTable($taskKeys);
         if (empty($byTable)) {
@@ -2295,7 +2295,7 @@ class WorkflowTaskService
         }
 
         $tables = $this->workflowCustomTables();
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $now = \Carbon\Carbon::now();
         $listedAt = self::normalizeMoment($listedAt);
         $hidden = 0;
@@ -2409,7 +2409,7 @@ class WorkflowTaskService
         // the 削除済み list, whatever filter this instance was built with
         $removed = new self(['removed' => true]);
         $tables = $removed->workflowCustomTables();
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $restored = 0;
 
         foreach (self::keysByTable($taskKeys) as $customTableId => $morphIds) {
@@ -2547,7 +2547,7 @@ class WorkflowTaskService
             return 0;
         }
 
-        $userId = \Exment::getUserId();
+        $userId = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         $removed = 0;
 
         foreach ($this->workflowCustomTables() as $customTableId => $custom_table) {

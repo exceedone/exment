@@ -28,7 +28,7 @@ class ActionUser extends NotifyTargetBase
     // @phpstan-ignore-next-line
     public function getModelsWorkflow(?CustomValue $custom_value, WorkflowAction $workflow_action, ?WorkflowValue $workflow_value, $statusTo): Collection
     {
-        $base_user = \Exment::user()->base_user;
+        $base_user = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user;
         /** @var Collection $users */
         // @phpstan-ignore-next-line
         $users = collect([$base_user]);

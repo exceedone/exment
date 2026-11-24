@@ -68,6 +68,6 @@ class FilePermission extends SystemRequireBase
 
     public function getSettingUrl(): ?string
     {
-        return \Exment::getManualUrl('troubleshooting');
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('troubleshooting');
     }
 }

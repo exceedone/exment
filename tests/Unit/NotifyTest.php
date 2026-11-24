@@ -240,7 +240,7 @@ class NotifyTest extends UnitTestBase
         $to = 'foobar@test.com';
 
         // noot use archive
-        \Config::set('exment.archive_attachment', false);
+        \Illuminate\Support\Facades\Config::set('exment.archive_attachment', false);
 
         // get file
         $file = Model\File::whereNotNull('parent_id')->whereNotNull('parent_type')
@@ -358,7 +358,7 @@ class NotifyTest extends UnitTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         $table_name = 'custom_value_edit_all';
-        $user_id = \Exment::user()->base_user_id;
+        $user_id = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user_id;
         /** @var mixed $model */
         $model = CustomTable::getEloquent($table_name)->getValueModel()
             ->where('created_user_id', '<>', $user_id)->first();
@@ -387,7 +387,7 @@ class NotifyTest extends UnitTestBase
         $this->init(false);
 
         // Login user.
-        $user = \Exment::user()->base_user;
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user;
 
         /** @var Notify $notify */
         $notify = Notify::where('notify_trigger', NotifyTrigger::CREATE_UPDATE_DATA)->first();

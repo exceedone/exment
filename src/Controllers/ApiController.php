@@ -20,7 +20,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ErrorCode;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
 
 /**
@@ -48,7 +48,7 @@ class ApiController extends AdminControllerBase
      */
     public function me(Request $request)
     {
-        $base_user = \Exment::user()->base_user ?? null;
+        $base_user = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user ?? null;
         if (!isset($base_user)) {
             return null;
         }
@@ -69,7 +69,7 @@ class ApiController extends AdminControllerBase
      */
     public function avatar(Request $request)
     {
-        $avatar = \Exment::user()->avatar ?? null;
+        $avatar = \Exceedone\Exment\Facades\ExmentFacade::user()->avatar ?? null;
         $isBase64 = $request->has('base64') && boolval($request->get('base64'));
         $isdefault = $request->has('default') && boolval($request->get('default'));
 
@@ -79,10 +79,10 @@ class ApiController extends AdminControllerBase
             if ($isdefault) {
                 $defaultPath = base_path(path_join('public', Define::USER_IMAGE_LINK));
                 if ($isBase64) {
-                    return response()->json(['base64' => base64_encode(\File::get($defaultPath))]);
+                    return response()->json(['base64' => base64_encode(\Illuminate\Support\Facades\File::get($defaultPath))]);
                 }
                 return response()->stream(function () use ($defaultPath) {
-                    echo \File::get($defaultPath);
+                    echo \Illuminate\Support\Facades\File::get($defaultPath);
                 }, 200, ['Content-Type' => 'image/png']);
             }
 
@@ -94,9 +94,9 @@ class ApiController extends AdminControllerBase
         }
 
         if ($isBase64) {
-            return response()->json(['base64' => base64_encode(\Storage::disk(config('admin.upload.disk'))->get($avatar))]);
+            return response()->json(['base64' => base64_encode(\Illuminate\Support\Facades\Storage::disk(config('admin.upload.disk'))->get($avatar))]);
         }
-        return \Storage::disk(config('admin.upload.disk'))->response($avatar);
+        return \Illuminate\Support\Facades\Storage::disk(config('admin.upload.disk'))->response($avatar);
     }
 
     /**
@@ -105,7 +105,7 @@ class ApiController extends AdminControllerBase
      */
     public function tablelist(Request $request)
     {
-        // if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        // if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
         //     return abortJson(403, ErrorCode::PERMISSION_DENY());
         // }
 
@@ -161,7 +161,7 @@ class ApiController extends AdminControllerBase
      */
     protected function _getcolumns(Request $request, $onlyIndex = true)
     {
-        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
@@ -191,7 +191,7 @@ class ApiController extends AdminControllerBase
      */
     public function filterviews(Request $request)
     {
-        if (!\Exment::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::AVAILABLE_ACCESS_CUSTOM_VALUE)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
 
@@ -329,7 +329,7 @@ class ApiController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function authLogs(Request $request)
     {
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$login_user->hasPermission(Permission::SYSTEM)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
@@ -397,7 +397,7 @@ class ApiController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function authLog(Request $request, $id)
     {
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$login_user->hasPermission(Permission::SYSTEM)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
@@ -459,7 +459,7 @@ class ApiController extends AdminControllerBase
                 'target_user_id' => $target_user,
                 'notify_subject' => $request->get('notify_subject'),
                 'notify_body' => $request->get('notify_body'),
-                'trigger_user_id' => \Exment::getUserId()
+                'trigger_user_id' => \Exceedone\Exment\Facades\ExmentFacade::getUserId()
             ]);
 
             $notify->saveOrFail();
@@ -487,7 +487,7 @@ class ApiController extends AdminControllerBase
         }
 
         // get notify NotifyNavbar list
-        $query = NotifyNavbar::where('target_user_id', \Exment::getUserId());
+        $query = NotifyNavbar::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId());
 
         if (!boolval($request->get('all', false))) {
             $query->where('read_flg', false);
@@ -524,7 +524,7 @@ class ApiController extends AdminControllerBase
         $cacheKey = NotifyNavbar::navbarCacheKey();
         $page = is_null($cacheKey)
             ? $this->buildNotifyPage()
-            : \Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\NotifyNav::interval(), function () {
+            : \Illuminate\Support\Facades\Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\NotifyNav::interval(), function () {
                 return $this->buildNotifyPage();
             });
 
@@ -540,7 +540,7 @@ class ApiController extends AdminControllerBase
     protected function buildNotifyPage(): array
     {
         // get notify NotifyNavbar list
-        $query = NotifyNavbar::where('target_user_id', \Exment::getUserId())
+        $query = NotifyNavbar::where('target_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId())
             ->where('read_flg', false);
 
         $count = $query->count();
@@ -596,7 +596,7 @@ class ApiController extends AdminControllerBase
             return $this->buildWorkflowTaskPage();
         }
 
-        return \Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\WorkflowTaskNav::interval(), function () {
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, \Exceedone\Exment\Form\Navbar\WorkflowTaskNav::interval(), function () {
             return $this->buildWorkflowTaskPage();
         });
     }
@@ -668,7 +668,7 @@ class ApiController extends AdminControllerBase
                 return abortJson(403, ErrorCode::PERMISSION_DENY());
             }
 
-            $validator = \Validator::make($request->all(), [
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
                 'q' => 'required',
             ]);
             if ($validator->fails()) {

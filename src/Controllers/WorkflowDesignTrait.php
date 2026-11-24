@@ -281,7 +281,7 @@ trait WorkflowDesignTrait
      */
     protected function denyWorkflowDesign()
     {
-        if (\Exment::user()->hasPermission(Permission::WORKFLOW)) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::WORKFLOW)) {
             return null;
         }
 
@@ -406,7 +406,7 @@ trait WorkflowDesignTrait
         $status_map = [];
         $action_map = [];
 
-        \ExmentDB::transaction(function () use ($workflow, $payload, $custom_table_id, &$status_map, &$action_map) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($workflow, $payload, $custom_table_id, &$status_map, &$action_map) {
             $isNew = !$workflow->exists;
             $activated = false;
 

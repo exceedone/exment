@@ -78,7 +78,7 @@ class InstallService
         // If $status is not null the user is mid-install; taking the shortcut here
         // would redirect to /initialize while .env still has the old (wrong) credentials,
         // causing an infinite redirect loop between /install and /initialize.
-        if (is_null($status) && \ExmentDB::canConnection() && \Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
+        if (is_null($status) && \Exceedone\Exment\Facades\ExmentDBFacade::canConnection() && \Illuminate\Support\Facades\Schema::hasTable(SystemTableName::SYSTEM) && CustomTable::count() > 0) {
             return InitializeStatus::INITIALIZE;
         }
 
@@ -86,7 +86,7 @@ class InstallService
             return InitializeStatus::LANG;
         }
 
-        // if (!\ExmentDB::canConnection()) {
+        // if (!\Exceedone\Exment\Facades\ExmentDBFacade::canConnection()) {
         //     return InitializeStatus::DATABASE;
         // }
 
@@ -98,7 +98,7 @@ class InstallService
             return InitializeStatus::SYSTEM_REQUIRE;
         }
 
-        if (!\ExmentDB::canConnection() || !\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0) {
+        if (!\Exceedone\Exment\Facades\ExmentDBFacade::canConnection() || !\Illuminate\Support\Facades\Schema::hasTable(SystemTableName::SYSTEM) || CustomTable::count() == 0) {
             return InitializeStatus::INSTALLING;
         }
 
@@ -216,10 +216,10 @@ class InstallService
         $inputs = static::getInputParams();
         //// set from env
         if (!is_null($env = array_get($inputs, 'APP_LOCALE'))) {
-            \App::setLocale($env);
+            \Illuminate\Support\Facades\App::setLocale($env);
         }
         if (!is_null($env = array_get($inputs, 'APP_TIMEZONE'))) {
-            \Config::set('app.timezone', $env);
+            \Illuminate\Support\Facades\Config::set('app.timezone', $env);
             date_default_timezone_set($env);
         }
 
@@ -227,7 +227,7 @@ class InstallService
         // set database.default
         $val = array_get($inputs, 'DB_CONNECTION');
         if (!is_nullorempty($val)) {
-            \Config::set("database.default", $val);
+            \Illuminate\Support\Facades\Config::set("database.default", $val);
         }
         $database_default = config('database.default', 'mysql');
         $config_keyname = "database.connections.$database_default";
@@ -239,13 +239,13 @@ class InstallService
             if (\is_nullorempty($db_input)) {
                 continue;
             }
-            \Config::set("{$config_keyname}.{$s}", $db_input);
+            \Illuminate\Support\Facades\Config::set("{$config_keyname}.{$s}", $db_input);
             $hasDbSetting = true;
         }
 
         if ($hasDbSetting) {
             try {
-                \DB::reconnect();
+                \Illuminate\Support\Facades\DB::reconnect();
             } catch (\Exception $ex) {
             }
         }

@@ -19,8 +19,8 @@ class AuthenticateWebApi extends \ExmentAdminCore\Admin\Middleware\Authenticate
      */
     public function handle($request, Closure $next)
     {
-        if (\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check()) {
-            \Exment::setGuard(Define::AUTHENTICATE_KEY_WEB);
+        if (\Illuminate\Support\Facades\Auth::guard(Define::AUTHENTICATE_KEY_WEB)->check()) {
+            \Exceedone\Exment\Facades\ExmentFacade::setGuard(Define::AUTHENTICATE_KEY_WEB);
         } else {
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }

@@ -184,7 +184,7 @@ class CustomTableController extends AdminControllerBase
         });
 
         $grid->disableExport();
-        if (!\Exment::user()->hasPermission(Permission::CUSTOM_TABLE)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::CUSTOM_TABLE)) {
             $grid->disableCreateButton();
         }
 
@@ -220,7 +220,7 @@ class CustomTableController extends AdminControllerBase
                 $actions->append($linker);
             }
 
-            if (\Exment::user()->hasPermission(Permission::CUSTOM_TABLE) &&
+            if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::CUSTOM_TABLE) &&
                 !in_array($custom_table->table_name, SystemTableName::SYSTEM_TABLE_NAME_MASTER())) {
                 $actions->append((new Tools\ModalLink(
                     admin_urls('table', $actions->getKey(), 'copyModal'),
@@ -1002,7 +1002,7 @@ HTML;
     public function copyTable(Request $request, $id)
     {
         /** @var ExmentCustomValidator $validator */
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'table_name' => "max:30|unique:".CustomTable::getTableName()."|regex:/".Define::RULES_REGEX_SYSTEM_NAME."/",
             'table_view_name' => "max:40"
         ], [], [

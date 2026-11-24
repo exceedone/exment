@@ -179,7 +179,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->attribute(['accept' => "image/*"])
                     ->move("publicform/{$custom_table->table_name}")
                     ->callableName(function ($file) use ($custom_table) {
-                        return \Exment::setFileInfo($this, $file, FileType::PUBLIC_FORM, $custom_table);
+                        return \Exceedone\Exment\Facades\ExmentFacade::setFileInfo($this, $file, FileType::PUBLIC_FORM, $custom_table);
                     })
                     ->caption(function ($caption) {
                         $file = ExmentFile::getData($caption);
@@ -246,7 +246,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->attribute(['data-filter' => json_encode(['key' => 'confirm_complete_setting_use_confirm', 'value' => '1'])]);
                 ;
                 $form->textarea('confirm_text', exmtrans("custom_form_public.confirm_text"))
-                    ->help((exmtrans("custom_form_public.help.confirm_text", ['url' => \Exment::getManualUrl('params')])))
+                    ->help((exmtrans("custom_form_public.help.confirm_text", ['url' => \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('params')])))
                     ->default(exmtrans("custom_form_public.message.confirm_text"))
                     ->attribute(['data-filter' => json_encode(['key' => 'confirm_complete_setting_use_confirm', 'value' => '1'])])
                     ->rows(3);
@@ -258,7 +258,7 @@ class CustomFormPublicController extends AdminControllerTableBase
                     ->default(exmtrans("custom_form_public.message.complete_title"));
                 ;
                 $form->textarea('complete_text', exmtrans("custom_form_public.complete_text"))
-                    ->help((exmtrans("custom_form_public.help.complete_text", ['url' => \Exment::getManualUrl('params')])))
+                    ->help((exmtrans("custom_form_public.help.complete_text", ['url' => \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('params')])))
                     ->default(exmtrans("custom_form_public.message.complete_text"))
                     ->rows(3);
                 ;
@@ -424,7 +424,7 @@ class CustomFormPublicController extends AdminControllerTableBase
 
             $form->embeds("option_setting", exmtrans("common.option_setting"), function ($form) {
                 $form->switchbool('use_default_query', exmtrans("custom_form_public.use_default_query"))
-                    ->help(exmtrans("custom_form_public.help.use_default_query") . \Exment::getMoreTag('publicform'))
+                    ->help(exmtrans("custom_form_public.help.use_default_query") . \Exceedone\Exment\Facades\ExmentFacade::getMoreTag('publicform'))
                     ->default(false);
                 ;
 
@@ -653,7 +653,7 @@ class CustomFormPublicController extends AdminControllerTableBase
         }
 
         $public_form = null;
-        \ExmentDB::transaction(function () use (&$public_form, $json, $request) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use (&$public_form, $json, $request) {
             // new json ignored notify
             $json_ignored = array_get($json, 'public_form');
             array_forget($json_ignored, ['notify_complete_admin', 'notify_complete_user', 'notify_error']);

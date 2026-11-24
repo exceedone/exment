@@ -48,7 +48,7 @@ trait DataShareTrait
 
             if ($ignoreLoginUser && $key == SystemTableName::USER) {
 
-                $user_id = \Exment::getUserId();
+                $user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
                 $optionItem = $optionItem->filter(function ($user, $id) use ($user_id) {
                     return $id != $user_id;
                 });

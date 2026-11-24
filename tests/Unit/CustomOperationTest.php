@@ -364,13 +364,13 @@ class CustomOperationTest extends UnitTestBase
                             break;
 
                         case OperationValueType::LOGIN_USER:
-                            $login_user = \Exment::user();
+                            $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
                             $this->assertTrue($value instanceof CustomValue);
                             $this->assertEquals($value->id, $login_user->getUserId());
                             break;
 
                         case OperationValueType::BERONG_ORGANIZATIONS:
-                            $login_user = \Exment::user();
+                            $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
                             // get joined user's id
                             $orgs = $login_user->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_JOIN);
                             $this->assertTrue($value instanceof CustomValue);

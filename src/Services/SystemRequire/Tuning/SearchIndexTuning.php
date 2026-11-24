@@ -39,7 +39,7 @@ class SearchIndexTuning extends TuningBase
                     continue;
                 }
                 // large: there is a row past LARGE_ROWS (reads at most that many ids)
-                $large = \DB::table(getDBTableName($table))->offset(static::LARGE_ROWS)->limit(1)->exists();
+                $large = \Illuminate\Support\Facades\DB::table(getDBTableName($table))->offset(static::LARGE_ROWS)->limit(1)->exists();
                 if ($large) {
                     $this->tables[] = (string) $table->table_view_name;
                 }

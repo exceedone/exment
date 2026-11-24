@@ -359,7 +359,7 @@ class CustomValueActionsCoverageTest extends FeatureTestBase
         $notify->save();
         $notify_table = CustomTable::getEloquent($notify->target_id);
         $this->assertNotNull($notify_table);
-        $target = $notify_table->getValueModel()->query()->where('created_user_id', '<>', \Exment::getUserId())->first();
+        $target = $notify_table->getValueModel()->query()->where('created_user_id', '<>', \Exceedone\Exment\Facades\ExmentFacade::getUserId())->first();
         $this->assertNotNull($target);
 
         $keys = [];

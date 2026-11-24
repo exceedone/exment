@@ -46,7 +46,7 @@ class FeatureController extends AdminControllerBase
         try {
             AdminNotices::markKnown(AdminNotices::newFeatureKeys());
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the new features known: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the new features known: ' . $e->getMessage());
         }
 
         $roleGroups = RoleGroup::query()->orderBy('role_group_order')->orderBy('id')->get(['id', 'role_group_view_name'])
@@ -99,7 +99,7 @@ class FeatureController extends AdminControllerBase
                 return $row + ['edit_url' => isset($row['plugin_id']) ? admin_urls('plugin', $row['plugin_id'], 'edit') : null];
             }, BundledPlugins::rows());
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the bundled plugins: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the bundled plugins: ' . $e->getMessage());
             return [];
         }
     }
@@ -128,7 +128,7 @@ class FeatureController extends AdminControllerBase
                 'version' => $plugin->version,
             ]));
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] the bundled plugin ' . $uuid . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] the bundled plugin ' . $uuid . ': ' . $e->getMessage());
             admin_toastr($e->getMessage(), 'error');
         }
         return redirect(admin_url('feature'));
@@ -163,7 +163,7 @@ class FeatureController extends AdminControllerBase
                 'version' => $plugin->version,
             ]));
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] an uploaded official plugin: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] an uploaded official plugin: ' . $e->getMessage());
             admin_toastr($e->getMessage(), 'error');
         }
         return redirect(admin_url('feature'));

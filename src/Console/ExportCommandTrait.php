@@ -62,16 +62,16 @@ trait ExportCommandTrait
         }
 
         if (isset($options['dirpath'])) {
-            if (!\File::exists($options['dirpath'])) {
-                \Exment::makeDirectory($options['dirpath']);
-            } elseif (!\File::isDirectory($options['dirpath'])) {
+            if (!\Illuminate\Support\Facades\File::exists($options['dirpath'])) {
+                \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($options['dirpath']);
+            } elseif (!\Illuminate\Support\Facades\File::isDirectory($options['dirpath'])) {
                 throw new \Exception('optional parameter dirpath error : ' . $options['dirpath']);
             }
         } else {
             // get default directory full path
             $options['dirpath'] = storage_path(path_join_os('app', 'export', date('YmdHis')));
             // if default is not exists, make directory
-            \Exment::makeDirectory($options['dirpath']);
+            \Exceedone\Exment\Facades\ExmentFacade::makeDirectory($options['dirpath']);
         }
 
         return $options;

@@ -54,7 +54,7 @@ class ModalLink implements Renderable
             'icon' => $this->icon,
             'html' => $this->html,
             'modal_title' => $this->modal_title,
-            'attributes' => \Exment::formatAttributes($this->attributes)
+            'attributes' => \Exceedone\Exment\Facades\ExmentFacade::formatAttributes($this->attributes)
         ])->render();
     }
 }

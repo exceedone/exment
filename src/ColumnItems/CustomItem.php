@@ -752,7 +752,7 @@ abstract class CustomItem implements ItemInterface
             return null;
         }
 
-        $grammar = \DB::getQueryGrammar();
+        $grammar = \Illuminate\Support\Facades\DB::getQueryGrammar();
         return $grammar->getCastString($type, $addOption, $options);
     }
 
@@ -763,7 +763,7 @@ abstract class CustomItem implements ItemInterface
     public function getVirtualColumnTypeName()
     {
         list($type, $addOption, $options) = $this->getCastOptions();
-        $grammar = \DB::getQueryGrammar();
+        $grammar = \Illuminate\Support\Facades\DB::getQueryGrammar();
         return $grammar->getColumnTypeString($type);
     }
 

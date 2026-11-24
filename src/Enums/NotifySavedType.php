@@ -55,7 +55,7 @@ class NotifySavedType extends EnumBase
             case static::SHARE:
             case static::COMMENT:
             case static::ATTACHMENT:
-                return \Exment::user()->base_user->label;
+                return \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->label;
         }
         return null;
     }

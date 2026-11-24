@@ -26,7 +26,7 @@ class RoleGroupItem extends ConditionDetailBase implements ConditionItemInterfac
      */
     public function isMatchCondition(Condition $condition, CustomValue $custom_value)
     {
-        $role_groups = \Exment::user()->base_user->belong_role_groups_all()->map(function ($role_group) {
+        $role_groups = \Exceedone\Exment\Facades\ExmentFacade::user()->base_user->belong_role_groups_all()->map(function ($role_group) {
             return $role_group->id;
         })->toArray();
 

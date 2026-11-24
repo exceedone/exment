@@ -45,7 +45,7 @@ class SafetyCheckSendJob
     {
         // the admin has the response already; closing the page must not cut the send off
         ignore_user_abort(true);
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         try {
             SafetyCheckSender::send($this->event, $this->onlyUnanswered, $this->lock);

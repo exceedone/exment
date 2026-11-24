@@ -373,7 +373,7 @@ class ShareLinks
             $query->whereColumn('access_count', '<', 'max_access');
         }
         $updated = $query->update([
-            'access_count' => \DB::raw('access_count + 1'),
+            'access_count' => \Illuminate\Support\Facades\DB::raw('access_count + 1'),
             'last_accessed_at' => now(),
         ]);
         if ($updated === 0) {
@@ -557,8 +557,8 @@ class ShareLinks
             $query->where('received_bytes', '<=', $maxBytes - $size);
         }
         $updated = $query->update([
-            'received_count' => \DB::raw('received_count + 1'),
-            'received_bytes' => \DB::raw('received_bytes + ' . $size),
+            'received_count' => \Illuminate\Support\Facades\DB::raw('received_count + 1'),
+            'received_bytes' => \Illuminate\Support\Facades\DB::raw('received_bytes + ' . $size),
         ]);
         if ($updated === 0) {
             throw new FileServerException(exmtrans('file_server.error_request_full'), 413);
@@ -573,8 +573,8 @@ class ShareLinks
             return $node;
         } catch (\Throwable $e) {
             FileShareLink::query()->where('id', $link->id)->update([
-                'received_count' => \DB::raw('CASE WHEN received_count > 0 THEN received_count - 1 ELSE 0 END'),
-                'received_bytes' => \DB::raw('CASE WHEN received_bytes >= ' . $size . ' THEN received_bytes - ' . $size . ' ELSE 0 END'),
+                'received_count' => \Illuminate\Support\Facades\DB::raw('CASE WHEN received_count > 0 THEN received_count - 1 ELSE 0 END'),
+                'received_bytes' => \Illuminate\Support\Facades\DB::raw('CASE WHEN received_bytes >= ' . $size . ' THEN received_bytes - ' . $size . ' ELSE 0 END'),
             ]);
             throw $e;
         }

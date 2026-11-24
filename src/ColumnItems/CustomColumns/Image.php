@@ -28,7 +28,7 @@ class Image extends File
             return is_nullorempty($this->fileValue($v)) ? null : esc_html(exmtrans('common.file_deleted'));
         }
 
-        return \Exment::getUrlTag($url, '<img src="'.$url.'" class="mw-100 image_html" />', UrlTagType::BLANK, ['class' => 'image-link'], [
+        return \Exceedone\Exment\Facades\ExmentFacade::getUrlTag($url, '<img src="'.$url.'" class="mw-100 image_html" />', UrlTagType::BLANK, ['class' => 'image-link'], [
             'notEscape' => true,
         ]);
     }

@@ -59,7 +59,7 @@ class FileImportTest extends FileImportTestBase
      */
     protected function assertFileTest(string $file_path, bool $isCsv)
     {
-        $files = \File::files($file_path);
+        $files = \Illuminate\Support\Facades\File::files($file_path);
         foreach ($files as $file) {
             $baseName = pathinfo($file, PATHINFO_FILENAME);
             if (strpos($baseName, '~') === 0) {
@@ -84,7 +84,7 @@ class FileImportTest extends FileImportTestBase
 
                 // check file
                 $storage_file_path = path_join_os($file_path, 'files', $array[2]);
-                $disk = \Storage::disk(Define::DISKNAME_ADMIN);
+                $disk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN);
                 $this->assertFileEquals(getFullpath($fileInfo->path, $disk), $storage_file_path);
             }
         }

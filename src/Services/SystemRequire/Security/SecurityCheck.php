@@ -132,7 +132,7 @@ class SecurityCheck
                 return $item->checkResult() != SystemRequireResult::OK;
             });
         } catch (\Throwable $e) {
-            \Log::warning('security check at the install: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('security check at the install: ' . $e->getMessage());
             return [];
         }
     }
@@ -151,7 +151,7 @@ class SecurityCheck
             return false;
         }
         $item->fix();
-        \Log::info('Exment security check: fixed ' . $key, ['user' => \Exment::getUserId()]);
+        \Illuminate\Support\Facades\Log::info('Exment security check: fixed ' . $key, ['user' => \Exceedone\Exment\Facades\ExmentFacade::getUserId()]);
         return true;
     }
 }

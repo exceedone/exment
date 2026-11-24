@@ -7,7 +7,7 @@ use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\DataImportExport\Formats\CsvTrait;
 use Exceedone\Exment\Services\ZipService;
-use File;
+use Illuminate\Support\Facades\File;
 
 class Csv extends PhpSpreadSheet
 {
@@ -25,7 +25,7 @@ class Csv extends PhpSpreadSheet
 
         // if zip, extract
         if ($extension == 'zip' && isset($file)) {
-            $tmpdir = \Exment::getTmpFolderPath('data', false);
+            $tmpdir = \Exceedone\Exment\Facades\ExmentFacade::getTmpFolderPath('data', false);
             $tmpfolderpath = getFullPath(path_join($tmpdir, short_uuid()), Define::DISKNAME_ADMIN_TMP, true);
 
             $filename = $file->store($tmpdir, Define::DISKNAME_ADMIN_TMP);
@@ -52,7 +52,7 @@ class Csv extends PhpSpreadSheet
                 $zip->extractTo($tmpfolderpath);
 
                 // get all files
-                $files = collect(\File::files($tmpfolderpath))->filter(function ($value) {
+                $files = collect(\Illuminate\Support\Facades\File::files($tmpfolderpath))->filter(function ($value) {
                     // @phpstan-ignore-next-line
                     return pathinfo($value)['extension'] == 'csv';
                 });
@@ -67,10 +67,10 @@ class Csv extends PhpSpreadSheet
                 }
                 // delete zip
                 if (isset($tmpfolderpath)) {
-                    \File::deleteDirectory($tmpfolderpath);
+                    \Illuminate\Support\Facades\File::deleteDirectory($tmpfolderpath);
                 }
                 if (isset($fullpath)) {
-                    \File::delete($fullpath);
+                    \Illuminate\Support\Facades\File::delete($fullpath);
                 }
             }
         } else {

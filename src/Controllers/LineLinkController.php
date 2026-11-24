@@ -13,7 +13,7 @@ class LineLinkController extends AdminControllerBase
 {
     public function index(Request $request, Content $content)
     {
-        $userId = (int) \Exment::user()->getUserId();
+        $userId = (int) \Exceedone\Exment\Facades\ExmentFacade::user()->getUserId();
         $link   = LineAccountLink::forUser($userId);
 
         $qr = null;
@@ -32,7 +32,7 @@ class LineLinkController extends AdminControllerBase
      */
     public function generate(Request $request)
     {
-        $userId = (int) \Exment::user()->getUserId();
+        $userId = (int) \Exceedone\Exment\Facades\ExmentFacade::user()->getUserId();
         if (LineAccountLink::forUser($userId)->isLinked()) {
             admin_toastr(exmtrans('line.link_generate_blocked'), 'error');
             return redirect(admin_url('line/link'));
@@ -50,7 +50,7 @@ class LineLinkController extends AdminControllerBase
      */
     public function unlink(Request $request)
     {
-        $userId = (int) \Exment::user()->getUserId();
+        $userId = (int) \Exceedone\Exment\Facades\ExmentFacade::user()->getUserId();
         LineAccountLink::forUser($userId)->unlink();
         return redirect(admin_url('line/link'));
     }

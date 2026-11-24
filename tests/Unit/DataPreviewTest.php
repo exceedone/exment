@@ -47,7 +47,7 @@ class DataPreviewTest extends UnitTestBase
         System::clearRequestSession();
         System::clearCache();
 
-        \Admin::bootstrap();
+        \ExmentAdminCore\Admin\Facades\Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
         view()->share('errors', new ViewErrorBag());
     }
@@ -65,7 +65,7 @@ class DataPreviewTest extends UnitTestBase
 
         $hidden = $this->formColumn($block, CustomColumn::getEloquent('text', $table));
         $this->formColumn($block, CustomColumn::getEloquent('index_text', $table));
-        \DB::table('custom_form_columns')->where('id', $hidden->id)
+        \Illuminate\Support\Facades\DB::table('custom_form_columns')->where('id', $hidden->id)
             ->update(['options' => json_encode(array_merge($hidden->options ?? [], ['hidden' => 1]))]);
 
         $childBlock = CustomFormBlock::create([

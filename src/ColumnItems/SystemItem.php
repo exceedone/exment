@@ -98,18 +98,18 @@ class SystemItem implements ItemInterface
         $group_condition = array_get($this->options, 'group_condition');
 
         if (isset($summary_condition)) {
-            $table_column_name = \Exment::wrapColumn($table_column_name);
+            $table_column_name = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($table_column_name);
             $result = "$summary_condition($table_column_name)";
         } elseif (isset($group_condition)) {
             /** @phpstan-ignore-next-line */
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, false);
+            $result = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, false);
         }
         // if sql server and created_at, set datetime cast
-        elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+        elseif (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
             /** @phpstan-ignore-next-line */
-            $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
+            $result = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, true);
         } else {
-            $result = \Exment::wrapColumn($table_column_name);
+            $result = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($table_column_name);
         }
 
         return $result;
@@ -133,14 +133,14 @@ class SystemItem implements ItemInterface
 
         if (isset($group_condition)) {
             /** @phpstan-ignore-next-line */
-            $result = \DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
+            $result = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString($group_condition, $table_column_name, !$asSelect);
         }
         // if sql server and created_at, set datetime cast
-        elseif (\Exment::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
+        elseif (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer() && array_get($this->getSystemColumnOption(), 'type') == 'datetime') {
             /** @phpstan-ignore-next-line */
-            $result = \DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, !$asSelect);
+            $result = \Illuminate\Support\Facades\DB::getQueryGrammar()->getDateFormatString(GroupCondition::YMDHIS, $table_column_name, !$asSelect);
         } else {
-            $result = \Exment::wrapColumn($table_column_name);
+            $result = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($table_column_name);
         }
 
         return $result;

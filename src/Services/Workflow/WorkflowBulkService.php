@@ -213,7 +213,7 @@ class WorkflowBulkService
                 ]);
                 $executed[] = $id;
             } catch (\Exception $ex) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
                 $skipped[$id] = static::SKIP_ERROR;
             }
         }

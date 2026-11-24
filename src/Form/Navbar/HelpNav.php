@@ -37,7 +37,7 @@ HTML;
             return Features::helpUrls();
         } catch (\Throwable $e) {
             // the header is on every page: without the features, the button opens the others
-            \Log::warning('[HelpNav] the manuals of the features: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[HelpNav] the manuals of the features: ' . $e->getMessage());
             return [];
         }
     }

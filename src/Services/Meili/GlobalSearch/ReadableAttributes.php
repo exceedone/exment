@@ -56,7 +56,7 @@ class ReadableAttributes
         // once per result box and again for the sidebar recount.
         return System::requestSession('meili_readable_attributes_' . $table->id, function () use ($table) {
             try {
-                $user = \Exment::user();
+                $user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 if (!$user || $user->isAdministrator()) {
                     return null;
                 }

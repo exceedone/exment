@@ -71,9 +71,9 @@ class RefreshDataService
         })->toArray(), $tables);
 
         // call truncate
-        \ExmentDB::transaction(function () use ($tables) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($tables) {
             foreach ($tables as $table) {
-                \DB::table($table)->truncate();
+                \Illuminate\Support\Facades\DB::table($table)->truncate();
             }
         });
 
@@ -134,18 +134,18 @@ class RefreshDataService
 
 
         // call truncate
-        \ExmentDB::transaction(function () use ($truacateTables, $custom_tables, $deleteTables) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($truacateTables, $custom_tables, $deleteTables) {
             foreach ($custom_tables as $custom_table) {
                 // delete
                 foreach ($deleteTables as $deleteTableName => $deleteTable) {
-                    \DB::table($deleteTableName)
+                    \Illuminate\Support\Facades\DB::table($deleteTableName)
                         ->where($deleteTable['type'], $custom_table->table_name)->delete();
                 }
 
                 // the task list marks of these records. They name the table by id, not by name, so
                 // they are not in the list above. The truncate below starts the table over at id 1,
                 // and a mark left behind would hide or "read" a task of a NEW record.
-                \DB::table('workflow_task_reads')
+                \Illuminate\Support\Facades\DB::table('workflow_task_reads')
                     ->where('custom_table_id', $custom_table->id)
                     ->delete();
 
@@ -168,7 +168,7 @@ class RefreshDataService
                     continue;
                 }
 
-                \DB::table($table)->truncate();
+                \Illuminate\Support\Facades\DB::table($table)->truncate();
             }
         });
 
@@ -188,7 +188,7 @@ class RefreshDataService
     // @phpstan-ignore-next-line
     public static function removeAttachmentFiles($custom_tables)
     {
-        $disk = \Storage::disk(Define::DISKNAME_ADMIN);
+        $disk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN);
 
         foreach ($custom_tables as $custom_table) {
             // remove file table
@@ -228,7 +228,7 @@ class RefreshDataService
             }
 
             foreach ($custom_tables as $custom_table) {
-                \DB::table($deleteTableName)->where('parent_type', $custom_table->table_name)
+                \Illuminate\Support\Facades\DB::table($deleteTableName)->where('parent_type', $custom_table->table_name)
                     ->delete();
             }
         }

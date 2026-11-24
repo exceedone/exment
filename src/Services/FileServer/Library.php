@@ -179,7 +179,7 @@ class Library
             try {
                 $this->deleteVersionObjects($version);
             } catch (\Throwable $e) {
-                \Log::warning('[FileServer] could not remove a file of workspace ' . $workspace->id . ': ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('[FileServer] could not remove a file of workspace ' . $workspace->id . ': ' . $e->getMessage());
             }
         }
         Audit::log(Audit::PURGE, null, null, $this->access->userId(), ['workspace' => intval($workspace->id), 'name' => $workspace->name, 'count' => count($ids)]);
@@ -187,7 +187,7 @@ class Library
         try {
             static::disk()->deleteDirectory(static::STORAGE_DIR . '/' . $workspace->id);
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not remove the files of workspace ' . $workspace->id . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not remove the files of workspace ' . $workspace->id . ': ' . $e->getMessage());
         }
     }
 
@@ -1460,7 +1460,7 @@ class Library
                 try {
                     static::disk()->delete($path);
                 } catch (\Throwable $e) {
-                    \Log::warning('[FileServer] could not remove ' . $path . ': ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::warning('[FileServer] could not remove ' . $path . ': ' . $e->getMessage());
                 }
             }
         }

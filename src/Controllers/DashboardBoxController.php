@@ -163,7 +163,7 @@ class DashboardBoxController extends AdminControllerBase
     private function deleteBoxes(callable $delete, array $boxes)
     {
         try {
-            return \ExmentDB::transaction(function () use ($delete, $boxes) {
+            return \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($delete, $boxes) {
                 $response = $delete();
                 $dashboards = [];
                 $deleted = [];
@@ -179,7 +179,7 @@ class DashboardBoxController extends AdminControllerBase
                 return $response;
             });
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             return response()->json([
                 'status'  => false,
                 'message' => trans('admin.delete_failed'),
@@ -353,7 +353,7 @@ class DashboardBoxController extends AdminControllerBase
         }
         // read the colors again under a row lock: a paint posted at the same time waits, then
         // adds its color to these ones instead of writing back the colors it read before
-        return \ExmentDB::transaction(function () use ($request, $box, $kind, $key) {
+        return \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($request, $box, $kind, $key) {
             $box = DashboardBox::query()->lockForUpdate()->find($box->id);
             if (!$box instanceof DashboardBox) {
                 return response()->json(['status' => false], 404);

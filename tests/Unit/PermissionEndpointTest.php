@@ -233,7 +233,7 @@ class PermissionEndpointTest extends UnitTestBase
     {
         $this->init();
         $this->be(LoginUser::find(9)); // dev2-userE
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         $array = array_merge(
             static::EndpointsPass,
@@ -252,7 +252,7 @@ class PermissionEndpointTest extends UnitTestBase
     {
         $this->init();
         $this->be(LoginUser::find(9)); // dev2-userE
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         $array = array_remove(
             array_merge(static::EndpointsDeny, static::EndpointsDenyAlways),
@@ -274,7 +274,7 @@ class PermissionEndpointTest extends UnitTestBase
     {
         $this->init();
         $this->be(LoginUser::find(3)); // manage
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         $array = array_merge(
             static::EndpointsPass,
@@ -293,7 +293,7 @@ class PermissionEndpointTest extends UnitTestBase
     {
         $this->init();
         $this->be(LoginUser::find(3)); // manage
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         $array = array_remove(
             array_merge(static::EndpointsDeny, static::EndpointsDenyAlways),
@@ -314,7 +314,7 @@ class PermissionEndpointTest extends UnitTestBase
     {
         $this->init();
         $this->be(LoginUser::find(1)); // admin
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         $array = array_merge(
             static::EndpointsPass,
@@ -333,7 +333,7 @@ class PermissionEndpointTest extends UnitTestBase
     {
         $this->init();
         $this->be(LoginUser::find(1)); // admin
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
 
         foreach (static::EndpointsDenyAlways as $endpoint) {
             $this->executeTestPermissionUser($endpoint, false, $user);

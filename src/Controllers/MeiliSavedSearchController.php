@@ -17,7 +17,7 @@ class MeiliSavedSearchController extends AdminControllerBase
      */
     public function store(Request $request)
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!$user) {
             abort(403);
         }

@@ -170,7 +170,7 @@ class Collaboration
         try {
             FileServerNotifyJob::dispatch($node->id, $event, $actorId, $extra, $targets);
         } catch (\Throwable $e) {
-            \Log::warning('[FileServer] could not queue the news of node ' . $node->id . ': ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[FileServer] could not queue the news of node ' . $node->id . ': ' . $e->getMessage());
         }
     }
 
@@ -322,7 +322,7 @@ class Collaboration
                 $navbar->save();
                 $count++;
             } catch (\Throwable $e) {
-                \Log::warning('[FileServer] could not make the alert: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('[FileServer] could not make the alert: ' . $e->getMessage());
             }
             if (boolval(config('exment.file_server_notify_mail', true))) {
                 try {
@@ -334,7 +334,7 @@ class Collaboration
                         ]);
                     }
                 } catch (\Throwable $e) {
-                    \Log::warning('[FileServer] could not send the mail to user ' . $userId . ': ' . $e->getMessage());
+                    \Illuminate\Support\Facades\Log::warning('[FileServer] could not send the mail to user ' . $userId . ': ' . $e->getMessage());
                 }
             }
         }

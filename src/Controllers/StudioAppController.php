@@ -29,7 +29,7 @@ class StudioAppController extends Controller
      */
     public function index(Request $request)
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         return view('exment::studio.app', [
             'title' => exmtrans('studio.app_title'),
             'user_name' => isset($user) ? strval($user->base_user->getValue('user_name')) : '',
@@ -122,7 +122,7 @@ class StudioAppController extends Controller
      */
     protected function fromJanCode(string $value)
     {
-        if (!preg_match('/^\d{8,14}$/', $value) || !\Schema::hasTable('jan_codes')) {
+        if (!preg_match('/^\d{8,14}$/', $value) || !\Illuminate\Support\Facades\Schema::hasTable('jan_codes')) {
             return null;
         }
         $jan = DB::table('jan_codes')->where('jan_code', $value)->whereNotNull('table_id')->first();

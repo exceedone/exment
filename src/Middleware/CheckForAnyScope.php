@@ -16,7 +16,7 @@ class CheckForAnyScope
      */
     public function handle($request, $next, ...$scopes)
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (is_null($user) || is_null($user->base_user)) {
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }

@@ -76,7 +76,7 @@ class LineWorkflowAction
             try {
                 $wfAction->executeAction($custom_value, []);
             } catch (\Exception $e) {
-                \Log::warning('LINE workflow executeAction failed', ['error' => $e->getMessage()]);
+                \Illuminate\Support\Facades\Log::warning('LINE workflow executeAction failed', ['error' => $e->getMessage()]);
                 return exmtrans('line.action_error');
             }
 
@@ -87,7 +87,7 @@ class LineWorkflowAction
     public static function rejectReason(WorkflowAction $action, CustomValue $custom_value): ?string
     {
         // the same user tapping again must not count as another approver
-        if (WorkflowValue::isAlreadyExecuted($action->id, $custom_value, \Exment::user()->base_user)) {
+        if (WorkflowValue::isAlreadyExecuted($action->id, $custom_value, \Exceedone\Exment\Facades\ExmentFacade::user()->base_user)) {
             return exmtrans('line.action_unavailable');
         }
 
@@ -108,7 +108,7 @@ class LineWorkflowAction
         foreach ($nextActions->filter(function ($nextAction) {
             return !boolval($nextAction->ignore_work);
         }) as $nextAction) {
-            $toActionAuthorities = \Exment::uniqueCustomValues(
+            $toActionAuthorities = \Exceedone\Exment\Facades\ExmentFacade::uniqueCustomValues(
                 $toActionAuthorities,
                 $nextAction->getAuthorityTargets($custom_value, WorkflowGetAuthorityType::NEXT_USER_ON_EXECUTING_MODAL)
             );

@@ -52,6 +52,6 @@ class MaxInputVars extends SystemRequireBase
 
     public function getSettingUrl(): ?string
     {
-        return \Exment::getManualUrl('additional_php_ini');
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('additional_php_ini');
     }
 }

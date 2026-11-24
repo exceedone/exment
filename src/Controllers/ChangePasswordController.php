@@ -22,7 +22,7 @@ class ChangePasswordController extends Controller
     {
         return [
             'current_password' => ['required', new CurrentPasswordRule()],
-            'password' => get_password_rule(true, \Exment::user()),
+            'password' => get_password_rule(true, \Exceedone\Exment\Facades\ExmentFacade::user()),
         ];
     }
 
@@ -40,7 +40,7 @@ class ChangePasswordController extends Controller
         if ($request->session()->has(Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD)) {
             $data['caption'] = exmtrans('user.help.first_change_password');
         } else {
-            $data['caption'] = \Exment::get_password_help();
+            $data['caption'] = \Exceedone\Exment\Facades\ExmentFacade::get_password_help();
         }
         return view('exment::auth.change')->with($data);
     }
@@ -53,12 +53,12 @@ class ChangePasswordController extends Controller
      */
     public function change(Request $request)
     {
-        $validator = \Validator::make($request->all(), $this->rules());
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), $this->rules());
         if ($validator->fails()) {
             return back()->withErrors($validator);
         }
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $password = $request->get('password');
 
         $this->changePassword($user, $password);

@@ -138,7 +138,7 @@ class PublicForm extends ModelBase
 
         static::creating(function ($model) {
             if (is_null($model->proxy_user_id)) {
-                $model->proxy_user_id = \Exment::getUserId();
+                $model->proxy_user_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             }
         });
 
@@ -506,7 +506,7 @@ class PublicForm extends ModelBase
     public function showError($ex, $asInner = false, ?array $data = null)
     {
         try {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
 
             try {
                 if (!is_null($notify = $this->notify_error)) {
@@ -521,7 +521,7 @@ class PublicForm extends ModelBase
                     ]);
                 }
             } catch (\Exception $ex) {
-                \Log::error($ex);
+                \Illuminate\Support\Facades\Log::error($ex);
             }
 
             $view = $this->getErrorView(request());
@@ -665,7 +665,7 @@ class PublicForm extends ModelBase
     // @phpstan-ignore-next-line
     public function setContentOption(PublicContent $content, array $options = [])
     {
-        \Admin::css(admin_asset('vendor/exment/css/publicform.css'));
+        \ExmentAdminCore\Admin\Facades\Admin::css(admin_asset('vendor/exment/css/publicform.css'));
         $options = array_merge(
             [
                 'add_analytics' => true,
@@ -739,7 +739,7 @@ class PublicForm extends ModelBase
     {
         $message = null;
         // checking the optional google/recaptcha library is installed
-        if (!\Exment::isAvailableGoogleRecaptcha()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::isAvailableGoogleRecaptcha()) {
             $message = exmtrans('login.message.not_install_library', [
                 'name' => 'Google reCaptcha',
                 'url' => getManualUrl('publicform'),

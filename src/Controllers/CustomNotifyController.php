@@ -82,11 +82,11 @@ class CustomNotifyController extends AdminControllerTableBase
         })->escape(false);
 
         $grid->column('active_flg', exmtrans("plugin.active_flg"))->sortable()->display(function ($val) {
-            return \Exment::getTrueMark($val);
+            return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($val);
         })->escape(false);
 
         // filter only custom table user has permission custom table
-        if (!\Exment::user()->isAdministrator()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->isAdministrator()) {
             $custom_tables = CustomTable::filterList()->pluck('id')->toArray();
             $grid->model()->whereIn('target_id', $custom_tables);
         }

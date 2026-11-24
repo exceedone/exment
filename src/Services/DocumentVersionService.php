@@ -217,7 +217,7 @@ class DocumentVersionService
     public static function available(): bool
     {
         if (static::$available === null) {
-            static::$available = \Schema::hasTable('document_versions') && CustomTable::getEloquent(SystemTableName::DOCUMENT) !== null;
+            static::$available = \Illuminate\Support\Facades\Schema::hasTable('document_versions') && CustomTable::getEloquent(SystemTableName::DOCUMENT) !== null;
         }
         return static::$available;
     }

@@ -108,9 +108,9 @@ abstract class FormatBase
     public function saveAsFile($dirpath)
     {
         // move file tmp directory to $dirpath
-        collect(\File::files($this->tmpdir()))->each(function ($file) use ($dirpath) {
+        collect(\Illuminate\Support\Facades\File::files($this->tmpdir()))->each(function ($file) use ($dirpath) {
             $filename = pathinfo($file, PATHINFO_BASENAME);
-            \File::move($file, path_join($dirpath, $filename));
+            \Illuminate\Support\Facades\File::move($file, path_join($dirpath, $filename));
         });
 
         // remove tmp directory
@@ -170,7 +170,7 @@ abstract class FormatBase
     protected function tmpdir(): string
     {
         if (!$this->tmpdir) {
-            $this->tmpdir = \Exment::getTmpFolderPath('data');
+            $this->tmpdir = \Exceedone\Exment\Facades\ExmentFacade::getTmpFolderPath('data');
         }
 
         return $this->tmpdir;
@@ -319,9 +319,9 @@ abstract class FormatBase
      */
     protected function deleteTmpDirectory()
     {
-        if ($this->tmpdir && \File::exists($this->tmpdir)) {
+        if ($this->tmpdir && \Illuminate\Support\Facades\File::exists($this->tmpdir)) {
             try {
-                \File::deleteDirectory($this->tmpdir);
+                \Illuminate\Support\Facades\File::deleteDirectory($this->tmpdir);
             } catch (\Exception $ex) {
             }
         }

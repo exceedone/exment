@@ -95,7 +95,7 @@ class ApiClient extends Client
         });
 
         static::addGlobalScope('only_self', function ($builder) {
-            $user = \Exment::user();
+            $user = \Exceedone\Exment\Facades\ExmentFacade::user();
             if (!isset($user)) {
                 return;
             }

@@ -13,7 +13,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\WorkflowCommentType;
 use Exceedone\Exment\Enums\WorkflowWorkTargetType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Api about workflow
@@ -241,7 +241,7 @@ class ApiWorkflowController extends AdminControllerBase
 
         $result = collect();
         foreach ($workflow_actions as $workflow_action) {
-            $result = \Exment::uniqueCustomValues($result, $workflow_action->getAuthorityTargets(
+            $result = \Exceedone\Exment\Facades\ExmentFacade::uniqueCustomValues($result, $workflow_action->getAuthorityTargets(
                 $custom_value,
                 WorkflowGetAuthorityType::CURRENT_WORK_USER,
                 [

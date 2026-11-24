@@ -84,7 +84,7 @@ trait NotifyTrait
             }
 
             /** @phpstan-ignore-next-line */
-            $filter->equal('active_flg', exmtrans("plugin.active_flg"))->radio(\Exment::getYesNoAllOption());
+            $filter->equal('active_flg', exmtrans("plugin.active_flg"))->radio(\Exceedone\Exment\Facades\ExmentFacade::getYesNoAllOption());
         });
     }
 
@@ -261,7 +261,7 @@ trait NotifyTrait
             /** @phpstan-ignore-next-line */
             $form->display('notify_action_target_text', exmtrans("notify.notify_action_target"))
                 /** @phpstan-ignore-next-line */
-                ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exment::getMoreTag('notify_webhook', 'notify.mention_setting_manual_id'))
+                ->displayText(exmtrans('notify.help.slack_user_column_not_setting') . \Exceedone\Exment\Facades\ExmentFacade::getMoreTag('notify_webhook', 'notify.mention_setting_manual_id'))
                 ->attribute([
                     'data-filter' => json_encode([
                         ['key' => 'notify_action', 'value' => [NotifyAction::SLACK]]
@@ -379,7 +379,7 @@ trait NotifyTrait
 
         // filter only custom table user has permission custom table
         /** @phpstan-ignore-next-line */
-        if (\Exment::user()->isAdministrator()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::user()->isAdministrator()) {
             return true;
         }
 

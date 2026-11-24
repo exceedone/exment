@@ -84,7 +84,7 @@ class Recorder
         try {
             $callback();
         } catch (\Throwable $e) {
-            \Log::warning('[Exment] scheduled jobs, the record of a run: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('[Exment] scheduled jobs, the record of a run: ' . $e->getMessage());
         }
     }
 
@@ -341,14 +341,14 @@ class Recorder
                 ]);
                 $navbar->save();
             } catch (\Throwable $e) {
-                \Log::warning('[Exment] scheduled jobs, the notice to the administrators: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('[Exment] scheduled jobs, the notice to the administrators: ' . $e->getMessage());
             }
             try {
                 if (!is_null(NotifyService::getAddress($user))) {
                     NotifyService::notifyMail(['to' => $user, 'subject' => $subject, 'body' => $body]);
                 }
             } catch (\Throwable $e) {
-                \Log::warning('[Exment] scheduled jobs, the mail to the administrators: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::warning('[Exment] scheduled jobs, the mail to the administrators: ' . $e->getMessage());
             }
         }
     }

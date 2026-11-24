@@ -18,7 +18,7 @@ use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\Xlsx;
 use Exceedone\Exment\Services\UserTimezone;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
-use Validator;
+use Illuminate\Support\Facades\Validator;
 
 /**
  */
@@ -178,7 +178,7 @@ trait DataImportExportServiceTrait
      */
     public function export()
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
@@ -212,7 +212,7 @@ trait DataImportExportServiceTrait
      */
     public function import($request)
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         /** @var Xlsx $formatObj */
         $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
@@ -288,7 +288,7 @@ trait DataImportExportServiceTrait
     // @phpstan-ignore-next-line
     public function importBackground(\Illuminate\Console\Command $command, $file_name, $file_path, array $options = [])
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
 
         $formatObj = $this->getFormatClass(ExportImportLibrary::SP_OUT, false);
         $formatObj
@@ -332,7 +332,7 @@ trait DataImportExportServiceTrait
     // @phpstan-ignore-next-line
     public function exportBackground(array $options = [])
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
         $formatObj = $this->getFormatClass(ExportImportLibrary::PHP_SPREAD_SHEET, true);
 
         $datalist = $this->exportAction->datalist();
@@ -432,7 +432,7 @@ trait DataImportExportServiceTrait
                 'custom_table_file'      => 'required|in:'.$formatObj->accept_extension(),
             ],
             [
-                'custom_table_file' => \Lang::get('validation.mimes')
+                'custom_table_file' => \Illuminate\Support\Facades\Lang::get('validation.mimes')
             ]
         );
         if ($validator->fails()) {

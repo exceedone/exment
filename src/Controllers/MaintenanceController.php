@@ -63,7 +63,7 @@ class MaintenanceController extends AdminControllerBase
             return back()->withInput()->withErrors(['maintenance' => $error]);
         }
         MaintenanceMode::save($values);
-        MaintenanceMode::log('save', intval(\Exment::user()->id), array_only($values, ['start_at', 'end_at', 'api', 'stop_public', 'stop_schedule', 'stop_queue']));
+        MaintenanceMode::log('save', intval(\Exceedone\Exment\Facades\ExmentFacade::user()->id), array_only($values, ['start_at', 'end_at', 'api', 'stop_public', 'stop_schedule', 'stop_queue']));
         admin_toastr(exmtrans('common.message.success_execute'));
         return redirect(admin_url('maintenance'));
     }
@@ -80,7 +80,7 @@ class MaintenanceController extends AdminControllerBase
         if (isset($error)) {
             return back()->withInput()->withErrors(['maintenance' => $error]);
         }
-        MaintenanceMode::start($values, \Exment::user());
+        MaintenanceMode::start($values, \Exceedone\Exment\Facades\ExmentFacade::user());
         admin_toastr(exmtrans('maintenance.message.started'));
         return redirect(admin_url('maintenance'));
     }
@@ -93,7 +93,7 @@ class MaintenanceController extends AdminControllerBase
     public function end(Request $request)
     {
         static::onlyAdministrators();
-        MaintenanceMode::end(\Exment::user());
+        MaintenanceMode::end(\Exceedone\Exment\Facades\ExmentFacade::user());
         MaintenanceMode::reset();
         $current = MaintenanceMode::current();
         if (isset($current) && $current['source'] === MaintenanceMode::SOURCE_OPERATOR) {
@@ -110,7 +110,7 @@ class MaintenanceController extends AdminControllerBase
      */
     protected static function onlyAdministrators(): void
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user) || !$user->isAdministrator()) {
             abort(403);
         }

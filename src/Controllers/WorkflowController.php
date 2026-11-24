@@ -79,14 +79,14 @@ class WorkflowController extends AdminControllerBase
         });
         $grid->column('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->display(function ($value) {
             if (boolval($value)) {
-                return \Exment::getTrueMark($value);
+                return \Exceedone\Exment\Facades\ExmentFacade::getTrueMark($value);
             }
 
             return null;
         })->escape(false);
 
         $grid->disableExport();
-        if (!\Exment::user()->hasPermission(Permission::WORKFLOW)) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::WORKFLOW)) {
             $grid->disableCreateButton();
         }
 
@@ -178,7 +178,7 @@ class WorkflowController extends AdminControllerBase
 
             $filter->like('workflow_view_name', exmtrans("workflow.workflow_view_name"));
 
-            $filter->equal('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->radio(\Exment::getYesNoAllOption());
+            $filter->equal('setting_completed_flg', exmtrans("workflow.setting_completed_flg"))->radio(\Exceedone\Exment\Facades\ExmentFacade::getYesNoAllOption());
         });
 
         return $grid;
@@ -828,7 +828,7 @@ class WorkflowController extends AdminControllerBase
         $workflow_tables = $request->get('workflow_tables');
 
         //workflow validation
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'workflow_tables.*.workflows.*.active_start_date' => ['nullable', 'date', 'before_or_equal:workflow_tables.*.workflows.*.active_end_date'],
             'workflow_tables.*.workflows.*.active_end_date' => ['nullable', 'date']
         ], [], [
@@ -864,7 +864,7 @@ class WorkflowController extends AdminControllerBase
                         ->withInput();
         }
 
-        \ExmentDB::transaction(function () use ($workflow_tables) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($workflow_tables) {
             foreach ($workflow_tables as $custom_table_id => $item) {
                 foreach (array_get($item, 'workflows', []) as $workflow_id => $workflow_item) {
                     // get workflow table using custom table id and workflow id
@@ -959,7 +959,7 @@ class WorkflowController extends AdminControllerBase
             return back();
         }
 
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'activate_keyword' => Rule::in([Define::YES_KEYWORD]),
         ]);
 
@@ -1001,7 +1001,7 @@ class WorkflowController extends AdminControllerBase
             return back();
         }
 
-        $validator = \Validator::make($request->all(), [
+        $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
             'activate_keyword' => Rule::in([Define::YES_KEYWORD]),
         ]);
 
@@ -1083,7 +1083,7 @@ class WorkflowController extends AdminControllerBase
             return ["workflow_actions.*.$k" => exmtrans("workflow.$k")];
         })->toArray();
 
-        $validator = \Validator::make($data, $validation, [], $attributes);
+        $validator = \Illuminate\Support\Facades\Validator::make($data, $validation, [], $attributes);
         $errors = $validator->errors();
 
         // especially validation

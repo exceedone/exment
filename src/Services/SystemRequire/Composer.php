@@ -47,7 +47,7 @@ class Composer extends SystemRequireBase
         // check backup execute
         try {
             // check EXMENT_COMPOSER_PATH
-            $path = \Exment::getComposerPath();
+            $path = \Exceedone\Exment\Facades\ExmentFacade::getComposerPath();
             if ($path != 'composer') {
                 if (file_exists($path)) {
                     $this->command_path = $path;
@@ -56,7 +56,7 @@ class Composer extends SystemRequireBase
                 return SystemRequireResult::WARNING;
             }
 
-            $command = \Exment::isWindows() ? 'where composer' : 'which composer';
+            $command = \Exceedone\Exment\Facades\ExmentFacade::isWindows() ? 'where composer' : 'which composer';
             foreach (['', '.phar'] as $suffix) {
                 exec($command . $suffix, $output, $return_var);
                 if ($return_var == 0) {
@@ -79,7 +79,7 @@ class Composer extends SystemRequireBase
      */
     protected function getComposerVersion()
     {
-        $composer_version = \Cache::get(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION);
+        $composer_version = \Illuminate\Support\Facades\Cache::get(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION);
         if (is_nullorempty($composer_version)) {
             // check composer version
             exec($this->command_path . ' --version', $output, $return_var);
@@ -103,7 +103,7 @@ class Composer extends SystemRequireBase
                     }
                 }
             }
-            \Cache::put(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION, $composer_version, Define::CACHE_CLEAR_MINUTE * 24);
+            \Illuminate\Support\Facades\Cache::put(Define::SYSTEM_KEY_SESSION_COMPOSER_VERSION, $composer_version, Define::CACHE_CLEAR_MINUTE * 24);
         }
         return $composer_version;
     }
@@ -187,6 +187,6 @@ class Composer extends SystemRequireBase
 
     public function getSettingUrl(): ?string
     {
-        return \Exment::getManualUrl('server');
+        return \Exceedone\Exment\Facades\ExmentFacade::getManualUrl('server');
     }
 }

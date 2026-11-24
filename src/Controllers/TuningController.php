@@ -88,7 +88,7 @@ class TuningController extends AdminControllerBase
                     AutoTuning::cacheConfig();
                     break;
                 case ConfigCacheTuning::ACTION_CLEAR:
-                    \Artisan::call('config:clear');
+                    \Illuminate\Support\Facades\Artisan::call('config:clear');
                     break;
                 case DebugLogTuning::ACTION:
                     System::logging_toggle_available(false);
@@ -100,7 +100,7 @@ class TuningController extends AdminControllerBase
         } catch (\Symfony\Component\HttpKernel\Exception\HttpException $ex) {
             throw $ex;
         } catch (\Throwable $ex) {
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
             admin_toastr(exmtrans('tuning.action_failed'), 'error');
             return redirect(admin_url('tuning'));
         }

@@ -68,7 +68,7 @@ class File extends CustomItem
             return is_nullorempty($this->fileValue($v)) ? null : esc_html(exmtrans('common.file_deleted'));
         }
 
-        return \Exment::getUrlTag($url, $file->filename, UrlTagType::BLANK, [], [
+        return \Exceedone\Exment\Facades\ExmentFacade::getUrlTag($url, $file->filename, UrlTagType::BLANK, [], [
             'tooltipTitle' => exmtrans('common.download'),
         ]);
     }
@@ -168,7 +168,7 @@ class File extends CustomItem
         $multiple = $this->isMultipleEnabled();
         $field->move($custom_table->table_name)
         ->callableName(function ($file) use ($custom_table, $multiple) {
-            return \Exment::setFileInfo($this, $file, FileType::CUSTOM_VALUE_COLUMN, $custom_table, !$multiple);
+            return \Exceedone\Exment\Facades\ExmentFacade::setFileInfo($this, $file, FileType::CUSTOM_VALUE_COLUMN, $custom_table, !$multiple);
         })->fileIndex(function ($index, $file) {
             $file = ExmentFile::getData($file);
             return $file->uuid ?? 0;
@@ -209,7 +209,7 @@ class File extends CustomItem
                         continue;
                     }
 
-                    $resultFileName = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP)->putFile('', $file);
+                    $resultFileName = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP)->putFile('', $file);
 
                     // get hash name
                     $fileName = Field\File::TMP_FILE_PREFIX . $resultFileName;
@@ -407,7 +407,7 @@ class File extends CustomItem
     // @phpstan-ignore-next-line
     public function getAdminFilterWhereQuery($query, $input)
     {
-        list($mark, $value) = \Exment::getQueryMarkAndValue(true, $input);
+        list($mark, $value) = \Exceedone\Exment\Facades\ExmentFacade::getQueryMarkAndValue(true, $input);
         // get values ids
         $ids = $this->getQueryIds($mark, $value);
         if (is_nullorempty($ids)) {
@@ -570,14 +570,14 @@ class File extends CustomItem
         // get file info
         $fileInfo = $this->getTmpFileInfo($name);
 
-        $disk = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP);
+        $disk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP);
         if (!$disk->exists($localFileName)) {
             return null;
         }
         $content = $disk->get($localFileName);
 
         // Set admin tmp
-        $tmpDisk = \Storage::disk(Define::DISKNAME_ADMIN_TMP);
+        $tmpDisk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN_TMP);
         $tmpDisk->put($localFileName, $content);
 
         // set request session localfilename, for deleting tmp file after saved
@@ -604,12 +604,12 @@ class File extends CustomItem
             $fileInfo = $this->getTmpFileInfo($name);
 
             // delete file from PUBLIC_FORM_TMP
-            $disk = \Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP);
+            $disk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_PUBLIC_FORM_TMP);
             if ($disk->exists($localFileName)) {
                 $disk->delete($localFileName);
             }
 
-            $tmpDisk = \Storage::disk(Define::DISKNAME_ADMIN_TMP);
+            $tmpDisk = \Illuminate\Support\Facades\Storage::disk(Define::DISKNAME_ADMIN_TMP);
             if ($tmpDisk->exists($localFileName)) {
                 $tmpDisk->delete($localFileName);
             }

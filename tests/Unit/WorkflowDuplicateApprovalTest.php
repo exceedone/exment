@@ -63,7 +63,7 @@ class WorkflowDuplicateApprovalTest extends UnitTestBase
      */
     protected function recordAnExecution(WorkflowAction $action, $custom_value, $base_user_id)
     {
-        \DB::table('workflow_values')->insert([
+        \Illuminate\Support\Facades\DB::table('workflow_values')->insert([
             'suuid' => make_uuid(),
             'workflow_id' => $action->workflow_id,
             'morph_type' => $custom_value->custom_table->table_name,

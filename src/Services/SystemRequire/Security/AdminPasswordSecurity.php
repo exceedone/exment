@@ -59,7 +59,7 @@ class AdminPasswordSecurity extends SecurityBase
                 }
             }
         } catch (\Throwable $e) {
-            \Log::warning('security check: admin_password: ' . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning('security check: admin_password: ' . $e->getMessage());
         }
         return $this->weak = array_values(array_unique($result));
     }

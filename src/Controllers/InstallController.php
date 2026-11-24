@@ -40,7 +40,7 @@ class InstallController extends Controller
     // @phpstan-ignore-next-line
     public function post(Request $request)
     {
-        \Exment::setTimeLimitLong();
+        \Exceedone\Exment\Facades\ExmentFacade::setTimeLimitLong();
         return InstallService::post();
     }
 }

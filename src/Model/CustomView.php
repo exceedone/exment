@@ -363,7 +363,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         $query->where('view_type', $this->view_type);
 
         if ($this->view_type == ViewType::USER) {
-            $query->where('created_user_id', \Exment::getUserId());
+            $query->where('created_user_id', \Exceedone\Exment\Facades\ExmentFacade::getUserId());
         }
     }
 
@@ -716,7 +716,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     {
         $query->where('view_type', ViewType::SYSTEM);
 
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return;
         }
@@ -2040,7 +2040,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     // @phpstan-ignore-next-line
     public function hasEditPermission()
     {
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if ($this->view_type == ViewType::SYSTEM) {
             return $this->custom_table->hasSystemViewPermission();
         } elseif ($this->created_user_id == $login_user->getUserId()) {

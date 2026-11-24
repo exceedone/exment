@@ -46,7 +46,7 @@ class Bug1GroupKeySqlInjectionFixedTest extends SecurityRegressionTestCase
 
     public function test_parameterized_whereRaw_blocks_injection_on_real_db(): void
     {
-        $conn = \DB::connection();
+        $conn = \Illuminate\Support\Facades\DB::connection();
 
         $conn->statement('DROP TEMPORARY TABLE IF EXISTS _sec_fix_bug1');
         $conn->statement('CREATE TEMPORARY TABLE _sec_fix_bug1 (id INT, secret VARCHAR(64))');

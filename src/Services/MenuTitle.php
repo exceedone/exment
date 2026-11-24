@@ -130,7 +130,7 @@ class MenuTitle
         }
         $key = static::CACHE_KEY . static::sourceStamp();
         try {
-            $known = \Cache::remember($key, 86400, function () {
+            $known = \Illuminate\Support\Facades\Cache::remember($key, 86400, function () {
                 return static::build();
             });
         } catch (\Throwable $ex) {

@@ -38,7 +38,7 @@ class SystemRequireTest extends UnitTestBase
          * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
          * used.  */
         return $this->_test(SystemRequire\FileUploadSize::class, function () {
-            return  \Exment::getUploadMaxFileSize();
+            return  \Exceedone\Exment\Facades\ExmentFacade::getUploadMaxFileSize();
         });
     }
 
@@ -82,7 +82,7 @@ class SystemRequireTest extends UnitTestBase
          * Exceedone\Exment\Tests\Unit\SystemRequireTest::_test() (void) is
          * used.  */
         return $this->_test(SystemRequire\BackupRestore::class, function () {
-            if (\Exment::isSqlServer()) {
+            if (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
                 return SystemRequireResult::WARNING;
             }
             return SystemRequireResult::OK;

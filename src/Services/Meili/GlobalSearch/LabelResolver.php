@@ -129,13 +129,13 @@ class LabelResolver
         }
 
         try {
-            $rows = \DB::table('custom_columns')
+            $rows = \Illuminate\Support\Facades\DB::table('custom_columns')
                 ->join('custom_tables', 'custom_tables.id', '=', 'custom_columns.custom_table_id')
                 ->whereIn('custom_columns.column_name', array_column($parts, 'column'))
                 ->get([
                     'custom_columns.column_name as _column',
                     'custom_tables.table_name as _table',
-                    \DB::raw($select . ' as _label'),
+                    \Illuminate\Support\Facades\DB::raw($select . ' as _label'),
                 ]);
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[Meili] column labels unavailable: ' . $e->getMessage());

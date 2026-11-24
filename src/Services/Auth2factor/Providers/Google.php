@@ -32,7 +32,7 @@ class Google
      */
     public function index()
     {
-        $loginUser = \Admin::user();
+        $loginUser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // if not available, send email
         if (!boolval($loginUser->auth2fa_available)) {
@@ -51,7 +51,7 @@ class Google
      */
     public function sendmail()
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         // set 2factor params
         $verify_code = str_random(32);
@@ -90,7 +90,7 @@ class Google
         }
 
         $verify_code = $request->get('code');
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
 
         if (!Auth2factorService::verifyCode('google', $verify_code)) {
             $this->incrementLoginAttempts($request);
@@ -117,14 +117,14 @@ class Google
             $loginuser->email,
             $key
         );
-        $qrSrc = base64_encode(\QrCode::format('png')->size(200)->generate($qrUrl));
+        $qrSrc = base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(200)->generate($qrUrl));
 
         // android and iphone url
         $urlAndroid = 'https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2';
         $urlIphone = 'https://apps.apple.com/jp/app/google-authenticator/id388497605';
 
-        $qrSrcAndroid = base64_encode(\QrCode::format('png')->size(100)->generate($urlAndroid));
-        $qrSrcIphone = base64_encode(\QrCode::format('png')->size(100)->generate($urlIphone));
+        $qrSrcAndroid = base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(100)->generate($urlAndroid));
+        $qrSrcIphone = base64_encode(\SimpleSoftwareIO\QrCode\Facades\QrCode::format('png')->size(100)->generate($urlIphone));
 
         return view('exment::auth.2factor.2factor-google-register', $this->getLoginPageData([
             'qrSrc' => $qrSrc,
@@ -158,7 +158,7 @@ class Google
 
         $verify_code = $request->get('verify_code');
         $g2fa = $this->getG2fa();
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
         $key = decrypt($loginuser->auth2fa_key);
 
         // validation google 2fa
@@ -206,7 +206,7 @@ class Google
      */
     protected function throttleKey(\Illuminate\Http\Request $request): string
     {
-        $loginuser = \Admin::user();
+        $loginuser = \ExmentAdminCore\Admin\Facades\Admin::user();
         return '2factor|' . ($loginuser ? $loginuser->id : $request->ip());
     }
 

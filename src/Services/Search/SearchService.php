@@ -369,7 +369,7 @@ class SearchService
         $column_item = $column->column_item;
 
         // get group's column. this is wraped.
-        $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
+        $sqlAsName = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($column_item->sqlAsName());
 
         // if has sub query(for child relation), set to sub query
         $isSubQuery = false;
@@ -383,7 +383,7 @@ class SearchService
             };
         }
 
-        if (\Exment::isSqlServer()) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::isSqlServer()) {
             // set group by. Maybe if has subquery, set again.
             $wrap_column = $column_item->getGroupByWrapTableColumn(false, $isSubQuery);
             $this->query->groupByRaw($wrap_column);
@@ -436,7 +436,7 @@ class SearchService
         ///// set summary.
         // $select is wraped.
         $wrap_column = $column_item->getSummaryWrapTableColumn();
-        $sqlAsName = \Exment::wrapColumn($column_item->sqlAsName());
+        $sqlAsName = \Exceedone\Exment\Facades\ExmentFacade::wrapColumn($column_item->sqlAsName());
 
         // if has sub query(for child relation), set to sub query
         if ($relationTable && SearchType::isSummarySearchType($relationTable->searchType)) {
@@ -567,7 +567,7 @@ class SearchService
 
         // If set date format, get date format column.
         if (isset($options['format'])) {
-            $column_name = \DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
+            $column_name = \Illuminate\Support\Facades\DB::raw($column_item->getDateFormatWrapTableColumn($options['format']));
         } else {
             $column_name = $column_item->getTableColumn();
         }

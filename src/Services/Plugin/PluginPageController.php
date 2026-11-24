@@ -6,7 +6,7 @@ use App\Http\Controllers\Controller;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
 use BadMethodCallException;
-use Response;
+use Illuminate\Support\Facades\Response;
 
 class PluginPageController extends Controller
 {
@@ -87,7 +87,7 @@ class PluginPageController extends Controller
         $filePath = path_join($publicDir, $path);
 
         // if not exists, return 404
-        if (!\File::exists($filePath)) {
+        if (!\Illuminate\Support\Facades\File::exists($filePath)) {
             abort(404);
         }
 
@@ -99,7 +99,7 @@ class PluginPageController extends Controller
             abort(404);
         }
 
-        $file = \File::get($realFile);
+        $file = \Illuminate\Support\Facades\File::get($realFile);
         $extension = pathinfo($realFile)['extension'] ?? '';
 
         switch ($extension) {
@@ -110,7 +110,7 @@ class PluginPageController extends Controller
                 $mimeType = 'text/javascript';
                 break;
             default:
-                $mimeType = \File::mimeType($realFile);
+                $mimeType = \Illuminate\Support\Facades\File::mimeType($realFile);
                 break;
         }
 

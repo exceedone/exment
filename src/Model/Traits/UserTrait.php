@@ -113,12 +113,12 @@ trait UserTrait
     {
         // only administrator can delete and edit administrator record
 
-        if (!\Exment::user()->isAdministrator() && isset($this->login_user) && $this->login_user->isAdministrator()) {
+        if (!\Exceedone\Exment\Facades\ExmentFacade::user()->isAdministrator() && isset($this->login_user) && $this->login_user->isAdministrator()) {
             return true;
         }
         // cannnot delete myself
 
-        if (\Exment::getUserId() == $this->id) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::getUserId() == $this->id) {
             return true;
         }
     }
@@ -139,7 +139,7 @@ trait UserTrait
             return false;
         }
 
-        $login_user = \Exment::user();
+        $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
         return !isset($login_user) || !$login_user->isAdministrator();
     }
 

@@ -35,12 +35,12 @@ class User extends SelectTable
 
         // default (login user)
         if (isMatchString($default_type, ColumnDefaultType::LOGIN_USER)) {
-            return \Exment::getUserId();
+            return \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         }
 
         // default (login user)
         if (!$this->initonly() && boolval(array_get($options, 'login_user_default'))) {
-            return \Exment::getUserId();
+            return \Exceedone\Exment\Facades\ExmentFacade::getUserId();
         }
 
         return null;

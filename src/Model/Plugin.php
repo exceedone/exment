@@ -69,7 +69,7 @@ class Plugin extends ModelBase
      */
     public function getDisabledDeleteAttribute()
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         return isset($user) ? !$user->hasPermission(Permission::PLUGIN_ALL) : true;
     }
 
@@ -82,7 +82,7 @@ class Plugin extends ModelBase
     // @phpstan-ignore-next-line
     public function hasPermission($role_key)
     {
-        return \Exment::user()->hasPermissionPlugin($this->id, $role_key);
+        return \Exceedone\Exment\Facades\ExmentFacade::user()->hasPermissionPlugin($this->id, $role_key);
     }
 
     /**
@@ -95,11 +95,11 @@ class Plugin extends ModelBase
     public static function getIdsHasSettingPermission()
     {
         return System::requestSession(Define::SYSTEM_KEY_SESSION_PLUGIN_ALL_SETTING_IDS, function () {
-            if (\Exment::user()->hasPermission(Permission::PLUGIN_ALL)) {
+            if (\Exceedone\Exment\Facades\ExmentFacade::user()->hasPermission(Permission::PLUGIN_ALL)) {
                 return static::allRecords()->pluck('id');
             }
 
-            $permissions = \Exment::user()->allPermissions()->filter(function ($permission) {
+            $permissions = \Exceedone\Exment\Facades\ExmentFacade::user()->allPermissions()->filter(function ($permission) {
                 return RoleType::PLUGIN == $permission->getRoleType() && array_key_exists(Permission::PLUGIN_SETTING, $permission->getPermissionDetails());
             });
 
@@ -306,7 +306,7 @@ class Plugin extends ModelBase
             $this->requirePlugin($diskService);
         } catch (\Throwable $e) {
             // S3 unreachable or file not found — log once and return null so callers can skip
-            \Log::warning("Plugin::getFullPath - could not load plugin [{$this->plugin_name}]: " . $e->getMessage());
+            \Illuminate\Support\Facades\Log::warning("Plugin::getFullPath - could not load plugin [{$this->plugin_name}]: " . $e->getMessage());
             return null;
         }
 
@@ -448,7 +448,7 @@ class Plugin extends ModelBase
         // call plugin
         $fullPathDir = $this->getLocalFullPath($diskService);
 
-        \Exment::classLoader()->registerDir($fullPathDir, $this->getNameSpace());
+        \Exceedone\Exment\Facades\ExmentFacade::classLoader()->registerDir($fullPathDir, $this->getNameSpace());
     }
 
     /**
@@ -474,7 +474,7 @@ class Plugin extends ModelBase
             $this->initPluginDisk(null, $diskService);
         }
 
-        return \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
+        return \Exceedone\Exment\Facades\ExmentFacade::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
     }
 
     /**
@@ -752,7 +752,7 @@ class Plugin extends ModelBase
     {
         return static::getByPluginTypes($plugin_types, $getAsClass)
             ->filter(function ($plugin) {
-                $login_user = \Exment::user();
+                $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 if (!$login_user || !$login_user->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
                     return false;
                 }
@@ -828,7 +828,7 @@ class Plugin extends ModelBase
                     }
                 }
             } catch (\Throwable $e) {
-                \Log::error('Plugin load failed, skipping plugin [' . $plugin->plugin_name . ']: ' . $e->getMessage());
+                \Illuminate\Support\Facades\Log::error('Plugin load failed, skipping plugin [' . $plugin->plugin_name . ']: ' . $e->getMessage());
                 return null;
             }
         })->filter();

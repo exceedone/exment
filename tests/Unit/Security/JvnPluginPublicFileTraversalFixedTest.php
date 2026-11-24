@@ -15,7 +15,7 @@ use Exceedone\Exment\Services\Plugin\PluginPageController;
  * joined the URL segments straight onto the plugin path and served the file:
  *   $path = implode('/', $args);
  *   $filePath = path_join($base_path, 'public', $path);
- *   $file = \File::get($filePath);
+ *   $file = \Illuminate\Support\Facades\File::get($filePath);
  * A request such as /public/..%2f..%2f..%2fconfig%2fapp.php (or nested '..' segments)
  * could escape the plugin's public/ directory and read arbitrary files (High).
  *

@@ -41,7 +41,7 @@ class CheckConnectionCommand extends AdminInstallCommand
      */
     public function handle()
     {
-        if (\ExmentDB::canConnection()) {
+        if (\Exceedone\Exment\Facades\ExmentDBFacade::canConnection()) {
             $this->line('Connected');
             return 1;
         }

@@ -298,9 +298,9 @@ class SelectTable extends CustomItem
         if (isMatchString($this->custom_column->column_type, ColumnType::USER)
             && boolval($this->custom_column->getOption('assign_me_enabled'))
         ) {
-            $assign_me_id = \Exment::getUserId();
+            $assign_me_id = \Exceedone\Exment\Facades\ExmentFacade::getUserId();
             if (!is_nullorempty($assign_me_id)) {
-                $login_user = \Exment::user();
+                $login_user = \Exceedone\Exment\Facades\ExmentFacade::user();
                 $buttons[] = [
                     'label' => exmtrans('custom_column.assign_me'),
                     'btn_class' => 'btn-default',

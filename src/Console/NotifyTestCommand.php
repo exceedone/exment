@@ -63,7 +63,7 @@ class NotifyTestCommand extends Command
         // throw mailsend Exception
         catch (TransportExceptionInterface  $ex) {
             $this->error('Send mail Error. Please check log.');
-            \Log::error($ex);
+            \Illuminate\Support\Facades\Log::error($ex);
         } catch (\Exception $ex) {
             return -1;
         } finally {

@@ -23,7 +23,7 @@ class HeaderLogoTest extends FeatureTestBase
 
     public function testWithoutALogoOfItsOwnTheSiteShowsTheExmentLogo(): void
     {
-        \DB::table(System::getTableName())->whereIn('system_name', ['site_logo', 'site_logo_mini'])->delete();
+        \Illuminate\Support\Facades\DB::table(System::getTableName())->whereIn('system_name', ['site_logo', 'site_logo_mini'])->delete();
         System::clearCache();
         Initialize::initializeConfig();
 
@@ -44,7 +44,7 @@ class HeaderLogoTest extends FeatureTestBase
         // the light bar of the modern design: the colored letters
         System::ui_design('modern');
         System::clearCache();
-        if (\Exment::getUiDesignForced() !== null) {
+        if (\Exceedone\Exment\Facades\ExmentFacade::getUiDesignForced() !== null) {
             $this->markTestSkipped('the design is fixed by the server (EXMENT_UI_DESIGN)');
         }
         $this->assertSame(Initialize::DEFAULT_LOGO, Initialize::defaultLogo());

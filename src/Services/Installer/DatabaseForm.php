@@ -67,7 +67,7 @@ class DatabaseForm
             $rules[$s] = 'required';
         }
 
-        $validation = \Validator::make($request->all(), $rules);
+        $validation = \Illuminate\Support\Facades\Validator::make($request->all(), $rules);
         if ($validation->fails()) {
             return back()->withInput()->withErrors($validation);
         }
@@ -117,8 +117,8 @@ class DatabaseForm
         InstallService::setInputParams($inputs);
         InstallService::setInitializeStatus(InitializeStatus::DATABASE);
 
-        // \Artisan::call('cache:clear');
-        // \Artisan::call('config:clear');
+        // \Illuminate\Support\Facades\Artisan::call('cache:clear');
+        // \Illuminate\Support\Facades\Artisan::call('config:clear');
 
         return redirect(admin_url('install'));
     }
@@ -150,7 +150,7 @@ class DatabaseForm
             }
         } catch (\Throwable $exception) {
             $this->connection_error = InstallService::connectionErrorReason($exception, array_get($inputs, 'password'));
-            \Log::warning('Exment install: the database connection failed: ' . $this->connection_error);
+            \Illuminate\Support\Facades\Log::warning('Exment install: the database connection failed: ' . $this->connection_error);
             return false;
         }
 
@@ -239,6 +239,6 @@ class DatabaseForm
     // @phpstan-ignore-next-line
     protected function connection()
     {
-        return \DB::connection($this->database_default);
+        return \Illuminate\Support\Facades\DB::connection($this->database_default);
     }
 }

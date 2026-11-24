@@ -117,7 +117,7 @@ class ScreenBundle
      */
     public static function dashboardType(): ?int
     {
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         if (!isset($user)) {
             return null;
         }
@@ -248,7 +248,7 @@ class ScreenBundle
         if ($type === null) {
             return null;
         }
-        $user = \Exment::user();
+        $user = \Exceedone\Exment\Facades\ExmentFacade::user();
         $dashboard = new Dashboard();
         $dashboard->dashboard_type = $type;
         $dashboard->dashboard_name = 'studio_' . short_uuid();

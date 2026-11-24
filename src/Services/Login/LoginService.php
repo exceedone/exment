@@ -72,7 +72,7 @@ class LoginService
                 }
                 // throw mailsend Exception
                 catch (TransportExceptionInterface $ex) {
-                    \Log::error($ex);
+                    \Illuminate\Support\Facades\Log::error($ex);
                     admin_error(exmtrans('error.header'), exmtrans('error.mailsend_failed'));
                     return back()->withInput(get_flash_input());
                 }
@@ -170,7 +170,7 @@ class LoginService
 
         $rules = static::removeInitRule($custom_login_user, $exment_user, $rules);
 
-        return \Validator::make($data, $rules);
+        return \Illuminate\Support\Facades\Validator::make($data, $rules);
     }
 
     /**
@@ -472,7 +472,7 @@ class LoginService
 
         $exment_user = null;
         $assignedJitRoles = false;
-        \ExmentDB::transaction(function () use ($custom_login_user, &$exment_user, &$assignedJitRoles) {
+        \Exceedone\Exment\Facades\ExmentDBFacade::transaction(function () use ($custom_login_user, &$exment_user, &$assignedJitRoles) {
             $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
 
             $update_user_columns = static::getUserColumns();
@@ -493,7 +493,7 @@ class LoginService
                     ];
                 })->toArray();
 
-                \DB::table(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)->insert($jit_rolegroups);
+                \Illuminate\Support\Facades\DB::table(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)->insert($jit_rolegroups);
                 $assignedJitRoles = true;
             }
         });
@@ -603,6 +603,6 @@ class LoginService
      */
     protected static function guard()
     {
-        return \Auth::guard('admin');
+        return \Illuminate\Support\Facades\Auth::guard('admin');
     }
 }
