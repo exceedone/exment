@@ -120,8 +120,10 @@ class ScheduledJobs
      */
     public static function label(string $key): string
     {
-        if (array_key_exists($key, static::JOBS)) {
-            return strval(exmtrans('scheduled_jobs.jobs.' . static::JOBS[$key]));
+        // Exment's, and the ones an application added (CoreExtensions::addSchedule())
+        $names = \Exceedone\Exment\Services\CoreExtensions::scheduledJobNames();
+        if (array_key_exists($key, $names)) {
+            return strval(exmtrans('scheduled_jobs.jobs.' . $names[$key]));
         }
         if (preg_match('/^exment:batch (\d+)$/D', $key, $m)) {
             try {
