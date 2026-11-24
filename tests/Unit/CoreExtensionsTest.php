@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\CoreExtensions;
+use Exceedone\Exment\Services\ScheduledJobs\ScheduledJobs;
 use Exceedone\Exment\Services\ScreenExtensions;
 use Exceedone\Exment\Services\TablePolicy;
 
@@ -127,5 +128,28 @@ class CoreExtensionsTest extends UnitTestBase
             $field = new $class('sample');
             $this->assertSame(['ocr' => 'x'], $field->setCustomOptions(['ocr' => 'x'])->getCustomOptions(), $class);
         }
+    }
+
+    public function testScheduledJobsOfAnApplication(): void
+    {
+        $this->assertNotContains('app:sample-job', $this->scheduledJobKeys(), 'none before');
+
+        CoreExtensions::addSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+            $schedule->command('app:sample-job')->dailyAt('04:00');
+        }, ['app:sample-job' => 'schedule']);
+
+        $this->assertContains('app:sample-job', $this->scheduledJobKeys(), 'listed on the page, as schedule:run runs it');
+        $this->assertSame(exmtrans('scheduled_jobs.jobs.schedule'), ScheduledJobs::label('app:sample-job'), 'named by its text');
+        // Exment's own names stay
+        $this->assertSame(exmtrans('scheduled_jobs.jobs.schedule'), ScheduledJobs::label('exment:schedule'));
+        $this->assertSame('app:other', ScheduledJobs::label('app:other'));
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    protected function scheduledJobKeys(): array
+    {
+        return array_column(ScheduledJobs::jobs(), 'key');
     }
 }
