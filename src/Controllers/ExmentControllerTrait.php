@@ -7,10 +7,10 @@ use Exceedone\Exment\Model\CustomTable;
 
 trait ExmentControllerTrait
 {
-    // @phpstan-ignore-next-line
     /** @var string|null the language of the title and the header when they were set */
     protected $pageInfoLocale;
 
+    // @phpstan-ignore-next-line
     protected $title;
     // @phpstan-ignore-next-line
     protected $header;
