@@ -233,6 +233,9 @@ class RouteServiceProvider extends ServiceProvider
             // the security check (ISS02833)
             $router->get('security_check', 'SecurityCheckController@index');
             $router->post('security_check/fix', 'SecurityCheckController@fix');
+            // the scheduled jobs (ISS02832)
+            $router->get('scheduled_jobs', 'ScheduledJobController@index');
+            $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
             $router->get('maintenance', 'MaintenanceController@index');
             $router->post('maintenance', 'MaintenanceController@store');
             $router->post('maintenance/start', 'MaintenanceController@start');
