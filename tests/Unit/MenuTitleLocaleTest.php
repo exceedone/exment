@@ -190,6 +190,35 @@ class MenuTitleLocaleTest extends UnitTestBase
         }
     }
 
+    /**
+     * A table or a custom menu an application made and named in the language files
+     * (menu.system_definitions, e.g. from the SaaS build's own files) is read in the language of the
+     * user too; with a changed title, or not named there, it stays.
+     */
+    public function testATableAndACustomMenuNamedInTheLanguageFiles(): void
+    {
+        $names = ['en' => 'Knowledge Files', 'ja' => 'ナレッジファイル', 'de' => 'Wissensdateien'];
+        foreach ($names as $locale => $title) {
+            // the file first: lines added to a group not loaded yet would stand for the whole file
+            trans('exment::exment.menu', [], $locale);
+            app('translator')->addLines([
+                'exment.menu.system_definitions.menu_title_test_table' => $title,
+                'exment.menu.system_definitions.menu_title_test_custom' => $title . ' *',
+            ], $locale, 'exment');
+        }
+        MenuTitle::reset();
+
+        $this->assertSame('Wissensdateien', MenuTitle::localize($this->row(MenuType::TABLE, 'menu_title_test_table', 'ナレッジファイル'), 'de'));
+        $this->assertSame('ナレッジファイル', MenuTitle::localize($this->row(MenuType::TABLE, 'menu_title_test_table', 'Knowledge Files'), 'ja'));
+        $this->assertSame('Knowledge Files *', MenuTitle::localize($this->row(MenuType::CUSTOM, 'menu_title_test_custom', 'ナレッジファイル *'), 'en'));
+        // a language without the text: the stored one
+        $this->assertSame('ナレッジファイル', MenuTitle::localize($this->row(MenuType::TABLE, 'menu_title_test_table', 'ナレッジファイル'), 'ko'));
+        // a title somebody changed, a custom menu not named there, a plugin menu
+        $this->assertSame('資料', MenuTitle::localize($this->row(MenuType::TABLE, 'menu_title_test_table', '資料'), 'en'));
+        $this->assertSame('ナレッジファイル', MenuTitle::localize($this->row(MenuType::CUSTOM, 'my_custom_menu', 'ナレッジファイル'), 'en'));
+        $this->assertSame('ナレッジファイル', MenuTitle::localize($this->row(MenuType::PLUGIN, 'menu_title_test_table', 'ナレッジファイル'), 'en'));
+    }
+
     public function testATitleSomebodyChangedStays(): void
     {
         foreach (static::LOCALES as $locale) {
