@@ -193,6 +193,16 @@ class Features
             'menu' => 'maintenance',
             'who' => false,
         ]);
+        // the scheduled jobs (ScheduledJobs\ScheduledJobs, ISS02832): the system administrators only.
+        // Off until it is turned on: the runs are kept only while it is used
+        $core[ScheduledJobs\ScheduledJobs::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.scheduled_jobs',
+            'description' => 'exment::exment.feature.features.scheduled_jobs_help',
+            'endpoints' => ['scheduled_jobs'],
+            'menu' => 'scheduled_jobs',
+            'manual' => 'scheduled_jobs',
+            'who' => false,
+        ]);
         return $core;
     }
 
