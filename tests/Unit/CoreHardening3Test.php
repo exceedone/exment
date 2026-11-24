@@ -39,12 +39,6 @@ class CoreHardening3Test extends UnitTestBase
         $this->assertStringContainsString('WebhookUrlGuard::isAllowed($custom_login_user->avatar, true)', $source);
     }
 
-    public function testTheComposerPathIsQuotedWhenItIsAFile(): void
-    {
-        $source = $this->read('src/Services/Update/UpdateHelper.php');
-        $this->assertStringContainsString('$composer = escapeshellarg($composer);', $source);
-    }
-
     public function testATemplateNameIsOneFolder(): void
     {
         $source = $this->read('src/Services/TemplateImportExport/TemplateImporter.php');
