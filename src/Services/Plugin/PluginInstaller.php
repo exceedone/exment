@@ -438,7 +438,11 @@ class PluginInstaller
         foreach (['plugin_name', 'author', 'version', 'uuid', 'plugin_view_name', 'description'] as $key) {
             $plugin->{$key} = array_get($json, $key);
         }
-        $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
+        // A new plugin starts on (a batch starts off). An update keeps what the administrator
+        // chose: a plugin turned off must not turn itself on again (ISS00418).
+        if (!$plugin->exists) {
+            $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
+        }
         // an application sets its own (ScreenExtensions plugin.installing)
         \Exceedone\Exment\Services\ScreenExtensions::call('plugin.installing', $plugin, $json);
 
