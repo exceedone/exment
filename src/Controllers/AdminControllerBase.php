@@ -17,6 +17,26 @@ class AdminControllerBase extends Controller
     use ExmentControllerTrait;
 
     /**
+     * The page in the language of the user.
+     *
+     * Laravel makes the controller before the middleware run (to ask it for its middleware), so a
+     * constructor that sets the title and the header with exmtrans() reads them in the language of
+     * the site. The language of the user is applied later (UserLocaleTimezone, after the login is
+     * known): when it is another one, the constructor is run again before the action.
+     *
+     * @param string $method
+     * @param array<mixed> $parameters
+     * @return mixed
+     */
+    public function callAction($method, $parameters)
+    {
+        if (isset($this->pageInfoLocale) && $this->pageInfoLocale !== app()->getLocale() && method_exists($this, '__construct')) {
+            app()->call([$this, '__construct']);
+        }
+        return parent::callAction($method, $parameters);
+    }
+
+    /**
      * Index interface.
      *
      * @return Content
