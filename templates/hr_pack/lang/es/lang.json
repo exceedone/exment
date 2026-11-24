@@ -158,5 +158,11 @@
             "role_group_view_name": "Personal",
             "description": "Personas que ven la lista de personal."
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "06e4a6e35f688ae4fecc",
+            "notify_view_name": "Fecha del trámite próxima (7 días antes)"
+        }
     ]
 }

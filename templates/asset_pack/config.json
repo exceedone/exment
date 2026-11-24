@@ -1212,5 +1212,51 @@
             ]
         }
     ],
-    "thumbnail": "thumbnail.png"
+    "thumbnail": "thumbnail.png",
+    "notifies": [
+        {
+            "suuid": "443a629e799118e3d3b6",
+            "notify_name": null,
+            "notify_view_name": "返却予定日を過ぎた（翌日）",
+            "active_flg": "1",
+            "notify_trigger": "1",
+            "target_name": "asset_lending",
+            "trigger_settings": {
+                "notify_target_table_name": "asset_lending",
+                "notify_target_column_name": "due_date",
+                "notify_day": "1",
+                "notify_beforeafter": "1",
+                "notify_hour": "9"
+            },
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "column:asset_lending.borrower",
+                        "created_user"
+                    ]
+                }
+            ],
+            "mail_key_name": "time_notify"
+        },
+        {
+            "suuid": "bee2b3c2eed422884924",
+            "notify_name": null,
+            "notify_view_name": "資産の申請（申請・承認・差し戻し）",
+            "active_flg": "1",
+            "notify_trigger": "4",
+            "target_name": "資産の申請（標準）",
+            "trigger_settings": [],
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "work_user",
+                        "created_user"
+                    ]
+                }
+            ],
+            "mail_key_name": "workflow_notify"
+        }
+    ]
 }

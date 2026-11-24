@@ -237,5 +237,11 @@
         {
             "workflow_view_name": "신청·승인(표준)"
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "819e4404298f54104248",
+            "notify_view_name": "신청 (제출, 승인, 반려)"
+        }
     ]
 }

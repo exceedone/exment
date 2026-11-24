@@ -4104,6 +4104,7 @@ return [
             'menu' => 'メニュー',
             'role_group' => '役割グループ',
             'workflow' => 'ワークフロー',
+            'notify' => '通知',
         ]
     ],
 

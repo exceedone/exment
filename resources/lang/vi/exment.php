@@ -4077,6 +4077,7 @@ return [
             'menu' => 'Menu',
             'role_group' => 'Nhóm vai trò',
             'workflow' => 'Quy trình làm việc',
+            'notify' => 'Thông báo',
         ],
     ],
     'qrcode' => [

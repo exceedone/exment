@@ -4077,6 +4077,7 @@ return [
             'menu' => '菜单',
             'role_group' => '角色组',
             'workflow' => '工作流',
+            'notify' => '通知',
         ],
     ],
     'qrcode' => [

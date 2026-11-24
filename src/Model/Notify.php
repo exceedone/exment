@@ -47,6 +47,22 @@ class Notify extends ModelBase
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;
     use Traits\ColumnOptionQueryTrait;
+    use Traits\TemplateTrait;
+
+    /**
+     * Templates: only the language file uses this (the names of a notify,
+     * found by suuid). The notifies themselves go through
+     * Services/TemplateImportExport/NotifyTemplate, which turns their ids
+     * into names.
+     *
+     * @var array<string, mixed>
+     */
+    public static $templateItems = [
+        'langs' => [
+            'keys' => ['suuid'],
+            'values' => ['notify_view_name', 'trigger_settings.notify_button_name'],
+        ],
+    ];
     use Notifiable;
 
     protected $guarded = ['id'];

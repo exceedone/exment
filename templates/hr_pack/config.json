@@ -845,5 +845,32 @@
             ]
         }
     ],
-    "thumbnail": "thumbnail.png"
+    "thumbnail": "thumbnail.png",
+    "notifies": [
+        {
+            "suuid": "06e4a6e35f688ae4fecc",
+            "notify_name": null,
+            "notify_view_name": "手続きの予定日が近い（7 日前）",
+            "active_flg": "1",
+            "notify_trigger": "1",
+            "target_name": "hr_procedure",
+            "trigger_settings": {
+                "notify_target_table_name": "hr_procedure",
+                "notify_target_column_name": "scheduled_date",
+                "notify_day": "7",
+                "notify_beforeafter": "-1",
+                "notify_hour": "9"
+            },
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "column:hr_procedure.owner",
+                        "created_user"
+                    ]
+                }
+            ],
+            "mail_key_name": "time_notify"
+        }
+    ]
 }

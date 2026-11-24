@@ -277,5 +277,11 @@
             "role_group_view_name": "영업",
             "description": "고객, 영업 기회, 견적, 계약을 조회·작성·편집할 수 있는 사람입니다."
         }
+    ],
+    "notifies": [
+        {
+            "suuid": "e5967aaf67c9ae4b4398",
+            "notify_view_name": "계약 만료 임박 (30일 전)"
+        }
     ]
 }
