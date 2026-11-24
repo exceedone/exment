@@ -238,7 +238,7 @@ class ApiRateRaiseTest extends FeatureTestBase
         $this->assertSame($this->userId(TestDefine::TESTDATA_USER_LOGINID_ADMIN), $raise->created_user_id);
         $this->assertEqualsWithDelta(Carbon::now()->addHours(3)->getTimestamp(), $raise->expires_at->getTimestamp(), 5);
         $this->assertSame(600, ApiRateRaises::perMinute(2, $userId));
-        Log::shouldHaveReceived('info')->withArgs(function ($message) {
+        Log::getFacadeRoot()->shouldHaveReceived('info')->withArgs(function ($message) {
             return str_contains(strval($message), 'API rate limit raise added');
         })->once();
 
@@ -255,7 +255,7 @@ class ApiRateRaiseTest extends FeatureTestBase
         $this->post(admin_urls('api_rate_raises', $raise->id, 'delete'))->assertRedirect(admin_url('api_rate_raises'));
         $this->assertSame(0, ApiRateRaise::query()->count());
         $this->assertSame(2, ApiRateRaises::perMinute(2, $userId));
-        Log::shouldHaveReceived('info')->withArgs(function ($message) {
+        Log::getFacadeRoot()->shouldHaveReceived('info')->withArgs(function ($message) {
             return str_contains(strval($message), 'API rate limit raise deleted');
         })->once();
     }
