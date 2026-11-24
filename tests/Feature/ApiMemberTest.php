@@ -54,6 +54,8 @@ class ApiMemberTest extends ApiTestBase
      */
     protected function callApi(string $token, string $method, string $path, array $data = []): \Illuminate\Testing\TestResponse
     {
+        // the user of the token: the guards keep the user of the request before
+        $this->app['auth']->forgetGuards();
         System::clearRequestSession();
         return $this->withHeaders(['Authorization' => "Bearer $token"])->json($method, admin_urls('api', $path), $data);
     }
@@ -64,11 +66,16 @@ class ApiMemberTest extends ApiTestBase
     }
 
     /**
+     * @param \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response> $response
      * @return array<int, int>
      */
     protected function idsOf(\Illuminate\Testing\TestResponse $response, string $key): array
     {
-        return collect($response->json($key))->pluck('id')->map('intval')->sort()->values()->all();
+        $ids = array_map(function ($row) {
+            return intval($row['id'] ?? 0);
+        }, (array) $response->json($key));
+        sort($ids);
+        return $ids;
     }
 
     /**
@@ -87,13 +94,22 @@ class ApiMemberTest extends ApiTestBase
         return $roleGroup;
     }
 
+    /**
+     * A role group that gives the system permission (the test data has none: the system
+     * administrators of the test data are the setting system_admin_users).
+     */
     protected function systemGroup(): RoleGroup
     {
-        $found = RoleGroup::all()->first(function ($roleGroup) {
-            return ApiMemberController::givesSystem($roleGroup);
-        });
-        $this->assertNotNull($found, 'the test data has a role group of the system administrators');
-        return $found;
+        $roleGroup = RoleGroup::create(['role_group_name' => 'api_member_test_system', 'role_group_view_name' => 'api member test system']);
+        RoleGroupPermission::create([
+            'role_group_id' => $roleGroup->id,
+            'role_group_permission_type' => RoleType::SYSTEM,
+            'role_group_target_id' => null,
+            'permissions' => [Permission::SYSTEM],
+        ]);
+        System::clearCache();
+        $this->assertTrue(ApiMemberController::givesSystem($roleGroup));
+        return $roleGroup;
     }
 
     public function testTheUsersOfAnOrganization(): void
@@ -124,11 +140,14 @@ class ApiMemberTest extends ApiTestBase
     {
         $token = $this->getAdminAccessToken(static::SCOPES);
         $group = TestDefine::TESTDATA_ROLEGROUP_GENERAL;
-        $user2 = $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        // a user who is not in it (user2 is)
+        $user2 = $this->userId(TestDefine::TESTDATA_USER_LOGINID_DEV_USERB);
         $org = intval(TestDefine::TESTDATA_ORGANIZATION_COMPANY1);
 
         $list = $this->callApi($token, 'GET', 'role_group')->assertOk();
-        $this->assertContains(intval($group), collect($list->json())->pluck('id')->map('intval')->all());
+        $this->assertContains(intval($group), array_map(function ($row) {
+            return intval($row['id'] ?? 0);
+        }, (array) $list->json()));
 
         $before = $this->callApi($token, 'GET', "role_group/$group")->assertOk();
         $this->assertArrayHasKey('permissions', $before->json());
