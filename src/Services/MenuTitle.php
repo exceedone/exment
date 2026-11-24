@@ -45,7 +45,7 @@ class MenuTitle
     public static function localizeRows(array $rows, ?string $locale = null): array
     {
         foreach ($rows as $index => $row) {
-            if (!is_array($row) || !static::isTarget($row)) {
+            if (!static::isTarget($row)) {
                 continue;
             }
             $rows[$index]['title'] = static::localize($row, $locale);
