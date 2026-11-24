@@ -7,6 +7,9 @@ use Exceedone\Exment\Model\CustomTable;
 
 trait ExmentControllerTrait
 {
+    /** @var string|null the language of the title and the header when they were set */
+    protected $pageInfoLocale;
+
     // @phpstan-ignore-next-line
     protected $title;
     // @phpstan-ignore-next-line
@@ -19,6 +22,8 @@ trait ExmentControllerTrait
     // @phpstan-ignore-next-line
     protected function setPageInfo($title = null, $header = null, $description = null, $headericon = null)
     {
+        // the language the texts are in (see AdminControllerBase::callAction())
+        $this->pageInfoLocale = app()->getLocale();
         if (isset($header)) {
             $this->header = $header;
         }
