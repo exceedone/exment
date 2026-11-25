@@ -227,12 +227,15 @@ class PluginServiceProvider extends ServiceProvider
         }
         $isApi = $plugin_type == PluginType::API;
 
+        // the names of the routes (the same routes under each prefix, "api" and "webapi": a name
+        // once only, else route:cache stops with "Another route has already been assigned name")
+        $named = [];
         foreach (stringToArray($prefix) as $p) {
             Route::group([
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
                 'middleware'    => $this->resolveRouteMiddleware($json, $isApi),
-            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json) {
+            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json, &$named) {
                 // if crud, set crud routing
                 if ($plugin_type == PluginType::CRUD) {
                     $router->get("oauth", "PluginCrudController@oauth");
@@ -288,7 +291,11 @@ class PluginServiceProvider extends ServiceProvider
                             if (!empty($skip = $this->resolveRouteExcept($route))) {
                                 $router->withoutMiddleware($skip);
                             }
-                            $router->name("exment.plugins.{$plugin->id}.{$method}.{$func}");
+                            $name = "exment.plugins.{$plugin->id}.{$method}.{$func}";
+                            if (!isset($named[$name])) {
+                                $named[$name] = true;
+                                $router->name($name);
+                            }
                         }
                     }
                 }
