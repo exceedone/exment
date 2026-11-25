@@ -996,6 +996,169 @@ class StorageStageBIntegrationTest extends FeatureTestBase
      * custom_value_edit (seeded data; user2 sees a subset) converted to physical_read: the export
      * rows and user2's filtered, sorted view query and lazy grid rows are the same as on JSON.
      */
+    /**
+     * The Kanban board of a converted table. KanbanGrid::selectStoredColumns() (upstream 7.2.5) replaces `table.*` by the stored columns
+     * (no index columns `column_*`); here the staging columns (pcol_*, value_original) are left out as well, so a converted table is read as
+     * cheaply as a JSON one. A row read without them gives the JSON shadow, which is the public value: the cards and the statistics must be
+     * the same as before the conversion.
+     */
+    public function testKanbanBoardOfAConvertedTableIsTheSameAsOnJson(): void
+    {
+        $this->enableExecution();
+        $table = $this->createFixtureTable('hyb_stageb_kanban');
+        $this->seedRows($table);
+        $kind = CustomColumn::getEloquent('kind', $table);
+        $view = \Exceedone\Exment\Model\CustomView::create([
+            'custom_table_id' => $table->id,
+            'view_view_name' => 'stageb kanban',
+            'view_type' => \Exceedone\Exment\Enums\ViewType::SYSTEM,
+            'view_kind_type' => \Exceedone\Exment\Enums\ViewKindType::KANBAN,
+            'options' => ['kanban_col_count' => 200, 'kanban_group_column_id' => $kind->id],
+        ]);
+
+        $board = function () use ($table, $view) {
+            System::clearRequestSession();
+            System::clearCache();
+            $grid = new \Exceedone\Exment\DataItems\Grid\KanbanGrid(
+                CustomTable::getEloquent($table->id),
+                \Exceedone\Exment\Model\CustomView::withoutGlobalScopes()->find($view->id)
+            );
+            $cards = [];
+            foreach (['a', 'b', 'c', \Exceedone\Exment\DataItems\Grid\KanbanGrid::EMPTY_KEY] as $key) {
+                $result = $grid->moreCards($key, 0);
+                $cards[$key] = json_decode(json_encode($result['cards']), true);
+            }
+            return ['cards' => $cards, 'stats' => json_decode(json_encode($grid->columnStats()['flat']), true)];
+        };
+
+        $before = $board();
+        $this->assertNotEmpty(array_filter($before['cards']), 'precondition: the board has cards');
+
+        $this->toPhysicalRead($table);
+
+        // the board reads a converted table as cheaply as a JSON one: its select list has neither the index columns nor the staging
+        // columns, and is the select list of the same table before the conversion
+        $db = getDBTableName($table);
+        $is_board_select = function ($q) use ($db) {
+            return stripos($q['query'], 'from ' . static::q($db)) !== false && stripos($q['query'], 'order by') !== false && stripos($q['query'], 'limit') !== false;
+        };
+        $select_list = function ($log) use ($is_board_select) {
+            $lists = [];
+            foreach (array_filter($log, $is_board_select) as $q) {
+                $lists[] = substr($q['query'], 0, stripos($q['query'], ' from '));
+            }
+            return array_values(array_unique($lists));
+        };
+        $pcol = PhysicalNaming::stagingColumn(CustomColumn::getEloquent('num', $table));
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+        try {
+            $after = $board();
+        } finally {
+            $log = DB::getQueryLog();
+            DB::disableQueryLog();
+        }
+        $lists = $select_list($log);
+        $this->assertNotEmpty($lists, 'precondition: the board queries were captured');
+        foreach ($lists as $list) {
+            $this->assertStringNotContainsString($pcol, $list, 'no staging column in the select list');
+            $this->assertStringNotContainsString(PhysicalNaming::VALUE_ORIGINAL, $list);
+            $this->assertStringNotContainsString('`column_', $list, 'no index column in the select list');
+        }
+        $this->assertCount(1, $lists, 'one select list for every board query');
+        $this->assertSame($before['cards'], $after['cards'], 'the cards of every board column');
+        $this->assertSame($before['stats'], $after['stats'], 'the statistics of the board');
+    }
+    /**
+     * With the persistent cache on (EXMENT_USE_CACHE), a new request - whose request session is empty, so only the persistent cache is left -
+     * sees every storage transition at once, and routes its queries to the source the table reads now. Nothing here clears the cache by hand:
+     * the transitions and the schema changes have to do it (TableStorage::transitionTo -> System::clearCacheAfterCommit, PhysicalSchemaManager).
+     */
+    public function testEveryTransitionIsSeenByANewRequestThroughThePersistentCache(): void
+    {
+        $this->enableExecution();
+        $previous = config('exment.use_cache');
+        config(['exment.use_cache' => true]);
+        try {
+            System::clearCache();
+            $name = 'hyb_stageb_cache';
+            $table = $this->createFixtureTable($name);
+            $ids = $this->seedRows($table);
+            $db = getDBTableName($table);
+            $transitions = app(StorageTransitions::class);
+            $manager = app(PhysicalSchemaManager::class);
+            $num = CustomColumn::getEloquent('num', $table);
+            $pcol = PhysicalNaming::stagingColumn($num);
+
+            $request = function () use ($name) {
+                System::clearRequestSession();
+                return CustomTable::getEloquent($name);
+            };
+            $seen = function (string $step) use ($request, $table) {
+                $cached = TableStorage::fromModel($request());
+                $fresh = TableStorage::fresh($table);
+                $this->assertSame(
+                    [$fresh->mode(), $fresh->state(), $fresh->generation()],
+                    [$cached->mode(), $cached->state(), $cached->generation()],
+                    "a new request sees the table as it is after: $step"
+                );
+                return $cached;
+            };
+            // the key a new request queries the column by, and a query on it that must run
+            $keyOf = function () use ($request) {
+                $t = $request();
+                $key = CustomColumn::getEloquent('num', $t)->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL);
+                $t->getValueQuery()->whereNotNull($key)->count();
+                return $key;
+            };
+
+            $this->assertTrue($seen('start')->isJson());
+            $this->assertStringNotContainsString($pcol, $keyOf());
+
+            $manager->provision($table);
+            $seen('provision');
+            $transitions->startDualWrite($table);
+            $seen('dual-write');
+            sleep(1);
+            $transitions->startBackfill($table, $this->attestation());
+            $seen('backfill');
+            $status = app(StorageBackfill::class)->run($table, 500, 100);
+            $this->assertSame(StorageRunRepository::STATUS_COMPLETED, $status['status'], json_encode($status));
+            $transitions->startVerification($table);
+            $seen('verification');
+            $verify = app(\Exceedone\Exment\Services\Storage\StorageVerifier::class)->run($table, 500, 100);
+            $this->assertSame(StorageRunRepository::RESULT_PASSED, $verify['result'], json_encode($verify));
+            $transitions->awaitConfirmation($table);
+            $seen('awaiting confirmation');
+            $this->assertStringNotContainsString($pcol, $keyOf(), 'not read from the typed column before the cutover');
+            sleep(1);
+            $run = StorageRunRepository::latest((int)$table->id, StorageRunRepository::KIND_VERIFY, $this->storage($table)->generation());
+            $transitions->cutover($table, new CutoverConfirmation((int)\Exment::getUserId(), (int)$run->id, (int)$run->generation,
+                StorageL5Report::fromRun($run)->version(), new \DateTimeImmutable()), $this->attestation());
+            $this->assertTrue($seen('cutover')->readsPhysical(), 'a new request reads the typed columns right after the cutover');
+            $this->assertStringContainsString($pcol, $keyOf(), 'and queries the typed column');
+
+            $transitions->rollback($table, $this->attestation(), true);
+            $this->assertFalse($seen('rollback')->readsPhysical(), 'a new request stops reading the typed columns right after the rollback');
+            $this->assertStringNotContainsString($pcol, $keyOf());
+
+            $transitions->cancel($table);
+            $seen('cancel');
+            $cleanup = app(StagingCleanup::class);
+            $cleanup->startConfirmed($table, $name);
+            $this->runJob($table, StorageConversionJob::OP_CLEANUP);
+            $seen('cleanup');
+            $manager->deprovision($table);
+            $this->assertTrue($seen('deprovision')->isJson());
+            $this->assertFalse(Schema::hasColumn($db, $pcol));
+            // the columns are gone: a new request must not name them
+            $this->assertStringNotContainsString($pcol, $keyOf());
+            $this->assertSame('Alpha', $this->model($table, $ids['normal'])->getValue('label'));
+        } finally {
+            config(['exment.use_cache' => $previous]);
+            System::clearCache();
+        }
+    }
     public function testExportAndRestrictedUserQueriesInPhysicalRead(): void
     {
         $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);

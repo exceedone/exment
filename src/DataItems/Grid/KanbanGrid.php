@@ -1395,8 +1395,11 @@ class KanbanGrid extends GridBase
             } catch (\Throwable $e) {
                 $columns = [];
             }
+            // Not the staging columns of the hybrid storage either (pcol_<suuid>, value_original): a card takes its values from
+            // value, and a row read without them gives the JSON shadow, which is the public value (PublicValueResolver). So a
+            // converted table is read as cheaply as a JSON one, and this list is the same before and after a conversion.
             static::$stored_columns[$table] = array_values(array_filter($columns, function ($column) {
-                return strpos($column, 'column_') !== 0;
+                return strpos($column, 'column_') !== 0 && !\Exceedone\Exment\Services\Storage\PhysicalNaming::isInternalAttribute($column);
             }));
         }
         $stored = static::$stored_columns[$table];

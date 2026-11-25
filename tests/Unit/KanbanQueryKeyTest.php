@@ -369,6 +369,21 @@ class KanbanQueryKeyTest extends UnitTestBase
         $this->assertFigures($expected, $this->figures($flat));
     }
 
+    /**
+     * The select list of the board queries since KanbanGrid::selectStoredColumns() (perf from the SaaS build,
+     * 7.2.5): every column of the table except the index columns `column_*`, instead of `table.*`.
+     * The staging columns of the hybrid storage (pcol_*, value_original) are kept: the public value is built from them.
+     */
+    protected function storedSelect(): string
+    {
+        $db = $this->db();
+        $columns = array_values(array_filter(\Schema::getColumnListing($db), function ($column) {
+            return strpos($column, 'column_') !== 0;
+        }));
+        return implode(', ', array_map(function ($column) use ($db) {
+            return "`$db`.`$column`";
+        }, $columns));
+    }
     public function testMoreCardsNarrowsToBoardKeyAndLane(): void
     {
         $key = $this->realKeys()[0];
@@ -392,7 +407,7 @@ class KanbanQueryKeyTest extends UnitTestBase
             }));
             $this->assertCount(1, $q);
             $db = $this->db();
-            $this->assertSame("select `$db`.* from `$db` where ($g in (?)) and $l = ? and `$db`.`deleted_at` is null order by `$db`.`id` asc limit 201 offset 0", $q[0]['query']);
+            $this->assertSame("select {$this->storedSelect()} from `$db` where ($g in (?)) and $l = ? and `$db`.`deleted_at` is null order by `$db`.`id` asc limit 201 offset 0", $q[0]['query']);
             $this->assertSame([$key, $lane], $q[0]['bindings']);
 
             $expected = $this->table()->getValueQuery()->get()->filter(function ($row) use ($key, $lane) {
@@ -411,7 +426,7 @@ class KanbanQueryKeyTest extends UnitTestBase
             $null = $json
                 ? "(json_extract(`$db`.`value`, '$.\"select\"') is null OR json_type(json_extract(`$db`.`value`, '$.\"select\"')) = 'NULL')"
                 : "$g is null";
-            $this->assertStringContainsString("select `$db`.* from `$db` where ($null or $g not in (", $q[0]['query']);
+            $this->assertStringContainsString("select {$this->storedSelect()} from `$db` where ($null or $g not in (", $q[0]['query']);
             $this->assertStringEndsWith(")) and ($l is null or $l = '') and `$db`.`deleted_at` is null order by `$db`.`id` asc limit 201 offset 0", $q[0]['query']);
         }
     }
@@ -430,7 +445,7 @@ class KanbanQueryKeyTest extends UnitTestBase
         }));
         $this->assertCount(1, $q);
         $db = $this->db();
-        $this->assertSame("select `$db`.* from `$db` where ({$this->idx('select')} in (?)) and `$db`.`deleted_at` is null order by CAST({$this->idx('integer')} AS signed) asc, `$db`.`id` asc limit 201 offset 0", $q[0]['query']);
+        $this->assertSame("select {$this->storedSelect()} from `$db` where ({$this->idx('select')} in (?)) and `$db`.`deleted_at` is null order by CAST({$this->idx('integer')} AS signed) asc, `$db`.`id` asc limit 201 offset 0", $q[0]['query']);
         $this->assertSame([$key], $q[0]['bindings']);
 
         $expected = $this->table()->getValueQuery()->get()->filter(function ($row) use ($key) {
