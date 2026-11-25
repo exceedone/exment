@@ -1716,11 +1716,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'searchDocument' => false, // is search document.
                 'isApi' => false, // called from API
                 'withChildren' => null, // If has value, set "with" to query.
+                'stableOrder' => false, // with paginate: one order, each match once on its page (searchValuePageInOrder)
             ],
             $options
         );
         $target_view = $options['target_view'];
         $maxCount = $options['maxCount'];
+
+        if (boolval($options['paginate']) && boolval($options['stableOrder'])) {
+            return $this->searchValuePageInOrder($q, $options);
+        }
 
         $data = [];
 
@@ -1815,6 +1820,68 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $query->take($maxCount)->get();
+    }
+
+    /**
+     * A page of a search by words in one order (ISS02907): the query of the search box of the
+     * data list (setSearchQueryOrWhere, the columns the table searches by words), the sort of the
+     * view and then the id. The search of searchValue takes up to keyword_search_count matches
+     * of each column in no order, so its pages could repeat and skip records, and it never read
+     * past that count.
+     *
+     * @param string|null $q
+     * @param array<string, mixed> $options the options of searchValue
+     * @return \Illuminate\Pagination\AbstractPaginator
+     */
+    protected function searchValuePageInOrder($q, array $options)
+    {
+        $target_view = $options['target_view'];
+        $dbTableName = getDBTableName($this);
+
+        $query = $this->getValueQuery();
+        if (boolval($options['executeSearch'])) {
+            $this->getValueModel()->setSearchQueryOrWhere($query, $q, [
+                'isLike' => $options['isLike'],
+                'searchColumns' => $options['searchColumns'],
+                'relation' => $options['relation'],
+                'searchDocument' => $options['searchDocument'],
+            ]);
+        }
+
+        // the same filters as the search of searchValue
+        if (isset($options['relationColumn'])) {
+            $options['relationColumn']->setQueryFilter($query, array_get($options, 'relationColumnValue'));
+        }
+        if (isset($options['display_table'])) {
+            $this->filterDisplayTable($query, $options['display_table'], $options);
+        }
+        if (isset($target_view)) {
+            $target_view->filterModel($query);
+            $target_view->setValueSort($query);
+        }
+        // the id last: records the sort of the view does not tell apart stay in one order
+        $query->orderBy("$dbTableName.id");
+
+        $this->setQueryWith($query, $target_view);
+        if (isset($options['withChildren'])) {
+            $this->setQueryWithRelation($query, $options['withChildren']);
+        }
+
+        $paginates = boolval($options['simplePaginate'] ?? false) ? $query->simplePaginate($options['maxCount']) : $query->paginate($options['maxCount']);
+
+        if (boolval($options['makeHidden'])) {
+            // @phpstan-ignore-next-line
+            $data = $paginates->makeHidden($this->getMakeHiddenArray());
+            // @phpstan-ignore-next-line
+            $paginates->data = $data;
+        }
+        if (boolval($options['getLabel'])) {
+            $paginates->map(function ($model) {
+                $model->append('label');
+            });
+        }
+
+        return $paginates;
     }
 
     /**
