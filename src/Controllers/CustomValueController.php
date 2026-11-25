@@ -10,6 +10,7 @@ use ExmentAdminCore\Admin\Layout\Row;
 use ExmentAdminCore\Admin\Widgets\Box;
 use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Grid\Exporter;
+use Exceedone\Exment\Services\BackButton;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ErrorCode;
@@ -271,6 +272,9 @@ class CustomValueController extends AdminControllerTableBase
             ]);
         } else {
             $callback = null;
+            // the view the user is on: a free word search shows the "all data" view for it,
+            // and does so again when the list is opened with the same query
+            $state_view = $this->custom_view;
             if ($request->has('query')) {
                 if (!boolval(config('exment.search_keep_default_view', false)) ||
                     !($this->custom_view->view_kind_type == ViewKindType::DEFAULT || $this->custom_view->view_kind_type == ViewKindType::ALLDATA)) {
@@ -314,6 +318,12 @@ class CustomValueController extends AdminControllerTableBase
                 return $content;
             } elseif ($modalframe) {
                 return $grid_item->renderModalFrame();
+            }
+
+            // remember the list as it is shown (view, filter, sort, page, ...): "back to the
+            // list" and the redirect after a save come back to it (ISS00363)
+            if (is_nullorempty($request->get(Exporter::$queryName))) {
+                $this->custom_table->saveGridState($state_view);
             }
 
             $row = new Row($grid);
@@ -403,6 +413,7 @@ class CustomValueController extends AdminControllerTableBase
             static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
         ]);
         $content->row($row);
+        $this->appendBackToListButton();
 
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
             'page_type' => PluginPageType::CREATE
@@ -808,26 +819,15 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
-     * A "back to the list" button at the left of the page title of the data show and edit pages,
-     * where it is easy to reach.
-     * It goes where the small "list" button of the box goes (the table's list).
-     * Added by script: the page title is made by the admin layout, which has no place for buttons.
+     * A "back to the list" button at the left of the page title of the data show, create and edit
+     * pages, where it is easy to reach. It goes to the list as the user last saw it (the view,
+     * the filter, the sort and the page: CustomTable::getGridUrl(true), ISS00363).
+     * The button of the other pages is the same (BackButton, added by the Bootstrap middleware),
+     * which leaves these pages to this one.
      */
     protected function appendBackToListButton(): void
     {
-        $url = json_encode($this->custom_table->getGridUrl(true));
-        $label = json_encode(exmtrans('custom_value.back_to_list'));
-        \Admin::script(<<<EOT
-(function () {
-    var h1 = $('#pjax-container .content-header > h1').first();
-    if (!h1.length || h1.find('.exm-back-to-list').length) {
-        return;
-    }
-    var a = $('<a class="btn exm-back-to-list"><i class="fa fa-arrow-left"></i> </a>').attr('href', {$url});
-    a.append(document.createTextNode({$label}));
-    h1.addClass('exm-has-back-to-list').prepend(a);
-})();
-EOT);
+        BackButton::append($this->custom_table->getGridUrl(true), exmtrans('custom_value.back_to_list'));
     }
 
     /**
@@ -1172,8 +1172,10 @@ EOT);
 
         \Exment::setTimeLimitLong();
 
-        // The button of the record's page is not shown when the form does not
-        // allow editing from display, the bulk update of the list is.
+        // The button of the record's page runs as it is shown
+        // (CustomOperation::enableButton): the table's "Disable on screen" of
+        // editing does not stop it (#2171), the permission to edit the record,
+        // the workflow lock and the operation's conditions do.
         $response = $operation->execute($this->custom_table, $ids, $request->all(), !is_nullorempty($id));
 
         if ($response === true) {
