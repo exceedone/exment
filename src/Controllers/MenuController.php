@@ -297,6 +297,8 @@ class MenuController extends AdminControllerBase
         $form->display('menu_name', exmtrans("menu.menu_name"));
     }
     $form->text('title', exmtrans("menu.title"))->required()->rules("max:40");
+    // the title in the other languages (ISS02859)
+    \Exceedone\Exment\Services\NameLocales::addEmbeds($form, exmtrans("menu.title"));
     $form->icon('icon', trans('admin.icon'))->required()->default('');
     // a parent menu (a group): the role groups it is shown to (empty: everyone)
     $form->multipleSelect('visible_role_groups', exmtrans('menu.visible_role_groups'))

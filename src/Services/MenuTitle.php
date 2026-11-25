@@ -56,12 +56,68 @@ class MenuTitle
     public static function localizeRows(array $rows, ?string $locale = null): array
     {
         foreach ($rows as $index => $row) {
-            if (!static::isTarget($row)) {
+            // the title the site gave this menu in the language (7.3, ISS02859), first
+            $own = static::ownTitle($row, $locale);
+            if ($own !== null) {
+                $rows[$index]['title'] = $own;
                 continue;
             }
-            $rows[$index]['title'] = static::localize($row, $locale);
+            // a title of the install template: its text in the language (7.2.6)
+            if (static::isTarget($row)) {
+                $template = static::localize($row, $locale);
+                if ($template !== array_get($row, 'title')) {
+                    $rows[$index]['title'] = $template;
+                    continue;
+                }
+            }
+            // a menu of a table still called as its table: the name of the table in the language
+            $table = static::tableTitle($row, $locale);
+            if ($table !== null) {
+                $rows[$index]['title'] = $table;
+            }
         }
         return $rows;
+    }
+
+    /**
+     * The title a menu was given in a language (its options: name_locale_<locale>), or null.
+     *
+     * @param array<string, mixed> $row
+     */
+    protected static function ownTitle(array $row, ?string $locale): ?string
+    {
+        $options = array_get($row, 'options');
+        if (is_string($options)) {
+            $options = json_decode_ex($options, true);
+        }
+        if (!is_array($options) || !NameLocales::active()) {
+            return null;
+        }
+        $title = NameLocales::pick($options, null, $locale ?? strval(app()->getLocale()));
+        return is_string($title) ? $title : null;
+    }
+
+    /**
+     * The name of the table in a language, for a menu of a table whose title is still the stored
+     * name of the table (the join of Menu::allNodes gives both), or null.
+     *
+     * @param array<string, mixed> $row
+     */
+    protected static function tableTitle(array $row, ?string $locale): ?string
+    {
+        if (strval(array_get($row, 'menu_type')) !== MenuType::TABLE || !NameLocales::active()) {
+            return null;
+        }
+        $stored = array_get($row, 'table_view_name');
+        if (!is_string($stored) || $stored === '' || trim(strval(array_get($row, 'title'))) !== trim($stored)) {
+            return null;
+        }
+        $options = array_get($row, 'table_options');
+        if (is_string($options)) {
+            $options = json_decode_ex($options, true);
+        }
+        $title = NameLocales::pick(is_array($options) ? $options : null, null, $locale ?? strval(app()->getLocale()));
+        return is_string($title) ? $title : null;
     }
 
     /**

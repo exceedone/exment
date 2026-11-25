@@ -5354,4 +5354,10 @@ return [
         'message_public_form_script' => 'This is a demo site: custom CSS and JavaScript of public forms are not saved.',
         'message_system_admin' => 'This is a demo site: the system administrators are not changed.',
     ],
+    // the names of tables, columns, views and menus in the other languages (7.3, ISS02859)
+    'name_locales' => [
+        'header' => 'Names in other languages',
+        'help' => '%s shown to a user who chose one of these languages. Empty: the name above, as it is.',
+        'name_in' => 'Name in %s',
+    ],
 ];

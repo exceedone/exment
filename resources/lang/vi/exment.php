@@ -5325,4 +5325,10 @@ return [
         'message_public_form_script' => 'Đây là trang demo: CSS và JavaScript tùy chỉnh của biểu mẫu công khai sẽ không được lưu.',
         'message_system_admin' => 'Đây là trang demo: quản trị viên hệ thống sẽ không bị thay đổi.',
     ],
+    // the names of tables, columns, views and menus in the other languages (7.3, ISS02859)
+    'name_locales' => [
+        'header' => 'Tên trong các ngôn ngữ khác',
+        'help' => '%s hiển thị cho người dùng đã chọn một trong các ngôn ngữ này. Để trống: dùng nguyên tên ở trên.',
+        'name_in' => 'Tên bằng %s',
+    ],
 ];

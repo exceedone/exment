@@ -31,13 +31,14 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     use Traits\UseRequestSessionTrait;
     use Traits\DatabaseJsonOptionTrait;
     use Traits\SerializeDateTrait;
+    use Traits\NameLocalesTrait;
 
     /**
      * @var string
      */
     protected $titleColumn = 'title';
 
-    protected $appends = ['menu_target_view', 'visible_role_groups'];
+    protected $appends = ['menu_target_view', 'visible_role_groups', 'name_locales'];
     protected $casts = ['options' => 'json'];
 
     /**
@@ -57,7 +58,7 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
     public static $templateItems = [
         'excepts' => [
             'import' => ['permission'],
-            'export' => ['menu_target', 'permission', 'menu_target_view', 'visible_role_groups'],
+            'export' => ['menu_target', 'permission', 'menu_target_view', 'visible_role_groups', 'name_locales'],
         ],
         'uniqueKeys' => ['menu_type', 'menu_name'],
         'langs' => [

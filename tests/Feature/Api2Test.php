@@ -198,10 +198,9 @@ class Api2Test extends ApiTestBase
                 'column_type' => 'organization',
                 "system_flg"=> "1",
                 "order"=> "0",
-                'options' => [
-                    "index_enabled"=> "1",
-                    "freeword_search"=> "1",
-                ]
+                // the options, key by key: they also hold the names of the other languages (7.3)
+                "index_enabled"=> "1",
+                "freeword_search"=> "1",
             ])
             ->assertJsonStructure([
                 'data' => [
@@ -378,13 +377,12 @@ class Api2Test extends ApiTestBase
                 'column_type' => 'yesno',
                 'system_flg'=> '0',
                 'order'=> '0',
-                'options' => [
-                    'index_enabled'=> '1',
-                    'freeword_search'=> '1',
-                    'default'=> '1',
-                    'required'=> '1',
-                    'help'=> '一覧表示したい場合、YESに設定してください。',
-                ]
+                // the options, key by key: they also hold the names of the other languages (7.3)
+                'index_enabled'=> '1',
+                'freeword_search'=> '1',
+                'default'=> '1',
+                'required'=> '1',
+                'help'=> '一覧表示したい場合、YESに設定してください。',
             ]);
     }
 
@@ -432,10 +430,9 @@ class Api2Test extends ApiTestBase
                 'column_type' => 'user',
                 'system_flg'=> '1',
                 'order'=> '0',
-                'options' => [
-                    'index_enabled'=> '1',
-                    'freeword_search' => '1',
-                ]
+                // the options, key by key: they also hold the names of the other languages (7.3)
+                'index_enabled'=> '1',
+                'freeword_search' => '1',
             ]);
     }
 

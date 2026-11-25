@@ -520,6 +520,8 @@ class CustomViewController extends AdminControllerTableBase
             });
 
         $form->text('view_view_name', exmtrans("custom_view.view_view_name"))->required()->rules("max:40");
+        // the name in the other languages (ISS02859)
+        \Exceedone\Exment\Services\NameLocales::addEmbeds($form, exmtrans("custom_view.view_view_name"));
         if (!System::userview_available() || intval($view_kind_type) == Enums\ViewKindType::FILTER) {
             $form->hidden('view_type')->default(Enums\ViewType::SYSTEM);
         } else {
