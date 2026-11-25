@@ -127,6 +127,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     // @phpstan-ignore-next-line
     protected $middleware = [
+        // the records of the logs after the response (ISS02903)
+        \Exceedone\Exment\Middleware\WriteLogsAfterResponse::class,
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
         // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
