@@ -257,7 +257,7 @@ class GanttGrid extends GridBase
         $groups = [];
         if ($group_column->column_type == ColumnType::SELECT_TABLE) {
             $target_table = $group_column->select_target_table;
-            $due_column = $this->firstDateColumn($target_table);
+            $due_column = $this->deadlineColumn($target_table);
             foreach ($used as $key) {
                 if ($key === '') {
                     continue;
@@ -502,15 +502,15 @@ class GanttGrid extends GridBase
     }
 
     /**
-     * The deadline column of a group table (a milestone table's own due date),
-     * for the deadline diamond. A name that reads as a deadline wins; a table
-     * with no such name keeps its last date column - "start, end" layouts put
-     * the deadline last.
+     * The deadline column of a target table (the diamond of a group, #2165): the first date column
+     * whose column name has a word like "due", "end", "limit" or "deadline" (between "_" or "-"),
+     * or whose view name has "期限", "締切", "納期", "due" or "deadline"; else the last date column
+     * ("start, end" layouts put the deadline last).
      *
      * @param CustomTable|null $custom_table
      * @return CustomColumn|null
      */
-    protected function firstDateColumn($custom_table)
+    protected function deadlineColumn($custom_table)
     {
         if (!isset($custom_table)) {
             return null;
@@ -520,13 +520,24 @@ class GanttGrid extends GridBase
             if (!ColumnType::isDate(array_get($custom_column, 'column_type'))) {
                 continue;
             }
-            if (preg_match('/due|end|limit|deadline|期限/i', strval($custom_column->column_name))) {
+            if (static::isDeadlineColumn($custom_column)) {
                 return $custom_column;
             }
             $last = $custom_column;
         }
 
         return $last;
+    }
+
+    /**
+     * @param CustomColumn $custom_column
+     */
+    public static function isDeadlineColumn($custom_column): bool
+    {
+        if (preg_match('/(^|[_\-])(due|end|limit|deadline)([_\-]|$)/i', strval($custom_column->column_name))) {
+            return true;
+        }
+        return preg_match('/期限|締切|締め切り|納期|due|deadline/iu', strval($custom_column->column_view_name)) === 1;
     }
 
     /**
