@@ -1093,6 +1093,24 @@ return [
     |
     */
     'column_index_enabled_count' => env('EXMENT_COLUMN_INDEX_ENABLED_COUNT', 20),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hybrid storage: automatic index budget
+    |--------------------------------------------------------------------------
+    |
+    | Total number of secondary indexes a converted (physical) table may have, counting every
+    | index the schema reports (index columns, system, manual and automatic indexes). Automatic
+    | indexes are created only while the table is below this budget and the engine limit.
+    | No default: while unset, automatic indexes are disabled (the budget is an open decision).
+    | The claim timeout (seconds) after which an unfinished index claim is considered abandoned.
+    |
+    */
+    'storage_auto_index_budget' => env('EXMENT_STORAGE_AUTO_INDEX_BUDGET', null),
+    'storage_auto_index_claim_timeout' => env('EXMENT_STORAGE_AUTO_INDEX_CLAIM_TIMEOUT', 3600),
+    // SQL Server editions without ONLINE index builds (Standard/Express...): automatic indexes are
+    // refused unless this is true - an offline build blocks the table (maintenance window only).
+    'storage_auto_index_sqlsrv_allow_offline' => env('EXMENT_STORAGE_AUTO_INDEX_SQLSRV_ALLOW_OFFLINE', false),
     
     /*
     |--------------------------------------------------------------------------

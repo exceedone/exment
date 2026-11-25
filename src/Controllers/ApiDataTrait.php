@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\CustomValue;
@@ -93,7 +94,8 @@ trait ApiDataTrait
 
         /** @phpstan-ignore-next-line */
         if ($custom_column->index_enabled) {
-            $column_name = $custom_column->getIndexColumnName();
+            // search column and pluck key (no qualifier: the same name for both)
+            $column_name = ColumnQueryKey::index($custom_column)->expression();
             $list = $this->custom_table->searchValue($query, [
                 'searchColumns' => collect([$column_name]),
             /** @phpstan-ignore-next-line */

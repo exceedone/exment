@@ -23,6 +23,7 @@ use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Model\RoleGroupPermission;
+use Exceedone\Exment\Model\ValueBulkWriter;
 use Exceedone\Exment\Enums;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ColumnType;
@@ -400,7 +401,7 @@ class PatchDataCommand extends Command
                         $v = array_get($commaValue, "value.{$column->column_name}");
                         $v = rmcomma($v);
 
-                        \DB::table($dbTableName)->where('id', $commaValue->id)->update(["value->{$column->column_name}" => $v]);
+                        ValueBulkWriter::setKey($dbTableName, $commaValue->id, $column->column_name, $v);
                     }
                 });
         }

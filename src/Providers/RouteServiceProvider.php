@@ -456,6 +456,14 @@ class RouteServiceProvider extends ServiceProvider
             // Relevance dictionary (synonyms / stop words).
             $this->setResouce($router, 'meili-dictionary', 'MeiliDictionaryController');
 
+            // hybrid storage management (System Administrator; actions refused while conversion is unavailable)
+            $router->get('storage_conversion', 'StorageConversionController@index');
+            $router->get('storage_conversion/{id}', 'StorageConversionController@show')->where('id', '[0-9]+');
+            foreach (['provision', 'dualwrite', 'backfill', 'verify', 'awaitConfirmation' => 'await_confirmation', 'cutover', 'cancel', 'rollback', 'cleanup', 'deprovision', 'autoIndex' => 'auto_index'] as $action => $path) {
+                $action = is_int($action) ? $path : $action;
+                $router->post("storage_conversion/{id}/$path", "StorageConversionController@$action")->where('id', '[0-9]+');
+            }
+
             $router->get('backup', 'BackupController@index');
             $router->delete('backup/delete', 'BackupController@delete');
             $router->post('backup/restore', 'BackupController@restore');

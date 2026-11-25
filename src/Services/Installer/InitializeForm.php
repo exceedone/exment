@@ -10,6 +10,8 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
 use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
+use Exceedone\Exment\Model\ValueWriter;
+use Exceedone\Exment\Services\EnvService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -80,11 +82,11 @@ class InitializeForm
                 ]);
             }
             $user = $userTable->getValueModel();
-            $user->value = [
+            ValueWriter::replace($user, [
                 'user_code' => $request->get('user_code'),
                 'user_name' => $request->get('user_name'),
                 'email' => $request->get('email'),
-            ];
+            ]);
             $user->saveOrFail();
             // add login_user table
             $loginuser = new LoginUser();

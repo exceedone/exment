@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\ConditionItems;
 
 use Exceedone\Exment\Model;
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\CustomTable;
@@ -225,19 +226,31 @@ class ColumnItem extends ConditionItemBase implements ConditionItemInterface
         foreach ($custom_columns as $custom_column) {
             // @phpstan-ignore-next-line
             $query->orWhere(function ($query) use ($custom_column, $tableName, $ids) {
-                $indexName = $custom_column->getIndexColumnName();
+                // the index column, unconditionally (only index_enabled columns get here)
+                $indexName = ColumnQueryKey::index($custom_column, $tableName)->expression();
 
                 $query->where('authority_related_id', $custom_column->id)
                     ->where('authority_related_type', ConditionTypeDetail::COLUMN()->lowerkey());
 
                 if ($custom_column->column_type == ColumnType::USER) {
                     if ($custom_column->isMultipleEnabled()) {
-                        $query->whereInArrayString($tableName . '.' . $indexName, \Exment::getUserId());
+                        $query->whereInArrayString($indexName, \Exment::getUserId());
                     } else {
-                        $query->where($tableName . '.' . $indexName, \Exment::getUserId());
+                        $query->where($indexName, \Exment::getUserId());
+                    }
+                } elseif ($custom_column->isMultipleEnabled()) {
+                    // A multi-value organization column stores the id list as JSON text
+                    // (["1","3"]) - the same representation as a multi-value user column - so
+                    // it is matched element by element: an exact id, never a substring (1 vs 11),
+                    // and never a comparison of the whole list text with an id (which made SQL
+                    // Server convert the text to int). A login in no organization matches nothing.
+                    if (empty($ids)) {
+                        $query->whereRaw('0 = 1');
+                    } else {
+                        $query->whereInArrayString($indexName, array_map('strval', $ids));
                     }
                 } else {
-                    $query->whereIn($tableName . '.' . $indexName, $ids);
+                    $query->whereIn($indexName, $ids);
                 }
             });
         }

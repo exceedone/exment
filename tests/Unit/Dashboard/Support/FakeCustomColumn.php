@@ -39,6 +39,12 @@ class FakeCustomColumn
         return 'column_' . $this->column_name;
     }
 
+    /** Same selection as CustomColumn::getQueryKeyWithoutAlter() (index column, or the JSON path). */
+    public function getQueryKeyWithoutAlter(): string
+    {
+        return $this->index_enabled ? $this->getIndexColumnName(false) : 'value->' . $this->column_name;
+    }
+
     public function getOption(string $key, mixed $default = null): mixed
     {
         return $this->options[$key] ?? $default;

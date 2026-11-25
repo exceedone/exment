@@ -1147,7 +1147,12 @@ class WorkflowAction extends ModelBase
                         ->where('status_name', $statusFromName)
                         ->first();
                     if ($workflowStatus) {
-                        $json['status_from'] = $workflowStatus->id;
+                        // status_from is a string column that holds either a status id or the
+                        // start keyword. The template importer looks the action up by this value,
+                        // so it is passed as the string the column stores: an integer parameter
+                        // made SQL Server convert every stored value ('start' included) to int
+                        // (Conversion failed). MySQL / MariaDB compared them as strings already.
+                        $json['status_from'] = strval($workflowStatus->id);
                     }
                 }
             }

@@ -13,6 +13,16 @@ abstract class ExistsBase extends ViewFilterBase
      */
     protected static $isConditionPassAsArray = true;
 
+    /**
+     * A multi-value column is matched element by element.
+     *
+     * @return bool
+     */
+    protected function isContainsMatch(): bool
+    {
+        return (bool)$this->column_item->isMultipleEnabled();
+    }
+
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
         $isMultiple = $this->column_item->isMultipleEnabled();

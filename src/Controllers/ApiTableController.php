@@ -214,7 +214,7 @@ class ApiTableController extends AdminControllerTableBase
         // expects from a master list; creating a second "画面・UI" would quietly
         // split every report that groups by it.
         $existing = $this->custom_table->getValueModel()->newQuery()
-            ->where($column->getQueryKey(), $label)
+            ->where($column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_LOOKUP), $label)
             ->first();
 
         if (isset($existing)) {

@@ -5,6 +5,8 @@ namespace Exceedone\Exment\Console;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Schema;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\BulkLoad\BulkLoadContext;
+use Exceedone\Exment\Services\BulkLoad\BulkLoadPreflight;
 use File;
 
 class BulkInsertCommand extends Command
@@ -76,6 +78,9 @@ class BulkInsertCommand extends Command
                 // convert all csv files in target folder
                 $path = $this->convertFile($file);
 
+                // ask before this file's table is written (the files before it are loaded already)
+                $this->preflight($file, $path);
+
                 // import tsv file to database table
                 $this->importTsv($path);
             }
@@ -88,6 +93,24 @@ class BulkInsertCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * BulkLoadPreflight for one file: its custom table (from the csv name) and the database
+     * table LOAD DATA writes (from the tsv name, as importTsv() reads it). Throws to refuse.
+     *
+     * @param \SplFileInfo $file
+     * @param string $path tsv path
+     */
+    private function preflight($file, $path): void
+    {
+        $tsv = new \SplFileInfo($path);
+        app(BulkLoadPreflight::class)->check(BulkLoadContext::bulkInsert(
+            explode('.', $file->getFilename())[0],
+            explode('.', $tsv->getFileName())[0],
+            $file->getPathname(),
+            $tsv->getPathname()
+        ));
     }
 
     /**
@@ -249,6 +272,11 @@ class BulkInsertCommand extends Command
     // @phpstan-ignore-next-line
     private function importTsv($file)
     {
+        // LOAD DATA LOCAL INFILE is a MySQL / MariaDB statement: refuse before sending it to another engine
+        // (the preflight has been asked already; nothing is written)
+        if (\Exment::isSqlServer()) {
+            throw new \Exception('exment:bulkinsert uses LOAD DATA and is not supported on SQL Server');
+        }
         $file = new \SplFileInfo($file);
         // load table data from tsv file
         $targets = explode('.', $file->getFileName());

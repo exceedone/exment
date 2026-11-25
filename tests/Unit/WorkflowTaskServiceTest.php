@@ -40,6 +40,15 @@ class WorkflowTaskServiceTest extends UnitTestBase
     use DatabaseTransactions;
 
     /**
+     * A custom_table_id no real table has, for task keys of nothing: the largest value the id column stores -
+     * INT UNSIGNED (4294967295) on MySQL / MariaDB, signed INT (2147483647) on SQL Server, which has no unsigned types.
+     */
+    protected static function sentinelTableId(): int
+    {
+        return \Exceedone\Exment\Services\Storage\PhysicalSchemaManager::driverFamily() === 'sqlsrv' ? 2147483647 : 4294967295;
+    }
+
+    /**
      * @param string $loginId the test user to log in as (user1 unless a test needs another one)
      * @return void
      */
@@ -211,7 +220,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // keys nobody may store: a table that does not exist, a record that does not exist,
         // and strings that are not keys at all
         $junk = [
-            WorkflowTaskService::taskKey(4294967295, 1),
+            WorkflowTaskService::taskKey(static::sentinelTableId(), 1),
             WorkflowTaskService::taskKey(1, 99999999),
             'not-a-key',
             '',
@@ -323,7 +332,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         $flood = [];
         for ($i = 1; $i <= WorkflowTaskController::MAX_CHECK_KEYS * 3; $i++) {
-            $flood[] = WorkflowTaskService::taskKey(4294967295, $i);
+            $flood[] = WorkflowTaskService::taskKey(static::sentinelTableId(), $i);
         }
 
         $userId = \Exment::getUserId();
@@ -668,7 +677,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
     }
 
     /**
-     * notify_navbars.notify_id is INT UNSIGNED NOT NULL.
+     * notify_navbars.notify_id is INT UNSIGNED NOT NULL. (On SQL Server there is no unsigned type: skipped there.)
      *
      * SameOrganizationWorkflowNotify writes a synthetic notification that has no parent
      * Notify record. Whatever placeholder it uses must be storable: a negative value is
@@ -679,6 +688,9 @@ class WorkflowTaskServiceTest extends UnitTestBase
      */
     public function testSyntheticNotifyIdIsStorable()
     {
+        if (\Exceedone\Exment\Services\Storage\PhysicalSchemaManager::driverFamily() === 'sqlsrv') {
+            $this->markTestSkipped('SQL Server has no unsigned integer type (notify_id is a signed int): the unsigned-column check is MySQL / MariaDB specific');
+        }
         // deliberately does NOT call init(): this check only needs the schema,
         // so it still runs on a database without the Exment test dataset.
         $column = \DB::selectOne(
@@ -757,7 +769,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // far more than one statement may carry: 700 marks, 400 colleagues
         $keys = [];
         for ($i = 1; $i <= 700; $i++) {
-            $keys[] = WorkflowTaskService::taskKey(4294967295, $i);
+            $keys[] = WorkflowTaskService::taskKey(static::sentinelTableId(), $i);
         }
         $userIds = range(900001, 900400);
 
@@ -781,7 +793,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         }
 
         // and the chunking lost nothing
-        $this->assertSame(700, WorkflowTaskRead::where('custom_table_id', 4294967295)->count());
+        $this->assertSame(700, WorkflowTaskRead::where('custom_table_id', static::sentinelTableId())->count());
         $this->assertSame(400, NotifyNavbar::withoutGlobalScopes()
             ->where('parent_type', $custom_value->custom_table->table_name)
             ->where('parent_id', $custom_value->id)
@@ -2927,7 +2939,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             'a number'        => 5,
             'an empty string' => '',
             'nothing at all'  => null,
-            'only junk'       => implode(',', [WorkflowTaskService::taskKey(4294967295, 1), WorkflowTaskService::taskKey(1, 99999999), 'not-a-key']),
+            'only junk'       => implode(',', [WorkflowTaskService::taskKey(static::sentinelTableId(), 1), WorkflowTaskService::taskKey(1, 99999999), 'not-a-key']),
         ];
 
         foreach ($malformed as $label => $keys) {
@@ -2947,7 +2959,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         // a real key mixed in with the junk still goes through
         $real = $tasks->first();
         $response = $controller->rowDelete(Request::create('/workflow_task/rowDelete', 'POST', [
-            'keys' => WorkflowTaskService::taskKey(4294967295, 1) . ',' . $real['task_key'] . ',not-a-key',
+            'keys' => WorkflowTaskService::taskKey(static::sentinelTableId(), 1) . ',' . $real['task_key'] . ',not-a-key',
         ]));
 
         $this->assertSame(200, $response->getStatusCode());
@@ -3463,7 +3475,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
 
         // nothing to put back a second time, nor what was never taken off, nor a key of nothing
         $this->assertSame(0, (new WorkflowTaskService())->restoreSelected([$key, $other]));
-        $this->assertSame(0, (new WorkflowTaskService())->restoreSelected(['not a key', WorkflowTaskService::taskKey(4294967295, 1)]));
+        $this->assertSame(0, (new WorkflowTaskService())->restoreSelected(['not a key', WorkflowTaskService::taskKey(static::sentinelTableId(), 1)]));
         $this->assertSame(0, (new WorkflowTaskService())->restoreSelected([]));
     }
 
@@ -3830,6 +3842,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
             ['text' => 'workflow task test: empty strings', 'odd_even' => '', 'email' => '', 'user' => ''],
         ] as $value) {
             \DB::table(getDBTableName($custom_table))->insert([
+                'suuid' => short_uuid(),
                 'value' => json_encode($value),
                 'created_user_id' => $userId,
                 'updated_user_id' => $userId,
@@ -4631,7 +4644,7 @@ class WorkflowTaskServiceTest extends UnitTestBase
         $this->assertNotNull($key);
         $this->assertSame($key, WorkflowTaskService::navbarCacheKey(), 'reading must not move the key');
 
-        (new WorkflowTaskService())->markSeen([WorkflowTaskService::taskKey(4294967295, 1)]);
+        (new WorkflowTaskService())->markSeen([WorkflowTaskService::taskKey(static::sentinelTableId(), 1)]);
         $afterMark = WorkflowTaskService::navbarCacheKey();
         $this->assertNotSame($key, $afterMark, 'marking as seen must move the key');
 

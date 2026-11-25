@@ -2,12 +2,15 @@
 
 namespace Exceedone\Exment\ColumnItems\CustomColumns;
 
+use Exceedone\Exment\Model\ColumnQueryKey;
+
 trait SelectTrait
 {
     // @phpstan-ignore-next-line
     public function getSelectFilterQuery($query, $input)
     {
-        return $query->whereInArrayString($this->index(), $input);
+        // the index column as a query expression; index() stays the display / field-name helper
+        return $query->whereInArrayString(ColumnQueryKey::index($this->custom_column)->expression(), $input);
     }
 
     // @phpstan-ignore-next-line

@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use ExmentAdminCore\Admin\Form\Field\Select;
 use ExmentAdminCore\Admin\Form\Field\MultipleSelect;
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Enums\FilterType;
@@ -226,7 +227,7 @@ class ParentItem implements ItemInterface
         } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
         } else {
             // get target value
-            $target_value = $this->custom_table->getValueModel()->where("value->$target_column_name", $value)->first();
+            $target_value = $this->custom_table->getValueModel()->where(ColumnQueryKey::json($target_column_name, $this->custom_table)->expression(), $value)->first();
 
             if (!isset($target_value)) {
                 $result = false;

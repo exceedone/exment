@@ -210,7 +210,8 @@ final class FilterValue
      */
     public static function columnExpr($column): string
     {
-        $name = $column->index_enabled ? $column->getIndexColumnName(false) : 'value->' . $column->column_name;
+        // the column's own query key, never creating the index column (no DDL)
+        $name = $column->getQueryKeyWithoutAlter();
         $expr = \DB::getQueryGrammar()->wrap(self::qualified($column, $name));
         if (!$column->index_enabled && self::isMultiple($column) && \Exment::isSqlServer()) {
             // json_value() reads an array as NULL: the array itself is json_query(), as the
@@ -296,7 +297,8 @@ final class FilterValue
             return;
         }
         if ($column->index_enabled && isset($spec['in'])) {
-            $name = self::qualified($column, $column->getIndexColumnName(false));
+            // within the index_enabled gate: the index column, no DDL (resolver as columnExpr)
+            $name = self::qualified($column, $column->getQueryKeyWithoutAlter());
             if (count($spec['in']) === 1) {
                 $query->where($name, $spec['in'][0]);
             } else {

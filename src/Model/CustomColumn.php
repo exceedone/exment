@@ -427,6 +427,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
             if ($model->isDirty('column_name') && !preg_match('/\A[a-zA-Z0-9_-]+\z/', (string)$model->column_name)) {
                 throw new \InvalidArgumentException('Invalid column name: ' . json_encode((string)$model->column_name));
             }
+            // hybrid storage: no column definition change while the table is not plain JSON
+            \Exceedone\Exment\Services\Storage\StorageGuard::assertColumnChangeAllowed($model, $model->exists ? 'update' : 'create');
+
             $model->filterGridStyleOptions();
             $model->prepareJson('options');
         });
@@ -438,6 +441,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // delete event
         static::deleting(function ($model) {
+            // hybrid storage: before anything is deleted or altered
+            \Exceedone\Exment\Services\Storage\StorageGuard::assertColumnChangeAllowed($model, 'delete');
+
             // Delete items
             $model->deletingChildren();
 
@@ -447,8 +453,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
         // deleted event
         static::deleted(function ($model) {
-            $model->custom_table_cache->getValueQuery()->
-                updateRemovingJsonKey("value->{$model->column_name}");
+            // every row of the table (the value query's scopes are not applied) - ValueBulkWriter (C1)
+            ValueBulkWriter::removeKey($model->custom_table_cache->getValueQuery(), $model->column_name);
         });
     }
 
@@ -600,24 +606,141 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function getIndexColumnName($alterColumn = true)
     {
-        $name = 'column_'.array_get($this, 'suuid');
+        $name = $this->getPureIndexColumnName();
         $db_table_name = getDBTableName($this->custom_table_cache);
 
         // if not exists, execute alter column
-        if ($alterColumn && !hasColumn($db_table_name, $name)) {
-            $this->alterColumn();
+        if ($alterColumn) {
+            $this->alterIndexColumnIfNotExists($db_table_name, $name);
         }
         return $name;
     }
 
     /**
+     * Name of the index column ("column_<suuid>"). Only builds the name: no table lookup, no DDL.
+     *
+     * @return string
+     */
+    protected function getPureIndexColumnName(): string
+    {
+        return 'column_'.array_get($this, 'suuid');
+    }
+
+    /**
+     * Create the index column (alterColumn, DDL) when the database table does not have it yet.
+     *
+     * @param string $db_table_name
+     * @param string $name index column name
+     * @return void
+     */
+    protected function alterIndexColumnIfNotExists(string $db_table_name, string $name): void
+    {
+        // hybrid storage: no read-time DDL on a table in conversion or reading physical
+        if (!\Exceedone\Exment\Services\Storage\PhysicalQueryRouting::allowsReadTimeDdl($this->custom_table_cache)) {
+            return;
+        }
+        if (!hasColumn($db_table_name, $name)) {
+            $this->alterColumn();
+        }
+    }
+
+    /**
      * Get where query. index name or value->XXXX
+     * If the column is indexed and its index column does not exist yet, the index column is created (DDL).
      *
      * @return string database query key.
      */
     public function getQueryKey()
     {
-        return $this->index_enabled ? $this->getIndexColumnName() : 'value->' . $this->column_name;
+        return $this->index_enabled ? $this->getIndexColumnName() : $this->getJsonQueryKey();
+    }
+
+    /**
+     * Query-key purposes for getQueryKeyFor().
+     * Today (JSON storage) every purpose resolves to getQueryKey(); they are kept apart because
+     * a physical-storage table will not resolve all of them the same way (e.g. the empty check).
+     * The index column name (CustomItem::index(), getIndexColumnName()) is not a purpose:
+     * it is returned whether or not the column is indexed.
+     */
+    /** CustomItem::sqlname(): select, where, group by, summary, join; KanbanGrid::columnKey() default; SelectTable label LIKE search; WorkflowTaskService keyword LIKE. */
+    public const QUERY_PURPOSE_GENERAL = 'general';
+    /** CustomItem::getSortName(): grid sort name; SearchService::orderBy() on a column of the searched table. */
+    public const QUERY_PURPOSE_SORT = 'sort';
+    /** Source column of ItemTrait::getCastColumn(): cast sort, number filters, summary; KanbanGrid::sqlNumeric() sums; CustomValue::getSum(). */
+    public const QUERY_PURPOSE_CAST = 'cast';
+    /** "Empty" / "not empty" view filters (NullBase, NotNullBase). */
+    public const QUERY_PURPOSE_NULL_CHECK = 'null_check';
+    /** Find one record by an equality on this column (CustomTable::findValue, SelectTable import, quick add). */
+    public const QUERY_PURPOSE_LOOKUP = 'lookup';
+    /**
+     * Membership of a value in the stored text of this column, single value or list, matched
+     * element by element by whereInArrayString() (KanbanGrid::lookupMyKeys(); "contains" /
+     * "user is in" view filters on a multi-value column via CustomItem::getContainsTableColumn()).
+     */
+    public const QUERY_PURPOSE_CONTAINS = 'contains';
+    /**
+     * Uniqueness count over the stored values of a unique column or column set, whole table
+     * without scope (CustomTable::validatorUniques()).
+     */
+    public const QUERY_PURPOSE_UNIQUE = 'unique';
+
+    /**
+     * Query key of this column for the given purpose (QUERY_PURPOSE_*).
+     * Same key, and same auto-DDL, as getQueryKey() for every purpose.
+     *
+     * @param string $purpose
+     * @return string database query key.
+     */
+    public function getQueryKeyFor(string $purpose): string
+    {
+        switch ($purpose) {
+            case self::QUERY_PURPOSE_GENERAL:
+            case self::QUERY_PURPOSE_SORT:
+            case self::QUERY_PURPOSE_CAST:
+            case self::QUERY_PURPOSE_NULL_CHECK:
+            case self::QUERY_PURPOSE_LOOKUP:
+            case self::QUERY_PURPOSE_CONTAINS:
+            case self::QUERY_PURPOSE_UNIQUE:
+                // hybrid storage: the typed column on a table reading physical, for the purposes
+                // whose typed semantics are decided; otherwise the existing key (JSON shadow)
+                return \Exceedone\Exment\Services\Storage\PhysicalQueryRouting::keyFor($this, $purpose) ?? $this->getQueryKey();
+        }
+        throw new \InvalidArgumentException("Unknown query key purpose: $purpose");
+    }
+
+    /**
+     * Same key as getQueryKey(), but never runs DDL:
+     * an indexed column returns its index column name even if that column was not created yet.
+     *
+     * @return string database query key.
+     */
+    public function getQueryKeyWithoutAlter(): string
+    {
+        return $this->index_enabled ? $this->getIndexColumnName(false) : $this->getJsonQueryKey();
+    }
+
+    /**
+     * Query key of the column inside the JSON "value" field ("value-><column_name>").
+     *
+     * @return string
+     */
+    protected function getJsonQueryKey(): string
+    {
+        return static::jsonValuePath($this->column_name);
+    }
+
+    /**
+     * Explicit JSON path of a key inside the "value" field ("value-><key>"), for lookups that
+     * read the JSON value whatever the column's index setting is.
+     * Builds the string only: no column lookup, no index column, no DDL.
+     *
+     * @param string|int $key column name or a key given by a setting; not type-checked, so a key
+     *     from a setting is concatenated exactly as before
+     * @return string
+     */
+    public static function jsonValuePath($key): string
+    {
+        return 'value->' . $key;
     }
 
     /**

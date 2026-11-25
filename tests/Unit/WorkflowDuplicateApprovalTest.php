@@ -64,7 +64,7 @@ class WorkflowDuplicateApprovalTest extends UnitTestBase
     protected function recordAnExecution(WorkflowAction $action, $custom_value, $base_user_id)
     {
         \DB::table('workflow_values')->insert([
-            'suuid' => make_uuid(),
+            'suuid' => short_uuid(), // workflow_values.suuid is 20 characters (a longer value is truncated silently on a non-strict MySQL)
             'workflow_id' => $action->workflow_id,
             'morph_type' => $custom_value->custom_table->table_name,
             'morph_id' => $custom_value->id,

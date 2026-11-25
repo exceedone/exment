@@ -6,6 +6,8 @@ use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 abstract class NotNullBase extends ViewFilterBase
 {
+    protected static $isNullCheck = true;
+
     protected function _setFilter($query, $method_name, $query_column, $query_value)
     {
         if ($this->column_item->isMultipleEnabled()) {

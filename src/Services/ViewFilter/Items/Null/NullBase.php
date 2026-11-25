@@ -6,6 +6,8 @@ use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
 
 abstract class NullBase extends ViewFilterBase
 {
+    protected static $isNullCheck = true;
+
     /**
      * For condition value, if value is null or empty array, whether ignore the value.
      *

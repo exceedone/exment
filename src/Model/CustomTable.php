@@ -76,12 +76,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\ColumnOptionQueryTrait;
 
     protected $casts = ['options' => 'json'];
-    protected $guarded = ['id', 'suuid', 'system_flg'];
+    // storage_*: hybrid storage metadata, changed only by Services\Storage\TableStorage
+    // (compare-and-set), never by the table form, copy or template import (=> 'json' default)
+    protected $guarded = ['id', 'suuid', 'system_flg', 'storage_mode', 'storage_state', 'storage_generation'];
 
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['suuid'],
+        // storage_*: per-installation storage metadata; neither exported nor imported (the import
+        // assigns attributes directly, bypassing $guarded) - an imported table is JSON
+        'excepts' => ['suuid', 'storage_mode', 'storage_state', 'storage_generation'],
         'uniqueKeys' => ['table_name'],
         'langs' => [
             'keys' => ['table_name'],
@@ -1081,7 +1085,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                             $value = json_encode(array_filter($value));
                         }
     
-                        $query->where($column->getQueryKey(), $value);
+                        $query->where($column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_UNIQUE), $value);
     
                         $column_keys[] = $column;
                     }
@@ -2061,10 +2065,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if (preg_match("/value\.([a-zA-Z0-9_-]+)/i", $keyName, $matches)) {
                 // get custom_column
                 $custom_column = CustomColumn::getEloquent($matches[1], $this);
+                // index column when index_enabled, else the JSON path of the key; index_enabled is
+                // read first, so an unknown column still fails as before
                 if ($custom_column->index_enabled) {
-                    $databaseKeyName = $this->getIndexColumnName($matches[1]);
+                    $databaseKeyName = ColumnQueryKey::index($custom_column)->expression();
                 } else {
-                    $databaseKeyName = "value->{$matches[1]}";
+                    $databaseKeyName = ColumnQueryKey::json($matches[1], $this)->expression();
                 }
             } else {
                 $databaseKeyName = $keyName;
@@ -3282,7 +3288,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         /** @var CustomValue|null $result */
-        $result = $this->getValueQuery()->where($column->getQueryKey(), $value)->first();
+        $result = $this->getValueQuery()->where($column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_LOOKUP), $value)->first();
         return $result;
     }
 
@@ -3850,7 +3856,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function copyTable($inputs = null, bool $include_view = false, bool $include_form = false)
     {
         \ExmentDB::transaction(function ($connect) use ($inputs, $include_view, $include_form) {
-            $new_table = $this->replicate(['suuid'])->setRelations([]);
+            // a copy starts as a JSON table: the storage metadata is not copied (O-2: default json)
+            $new_table = $this->replicate(['suuid', 'storage_mode', 'storage_state', 'storage_generation'])->setRelations([]);
             foreach($inputs as $key => $input) {
                 $new_table->{$key} = $input;
             }
@@ -4113,7 +4120,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 $item->custom_table->table_name == SystemTableName::MAIL_SEND_LOG) {
                 continue;
             }
-            if ($model::whereIn('value->'.$column_name, $list)->exists()) {
+            // $item is the referencing CustomColumn; its table is only resolved on demand
+            $key = $item instanceof CustomColumn ? ColumnQueryKey::json($item) : ColumnQueryKey::json($column_name);
+            if ($model::whereIn($key->expression(), $list)->exists()) {
                 return true;
             }
         }

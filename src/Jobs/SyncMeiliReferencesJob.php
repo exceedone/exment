@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Jobs;
 
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\Define;
@@ -152,17 +153,16 @@ class SyncMeiliReferencesJob implements ShouldQueue
 
         return getModelName($table)::query()
             ->withoutGlobalScope(CustomValueModelScope::class)
-            ->where(function ($query) use ($linkColumns, $dbTable, $valueId) {
+            ->where(function ($query) use ($linkColumns, $dbTable, $valueId, $table) {
                 foreach ($linkColumns as $column) {
-                    $jsonKey = 'value->' . $column->column_name;
                     if (boolval($column->getOption('multiple_enabled'))) {
+                        $jsonKey = ColumnQueryKey::json($column, $table)->expression();
                         $query->orWhereJsonContains($jsonKey, (string) $valueId)
                             ->orWhereJsonContains($jsonKey, (int) $valueId);
                         continue;
                     }
                     // Indexed columns have a generated column; never create one here.
-                    $indexName = $column->getIndexColumnName(false);
-                    $key = $column->index_enabled && hasColumn($dbTable, $indexName) ? $indexName : $jsonKey;
+                    $key = ColumnQueryKey::indexIfPresent($column, $dbTable)->expression();
                     $query->orWhere($key, (string) $valueId);
                 }
             });

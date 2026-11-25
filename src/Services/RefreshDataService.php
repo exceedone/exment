@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\File as ExmentFile;
+use Exceedone\Exment\Model\ValueBulkWriter;
 
 /**
  * Refresh Data Service. truncate exm__ table data etc.
@@ -156,9 +157,11 @@ class RefreshDataService
                         return true;
                     }
 
-                    $custom_table->getValueQuery()->withTrashed()
-                        ->whereNotNull('value->' . $custom_column->column_name)
-                        ->updateRemovingJsonKey('value->' . $custom_column->column_name);
+                    ValueBulkWriter::removeKey(
+                        $custom_table->getValueQuery()->withTrashed()
+                            ->whereNotNull('value->' . $custom_column->column_name),
+                        $custom_column->column_name
+                    );
                     //->update(['value->' . $custom_column->column_name => '']);
                 });
             }

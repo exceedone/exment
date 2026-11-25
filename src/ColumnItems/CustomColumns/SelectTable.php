@@ -5,6 +5,7 @@ namespace Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Validator;
 use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\Linkage;
 use Exceedone\Exment\Model\CustomView;
@@ -551,7 +552,7 @@ class SelectTable extends CustomItem
                 // get target value
                 $target_custom_column = CustomColumn::getEloquent($target_column_name, $this->target_table);
                 if (isset($target_custom_column)) {
-                    $target_value = $this->target_table->getValueModel()->where($target_custom_column->getQueryKey(), $v)->select(['id'])->first();
+                    $target_value = $this->target_table->getValueModel()->where($target_custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_LOOKUP), $v)->select(['id'])->first();
                 }
 
                 if (!isset($target_value)) {
@@ -604,7 +605,10 @@ class SelectTable extends CustomItem
             $target_custom_column = CustomColumn::getEloquent($key, $this->target_table);
             $values = [];
             if ($target_custom_column) {
-                $indexName = $target_custom_column->index_enabled ? $target_custom_column->getIndexColumnName() : "value->$key";
+                // index column when index_enabled, else the JSON path of the given key
+                $indexName = ($target_custom_column->index_enabled
+                    ? ColumnQueryKey::index($target_custom_column)
+                    : ColumnQueryKey::json($key, $this->target_table))->expression();
                 $values = $this->target_table->getValueModel()->whereIn($indexName, $keyValueList)->select(['value', 'id'])
                     ->get()->mapWithKeys(function ($v) use ($key) {
                         return [array_get($v, "value.$key") => $v->id];
@@ -739,7 +743,7 @@ class SelectTable extends CustomItem
             $searchValue = $searchValue . '%';
         }
 
-        $name = $custom_column->getQueryKey();
+        $name = $custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL);
         $query->where($name, 'LIKE', $searchValue);
 
         return true;

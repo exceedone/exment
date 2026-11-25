@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\ViewFilter;
 
+use Exceedone\Exment\ColumnItems\CustomItem;
 use Exceedone\Exment\ColumnItems\ItemInterface;
 use Exceedone\Exment\Model\Condition;
 use Exceedone\Exment\Model\CustomColumn;
@@ -106,6 +107,13 @@ abstract class ViewFilterBase
     protected static $isAppendDatabaseTable = true;
 
     /**
+     * Whether this filter checks for an empty value ("is empty" / "is not empty").
+     *
+     * @var boolean
+     */
+    protected static $isNullCheck = false;
+
+    /**
      * Whether this query sets as or
      *
      * @var boolean
@@ -139,7 +147,7 @@ abstract class ViewFilterBase
      */
     public function setFilter($query, $query_value)
     {
-        $column = static::$isAppendDatabaseTable ? $this->column_item->getTableColumn() : $this->column_item->sqlname();
+        $column = $this->getQueryColumn();
 
         $method_name = $this->getQueryWhereName();
 
@@ -148,6 +156,35 @@ abstract class ViewFilterBase
         $this->_setFilter($query, $method_name, $column, $query_value);
     }
 
+
+    /**
+     * Column passed to _setFilter().
+     * Empty-value filters (static::$isNullCheck) on a custom column resolve the key through
+     * CustomColumn::QUERY_PURPOSE_NULL_CHECK; today it is the same string as getTableColumn().
+     *
+     * @return string
+     */
+    protected function getQueryColumn()
+    {
+        if (static::$isNullCheck && static::$isAppendDatabaseTable && $this->column_item instanceof CustomItem) {
+            return $this->column_item->getNullCheckTableColumn();
+        }
+        if ($this->isContainsMatch() && static::$isAppendDatabaseTable && $this->column_item instanceof CustomItem) {
+            return $this->column_item->getContainsTableColumn();
+        }
+        return static::$isAppendDatabaseTable ? $this->column_item->getTableColumn() : $this->column_item->sqlname();
+    }
+
+    /**
+     * Whether _setFilter() matches the column element by element (whereInArrayString), so the key
+     * is resolved through CustomColumn::QUERY_PURPOSE_CONTAINS.
+     *
+     * @return bool
+     */
+    protected function isContainsMatch(): bool
+    {
+        return false;
+    }
 
     protected function getQueryWhereName(): string
     {

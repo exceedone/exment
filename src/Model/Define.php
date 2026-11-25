@@ -408,6 +408,11 @@ class Define
             'uri' => 'backup',
             'icon' => 'fa-database',
         ],
+        // hybrid storage management (System Administrator; actions refused while conversion is unavailable)
+        'storage_conversion' => [
+            'uri' => 'storage_conversion',
+            'icon' => 'fa-exchange',
+        ],
         'plugin' => [
             'uri' => 'plugin',
             'icon' => 'fa-plug',

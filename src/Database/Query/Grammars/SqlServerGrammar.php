@@ -11,6 +11,28 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 {
     use GrammarTrait;
 
+    /**
+     * Update statement removing a JSON key ("column->path->key"): the SQL Server form of MySQL's json_remove.
+     * JSON_MODIFY in its default (lax) mode REMOVES the property when the new value is NULL
+     * (learn.microsoft.com, JSON_MODIFY); a missing property is left as it is. Where clauses are compiled as
+     * the MySQL grammar does (the caller passes where clauses without bindings, e.g. whereNotNull).
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     */
+    // @phpstan-ignore-next-line
+    public function compileUpdateRemovingJsonKey($query, string $key): string
+    {
+        if (!empty($query->joins)) {
+            throw new \LogicException('removing a JSON key through a join is not supported on SQL Server');
+        }
+        $table = $this->wrapTable($query->from);
+        $path = explode('->', $key);
+        $field = $this->wrapValue(array_shift($path));
+        $accessor = "'$.\"" . implode('"."', $path) . "\"'";
+        $wheres = $this->compileWheres($query);
+
+        return trim("update {$table} set {$field} = JSON_MODIFY({$field}, {$accessor}, NULL) $wheres");
+    }
 
     /**
      * Whether support wherein multiple column.

@@ -114,6 +114,162 @@ abstract class CustomValue extends ModelBase
     // protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
 
+    /**
+     * Hidden attributes, plus the hybrid-storage staging columns (pcol_<suuid>) the row has:
+     * they are internal and never part of the public value / API output (02 §15.2).
+     * Matched by name pattern on the loaded attributes only - no metadata lookup; a JSON table
+     * has no such attribute, so its hidden list is unchanged.
+     *
+     * @return array<int, string>
+     */
+    public function getHidden()
+    {
+        $hidden = parent::getHidden();
+        foreach (array_keys($this->attributes) as $name) {
+            if (is_string($name) && \Exceedone\Exment\Services\Storage\PhysicalNaming::isInternalAttribute($name)) {
+                $hidden[] = $name;
+            }
+        }
+        return $hidden;
+    }
+
+    /**
+     * Hybrid storage: the dual-write context of the save in progress (null: JSON-only save).
+     *
+     * @var \Exceedone\Exment\Services\Storage\DualWriteContext|null
+     */
+    protected $storageWriteContext;
+
+    /**
+     * Save through the storage write protocol (Services\Storage\StorageWriteGate).
+     *
+     * Before the storage migration: exactly as before. After it, every save runs in a
+     * transaction that reads the table's storage row under a shared lock first (participation:
+     * a state transition waits for it):
+     *  - JSON-only states (json, provisioned): the save as before, JSON only;
+     *  - projecting states (dual-write states and physical_read): the statement's own
+     *    INSERT/UPDATE carries the complete JSON value (the shadow in physical_read), the typed
+     *    columns and value_original, projected from the JSON it writes (getAttributesForInsert /
+     *    getDirtyForUpdate) - including disable_saving_event, restore_revision and saveQuietly
+     *    saves, whose own normalization (none) and lack of events are unchanged;
+     *  - cleaning / cleaned / failed: the write is refused.
+     *
+     * @param array<string, mixed> $options
+     * @return bool
+     */
+    public function save(array $options = [])
+    {
+        $table = $this->custom_table;
+        if (!($table instanceof CustomTable) || !\Exceedone\Exment\Services\Storage\TableStorage::installed()) {
+            return parent::save($options);
+        }
+
+        return $this->getConnection()->transaction(function () use ($options, $table) {
+            $storage = \Exceedone\Exment\Services\Storage\StorageWriteGate::lock($table);
+            if (\Exceedone\Exment\Services\Storage\StorageWriteGate::classify($storage, $table) === \Exceedone\Exment\Services\Storage\StorageWriteGate::JSON_ONLY) {
+                return parent::save($options);
+            }
+
+            // saveQuietly / withoutEvents included: the gate and the projection are not model
+            // events (save() and the final SQL hooks), so a quiet save keeps its lack of events
+            // and of prepare() and is still projected from the JSON it writes
+            $this->storageWriteContext = new \Exceedone\Exment\Services\Storage\DualWriteContext($storage, $table);
+            try {
+                return parent::save($options);
+            } finally {
+                $this->storageWriteContext = null;
+            }
+        });
+    }
+
+    /**
+     * The UPDATE attributes, plus the dual-write projection of the `value` it writes.
+     * Runs after the updating event and every listener, right before the statement.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getDirtyForUpdate()
+    {
+        return ValueWriter::projectStatement($this, parent::getDirtyForUpdate(), false);
+    }
+
+    /**
+     * The INSERT attributes, plus the dual-write projection of the `value` it writes.
+     * Runs after the creating event and every listener, right before the statement.
+     *
+     * @return array<string, mixed>
+     */
+    protected function getAttributesForInsert()
+    {
+        return ValueWriter::projectStatement($this, parent::getAttributesForInsert(), true);
+    }
+
+    /**
+     * The public `value` (hybrid storage, Services\Storage\PublicValueResolver): the stored JSON
+     * for a table not reading physical (as the json cast returned it); on a table reading
+     * physical, reconstructed from the typed columns, value_original and the retained JSON.
+     * Writing `value` is unchanged (json cast).
+     *
+     * @param mixed $raw
+     * @return mixed
+     */
+    public function getValueAttribute($raw)
+    {
+        $json = $raw === null ? null : (is_array($raw) ? $raw : $this->fromJson($raw));
+        if (!is_array($json) && $json !== null) {
+            return $json;
+        }
+        return \Exceedone\Exment\Services\Storage\PublicValueResolver::resolve($this, $json);
+    }
+
+    /** @var bool|null memo of storageReadsPhysical() for this instance */
+    protected $storageReadsPhysical;
+
+    /** Whether this record's table reads physical (from the cached table model; memoized). */
+    public function storageReadsPhysical(): bool
+    {
+        if ($this->storageReadsPhysical === null) {
+            $table = $this->custom_table;
+            $this->storageReadsPhysical = $table instanceof CustomTable
+                && \Exceedone\Exment\Services\Storage\TableStorage::fromModel($table)->readsPhysical();
+        }
+        return $this->storageReadsPhysical;
+    }
+
+    /** Whether `value` was assigned in memory since the row was loaded (raw text compare). */
+    public function valueChangedInMemory(): bool
+    {
+        return ($this->attributes['value'] ?? null) !== ($this->original['value'] ?? null);
+    }
+
+    /** @return \Exceedone\Exment\Services\Storage\DualWriteContext|null */
+    public function storageWriteContext()
+    {
+        return $this->storageWriteContext;
+    }
+
+    /**
+     * Set an internal storage attribute (typed column / value_original) for the save in progress
+     * and make sure it is part of the statement even when the loaded value is the same.
+     *
+     * @param mixed $value
+     */
+    public function setStorageAttribute(string $name, $value): void
+    {
+        $this->attributes[$name] = $value;
+        unset($this->original[$name]);
+    }
+
+    /**
+     * JSON text in the same encoding the `value` column gets (the model's json cast).
+     *
+     * @param array<string, mixed> $value
+     */
+    public function encodeStorageJson(array $value): string
+    {
+        return $this->asJson($value);
+    }
+
     // @phpstan-ignore-next-line
     protected $keepRevisionOf = ['value'];
 
@@ -620,6 +776,8 @@ abstract class CustomValue extends ModelBase
             $model->rememberPreviousCommentText();
 
             if ($model->disable_saving_event) {
+                // W6: a save that skips ValueWriter::prepare - observation only, before its SQL
+                ValueWriteObservation::emit(ValueWriteObservation::save(ValueWriteObservation::KIND_SAVING_DISABLED, $model));
                 return;
             }
 
@@ -636,6 +794,9 @@ abstract class CustomValue extends ModelBase
 
                 // re-get field data --------------------------------------------------
                 $model->prepareValue();
+            } else {
+                // W6: the revision value as it is, no ValueWriter::prepare - observation only, before its SQL
+                ValueWriteObservation::emit(ValueWriteObservation::save(ValueWriteObservation::KIND_RESTORE_REVISION, $model));
             }
 
             // prepare revision
@@ -829,42 +990,9 @@ abstract class CustomValue extends ModelBase
     {
         ///// saving event for image, file event
         // https://github.com/z-song/laravel-admin/issues/1024
-        // because on value edit display, if before upload file and not upload again, don't post value.
-        $value = $this->value;
-        $original = json_decode_ex($this->getRawOriginal('value'), true);
-        // get  columns
-        $custom_columns = $this->custom_table->custom_columns_cache;
-
-        // loop columns
-        $update_flg = false;
-        foreach ($custom_columns as $custom_column) {
-            $column_name = $custom_column->column_name;
-            // get saving value
-            $v = $custom_column->column_item->setCustomValue($this)->saving();
-            // if has value, update
-            if (isset($v)) {
-                array_set($value, $column_name, $v);
-                $update_flg = true;
-            }
-
-            if ($this->setAgainOriginalValue($value, $original, $custom_column)) {
-                $update_flg = true;
-            }
-        }
-
-        // array_forget if $v is null
-        // if not execute this, mysql column "virtual" returns string "null".
-        foreach ($value as $k => $v) {
-            if (is_null($v)) {
-                $update_flg = true;
-                array_forget($value, $k);
-            }
-        }
-
-        // if update
-        if ($update_flg) {
-            $this->setAttribute('value', $value);
-        }
+        // the full snapshot of the value: column saving(), omitted keys from the original (V-3),
+        // null keys removed (V-2) - the single-record write point (ValueWriter, B1)
+        ValueWriter::prepare($this);
     }
 
     /**
@@ -874,26 +1002,7 @@ abstract class CustomValue extends ModelBase
     // @phpstan-ignore-next-line
     protected function setAgainOriginalValue(&$value, $original, $custom_column)
     {
-        if (is_null($value)) {
-            $value = [];
-        }
-        $column_name = $custom_column->column_name;
-        // if not key, set from original
-        if (array_key_exists($column_name, $value)) {
-            return false;
-        }
-        // if column has $remove_file_columns, continue.
-        // property "$remove_file_columns" uses user wants to delete file
-        if (in_array($column_name, $this->remove_file_columns())) {
-            return false;
-        }
-
-        if (!array_key_value_exists($column_name, $original)) {
-            return false;
-        }
-
-        $value[$column_name] = array_get($original, $column_name);
-        return true;
+        return ValueWriter::takeOriginal($this, $value, $original, $custom_column);
     }
 
     /**
@@ -1265,7 +1374,8 @@ abstract class CustomValue extends ModelBase
             }
         }
 
-        return $this->setJson('value', $key, $val, $forgetIfNull);
+        ValueWriter::set($this, $key, $val, (bool)$forgetIfNull);
+        return $this;
     }
 
     /**
@@ -1310,7 +1420,8 @@ abstract class CustomValue extends ModelBase
     // @phpstan-ignore-next-line
     public function setValueDirectly($key, $val = null, $forgetIfNull = false)
     {
-        return $this->setJson('value', $key, $val, $forgetIfNull);
+        ValueWriter::set($this, $key, $val, (bool)$forgetIfNull);
+        return $this;
     }
 
     /**
@@ -1826,7 +1937,7 @@ abstract class CustomValue extends ModelBase
     // @phpstan-ignore-next-line
     public function getSum($custom_column)
     {
-        $name = $custom_column->getQueryKey();
+        $name = $custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_CAST);
 
         if (!isset($name)) {
             return 0;
@@ -1850,7 +1961,7 @@ abstract class CustomValue extends ModelBase
 
             // @phpstan-ignore-next-line
             if (ColumnType::isSelectTable($relation->column_type) && $relation->indexEnabled()) {
-                $index_name = $relation->getIndexColumnName();
+                $index_name = ColumnQueryKey::index($relation)->expression();
                 // get children values where this id
                 $query = getModelName(CustomTable::getEloquent($relation))::where($index_name, $this->id);
                 return $returnBuilder ? $query : $query->get();
@@ -1883,7 +1994,7 @@ abstract class CustomValue extends ModelBase
         if (is_json($revision_value)) {
             $revision_value = \json_decode_ex($revision_value, true);
         }
-        $this->value = $revision_value;
+        ValueWriter::replace($this, $revision_value);
         return $this;
     }
 

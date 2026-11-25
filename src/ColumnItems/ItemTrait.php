@@ -4,6 +4,7 @@ namespace Exceedone\Exment\ColumnItems;
 
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\CustomFormColumn;
@@ -575,8 +576,9 @@ trait ItemTrait
         $cast = $this->getCastName();
 
         if (is_nullorempty($column_name)) {
-            $column_name = $this->indexEnabled() ? $this->index() : $this->sqlname();
+            $column_name = $this->getCastSourceColumnName();
         }
+        $source_column_name = (string)$column_name;
 
         if ($appendDatabaseTable) {
             // append table name
@@ -587,11 +589,36 @@ trait ItemTrait
             $column_name = \Exment::wrapColumn($column_name);
         }
 
-        if (!isset($cast)) {
+        if (!isset($cast) || ($appendDatabaseTable && $this->isCastRedundant($source_column_name))) {
             return $column_name;
         }
 
         return "CAST($column_name AS $cast)";
+    }
+
+    /**
+     * Whether the cast of getCastColumn() changes nothing for the resolved column (hybrid storage:
+     * a typed physical column that already has the cast's type). Default: never (JSON values).
+     * Only the table-qualified filter / sort callers ask; summary keeps its cast.
+     *
+     * @param string $column_name resolved (unqualified, unwrapped) column name
+     * @return bool
+     */
+    protected function isCastRedundant(string $column_name): bool
+    {
+        return false;
+    }
+
+    /**
+     * Source column of getCastColumn() when no column name is given.
+     * (No return type: index()/sqlname() of some items are untyped.)
+     *
+     * @return string
+     */
+    // @phpstan-ignore-next-line
+    protected function getCastSourceColumnName()
+    {
+        return $this->indexEnabled() ? $this->index() : $this->sqlname();
     }
 
     /**
@@ -810,7 +837,7 @@ trait ItemTrait
 
         $query = $this->custom_table->getValueQuery();
 
-        $query->whereOrIn($this->custom_column->getIndexColumnName(), $mark, $pureValue)->select('id');
+        $query->whereOrIn(ColumnQueryKey::index($this->custom_column)->expression(), $mark, $pureValue)->select('id');
 
         $query->take($takeCount);
 
@@ -829,11 +856,12 @@ trait ItemTrait
     public function setSearchOrWhere(&$query, $mark, $value, $q)
     {
         list($mark, $pureValue) = $this->getQueryMarkAndValue($mark, $value, $q);
+        $key = ColumnQueryKey::index($this->custom_column)->expression();
 
         if (is_list($pureValue)) {
-            $query->orWhereIn($this->custom_column->getIndexColumnName(), toArray($pureValue));
+            $query->orWhereIn($key, toArray($pureValue));
         } else {
-            $query->orWhere($this->custom_column->getIndexColumnName(), $mark, $pureValue);
+            $query->orWhere($key, $mark, $pureValue);
         }
 
         return $this;

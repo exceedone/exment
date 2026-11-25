@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Dashboard;
 
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -287,7 +288,7 @@ final class ColumnOptions
         if (empty($values) || !self::hasTrashed($table)) {
             return $values;
         }
-        $name = $column->getIndexColumnName(false);
+        $name = ColumnQueryKey::indexWithoutDdl($column)->expression();
         $grammar = \DB::getQueryGrammar();
         $hinted = \DB::raw($grammar->wrap(getDBTableName($table)) . ' USE INDEX (' . $grammar->wrap('index_' . $name) . ')');
         $live = function ($from) use ($name, $values) {

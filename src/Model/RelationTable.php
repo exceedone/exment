@@ -533,7 +533,7 @@ class RelationTable
 
 
         // @phpstan-ignore-next-line
-        $query->whereOrIn($custom_column->getQueryKey(), $value);
+        $query->whereOrIn($custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL), $value);
 
         return $query;
     }
@@ -690,7 +690,7 @@ class RelationTable
         $parent_table_name = getDBTableName($parent_table);
         $unique_table_name = $custom_item->sqlUniqueTableName();
         $child_table_name = getDBTableName($custom_column->custom_table_cache);
-        $query_key = $custom_column->getQueryKey();
+        $query_key = $custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL);
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoin' : 'join';
@@ -857,14 +857,22 @@ class RelationTable
         $parent_table_name = getDBTableName($parent_table);
         $child_table_name = getDBTableName($custom_column->custom_table_cache);
         $unique_table_name = $custom_column->column_item->sqlUniqueTableName();
-        $query_key = $custom_column->getQueryKey();
+        $query_key = $custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL);
+        // Name of the pivot key as the grouped sub query exposes it to the outer ON.
+        // Indexed pivot: the index column itself (SQL unchanged). JSON pivot: the JSON value is
+        // selected under the index column's name (name only, no DDL), because the derived table
+        // has no "value" column the outer ON could read it from.
+        $sub_key = $custom_column->getIndexColumnName(false);
+        $selectKey = $query_key === $sub_key
+            ? "{$this->tableUniqueName}.$query_key"
+            : "{$this->tableUniqueName}.$query_key as $sub_key";
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinName}(function ($subQuery) use ($child_table_name, $query_key) {
+        $query->{$joinName}(function ($subQuery) use ($child_table_name, $query_key, $selectKey) {
             // set from and default group by, select.
             $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
-                ->select("{$this->tableUniqueName}.$query_key")
+                ->select($selectKey)
                 ->whereNull("{$this->tableUniqueName}.deleted_at")
                 ->groupBy("{$this->tableUniqueName}.$query_key");
 
@@ -872,12 +880,12 @@ class RelationTable
             foreach ($this->subQueryCallbacks as $callback) {
                 $callback($subQuery, $this);
             };
-        }, $this->tableUniqueName, function ($join) use ($custom_item, $parent_table_name, $unique_table_name, $query_key) {
+        }, $this->tableUniqueName, function ($join) use ($custom_item, $parent_table_name, $unique_table_name, $sub_key) {
             // If multiple, join as array string
             if ($custom_item->isMultipleEnabled()) {
-                $join->whereInArrayColumn("$parent_table_name.id", "$unique_table_name.$query_key");
+                $join->whereInArrayColumn("$parent_table_name.id", "$unique_table_name.$sub_key");
             } else {
-                $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$query_key");
+                $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$sub_key");
             }
         });
 

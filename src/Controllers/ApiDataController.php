@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\ColumnQueryKey;
 use Exceedone\Exment\Model\CustomValueModelScope;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Plugin;
@@ -218,7 +219,7 @@ class ApiDataController extends AdminControllerTableBase
                 } elseif (!$column->index_enabled) {
                     return abortJson(400, ErrorCode::NOT_INDEX_ENABLED());
                 }
-                $column_name = $column->getIndexColumnName();
+                $column_name = ColumnQueryKey::index($column)->expression();
             }
 
             $operator = '=';
@@ -1297,7 +1298,8 @@ class ApiDataController extends AdminControllerTableBase
         /** @var CustomViewColumn $custom_view_column */
         foreach ($custom_view->custom_view_columns as $custom_view_column) {
             if ($custom_view_column->view_column_type == ConditionType::COLUMN) {
-                $target_start_column = $custom_view_column->custom_column->getIndexColumnName();
+                // query column and the row attribute read back (setCalendarDate)
+                $target_start_column = ColumnQueryKey::index($custom_view_column->custom_column)->expression();
             } else {
                 $target_start_column = SystemColumn::getOption(['id' => $custom_view_column->view_column_target_id])['name'];
             }
@@ -1306,7 +1308,7 @@ class ApiDataController extends AdminControllerTableBase
                 $end_date_target = $custom_view_column->getOption('end_date_target');
                 if ($custom_view_column->view_column_end_date_type == ConditionType::COLUMN) {
                     $target_end_custom_column = CustomColumn::getEloquent($end_date_target);
-                    $target_end_column = $target_end_custom_column->getIndexColumnName();
+                    $target_end_column = ColumnQueryKey::index($target_end_custom_column)->expression();
                 } else {
                     $target_end_column = SystemColumn::getOption(['id' => $end_date_target])['name'];
                 }
@@ -1619,7 +1621,7 @@ class ApiDataController extends AdminControllerTableBase
                 } elseif (!$column->index_enabled) {
                     return abortJson(400, ErrorCode::NOT_INDEX_ENABLED());
                 }
-                $column_name = $column->getIndexColumnName();
+                $column_name = ColumnQueryKey::index($column)->expression();
             }
             // @phpstan-ignore-next-line
             $orderby_list[] = [$column_name, count($values) > 1 ? $values[1] : 'asc'];

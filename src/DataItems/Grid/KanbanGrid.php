@@ -1775,11 +1775,13 @@ class KanbanGrid extends GridBase
      * name is ambiguous and the board fails as a whole.
      *
      * @param CustomColumn $custom_column
+     * @param string $purpose CustomColumn::QUERY_PURPOSE_*: CAST for a value summed through
+     *     sqlNumeric(), GENERAL for everything else the board reads
      * @return string
      */
-    protected function columnKey($custom_column): string
+    protected function columnKey($custom_column, string $purpose = CustomColumn::QUERY_PURPOSE_GENERAL): string
     {
-        return getDBTableName($this->custom_table) . '.' . $custom_column->getQueryKey();
+        return getDBTableName($this->custom_table) . '.' . $custom_column->getQueryKeyFor($purpose);
     }
 
     /**
@@ -1996,10 +1998,10 @@ class KanbanGrid extends GridBase
             \DB::raw('sum(' . $this->sqlSecondsSince($entered_expr) . ') as kb_seconds'),
         ];
         if (isset($sum_column)) {
-            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($sum_column))) . ') as kb_sum');
+            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($sum_column, CustomColumn::QUERY_PURPOSE_CAST))) . ') as kb_sum');
         }
         if (isset($wip_column)) {
-            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($wip_column))) . ') as kb_load');
+            $selects[] = \DB::raw('sum(' . $this->sqlNumeric($grammar->wrap($this->columnKey($wip_column, CustomColumn::QUERY_PURPOSE_CAST))) . ') as kb_load');
         }
         // the KPI row is counted here as well: it sits right above these column
         // heads, so it has to be reading the same table, not the page
@@ -3491,7 +3493,7 @@ class KanbanGrid extends GridBase
         // column of one person and a column of several alike.
         $db_table = getDBTableName($target);
         $query = $target->getValueModel()->query();
-        $query->whereInArrayString($db_table . '.' . $user_column->getQueryKey(), strval($user_id));
+        $query->whereInArrayString($db_table . '.' . $user_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_CONTAINS), strval($user_id));
 
         // the ids alone, read as plain rows: the scopes still apply, but no
         // model is built for a value nobody looks at

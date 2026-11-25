@@ -277,7 +277,7 @@ class SearchService
     {
         $whereCustomTable = $column->custom_table_cache;
         if (isMatchString($whereCustomTable->id, $this->custom_table->id)) {
-            $this->query->orderBy($column->getQueryKey(), $direction);
+            $this->query->orderBy($column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_SORT), $direction);
             return $this;
         }
 
@@ -293,8 +293,8 @@ class SearchService
         else {
             $this->setJoin($relationTable, $whereCustomTable);
 
-            // Add orderBy query
-            $this->query->orderBy($column->getQueryKey(), $direction);
+            // Add orderBy query (unqualified key, as before)
+            $this->query->orderBy($column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_SORT), $direction);
         }
 
         return $this;

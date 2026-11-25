@@ -9,6 +9,8 @@ use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Services\ZipService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\BulkLoad\BulkLoadContext;
+use Exceedone\Exment\Services\BulkLoad\BulkLoadPreflight;
 use File;
 
 class Restore
@@ -82,6 +84,9 @@ class Restore
 
             // unzip backup file
             $this->unzipFile($file, $tmp);
+
+            // ask before the first table, file or .env of this installation is replaced
+            $this->preflight($file);
 
             $result = 0;
 
@@ -176,6 +181,37 @@ class Restore
             ]);
             return false;
         }
+    }
+
+    /**
+     * BulkLoadPreflight for this restore: the target is the whole database of the connection;
+     * the tables the unzipped backup holds data files for are backup metadata. Throws to refuse.
+     *
+     * @param string|null $file
+     */
+    protected function preflight($file): void
+    {
+        $directory = $this->diskService->tmpDiskItem()->dirFullPath();
+        $definition = config('exment.backup_info.def_file');
+        $tables = [];
+        if (\File::isDirectory($directory)) {
+            foreach (\File::files($directory) as $item) {
+                if (!preg_match('/\.(sql|tsv)$/i', $item->getFilename()) || $item->getFilename() === $definition) {
+                    continue;
+                }
+                $tables[] = $item->getBasename('.' . $item->getExtension());
+            }
+        }
+        $tables = array_values(array_unique($tables));
+        sort($tables);
+
+        app(BulkLoadPreflight::class)->check(BulkLoadContext::restore(
+            \DB::getDefaultConnection(),
+            is_null($file) ? null : strval($file),
+            $directory,
+            $tables,
+            is_string($definition) && \File::exists(path_join($directory, $definition))
+        ));
     }
 
     /**

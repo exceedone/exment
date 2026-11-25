@@ -486,6 +486,17 @@ class ExmentServiceProvider extends ServiceProvider
 
         $this->app->bind(EarthquakeFeedInterface::class, P2pQuakeFeed::class);
 
+        // asked before bulkinsert / restore write anything (W4); refuses only while a table is not
+        // plain JSON storage - with every table JSON it allows all, as before (Stage B block 1)
+        $this->app->bindIf(\Exceedone\Exment\Services\BulkLoad\BulkLoadPreflight::class, \Exceedone\Exment\Services\Storage\StorageStateBulkLoadPreflight::class);
+
+        // hybrid storage: table conversion is not offered until dual-write, backfill and cutover
+        // protections exist (Stage B block 1); the schema manager refuses to provision without it
+        $this->app->bindIf(\Exceedone\Exment\Services\Storage\ConversionAvailability::class, \Exceedone\Exment\Services\Storage\UnavailableConversion::class);
+
+        // told about value writes Exment can see coming; observes nothing (W6)
+        $this->app->bindIf(\Exceedone\Exment\Model\ValueWriteObserver::class, \Exceedone\Exment\Model\NullValueWriteObserver::class);
+
         $this->app->bind(\Exceedone\Exment\Services\Line\LineMessagingClient::class, function () {
             return new \Exceedone\Exment\Services\Line\LineMessagingClient();
         });

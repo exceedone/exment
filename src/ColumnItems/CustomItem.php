@@ -117,7 +117,7 @@ abstract class CustomItem implements ItemInterface
     // @phpstan-ignore-next-line
     public function sqlname()
     {
-        return $this->custom_column->getQueryKey();
+        return $this->custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL);
     }
 
     /**
@@ -730,7 +730,56 @@ abstract class CustomItem implements ItemInterface
     // @phpstan-ignore-next-line
     public function getSortName()
     {
-        return $this->sqlUniqueTableName() .'.'. $this->custom_column->getQueryKey();
+        return $this->sqlUniqueTableName() .'.'. $this->custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_SORT);
+    }
+
+    /**
+     * Source column of getCastColumn() when no column name is given.
+     * ItemTrait uses index() for an indexed item and sqlname() otherwise; for a custom column
+     * both are getQueryKey() (index column with auto-DDL, or value->column).
+     *
+     * @return string
+     */
+    protected function getCastSourceColumnName()
+    {
+        return $this->custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_CAST);
+    }
+
+    /**
+     * A typed physical column (hybrid storage, table reading physical) whose type already equals the
+     * cast needs no CAST: the expression stays sargable. Decided from the resolved storage/type
+     * metadata, never from the name alone (see PhysicalQueryRouting::isCastRedundant).
+     *
+     * @param string $column_name
+     * @return bool
+     */
+    protected function isCastRedundant(string $column_name): bool
+    {
+        list($type, , $options) = $this->getCastOptions();
+        return \Exceedone\Exment\Services\Storage\PhysicalQueryRouting::isCastRedundant($this->custom_column, $column_name, (string)$type, (array)$options);
+    }
+
+    /**
+     * Table-qualified column for the "empty" / "not empty" view filters
+     * (same as getTableColumn() today).
+     *
+     * @return string
+     */
+    public function getNullCheckTableColumn(): string
+    {
+        return $this->getTableColumn($this->custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_NULL_CHECK));
+    }
+
+    /**
+     * Table-prefixed column for an element-by-element match (whereInArrayString) on a
+     * multi-value column: "contains" / "user is in" view filters.
+     * Today it is the same string as getTableColumn().
+     *
+     * @return string
+     */
+    public function getContainsTableColumn(): string
+    {
+        return $this->getTableColumn($this->custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_CONTAINS));
     }
 
     /**

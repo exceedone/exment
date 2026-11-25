@@ -299,6 +299,7 @@ class Permission
                 ///// only system permission
             case "system":
             case "backup":
+            case "storage_conversion":
             case "login_setting":
             case "database":
             case "auth/menu":

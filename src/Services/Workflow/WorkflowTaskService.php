@@ -770,9 +770,9 @@ class WorkflowTaskService
 
         $query->where(function ($sub) use ($columns, $like, $keyword, $tableName) {
             foreach ($columns as $column) {
-                // getQueryKey() is the generated, indexed column when the column is indexed,
-                // and the json path otherwise - the same key Exment filters on everywhere else
-                $sub->orWhere($tableName . '.' . $column->getQueryKey(), 'LIKE', $like);
+                // the generated, indexed column when the column is indexed, and the json path
+                // otherwise - the same key Exment filters on everywhere else
+                $sub->orWhere($tableName . '.' . $column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL), 'LIKE', $like);
             }
 
             // the label starts with "#<id>" on tables that show it, so "#590" and "590" are

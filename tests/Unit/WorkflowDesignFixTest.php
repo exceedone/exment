@@ -582,7 +582,7 @@ class WorkflowDesignFixTest extends UnitTestBase
             if (isset($written) || \DB::transactionLevel() < 2) {
                 return;
             }
-            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
+            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false && stripos($query->sql, 'updlock') === false) {
                 return;
             }
             $written = false;
@@ -702,6 +702,64 @@ class WorkflowDesignFixTest extends UnitTestBase
         $this->assertSame(1, Workflow::where('workflow_view_name', 'designer create test')->count());
     }
 
+    /**
+     * Batch D1: status_from is looked up by the importer as a column value. It must be bound as the string
+     * the column stores ('start' or a status id): an integer parameter made SQL Server convert the stored
+     * 'start' to int ("Conversion failed"). The start keyword, a status resolved by name and a status that
+     * does not exist here keep their meaning.
+     *
+     * @return void
+     */
+    public function testTemplateImportBindsStatusFromAsTheStoredString()
+    {
+        $response = $this->createDesign($this->newTablePayload(CustomTable::getEloquent('custom_value_edit')->id));
+        $this->assertSame(200, $response->getStatusCode(), (string)$response->getContent());
+        $workflow = $this->workflow('designer create test');
+        $s1 = WorkflowStatus::where('workflow_id', $workflow->id)->where('status_name', 's1')->firstOrFail();
+        $options = ['parent' => $workflow];
+
+        $json = ['action_name' => 'x', 'status_from_name' => 's1'];
+        WorkflowAction::importReplaceJson($json, $options);
+        $this->assertSame(strval($s1->id), $json['status_from'], 'a resolved status is the id as a string');
+        $this->assertArrayNotHasKey('status_from_name', $json);
+
+        $json = ['action_name' => 'x', 'status_from_name' => 'start'];
+        WorkflowAction::importReplaceJson($json, $options);
+        $this->assertSame('start', $json['status_from'], 'the start keyword is kept');
+
+        $json = ['action_name' => 'x', 'status_from_name' => 'no such status here'];
+        WorkflowAction::importReplaceJson($json, $options);
+        $this->assertArrayNotHasKey('status_from', $json, 'an unknown status stays unresolved (null on lookup), as before');
+        $this->assertArrayNotHasKey('status_from_name', $json);
+
+        // the lookup of existing actions - start and a numeric status in one workflow - succeeds on every driver
+        // and binds strings
+        foreach (['start', $s1->id] as $from) {
+            $json = ['action_name' => 'x', 'status_from_name' => $from == 'start' ? 'start' : 's1'];
+            WorkflowAction::importReplaceJson($json, $options);
+            \DB::flushQueryLog();
+            \DB::enableQueryLog();
+            try {
+                $found = WorkflowAction::firstOrNew(['workflow_id' => $workflow->id, 'status_from' => $json['status_from'], 'action_name' => 'x']);
+            } finally {
+                $log = \DB::getQueryLog();
+                \DB::disableQueryLog();
+            }
+            $this->assertFalse($found->exists, 'no action named x exists - and the lookup did not fail');
+            $this->assertNotEmpty($log);
+            $this->assertContains(strval($json['status_from']), array_map('strval', array_merge(...array_column($log, 'bindings'))));
+            $bound = array_merge(...array_column($log, 'bindings'));
+            if (is_numeric($json['status_from'])) {
+                $this->assertNotContains(intval($json['status_from']), array_filter($bound, 'is_int'), 'status_from is not bound as an integer');
+            }
+        }
+
+        // template import of the real workflow still finds each action again (no duplicates on re-import)
+        $item = $workflow->exportTemplateDesignerLayout(Workflow::findOrFail((int)$workflow->id)->getTemplateExportItems());
+        $before = WorkflowAction::where('workflow_id', $workflow->id)->count();
+        (new TemplateImporter())->import(['workflows' => [$item]]);
+        $this->assertSame($before, WorkflowAction::where('workflow_id', $workflow->id)->count());
+    }
     /**
      * A workflow the import cannot reproduce exactly comes in with every table
      * assignment inactive: a branch condition on a column missing here (an AND
@@ -1004,7 +1062,7 @@ class WorkflowDesignFixTest extends UnitTestBase
             if (isset($written) || \DB::transactionLevel() < 2) {
                 return;
             }
-            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
+            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false && stripos($query->sql, 'updlock') === false) {
                 return;
             }
             $written = false;
@@ -1106,7 +1164,7 @@ class WorkflowDesignFixTest extends UnitTestBase
             if (isset($written) || \DB::transactionLevel() < 2) {
                 return;
             }
-            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false) {
+            if (stripos($query->sql, 'workflows') === false || stripos($query->sql, 'for update') === false && stripos($query->sql, 'updlock') === false) {
                 return;
             }
             $written = false;
