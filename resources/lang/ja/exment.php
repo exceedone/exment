@@ -740,6 +740,8 @@ return [
                 'explain' => '暗号化とセッションの署名に使うキーです。サイトごとに作った値が要ります。',
                 'warning' => 'APP_KEY がないか、見本の値のままです。',
                 'fix' => 'サーバーで php artisan key:generate を実行してください。すでに使っているサイトでは、キーを変えると暗号化して保存した値（メールサーバーのパスワードなど）が読めなくなります。そのときは設定し直してください。',
+                'shipped_warning' => 'APP_KEY が、ダウンロードした zip に入っていた値のままです。',
+                'shipped_fix' => 'サーバーで php artisan key:generate を実行してください。キーを変えると、全員がログインし直しになります。暗号化して保存した値（メールサーバーのパスワードなど）は読めなくなるので、設定し直してください。',
             ],
             'app_env' => [
                 'label' => '動かし方（APP_ENV）',
@@ -786,6 +788,16 @@ return [
                 'explain' => 'Exment と公式プラグインを新しい版にします。安全のための直しが出ているプラグインは、すぐに更新します。',
                 'warning' => '新しい版があります。',
                 'fix' => 'Exment はシステム設定の「バージョン」から、公式プラグインは機能の管理から更新してください。',
+            ],
+            'supported_versions' => [
+                'label' => 'PHP とデータベースの版',
+                'explain' => 'PHP とデータベースが安全のための直しを受けられるのは、決まった期間だけです。直しが出る版を使ってください（PHP 8.3 以上、MySQL 8.0・MariaDB 10.11・SQL Server 2016 以上）。',
+                'php_until' => ':date まで直しあり',
+                'php_ended' => 'PHP :version の安全のためのサポートは :date で終わりました。',
+                'php_ending' => 'PHP :version の安全のためのサポートは :date で終わります。',
+                'database_old' => ':database :version は、おすすめの版（:recommended 以上）より古い版です。',
+                'warning' => 'PHP :version の安全のためのサポートは :date で終わります。',
+                'fix' => 'PHP を 8.3 以上にしてください（レンタルサーバーでは、管理画面の PHP の版）。データベースは、おすすめの版にしてください。それまでも Exment は動きます。',
             ],
             'session_cookie' => [
                 'label' => 'セッションの cookie',
@@ -1564,6 +1576,8 @@ return [
     ],
 
     '2factor' => [
+        'login_unknown' => '不明',
+        'login_location_separator' => '・',
         '2factor' => '2段階認証',
         'login' => '認証',
         'submit_verify_code' => '認証コード送信',
@@ -2413,6 +2427,8 @@ return [
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',
         'default_flg' => '既定のフォーム',
+        'check_missing_required' => 'このフォームにない必須の列も確かめる',
+        'check_missing_required_help' => 'オンにすると、このフォームにない必須の列が空のときは、このフォームから新しいデータを保存しません。オフのときは、その列は空のまま保存されます（公開フォームなど、一部の列だけのフォーム）。',
         'field_showing_type' => 'フィールド種類',
         'form_column_view_name' => 'フィールド表示名',
         'image_aslink' => '画像をリンクとして表示',
@@ -2476,6 +2492,7 @@ return [
         ],
 
         'message' => [
+            'missing_required_empty' => '保存しませんでした。必須の列 :names がこのフォームになく、値がありません。フォームに足すか、「このフォームにない必須の列も確かめる」をオフにしてください。',
             'no_exists_column' => '必須項目が設定されていません。',
             'confirm_required' => '必須項目が設定されていません。このまま保存してもよろしいでしょうか？',
             'image_need_delete' => '※画像を差し替える場合、列を一度削除後、再度追加してください。',
