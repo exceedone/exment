@@ -44,7 +44,7 @@ class LoginRecorder
             ]);
         });
         Event::listen(Lockout::class, function (Lockout $event) {
-            static::write(LoginLog::RESULT_LOCKOUT, null);
+            static::write(LoginLog::RESULT_LOCKOUT, static::lockedUser($event->request));
         });
         Event::listen(Logout::class, function (Logout $event) {
             if (static::isPages($event->guard)) {
@@ -86,6 +86,30 @@ class LoginRecorder
             LoginHistory::notifyNewIp($user);
         } catch (\Throwable $e) {
             \Log::warning('Exment: the notice of a login from a new IP address was not made: ' . get_class($e));
+        }
+    }
+
+    /**
+     * The account a lockout is for: the user of the 2-step verification, or the account of the name
+     * typed in the login form. Null for a name that is no account: what was typed is not kept.
+     *
+     * @return mixed the login user, or null
+     */
+    protected static function lockedUser(\Illuminate\Http\Request $request)
+    {
+        try {
+            $user = \Exment::user();
+            if (isset($user)) {
+                return $user;
+            }
+            $name = $request->input('username');
+            if (!is_string($name) || trim($name) === '') {
+                return null;
+            }
+            $found = \Exceedone\Exment\Providers\LoginUserProvider::RetrieveByCredential(['username' => $name]);
+            return $found instanceof \Exceedone\Exment\Model\LoginUser ? $found : null;
+        } catch (\Throwable $e) {
+            return null;
         }
     }
 
