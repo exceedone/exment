@@ -55,9 +55,13 @@ class RoleGroupUserOrganization extends ModelBase
             return;
         }
 
-        static::query()
-        ->where('role_group_user_org_type', $table_name)
-        ->where('role_group_target_id', $custom_value->id)
-        ->delete();
+        // the history of the changes (ISS02840)
+        $groups = \Exceedone\Exment\Services\LogManagement\PermissionChanges::groupsOfMember($table_name, $custom_value->id);
+        \Exceedone\Exment\Services\LogManagement\PermissionChanges::around($groups, function () use ($table_name, $custom_value) {
+            static::query()
+            ->where('role_group_user_org_type', $table_name)
+            ->where('role_group_target_id', $custom_value->id)
+            ->delete();
+        }, \Exceedone\Exment\Services\LogManagement\PermissionChanges::SOURCE_DELETED);
     }
 }

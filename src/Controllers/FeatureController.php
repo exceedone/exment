@@ -344,7 +344,10 @@ class FeatureController extends AdminControllerBase
                 continue;
             }
             $permission->permissions = $want ? array_merge($list, [Permission::PLUGIN_ACCESS]) : array_values(array_diff($list, [Permission::PLUGIN_ACCESS]));
-            $permission->save();
+            // the history of the changes (ISS02840)
+            \Exceedone\Exment\Services\LogManagement\PermissionChanges::around($groupId, function () use ($permission) {
+                $permission->save();
+            });
         }
     }
 

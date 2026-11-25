@@ -44,6 +44,18 @@ class MailSender extends SenderBase
     protected $final_user;
 
     /**
+     * Send at once, also when the site sends the mails through a queue worker (ISS00161).
+     *
+     * @var bool
+     */
+    protected $send_now = false;
+
+    /**
+     * The connection of the queue a mail sent at once goes through.
+     */
+    public const SEND_NOW_CONNECTION = 'sync';
+
+    /**
      * @param mixed $mail_template
      * @param mixed $to
      * @throws NoMailTemplateException
@@ -239,6 +251,20 @@ class MailSender extends SenderBase
     }
 
     /**
+     * Send the mail at once and not through the queue: for a mail the user is waiting for, such
+     * as the code of the 2-step verification or the password reset (ISS00161). An error of the
+     * mail server reaches the caller, as with QUEUE_CONNECTION=sync.
+     *
+     * @param bool $send_now
+     * @return $this
+     */
+    public function sendNow(bool $send_now = true)
+    {
+        $this->send_now = $send_now;
+        return $this;
+    }
+
+    /**
      * @param mixed $replaceOptions
      * @return $this
      */
@@ -322,7 +348,7 @@ class MailSender extends SenderBase
             ->setFromName($fromName)
             ->setBodyType($bodyType);
 
-        $job = new MailSendJob(\Exment::getUserId(), $this->final_user);
+        $job = $this->makeJob();
         $job->setMailInfo($this->mailInfo)
             ->setMailHistory($this->mailHistory);
         $this->notify($job);
@@ -365,11 +391,26 @@ class MailSender extends SenderBase
             ->setMailTemplate($mail_template)
             ->setHistory(false);
 
-        $job = new MailSendJob(\Exment::getUserId(), $this->final_user);
+        $job = $this->makeJob();
         $job->setMailInfo($mailInfo)
             ->setMailHistory($mailHistory);
 
         $this->notify($job);
+    }
+
+
+    /**
+     * The job of a mail. The user who sent it is kept, to tell the user when it fails.
+     *
+     * @return MailSendJob
+     */
+    protected function makeJob(): MailSendJob
+    {
+        $job = new MailSendJob(\Exment::getUserId(), $this->final_user);
+        if ($this->send_now) {
+            $job->onConnection(static::SEND_NOW_CONNECTION);
+        }
+        return $job;
     }
 
 

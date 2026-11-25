@@ -571,6 +571,24 @@
                         "index_enabled": "1",
                         "freeword_search": "1"
                     }
+                },
+                {
+                    "column_name": "send_result",
+                    "column_view_name": "Send result",
+                    "column_type": "select_valtext",
+                    "system_flg": "1",
+                    "options": {
+                        "index_enabled": "1",
+                        "select_item_valtext": "sent,Sent\nfailed,Failed"
+                    }
+                },
+                {
+                    "column_name": "send_error",
+                    "column_view_name": "Send error",
+                    "column_type": "text",
+                    "system_flg": "1",
+                    "options": {
+                    }
                 }
             ]
         },
@@ -790,6 +808,18 @@
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "send_datetime"
+                        },
+                        {
+                            "suuid": "Rk7sQm2VnT4bWx9LpE3a",
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "send_result"
+                        },
+                        {
+                            "suuid": "Hc5uYd8JfN2gKs6ZqW1e",
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "send_error"
                         }
                     ],
                     "form_block_target_table_name": "mail_send_log"
@@ -1470,6 +1500,14 @@
             "title": "Template",
             "parent_name": "admin_data",
             "menu_target_name": "template"
+        },
+        {
+            "order": "9",
+            "menu_type": "system",
+            "menu_name": "trash",
+            "title": "Trash",
+            "parent_name": "admin_data",
+            "menu_target_name": "trash"
         },
         {
             "order": "92",
