@@ -200,7 +200,7 @@
         left += '<span class="gt-dot" style="background:' + esc(color) + '"></span>';
         // the levels under a parent: indented, and a parent folds what hangs under it
         var depth = Math.min(r._depth || 0, 10);
-        left += '<span class="gt-label"' + (depth > 1 ? ' style="padding-left:' + ((depth - 1) * 12) + 'px"' : '') + '>' +
+        left += '<span class="gt-label"' + (depth > 0 ? ' style="padding-left:' + (depth * 12) + 'px"' : '') + '>' +
             (r._kids ? '<span class="gt-tgl fa fa-caret-down" data-tid="' + esc(r.id) + '" role="button" aria-expanded="true"></span> ' : '') +
             (r._child && !r._kids ? '<span class="gt-indent">└ </span>' : '') +
             '<a href="' + esc(r.url) + '" title="' + esc(r.label) + '">' + esc(r.label) + '</a></span>';
