@@ -80,6 +80,7 @@ use Cache;
  * @method static string|void operation_log_automatic_minute($arg = null)
  * @method static Carbon|void operation_log_automatic_executed($arg = null)
  * @method static int|null|void log_retention_login_log($arg = null)
+ * @method static int|null|void log_retention_permission_change($arg = null)
  * @method static int|null|void log_retention_app_log($arg = null)
  * @method static string|null|void log_app_level($arg = null)
  * @method static bool|void log_app_daily($arg = null)

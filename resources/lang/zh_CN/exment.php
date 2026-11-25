@@ -5120,7 +5120,33 @@ IP 地址: :ip
         'any' => '任意',
         'yes' => '是',
         'no' => '否',
+        'role_type' => [
+            'system' => '系统',
+            'table' => '表',
+            'plugin' => '插件',
+        ],
+        'member_type' => [
+            'user' => '用户',
+            'organization' => '组织',
+        ],
+        'change' => [
+            'added' => '添加',
+            'removed' => '移除',
+        ],
+        'change_kind' => [
+            'group' => '角色组',
+            'permission' => '权限',
+            'member' => '成员',
+        ],
+        'source' => [
+            'page' => '画面',
+            'api' => 'API',
+            'deleted' => '删除用户或组织',
+        ],
         'section' => [
+            'role_group_permissions' => '角色组的权限',
+            'role_group_members' => '角色组的成员',
+            'permission_changes' => '角色组的变更历史',
             'users' => '用户',
             'inactive' => '未使用的账号',
             'administrators' => '管理员',
@@ -5134,6 +5160,8 @@ IP 地址: :ip
             'log_retention' => '日志保存期限',
         ],
         'note' => [
+            'role_group_permissions' => '各角色组当前的权限。',
+            'permission_changes' => '期间内谁添加或移除了权限或成员。历史从 7.3 开始记录。',
             'users' => '所有登录账号。最后登录是记录到的最后一次成功登录；密码变更是密码历史中的最后一次。',
             'inactive' => '最近 :days 天没有登录的账号（或从未登录且创建已超过 :days 天）。',
             'administrators' => '系统管理员，以及通过其角色组或所属组织的角色组拥有系统权限的用户。',
@@ -5144,6 +5172,16 @@ IP 地址: :ip
             'public_forms' => '任何知道 URL 的人都可以提交的页面。',
         ],
         'column' => [
+            'role_group' => '角色组',
+            'role_type' => '对象',
+            'permission_target' => '表或插件',
+            'permissions' => '权限',
+            'member_type' => '成员',
+            'member_code' => '代码',
+            'member_name' => '名称',
+            'changed_user' => '变更者',
+            'change' => '变更',
+            'source' => '位置',
             'user_code' => '用户代码',
             'user_name' => '用户名',
             'login_type' => '登录',
@@ -5274,6 +5312,7 @@ IP 地址: :ip
         ],
         'setting' => [
             'login_log_days' => '登录记录保留天数',
+            'permission_change_days' => '角色组变更历史保留天数',
             'app_log_days' => '应用日志（按日文件）保留天数',
             'days_help' => '留空：:default 天。0：保留至删除。',
             'app_level' => '应用日志级别',
@@ -5305,6 +5344,7 @@ IP 地址: :ip
         'types' => [
             'operation_log' => '操作记录',
             'login_log' => '登录记录',
+            'permission_change' => '角色组的变更历史',
             'app_log' => '应用日志',
         ],
     ],

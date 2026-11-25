@@ -7,12 +7,15 @@ use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\UserSetting as UserSettingEnum;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\FileShareLink;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\PasswordHistory;
+use Exceedone\Exment\Model\PermissionChangeLog;
+use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\System;
@@ -31,7 +34,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class AuditReport
 {
-    public const SECTIONS = ['users', 'inactive', 'administrators', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'log_retention'];
+    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'log_retention'];
 
     /** Days without a login after which an account is "not used" (the default). */
     public const DEFAULT_INACTIVE_DAYS = 90;
@@ -159,6 +162,12 @@ class AuditReport
                 return ['user_code', 'user_name', 'login_type', 'last_login', 'created_at'];
             case 'administrators':
                 return ['user_code', 'user_name', 'system_permissions', 'role_groups', 'mfa', 'last_login'];
+            case 'role_group_permissions':
+                return ['role_group', 'role_type', 'permission_target', 'permissions'];
+            case 'role_group_members':
+                return ['role_group', 'member_type', 'member_code', 'member_name'];
+            case 'permission_changes':
+                return ['created_at', 'changed_user', 'role_group', 'change', 'kind', 'permission_target', 'permissions', 'source'];
             case 'logins':
                 return ['result', 'reason', 'count'];
             case 'login_failures':
@@ -219,6 +228,99 @@ class AuditReport
                 continue;
             }
             $rows[] = [$a['user_code'], $a['user_name'], implode(', ', $a['system_permissions']), implode(', ', $a['role_groups']), $a['mfa'], $this->date($a['last_login'])];
+        }
+        return $rows;
+    }
+
+    /**
+     * What each role group gives, on what (the system, a table, a plugin), as it is now.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsRoleGroupPermissions(): array
+    {
+        $rows = [];
+        foreach (RoleGroup::query()->with('role_group_permissions')->orderBy('id')->get() as $group) {
+            $permissions = $group->role_group_permissions->sortBy(function ($permission) {
+                return strval($permission->role_group_permission_type) . ':' . str_pad(strval($permission->role_group_target_id), 10, '0', STR_PAD_LEFT);
+            });
+            foreach ($permissions as $permission) {
+                $keys = array_values(array_filter((array)($permission->permissions ?? [])));
+                if (count($keys) === 0) {
+                    continue;
+                }
+                $type = strval($permission->role_group_permission_type);
+                $rows[] = [
+                    strval($group->role_group_view_name),
+                    $this->roleTypeText($type),
+                    $this->targetText($type, $permission->role_group_target_id),
+                    implode(', ', array_map([static::class, 'permissionText'], $keys)),
+                ];
+            }
+        }
+        return $rows;
+    }
+
+    /**
+     * The members of each role group (users and organizations), as they are now.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsRoleGroupMembers(): array
+    {
+        $rows = [];
+        foreach (RoleGroup::query()->with('role_group_user_organizations')->orderBy('id')->get() as $group) {
+            $members = $group->role_group_user_organizations->sortBy(function ($member) {
+                return strval($member->role_group_user_org_type) . ':' . str_pad(strval($member->role_group_target_id), 10, '0', STR_PAD_LEFT);
+            });
+            foreach ($members as $member) {
+                $type = strval($member->role_group_user_org_type);
+                [$code, $name] = $this->memberOf($type, $member->role_group_target_id);
+                $rows[] = [strval($group->role_group_view_name), static::text('member_type.' . $type), $code, $name];
+            }
+        }
+        return $rows;
+    }
+
+    /**
+     * The changes of the role groups in the period (the history begins with 7.3).
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsPermissionChanges(): array
+    {
+        if (!PermissionChangeLog::tableExists()) {
+            return [];
+        }
+        $rows = [];
+        $logs = PermissionChangeLog::query()
+            ->where('created_at', '>=', $this->from)
+            ->where('created_at', '<', $this->until)
+            ->orderBy('id')
+            ->limit(static::MAX_LOG_ROWS)
+            ->get();
+        foreach ($logs as $log) {
+            [$code, $name] = is_null($log->changed_user_id) ? ['', ''] : $this->userOf($log->changed_user_id);
+            if ($log->kind === PermissionChangeLog::KIND_MEMBER) {
+                [$memberCode, $memberName] = $this->memberOf(strval($log->target_type), $log->target_id);
+                $target = static::text('member_type.' . $log->target_type) . ': ' . trim($memberCode . ' ' . $memberName);
+            } elseif ($log->kind === PermissionChangeLog::KIND_PERMISSION) {
+                $target = $this->roleTypeText(strval($log->role_type));
+                $on = $this->targetText(strval($log->role_type), $log->target_id);
+                $target .= $on === '' ? '' : ': ' . $on;
+            } else {
+                $target = '';
+            }
+            $rows[] = [
+                $this->date($log->created_at, true),
+                trim($code . ' ' . $name),
+                strval($log->role_group_name),
+                static::text('change.' . $log->change),
+                static::text('change_kind.' . $log->kind),
+                $target,
+                is_nullorempty($log->permission) ? '' : static::permissionText(strval($log->permission)),
+                static::text('source.' . ($log->source ?: 'page')),
+            ];
         }
         return $rows;
     }
@@ -664,6 +766,65 @@ class AuditReport
         return $provider === 'email' ? static::text('mfa.email') : strval($provider);
     }
 
+    protected function roleTypeText(string $type): string
+    {
+        switch ($type) {
+            case RoleType::SYSTEM:
+                return static::text('role_type.system');
+            case RoleType::TABLE:
+                return static::text('role_type.table');
+            case RoleType::PLUGIN:
+                return static::text('role_type.plugin');
+        }
+        return $type;
+    }
+
+    /**
+     * The table or the plugin of a permission (the system: nothing).
+     *
+     * @param mixed $targetId
+     */
+    protected function targetText(string $type, $targetId): string
+    {
+        if (is_nullorempty($targetId)) {
+            return '';
+        }
+        if ($type === RoleType::TABLE) {
+            $table = CustomTable::getEloquent($targetId);
+            return isset($table) ? strval($table->table_view_name) : '#' . strval($targetId);
+        }
+        if ($type === RoleType::PLUGIN) {
+            /** @var Plugin|null $plugin */
+            $plugin = Plugin::query()->find($targetId);
+            return isset($plugin) ? strval($plugin->plugin_view_name) : '#' . strval($targetId);
+        }
+        return '';
+    }
+
+    /**
+     * The code and the name of a member (a user or an organization).
+     *
+     * @param mixed $targetId
+     * @return array{0: string, 1: string}
+     */
+    protected function memberOf(string $type, $targetId): array
+    {
+        if ($type !== SystemTableName::ORGANIZATION) {
+            return $this->userOf($targetId);
+        }
+        if (is_nullorempty($targetId)) {
+            return ['', ''];
+        }
+        $key = 'organization:' . strval($targetId);
+        if (!isset($this->users[$key])) {
+            $org = getModelName(SystemTableName::ORGANIZATION)::withTrashed()->find($targetId);
+            $this->users[$key] = isset($org)
+                ? [strval(array_get($org->value ?? [], 'organization_code')), strval(array_get($org->value ?? [], 'organization_name'))]
+                : ['', '#' . strval($targetId)];
+        }
+        return $this->users[$key];
+    }
+
     /** @var array<string, array{0: string, 1: string}> */
     protected $users = [];
 
@@ -680,7 +841,7 @@ class AuditReport
         }
         $key = strval($userId);
         if (!isset($this->users[$key])) {
-            $user = getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::withTrashed()->find($userId);
+            $user = getModelName(SystemTableName::USER)::withTrashed()->find($userId);
             $this->users[$key] = isset($user)
                 ? [strval(array_get($user->value ?? [], 'user_code')), strval(array_get($user->value ?? [], 'user_name'))]
                 : ['', '#' . $key];
@@ -715,8 +876,13 @@ class AuditReport
 
     public static function permissionText(string $permission): string
     {
-        $key = 'role_group.role_type_option_system.' . $permission . '.label';
-        return \Lang::has('exment::exment.' . $key) ? strval(exmtrans($key)) : $permission;
+        foreach (['system', 'role_group', 'table', 'master', 'plugin', 'value'] as $group) {
+            $key = 'role_group.role_type_option_' . $group . '.' . $permission . '.label';
+            if (\Lang::has('exment::exment.' . $key)) {
+                return strval(exmtrans($key));
+            }
+        }
+        return $permission;
     }
 
     /**

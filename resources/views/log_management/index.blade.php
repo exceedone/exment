@@ -55,6 +55,11 @@
                 <div class="col-sm-6 help-block">{{ exmtrans('log_management.setting.days_help', ['default' => $defaults['login_log']]) }}</div>
             </div>
             <div class="form-group">
+                <label class="col-sm-3 control-label" for="log_retention_permission_change">{{ exmtrans('log_management.setting.permission_change_days') }}</label>
+                <div class="col-sm-3"><input type="number" min="0" class="form-control" id="log_retention_permission_change" name="log_retention_permission_change" value="{{ old('log_retention_permission_change', $settings['log_retention_permission_change']) }}" placeholder="{{ $defaults['permission_change'] }}"></div>
+                <div class="col-sm-6 help-block">{{ exmtrans('log_management.setting.days_help', ['default' => $defaults['permission_change']]) }}</div>
+            </div>
+            <div class="form-group">
                 <label class="col-sm-3 control-label" for="log_retention_app_log">{{ exmtrans('log_management.setting.app_log_days') }}</label>
                 <div class="col-sm-3"><input type="number" min="0" class="form-control" id="log_retention_app_log" name="log_retention_app_log" value="{{ old('log_retention_app_log', $settings['log_retention_app_log']) }}" placeholder="{{ $defaults['app_log'] }}"></div>
                 <div class="col-sm-6 help-block">{{ exmtrans('log_management.setting.days_help', ['default' => $defaults['app_log']]) }}</div>

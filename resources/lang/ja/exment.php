@@ -5147,7 +5147,33 @@ IPアドレス: :ip
         'any' => 'どこからでも',
         'yes' => 'あり',
         'no' => 'なし',
+        'role_type' => [
+            'system' => 'システム',
+            'table' => 'テーブル',
+            'plugin' => 'プラグイン',
+        ],
+        'member_type' => [
+            'user' => 'ユーザー',
+            'organization' => '組織',
+        ],
+        'change' => [
+            'added' => '追加',
+            'removed' => '削除',
+        ],
+        'change_kind' => [
+            'group' => '役割グループ',
+            'permission' => '権限',
+            'member' => 'メンバー',
+        ],
+        'source' => [
+            'page' => '画面',
+            'api' => 'API',
+            'deleted' => 'ユーザー・組織の削除',
+        ],
         'section' => [
+            'role_group_permissions' => '役割グループの権限',
+            'role_group_members' => '役割グループのメンバー',
+            'permission_changes' => '役割グループの変更の履歴',
             'users' => 'ユーザー',
             'inactive' => '使っていないアカウント',
             'administrators' => '管理者',
@@ -5161,6 +5187,8 @@ IPアドレス: :ip
             'log_retention' => 'ログの保存期間',
         ],
         'note' => [
+            'role_group_permissions' => '役割グループごとの、今の権限です。',
+            'permission_changes' => '期間の中で、だれが権限やメンバーを足した・外したか。履歴は 7.3 から記録します。',
             'users' => 'ログインのアカウントすべて。最後のログインは記録にある最後の成功、パスワードの変更はパスワードの履歴にある最後のものです。',
             'inactive' => '最近 :days 日ログインしていないアカウント（一度もログインせず、作ってから :days 日より前のものも）。',
             'administrators' => 'システム管理者と、システムの権限を持つユーザー（本人か、所属する組織の役割グループから）。',
@@ -5171,6 +5199,16 @@ IPアドレス: :ip
             'public_forms' => 'URL を知っていればだれでも送れるページです。',
         ],
         'column' => [
+            'role_group' => '役割グループ',
+            'role_type' => '対象',
+            'permission_target' => 'テーブル・プラグイン',
+            'permissions' => '権限',
+            'member_type' => 'メンバー',
+            'member_code' => 'コード',
+            'member_name' => '名前',
+            'changed_user' => '変えた人',
+            'change' => '変更',
+            'source' => 'どこで',
             'user_code' => 'ユーザーコード',
             'user_name' => 'ユーザー名',
             'login_type' => 'ログインのしかた',
@@ -5301,6 +5339,7 @@ IPアドレス: :ip
         ],
         'setting' => [
             'login_log_days' => 'ログインの記録を残す日数',
+            'permission_change_days' => '役割グループの変更の履歴を残す日数',
             'app_log_days' => 'アプリのログ（日ごとのファイル）を残す日数',
             'days_help' => '空のとき :default 日。0 のとき、消すまで残します。',
             'app_level' => 'アプリのログの重さ',
@@ -5332,6 +5371,7 @@ IPアドレス: :ip
         'types' => [
             'operation_log' => '操作の記録',
             'login_log' => 'ログインの記録',
+            'permission_change' => '役割グループの変更の履歴',
             'app_log' => 'アプリのログ',
         ],
     ],
