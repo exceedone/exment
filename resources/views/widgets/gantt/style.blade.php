@@ -37,6 +37,8 @@
 .exment-gantt .gt-label a{color:#24323f;text-decoration:none;}
 .exment-gantt .gt-label a:hover{color:#3c8dbc;}
 .exment-gantt .gt-label .gt-indent{color:#98a5b1;font-size:11px;}
+.exment-gantt .gt-label .gt-tgl{color:#98a5b1;width:10px;cursor:pointer;}
+.exment-gantt .gt-row.gt-tree-hidden{display:none;}
 .exment-gantt .gt-dot{display:inline-block;width:8px;height:8px;border-radius:2px;flex:none;}
 .exment-gantt .gt-av{display:inline-flex;width:22px;height:22px;border-radius:50%;color:#fff;align-items:center;
   justify-content:center;font-size:10px;font-weight:700;flex:none;}

@@ -444,6 +444,13 @@ return [
         'system_slack' => 'Slack設定',
         'system_slack_user_column' => 'Slack ID設定列(ユーザー)',
         'system_line' => 'LINE設定',
+        'system_teams' => 'Teams（ワークフロー）',
+        'system_teams_workflow_url' => 'Teams のワークフローのアドレス',
+        'system_teams_workflow_unset' => '未設定',
+        'system_teams_workflow_set' => '設定済み（表示しません）',
+        'system_teams_workflow_url_new' => '新しいアドレス',
+        'system_teams_workflow_url_help' => 'Teams のワークフロー「Teams Webhook 要求を受信したとき」の URL（https）。秘密の値なので、もう一度は表示しません。空のままにすると、設定済みのものを使い続けます。ワークフローの作り方はマニュアル：:manual',
+        'system_teams_workflow_url_clear' => 'アドレスを消す',
         'system_line_channel_token' => 'チャネルアクセストークン',
         'system_line_channel_secret' => 'チャネルシークレット',
         'system_line_oa_basic_id' => 'LINE公式アカウント Basic ID',
@@ -733,6 +740,8 @@ return [
                 'explain' => '暗号化とセッションの署名に使うキーです。サイトごとに作った値が要ります。',
                 'warning' => 'APP_KEY がないか、見本の値のままです。',
                 'fix' => 'サーバーで php artisan key:generate を実行してください。すでに使っているサイトでは、キーを変えると暗号化して保存した値（メールサーバーのパスワードなど）が読めなくなります。そのときは設定し直してください。',
+                'shipped_warning' => 'APP_KEY が、ダウンロードした zip に入っていた値のままです。',
+                'shipped_fix' => 'サーバーで php artisan key:generate を実行してください。キーを変えると、全員がログインし直しになります。暗号化して保存した値（メールサーバーのパスワードなど）は読めなくなるので、設定し直してください。',
             ],
             'app_env' => [
                 'label' => '動かし方（APP_ENV）',
@@ -779,6 +788,16 @@ return [
                 'explain' => 'Exment と公式プラグインを新しい版にします。安全のための直しが出ているプラグインは、すぐに更新します。',
                 'warning' => '新しい版があります。',
                 'fix' => 'Exment はシステム設定の「バージョン」から、公式プラグインは機能の管理から更新してください。',
+            ],
+            'supported_versions' => [
+                'label' => 'PHP とデータベースの版',
+                'explain' => 'PHP とデータベースが安全のための直しを受けられるのは、決まった期間だけです。直しが出る版を使ってください（PHP 8.3 以上、MySQL 8.0・MariaDB 10.11・SQL Server 2016 以上）。',
+                'php_until' => ':date まで直しあり',
+                'php_ended' => 'PHP :version の安全のためのサポートは :date で終わりました。',
+                'php_ending' => 'PHP :version の安全のためのサポートは :date で終わります。',
+                'database_old' => ':database :version は、おすすめの版（:recommended 以上）より古い版です。',
+                'warning' => 'PHP :version の安全のためのサポートは :date で終わります。',
+                'fix' => 'PHP を 8.3 以上にしてください（レンタルサーバーでは、管理画面の PHP の版）。データベースは、おすすめの版にしてください。それまでも Exment は動きます。',
             ],
             'session_cookie' => [
                 'label' => 'セッションの cookie',
@@ -1557,6 +1576,8 @@ return [
     ],
 
     '2factor' => [
+        'login_unknown' => '不明',
+        'login_location_separator' => '・',
         '2factor' => '2段階認証',
         'login' => '認証',
         'submit_verify_code' => '認証コード送信',
@@ -2406,6 +2427,8 @@ return [
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',
         'default_flg' => '既定のフォーム',
+        'check_missing_required' => 'このフォームにない必須の列も確かめる',
+        'check_missing_required_help' => 'オンにすると、このフォームにない必須の列が空のときは、このフォームから新しいデータを保存しません。オフのときは、その列は空のまま保存されます（公開フォームなど、一部の列だけのフォーム）。',
         'field_showing_type' => 'フィールド種類',
         'form_column_view_name' => 'フィールド表示名',
         'image_aslink' => '画像をリンクとして表示',
@@ -2469,6 +2492,7 @@ return [
         ],
 
         'message' => [
+            'missing_required_empty' => '保存しませんでした。必須の列 :names がこのフォームになく、値がありません。フォームに足すか、「このフォームにない必須の列も確かめる」をオフにしてください。',
             'no_exists_column' => '必須項目が設定されていません。',
             'confirm_required' => '必須項目が設定されていません。このまま保存してもよろしいでしょうか？',
             'image_need_delete' => '※画像を差し替える場合、列を一度削除後、再度追加してください。',
@@ -3814,6 +3838,7 @@ return [
         ],
 
         'role_type_option_system' => [
+            'audit' => ['label' => '監査', 'help' => 'ログと IT 監査のレポートを見られます（変えることはできません）。'],
             'system' => ['label' => 'システム管理', 'help' => 'Exmentのすべての機能を使用・設定・変更できます。'],
             'login_user' => ['label' => 'ユーザーログイン設定', 'help' => 'ユーザーに、ログインするためのパスワード付与や、パスワードリセットなど行うことができます。<br/>※ユーザーアカウントの追加・変更は、下記の「マスター権限設定」の「ユーザー」の、「データ編集」にチェックを行ってください。'],
             'filter_multiuser_all' => ['label' => '全ユーザー・組織取得', 'help' => '「ユーザー・組織のフィルター」の設定に関わらず、全ユーザー・組織の情報を取得できます。'],
@@ -4357,6 +4382,8 @@ return [
         'notify_action_target' => '通知対象',
         'mail_template_id' => '通知テンプレート',
         'flex_template_id' => 'LINE Flexテンプレート',
+        'teams_open' => '開く',
+        'teams_setting_link' => 'Teams のワークフローの設定',
         'line_show_detail' => '詳細を見る',
         'notify_button_name' => 'ボタン表示名',
         'notify_select' => '送信先選択',
@@ -4386,6 +4413,7 @@ return [
             'notify_action_target_add_workflow' => '※「作業実施者」に通知を行う場合、「通知条件設定」の「作業実施者にも通知する」をYESにしてください。',
             'mail_template_id' => '送付する通知のテンプレートを選択します。テンプレートを新規作成する場合、事前に通知テンプレート画面にて、新規テンプレートを作成してください。',
             'flex_template_id' => 'LINEに送る Flex メッセージのテンプレート。選択するとカード形式で送信します（未選択ならテキスト送信）。承認・却下ボタンは、対象テーブルにワークフローがあり受信者に実行権限がある場合のみ自動で付きます。',
+            'teams_personal' => '通知先のユーザーの Teams のチャットに、システム設定の Teams のワークフローから送ります（ユーザーのメールアドレスが Teams のアカウントです）。',
             'webhook_url' => 'SlackまたはTeams通知を行うには、Webhook URLを取得する必要があります。詳しくは<a href="%s" target="_blank">こちら</a>をご覧ください。 ',
             'mention_here' => '指定のチャンネルで、ステータスがアクティブになっているメンバー全員に通知を行う、「@here」メンションを送ります。※個別のメンションを行うには、下の「通知対象」項目を設定してください。',
             'slack_user_column_not_setting' => '※システム設定の「Slack ID設定列(ユーザー)」が登録されていません。Slack IDを登録する列を指定後、通知対象を設定できます。',
@@ -4411,6 +4439,7 @@ return [
             'show_page' => 'システム内アラート',
             'slack' => 'Slack通知',
             'microsoft_teams' => 'Microsoft Teams通知',
+            'teams_personal' => 'Teams（個人あて）',
             'line' => 'LINE通知',
         ],
 
@@ -4871,6 +4900,8 @@ return [
             'safety_check' => '安否確認',
             'data_maintenance' => 'データメンテナンス',
             'data_maintenance_help' => 'テーブルのデータを、テーブルの管理者がまとめて整理します（いまは添付ファイルのまとめての削除）。消したファイルは元に戻せません。テーブルの設定の権限があるユーザーが使えます。',
+            'teams_notify' => 'Teams の通知（個人のチャット）',
+            'teams_notify_help' => 'Teams のワークフロー（Power Automate）を通して、その人の Teams のチャットに通知を送ります。ワークフローのアドレスはシステム設定で設定します。',
             'safety_check_help' => '地震のときなどに、ユーザーの無事を確かめます（送る画面・回答の画面・地震の情報での自動送信・LINE での回答）。使わないにしても、送った記録と回答は消えません。',
             'tuning' => 'チューニング',
             'tuning_help' => 'サイトを速くする設定の確認（「設定：システム」の「チューニング」）。システム管理者だけが使えます。直すのは php.ini・.env などサーバーの設定です。',
@@ -5022,6 +5053,14 @@ return [
         ],
     ],
 
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => '操作の記録',
+            'login_log' => 'ログインの記録',
+            'app_log' => 'アプリのログ',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => '決まった時間の処理',
         'description' => 'サーバーの cron（schedule:run）が決まった時間に動かす処理の一覧です。',
@@ -5084,6 +5123,7 @@ return [
             'file_server_purge' => 'ファイル共有：ごみ箱を空にする',
             'meili_reconcile' => '全文検索：索引を直す',
             'maintenance_tick' => 'メンテナンスモード：予定の開始と終了',
+            'log_maintenance' => 'ログ：古いものを消す',
             'batch' => 'プラグインのバッチ：:name',
         ],
         'cron' => [

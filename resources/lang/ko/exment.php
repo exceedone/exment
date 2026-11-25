@@ -429,6 +429,13 @@ return [
         'system_slack' => 'Slack 설정',
         'system_slack_user_column' => 'Slack ID 설정 열(사용자)',
         'system_line' => 'LINE 설정',
+        'system_teams' => 'Teams(워크플로)',
+        'system_teams_workflow_url' => 'Teams 워크플로의 주소',
+        'system_teams_workflow_unset' => '설정되지 않음',
+        'system_teams_workflow_set' => '설정됨(표시하지 않음)',
+        'system_teams_workflow_url_new' => '새 주소',
+        'system_teams_workflow_url_help' => 'Teams 워크플로 "Teams 웹후크 요청을 받은 경우"의 URL(https). 비밀 값이므로 다시 표시하지 않습니다. 비워 두면 설정된 주소를 계속 사용합니다. 워크플로 만드는 방법은 매뉴얼: :manual',
+        'system_teams_workflow_url_clear' => '주소 삭제',
         'system_line_channel_token' => '채널 액세스 토큰',
         'system_line_channel_secret' => '채널 시크릿',
         'system_line_oa_basic_id' => 'LINE 공식 계정 Basic ID',
@@ -713,6 +720,8 @@ return [
                 'explain' => '암호화와 세션 서명에 사용하는 키입니다. 사이트마다 고유한 값이 필요합니다.',
                 'warning' => 'APP_KEY가 없거나 샘플 값 그대로입니다.',
                 'fix' => '서버에서 php artisan key:generate를 실행하십시오. 이미 사용 중인 사이트에서 키를 변경하면 암호화하여 저장한 값(메일 서버 비밀번호 등)을 읽을 수 없게 됩니다. 이 경우 다시 설정하십시오.',
+                'shipped_warning' => 'APP_KEY가 다운로드한 zip에 포함된 값 그대로입니다.',
+                'shipped_fix' => '서버에서 php artisan key:generate를 실행하십시오. 그러면 모든 사용자가 로그아웃되어 다시 로그인해야 합니다. 암호화하여 저장한 값(메일 서버 비밀번호 등)은 읽을 수 없게 되므로 다시 설정하십시오.',
             ],
             'app_env' => [
                 'label' => '실행 환경(APP_ENV)',
@@ -759,6 +768,16 @@ return [
                 'explain' => 'Exment와 공식 플러그인을 최신 버전으로 유지합니다. 보안 수정이 공개된 플러그인은 즉시 업데이트합니다.',
                 'warning' => '새 버전이 있습니다.',
                 'fix' => 'Exment는 시스템 설정의 "버전"에서, 공식 플러그인은 기능 관리에서 업데이트하십시오.',
+            ],
+            'supported_versions' => [
+                'label' => 'PHP 및 데이터베이스의 버전',
+                'explain' => 'PHP와 데이터베이스는 정해진 기간에만 보안 수정을 받습니다. 아직 수정을 받는 버전을 사용하십시오(PHP 8.3 이상, MySQL 8.0, MariaDB 10.11, SQL Server 2016 이상).',
+                'php_until' => ':date까지 수정 제공',
+                'php_ended' => 'PHP :version의 보안 지원은 :date에 종료되었습니다.',
+                'php_ending' => 'PHP :version의 보안 지원은 :date에 종료됩니다.',
+                'database_old' => ':database :version은(는) 권장 버전(:recommended 이상)보다 오래된 버전입니다.',
+                'warning' => 'PHP :version의 보안 지원은 :date에 종료됩니다.',
+                'fix' => 'PHP를 8.3 이상으로 업데이트하십시오(임대 서버에서는 관리 화면의 PHP 버전). 데이터베이스는 권장 버전으로 업데이트하십시오. 그때까지도 Exment는 동작합니다.',
             ],
             'session_cookie' => [
                 'label' => '세션 cookie',
@@ -1486,6 +1505,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => '알 수 없음',
+        'login_location_separator' => ', ',
         '2factor' => '2단계 인증',
         'login' => '인증',
         'submit_verify_code' => '인증 코드 전송',
@@ -2308,6 +2329,8 @@ return [
         'changedata_column' => '링크 열 선택',
         'changedata_column_then' => '의 값을 복사',
         'default_flg' => '기본 폼',
+        'check_missing_required' => '이 양식에 없는 필수 열도 확인',
+        'check_missing_required_help' => '켜면, 이 양식에 없는 필수 열이 비어 있을 때 이 양식에서 새 데이터를 저장하지 않습니다. 끄면 그 열은 빈 채로 저장됩니다(공개 양식 등 일부 열만 있는 양식).',
         'field_showing_type' => '필드 유형',
         'form_column_view_name' => '필드 표시명',
         'image_aslink' => '이미지를 링크로 표시',
@@ -2364,6 +2387,7 @@ return [
             'lazy_load_enabled' => '편집 화면이 열린 후 이 자식 테이블을 자동으로 읽어 들입니다. 기존 데이터를 편집할 때 표 형식으로 표시되는 1:N 블록에서 사용할 수 있습니다. 읽기가 끝날 때까지 저장할 수 없습니다. 표 형식을 해제하고 폼을 저장하면 이 설정도 해제됩니다.',
         ],
         'message' => [
+            'missing_required_empty' => '저장하지 않았습니다. 필수 열 :names이(가) 이 양식에 없고 값이 없습니다. 양식에 추가하거나 "이 양식에 없는 필수 열도 확인"을 끄십시오.',
             'no_exists_column' => '필수 항목이 설정되지 않았습니다.',
             'confirm_required' => '필수 항목이 설정되지 않았습니다. 이대로 저장하시겠습니까?',
             'image_need_delete' => '※ 이미지를 교체하려면 열을 한 번 삭제한 후 다시 추가하십시오.',
@@ -3681,6 +3705,7 @@ return [
             'role_group' => '역할 그룹',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => '감사', 'help' => '로그와 IT 감사 보고서를 볼 수 있습니다(변경할 수 없습니다).'],
             'system' => [
                 'label' => '시스템 관리',
                 'help' => 'Exment의 모든 기능을 사용, 설정, 변경할 수 있습니다.',
@@ -4323,6 +4348,8 @@ return [
         'notify_action_target' => '알림 대상',
         'mail_template_id' => '알림 템플릿',
         'flex_template_id' => 'LINE Flex 템플릿',
+        'teams_open' => '열기',
+        'teams_setting_link' => 'Teams 워크플로 설정',
         'line_show_detail' => '상세 보기',
         'notify_button_name' => '버튼 표시 이름',
         'notify_select' => '수신 대상 선택',
@@ -4351,6 +4378,7 @@ return [
             'notify_action_target_add_workflow' => '※"작업 실행자"에게 알림을 보내려면 "알림 조건 설정"의 "작업 실행자에게도 알림"을 YES로 설정해 주십시오.',
             'mail_template_id' => '보낼 알림의 템플릿을 선택합니다. 템플릿을 새로 만들려면 미리 알림 템플릿 화면에서 새 템플릿을 작성해 주십시오.',
             'flex_template_id' => 'LINE으로 보낼 Flex 메시지 템플릿입니다. 선택하면 카드 형식으로 보냅니다(선택하지 않으면 텍스트로 보냅니다). 승인/반려 버튼은 대상 테이블에 워크플로가 있고 수신자에게 미처리 액션의 실행 권한이 있는 경우에만 자동으로 추가됩니다.',
+            'teams_personal' => '시스템 설정의 Teams 워크플로를 통해 대상 사용자의 Teams 채팅으로 보냅니다(사용자의 이메일 주소가 Teams 계정입니다).',
             'webhook_url' => 'Slack 또는 Teams 알림을 보내려면 Webhook URL을 받아야 합니다. <a href="%s" target="_blank">자세히 보기</a> <br/>Slack과 Teams는 서로 호환되지 않습니다.',
             'mention_here' => '지정한 채널에서 상태가 활성인 모든 멤버에게 알리는 "@here" 멘션을 보냅니다. ※개별 멘션을 하려면 아래의 "알림 대상" 항목을 설정해 주십시오.',
             'slack_user_column_not_setting' => '※시스템 설정의 "Slack ID 설정 열(사용자)"이 등록되어 있지 않습니다. Slack ID를 등록할 열을 지정한 후 알림 대상을 설정할 수 있습니다.',
@@ -4375,6 +4403,7 @@ return [
             'show_page' => '시스템 내 알림',
             'slack' => 'Slack',
             'microsoft_teams' => 'Microsoft Teams',
+            'teams_personal' => 'Teams(개인)',
             'line' => 'LINE',
         ],
         'notify_action_target_options' => [
@@ -4856,6 +4885,8 @@ return [
             'scheduled_jobs_help' => '서버의 cron(schedule:run)이 실행하는 작업의 목록, 최근 실행 기록, "지금 실행". 작업이 여러 번 연속으로 실패하면 시스템 관리자에게 알립니다. 사용하는 동안에만 기록을 남깁니다. 시스템 관리자만 사용할 수 있습니다.',
             'api_rate_raise' => 'API 한도 임시 상향',
             'api_rate_raise_help' => '사용자나 API 클라이언트가 기한까지 1분에 더 많은 API 요청을 할 수 있게 합니다. 데이터 가져오기나 이전 때 사용합니다. 기한이 지나면 원래 한도로 돌아갑니다. 시스템 관리자만 사용할 수 있습니다.',
+            'teams_notify' => 'Teams 알림(개인 채팅)',
+            'teams_notify_help' => 'Teams 워크플로(Power Automate)를 통해 그 사람의 Teams 채팅으로 알림을 보냅니다. 워크플로 주소는 시스템 설정에서 설정합니다.',
         ],
         'message_not_used_user' => '필요한 경우 관리자에게 문의해 주십시오.',
         'open_feature' => '기능 관리 열기',
@@ -4995,6 +5026,14 @@ return [
             'planned' => '유지보수가 예정되어 있습니다: :start_at부터 :end_at까지. 이 기간에는 사이트를 사용할 수 없습니다.',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => '조작 기록',
+            'login_log' => '로그인 기록',
+            'app_log' => '애플리케이션 로그',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => '예약 작업',
         'description' => '서버의 cron(schedule:run)이 정해진 시간에 실행하는 작업의 목록입니다.',
@@ -5057,6 +5096,7 @@ return [
             'file_server_purge' => '파일 공유: 휴지통 비우기',
             'meili_reconcile' => '전문 검색: 색인 복구',
             'maintenance_tick' => '유지보수 모드: 예정된 시작과 종료',
+            'log_maintenance' => '로그: 오래된 것 삭제',
             'batch' => '플러그인 배치: :name',
         ],
         'cron' => [

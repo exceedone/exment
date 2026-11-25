@@ -146,7 +146,7 @@ trait NotifyTrait
             ]);
 
         $system_slack_user_column = CustomColumn::getEloquent(System::system_slack_user_column());
-        $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK, NotifyAction::LINE] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::LINE];
+        $notify_action_target_filter = isset($system_slack_user_column) ? [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::SLACK, NotifyAction::LINE, NotifyAction::TEAMS_PERSONAL] : [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::LINE, NotifyAction::TEAMS_PERSONAL];
 
         /** @phpstan-ignore-next-line */
         $help = exmtrans("notify.help.notify_action_target");
@@ -175,7 +175,7 @@ trait NotifyTrait
             ->attribute([
                 'data-filter' => json_encode([
                     ['key' => 'notify_action', 'value' => $notify_action_target_filter],
-                    ['key' => 'notify_action', 'requiredValue' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::LINE]],
+                    ['key' => 'notify_action', 'requiredValue' => [NotifyAction::EMAIL, NotifyAction::SHOW_PAGE, NotifyAction::LINE, NotifyAction::TEAMS_PERSONAL]],
                 ])
             ])
             ->help($help);
@@ -270,6 +270,13 @@ trait NotifyTrait
                 ->escape(false);
             $form->ignore('notify_action_target_text');
         }
+
+        // Teams (personal): the address of the workflow is a system setting (ISS02863)
+        /** @phpstan-ignore-next-line */
+        $form->descriptionHtml(esc_html(exmtrans('notify.help.teams_personal')) . ' <a href="' . esc_html(admin_url('system?advanced=1')) . '">' . esc_html(exmtrans('notify.teams_setting_link')) . '</a>')
+            ->attribute([
+                'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::TEAMS_PERSONAL]])
+            ]);
 
         /** @phpstan-ignore-next-line */
         $form->select('flex_template_id', exmtrans('notify.flex_template_id'))
