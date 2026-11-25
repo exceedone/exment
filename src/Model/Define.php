@@ -206,6 +206,10 @@ class Define
         'log_app_level' => ['group' => 'log_management'],
         'log_app_daily' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
         'operation_log_scope' => ['default' => 'all', 'group' => 'log_management'],
+        // the archive of the old logs before they are deleted (part 3)
+        'log_archive_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'log_archive_driver' => ['default' => 'local', 'group' => 'log_management'],
+        'log_archive_years' => ['type' => 'int', 'group' => 'log_management'],
 
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],

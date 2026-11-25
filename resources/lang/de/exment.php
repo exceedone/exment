@@ -5043,6 +5043,18 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'archive' => [
+            'header' => 'Archiv',
+            'enabled' => 'Alte Protokolle vor dem Löschen in eine gzip-Datei pro Monat legen',
+            'enabled_help' => 'Die Anmeldeprotokolle, das Vorgangsprotokoll und die täglichen Dateien des Anwendungsprotokolls. Aus: ohne Archiv gelöscht (wie bisher).',
+            'driver' => 'Ort des Archivs',
+            'driver_local' => 'Dieser Server (storage/app/log_archive, nur für den Eigentümer lesbar)',
+            'driver_backup' => 'Wo die Sicherungen liegen (S3, wenn die Sicherungen auf S3 liegen)',
+            'years' => 'Jahre, die das Archiv aufbewahrt wird',
+            'years_help' => 'Leer oder 0: bis zum Löschen aufbewahrt.',
+            'help' => 'Nur Systemadministratoren laden sie herunter: Sie können personenbezogene Daten enthalten.',
+            'none' => 'Kein Archiv.',
+        ],
         'header' => 'Protokollverwaltung',
         'description' => 'Die Protokolle der Website: wie lange jedes aufbewahrt wird, ihre Größe, die Anmeldeprotokolle und die Dateien des Anwendungsprotokolls.',
         'types_header' => 'Arten von Protokollen',

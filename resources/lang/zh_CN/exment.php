@@ -5043,6 +5043,18 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'archive' => [
+            'header' => '归档',
+            'enabled' => '删除旧日志前，按月汇总为 gzip 文件',
+            'enabled_help' => '登录记录、操作记录和应用日志的按日文件。关闭时：不归档直接删除（与以前一样）。',
+            'driver' => '归档位置',
+            'driver_local' => '本服务器（storage/app/log_archive，仅所有者可读）',
+            'driver_backup' => '与备份相同的位置（备份在 S3 时为 S3）',
+            'years' => '归档保留年数',
+            'years_help' => '留空或 0：保留至删除。',
+            'help' => '可能包含个人信息，因此只有系统管理员可以下载。',
+            'none' => '没有归档。',
+        ],
         'header' => '日志管理',
         'description' => '本站点的日志：各类日志的保留天数、大小、登录记录和应用日志文件。',
         'types_header' => '日志类型',

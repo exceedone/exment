@@ -119,6 +119,20 @@ class LogClearCommand extends Command
                 break;
             }
 
+            // into the archive of the log management first, when it is used (ISS02839)
+            if (\Exceedone\Exment\Services\LogManagement\LogArchiver::enabled()) {
+                $columns = \Exceedone\Exment\Services\LogManagement\LogCatalog::OPERATION_LOG_COLUMNS;
+                $rows = OperationLog::whereIn('id', $ids)->orderBy('id')->get()->map(function ($row) use ($columns) {
+                    return array_map(function ($column) use ($row) {
+                        $value = $row->{$column};
+                        return $value instanceof \DateTimeInterface ? $value->format('Y-m-d H:i:s') : $value;
+                    }, $columns);
+                })->all();
+                \Exceedone\Exment\Services\LogManagement\LogArchiver::rows('operation_log', $columns, $rows, function ($row) use ($columns) {
+                    return substr(strval($row[array_search('created_at', $columns, true)]), 0, 7);
+                });
+            }
+
             $count = OperationLog::whereIn('id', $ids)->delete();
             $deleted += $count;
         } while ($count > 0 && $ids->count() === self::CHUNK_SIZE);

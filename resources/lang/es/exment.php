@@ -5043,6 +5043,18 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'archive' => [
+            'header' => 'Archivo',
+            'enabled' => 'Guardar los registros antiguos en un archivo gzip por mes antes de eliminarlos',
+            'enabled_help' => 'Los inicios de sesión, el registro de operaciones y los archivos diarios del registro de la aplicación. Desactivado: se eliminan sin archivo (como antes).',
+            'driver' => 'Ubicación del archivo',
+            'driver_local' => 'Este servidor (storage/app/log_archive, solo legible por el propietario)',
+            'driver_backup' => 'Donde están las copias de seguridad (S3 si las copias están en S3)',
+            'years' => 'Años que se conserva el archivo',
+            'years_help' => 'Vacío o 0: se conserva hasta eliminarlo.',
+            'help' => 'Solo los administradores del sistema los descargan: pueden contener datos personales.',
+            'none' => 'No hay archivos.',
+        ],
         'header' => 'Gestión de registros',
         'description' => 'Los registros del sitio: cuánto tiempo se conserva cada uno, su tamaño, los inicios de sesión y los archivos del registro de la aplicación.',
         'types_header' => 'Tipos de registros',

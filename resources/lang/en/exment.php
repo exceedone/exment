@@ -5071,6 +5071,18 @@ return [
 
     // ISS02839
     'log_management' => [
+        'archive' => [
+            'header' => 'Archive',
+            'enabled' => 'Put the old logs in a gzip file a month before they are deleted',
+            'enabled_help' => 'The login records, the operation log and the daily files of the application log. Off: they are deleted without an archive (as before).',
+            'driver' => 'Where the archive goes',
+            'driver_local' => 'This server (storage/app/log_archive, readable by the owner only)',
+            'driver_backup' => 'Where the backups go (S3 when the backups are on S3)',
+            'years' => 'Years the archive is kept',
+            'years_help' => 'Empty or 0: kept until deleted.',
+            'help' => 'Only the system administrators download them: they may hold personal data.',
+            'none' => 'No archive.',
+        ],
         'header' => 'Log Management',
         'description' => 'The logs of the site: how long each is kept, their sizes, the login records and the files of the application log.',
         'types_header' => 'Kinds of logs',
