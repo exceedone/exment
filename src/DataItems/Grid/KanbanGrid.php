@@ -1728,7 +1728,7 @@ class KanbanGrid extends GridBase
         }
 
         if ($state['keyword'] !== '') {
-            $this->applyKeyword($query, $state['keyword'], $context['value_columns']);
+            $this->applyKeyword($query, $state['keyword'], $this->keywordColumns($context['value_columns']));
         }
 
         $only = (array)$state['only'];
@@ -2405,7 +2405,7 @@ class KanbanGrid extends GridBase
         $has_more = false;
         foreach ($this->getBoardKeys($group_column, $workflow, $hide_keys) as $key) {
             $query = $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key);
-            $this->applyKeyword($query, $keyword, $context['value_columns']);
+            $this->applyKeyword($query, $keyword, $this->keywordColumns($context['value_columns']));
             $rows = $query->take($col_count + 1)->get();
             if ($rows->count() > $col_count) {
                 $has_more = true;
@@ -2428,6 +2428,42 @@ class KanbanGrid extends GridBase
             ),
             'has_more' => $has_more,
         ];
+    }
+
+
+    /**
+     * The columns a keyword is looked for in: the ones the cards carry, and the
+     * columns of the record's label, which every card shows as its name and the
+     * browser searches too (visible(): label, title and values). Without them a
+     * keyword typed from a card's name found nothing on the server (#2185).
+     * A label written as a format (expert mode) is not a column and is left out.
+     *
+     * @param array<string, CustomColumn> $value_columns
+     * @return array<string, CustomColumn>
+     */
+    protected function keywordColumns(array $value_columns): array
+    {
+        $label_columns = $this->custom_table->getLabelColumns();
+        if (is_string($label_columns)) {
+            return $value_columns;
+        }
+
+        $columns = [];
+        if (!isset($label_columns) || count($label_columns) == 0) {
+            // the label is then the first column, as CustomValue::getBasicLabel()
+            $columns[] = $this->custom_table->custom_columns_cache->first();
+        } else {
+            foreach ($label_columns as $label_column) {
+                $columns[] = $label_column instanceof CustomColumn ? $label_column : CustomColumn::getEloquent($label_column->table_label_id);
+            }
+        }
+        foreach ($columns as $custom_column) {
+            if ($custom_column instanceof CustomColumn && !isset($value_columns[$custom_column->column_name])) {
+                $value_columns[$custom_column->column_name] = $custom_column;
+            }
+        }
+
+        return $value_columns;
     }
 
 
