@@ -454,8 +454,11 @@ $(function () {
     // filter keystroke.
     var cellStyles = D.card_styles || {};
     var cellCache = {};
+    var separateWord = String(D.separate_word || '');
     function cellHTML(f, options) {
-        var key = f.key + '\u0000' + f.value + '\u0000' + f.text + '\u0000' + f.icon;
+        var parts = $.isArray(f.parts) ? f.parts : null;
+        var key = f.key + '\u0000' + f.value + '\u0000' + f.text + '\u0000' + f.icon
+            + (parts ? '\u0000' + JSON.stringify(parts) : '');
         if (cellCache[key] !== undefined) { return cellCache[key]; }
 
         // The card's icon setting may name one icon per value, which a preset
@@ -464,9 +467,21 @@ $(function () {
 
         // The palette colours arrive already written out per value, so the
         // renderer never needs the option order this board does not carry.
-        var html = $('<span>').append(
-            Exment.CellStylePresetEvent.sample(options, f.value, f.text, null)
-        ).html();
+        var $box = $('<span>');
+        if (parts) {
+            // A multi-value field drawn as shapes: one shape per value, in the
+            // color of its own value, as the data list draws it (#2159). The
+            // separator stays for the text of the card, hidden by css.
+            $.each(parts, function (i, part) {
+                if (i > 0 && separateWord !== '') {
+                    $box.append($('<span>', { 'class': 'exm-cell-sep', text: separateWord }));
+                }
+                $box.append(Exment.CellStylePresetEvent.sample(options, part.value, part.text, null));
+            });
+        } else {
+            $box.append(Exment.CellStylePresetEvent.sample(options, f.value, f.text, null));
+        }
+        var html = $box.html();
 
         cellCache[key] = html;
         return html;
