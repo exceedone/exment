@@ -762,6 +762,16 @@ return [
                 'warning' => 'Đã có phiên bản mới hơn.',
                 'fix' => 'Vui lòng cập nhật Exment từ mục "Phiên bản" trong cài đặt hệ thống, và cập nhật các plugin chính thức từ quản lý tính năng.',
             ],
+            'supported_versions' => [
+                'label' => 'Phiên bản của PHP và cơ sở dữ liệu',
+                'explain' => 'PHP và cơ sở dữ liệu chỉ nhận bản sửa lỗi bảo mật trong một thời gian nhất định. Hãy dùng phiên bản vẫn còn nhận: PHP 8.3 trở lên, MySQL 8.0, MariaDB 10.11 hoặc SQL Server 2016 trở lên.',
+                'php_until' => 'có bản sửa đến :date',
+                'php_ended' => 'Hỗ trợ bảo mật của PHP :version đã kết thúc vào :date.',
+                'php_ending' => 'Hỗ trợ bảo mật của PHP :version sẽ kết thúc vào :date.',
+                'database_old' => ':database :version cũ hơn phiên bản khuyến nghị (:recommended trở lên).',
+                'warning' => 'Hỗ trợ bảo mật của PHP :version sẽ kết thúc vào :date.',
+                'fix' => 'Hãy nâng PHP lên 8.3 trở lên (với máy chủ thuê, phiên bản PHP trong trang quản lý). Hãy nâng cơ sở dữ liệu lên phiên bản khuyến nghị. Exment vẫn chạy cho đến lúc đó.',
+            ],
             'session_cookie' => [
                 'label' => 'Cookie phiên',
                 'explain' => 'Cookie đăng nhập: JavaScript không đọc được, không gửi kèm yêu cầu từ trang khác, và khi dùng https thì chỉ gửi qua https.',
