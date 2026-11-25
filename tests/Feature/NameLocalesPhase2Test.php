@@ -110,6 +110,7 @@ class NameLocalesPhase2Test extends FeatureTestBase
         $dashboard = Dashboard::query()->orderBy('id')->firstOrFail();
         $dashboard->name_locales = ['en' => 'Dashboard (en)'];
         $dashboard->save();
+        $before = Dashboard::query()->where('id', $dashboard->id)->firstOrFail()->name_locales;
         $stored = strval($dashboard->getRawOriginal('dashboard_view_name'));
         $this->beEnglish();
 
@@ -122,7 +123,13 @@ class NameLocalesPhase2Test extends FeatureTestBase
         ]);
         $saved = Dashboard::query()->where('id', $dashboard->id)->firstOrFail();
         $this->assertSame($stored, $saved->getRawOriginal('dashboard_view_name'));
-        $this->assertSame(['de' => 'Dashboard (de)', 'en' => 'Dashboard (en)'], $saved->name_locales);
+        // the two languages sent; the names the system template gave in the others stay
+        $locales = $saved->name_locales;
+        $this->assertSame('Dashboard (de)', $locales['de'] ?? null);
+        $this->assertSame('Dashboard (en)', $locales['en'] ?? null);
+        foreach (array_diff_key($before, ['de' => 1, 'en' => 1]) as $locale => $name) {
+            $this->assertSame($name, $locales[$locale] ?? null, "$locale stays");
+        }
     }
 
     /**
