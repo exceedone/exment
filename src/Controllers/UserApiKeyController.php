@@ -41,6 +41,7 @@ class UserApiKeyController extends AdminControllerBase
     /**
      * The keys of the login user, and the form to make one.
      *
+     * @param array<int, string> $newScopes the scopes of the key just made (the settings of MCP carry it when they fit)
      * @return Content
      */
     public function index(Request $request, Content $content, ?string $newKey = null, ?string $error = null, ?string $errorLink = null, array $newScopes = [])

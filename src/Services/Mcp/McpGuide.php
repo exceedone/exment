@@ -132,7 +132,7 @@ class McpGuide
         }
         $out = [];
         foreach ($rows as $row) {
-            $login = LoginUser::find($row->user_id);
+            $login = LoginUser::query()->where('id', intval($row->user_id))->first();
             $user = $login ? $login->base_user : null;
             $out[] = [
                 'user' => $user ? strval($user->getLabel()) : ('#' . $row->user_id),
