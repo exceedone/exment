@@ -110,6 +110,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
+        \Exceedone\Exment\Console\TrashPurgeCommand::class,
         \Exceedone\Exment\Console\AuditReportCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
@@ -669,6 +670,8 @@ class ExmentServiceProvider extends ServiceProvider
         // the logs older than they are kept (ISS02839)
         $schedule->command('exment:log-maintenance')->dailyAt('03:40')->withoutOverlapping(60);
 
+        // the deleted data past the days of its table: archived, then deleted for good (ISS00147)
+        $schedule->command('exment:trash-purge')->dailyAt('03:50')->withoutOverlapping(120);
         // the IT audit report of the month or the quarter before, when it is set (ISS02840)
         $schedule->command('exment:audit-report')->dailyAt('04:10')->withoutOverlapping(60);
 
