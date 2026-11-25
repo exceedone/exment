@@ -715,6 +715,7 @@ class Initialize
             'progressTracker'          => Field\ProgressTracker::class,
             'sectionNav'          => Field\SectionNav::class,
             'systemValues'          => Field\SystemValues::class,
+            'relationSearchList'          => Field\RelationSearchList::class,
 
             ///// workflow
             'workflowStatusSelects'          => Field\Workflow\StatusSelects::class,
