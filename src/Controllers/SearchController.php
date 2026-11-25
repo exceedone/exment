@@ -450,20 +450,10 @@ class SearchController extends AdminControllerBase
     protected function getSearchTargetRelationTable($value_table)
     {
         $results = [];
-        // get relation tables
-        $relationTables = $value_table->getRelationTables();
         // 1. For self-table
         $results[] = $this->getTableArray($value_table, SearchType::SELF);
-        ///// loop and add $results
-        $searchTypes = [];
-        foreach ($relationTables as $relationTable) {
-            // check already setted search type
-            $key = "{$relationTable->table->id}-$relationTable->searchType";
-            if (in_array($key, $searchTypes)) {
-                continue;
-            }
-            $searchTypes[] = $key;
-
+        // 2. the related tables, each once: the ones the table setting shows, in its order (#1570)
+        foreach (\Exceedone\Exment\Services\Search\RelationSearchSetting::shown($value_table) as $relationTable) {
             $results[] = $this->getTableArray($relationTable->table, $relationTable->searchType);
         }
         return $results;
