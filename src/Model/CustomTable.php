@@ -1831,7 +1831,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      *
      * @param string|null $q
      * @param array<string, mixed> $options the options of searchValue
-     * @return \Illuminate\Pagination\AbstractPaginator
+     * @return mixed the page (a paginator of CustomValue)
      */
     protected function searchValuePageInOrder($q, array $options)
     {
@@ -1870,9 +1870,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $paginates = boolval($options['simplePaginate'] ?? false) ? $query->simplePaginate($options['maxCount']) : $query->paginate($options['maxCount']);
 
         if (boolval($options['makeHidden'])) {
-            // @phpstan-ignore-next-line
             $data = $paginates->makeHidden($this->getMakeHiddenArray());
-            // @phpstan-ignore-next-line
             $paginates->data = $data;
         }
         if (boolval($options['getLabel'])) {
