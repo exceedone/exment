@@ -165,6 +165,14 @@ HTML;
             : strval($value);
 
         try {
+            // system and workflow columns name their values themselves (#2162): a blank record
+            // has no created_user_id, workflow_value or "YES" to show
+            if (is_object($item) && method_exists($item, 'chipText')) {
+                $text = $item->chipText($value);
+                if (!is_nullorempty($text)) {
+                    return strval($text);
+                }
+            }
             $custom_table = $item->getCustomTable();
             $name = $item->name();
             if ($custom_table && !is_nullorempty($name)) {

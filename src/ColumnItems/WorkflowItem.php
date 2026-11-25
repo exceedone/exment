@@ -115,6 +115,35 @@ class WorkflowItem extends SystemItem
         }
     }
 
+    /**
+     * The chip of a list filtered by a workflow column (#2162): "YES" for the work users (the
+     * checkbox of the filter), the names of the statuses chosen (not the start status of a blank
+     * record).
+     *
+     * @param mixed $value
+     */
+    public function chipText($value): ?string
+    {
+        $option = $this->getSystemColumnOption();
+        if (array_get($option, 'name') == SystemColumn::WORKFLOW_WORK_USERS) {
+            return 'YES';
+        }
+        $workflow = $this->getWorkflow();
+        if (!$workflow) {
+            return null;
+        }
+        $options = $workflow->getStatusOptions();
+        $names = [];
+        foreach ((array) $value as $key) {
+            if (is_nullorempty($key) || !is_scalar($key)) {
+                continue;
+            }
+            $key = strval($key);
+            $names[] = strval($options->get($key, $key));
+        }
+        return count($names) > 0 ? implode(', ', $names) : null;
+    }
+
     // @phpstan-ignore-next-line
     public function getFilterField($value_type = null)
     {

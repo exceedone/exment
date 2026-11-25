@@ -625,7 +625,7 @@ class DashboardBoxController extends AdminControllerBase
             $custom_table = null;
         }
         $results = [];
-        foreach ($custom_table ? $custom_table->custom_columns : [] as $custom_column) {
+        foreach (\Exceedone\Exment\Services\Dashboard\FilterBarForm::filterableColumns($custom_table) as $custom_column) {
             $results[] = [
                 'id' => $custom_column->column_name,
                 'text' => $custom_column->column_view_name . ' (' . $custom_column->column_name . ')',

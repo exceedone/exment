@@ -261,6 +261,13 @@ var Exment;
                 else if (trimAny(admin_base_path(''), '/') == uri) {
                     isMatch = (pathname == uri);
                 }
+                else if (uri.indexOf('*') !== -1) {
+                    // "*" is one part of the path, as an id (ex. workflow/*/design, #2156)
+                    const pattern = uri.split('/').map(function (part) {
+                        return part === '*' ? '[^/]+' : part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                    }).join('/');
+                    isMatch = new RegExp('^' + pattern + '(/|$)').test(pathname);
+                }
                 else {
                     isMatch = pathname.indexOf(uri) === 0;
                 }
@@ -667,7 +674,13 @@ var Exment;
                     if (clicks > 1) {
                         return;
                     }
-                    rowClickTimer = setTimeout(openRow, 250);
+                    rowClickTimer = setTimeout(function () {
+                        // A slower second click is still a dblclick for the browser (up to the double
+                        // click time of the OS): the inline editor (grid_tools.js) does not open on a
+                        // row that is already being opened (#2167).
+                        window.__exmRowOpenedAt = Date.now();
+                        openRow();
+                    }, 250);
                     return;
                 }
                 openRow();
