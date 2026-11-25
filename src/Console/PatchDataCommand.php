@@ -218,6 +218,9 @@ class PatchDataCommand extends Command
             case 'append_column_mail_custom_attachments':
                 $this->appendColumnMailCustomAttachments();
                 return 0;
+            case 'append_column_mail_send_result':
+                $this->appendColumnMailSendResult();
+                return 0;
             case 'notify_target_id':
                 $this->notifyTargetId();
                 return 0;
@@ -1944,6 +1947,17 @@ class PatchDataCommand extends Command
     protected function appendColumnMailCustomAttachments()
     {
         $this->appendCustomColumn('mail_template', 'custom_attachments');
+    }
+
+    /**
+     * append the result and the error columns to mail_send_log (ISS00161)
+     *
+     * @return void
+     */
+    protected function appendColumnMailSendResult()
+    {
+        $this->appendCustomColumn('mail_send_log', 'send_result');
+        $this->appendCustomColumn('mail_send_log', 'send_error');
     }
 
     // @phpstan-ignore-next-line

@@ -213,6 +213,9 @@ class Define
         'operation_log_automatic_executed' => ['type' => 'datetime'],
         // the days the logs are kept (ISS02839, Services\LogManagement\LogCatalog); empty: the default
         'log_retention_login_log' => ['type' => 'int', 'group' => 'log_management'],
+        'log_retention_permission_change' => ['type' => 'int', 'group' => 'log_management'],
+        'audit_report_schedule' => ['default' => 'off', 'group' => 'log_management'],
+        'audit_report_mail' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
         'log_retention_app_log' => ['type' => 'int', 'group' => 'log_management'],
         'log_app_level' => ['group' => 'log_management'],
         'log_app_daily' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
@@ -435,6 +438,11 @@ class Define
         'cell_style_preset' => [
             'uri' => 'cell_style_preset',
             'icon' => 'fa-paint-brush',
+        ],
+        // the deleted rows of all the tables (ISS00334)
+        'trash' => [
+            'uri' => 'trash',
+            'icon' => 'fa-trash',
         ],
         'workflow' => [
             'uri' => 'workflow',

@@ -218,6 +218,7 @@ class AdminScreensSmokeTest extends FeatureTestBase
             'admin/table/{id}/copyModal' => ['table/1/copyModal'],
             'admin/table/{id}/edit' => ['table/1/edit'],
             'admin/template' => ['template'],
+            'admin/trash' => ['trash'],
             'admin/template/import' => ['template/import'],
             'admin/view/{tableKey}' => ['view/custom_value_edit_all'],
             'admin/view/{tableKey}/create' => ['view/custom_value_edit_all/create'],

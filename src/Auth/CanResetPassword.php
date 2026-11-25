@@ -28,7 +28,9 @@ trait CanResetPassword
         $sender = MailSender::make(MailKeyName::RESET_PASSWORD, $this->getEmailForPasswordReset())
             ->prms([
                 'system.password_reset_url' => admin_url("auth/reset/".$token)
-            ]);
+            ])
+            // the user is waiting for the link: not through the queue (ISS00161)
+            ->sendNow();
         $sender->send();
 
         return $sender;

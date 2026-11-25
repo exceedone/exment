@@ -489,7 +489,8 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
         if ($this->view_kind_type == ViewKindType::AGGREGATE) {
             $query = $options['query'] ?? $this->custom_table->getValueQuery();
-            return $this->getQuery($query, $options)->paginate($options['maxCount']);
+            $query = $this->getQuery($query, $options);
+            return boolval($options['simplePaginate'] ?? false) ? $query->simplePaginate($options['maxCount']) : $query->paginate($options['maxCount']);
         }
 
         // search all data using index --------------------------------------------------
@@ -542,32 +543,39 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
         // get table bodies
         $bodies = [];
         if (isset($datalist)) {
+            // What each column sets on its item is the same for every row: read once (the
+            // options of a view column are decoded on every read), set on every cell as before.
+            $valueType = ValueType::getEnum($options['valueType']);
+            $cellColumns = [];
+            foreach ($view_column_items as $view_column_item) {
+                $column = array_get($view_column_item, 'item');
+                $cellOptions = [];
+                if ($this->view_kind_type == ViewKindType::AGGREGATE) {
+                    $summary_condition = array_get($column, 'view_summary_condition');
+                    $cellOptions[] = [
+                        'summary' => true,
+                        'summary_index' => array_get($view_column_item, 'index'),
+                        'summary_condition' => $summary_condition,
+                        'group_condition' => array_get($column, 'view_group_condition'),
+                        'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
+                    ];
+                }
+                $cellOptions[] = [
+                    'view_pivot_column' => $column->view_pivot_column_id ?? null,
+                    'view_pivot_table' => $column->view_pivot_table_id ?? null,
+                    'grid_column' => true,
+                    'grid_preset' => $column->getOption('grid_preset'),
+                ];
+                $cellColumns[] = [$column->column_item, $cellOptions];
+            }
+
             foreach ($datalist as $data) {
                 $body_items = [];
-                foreach ($view_column_items as $view_column_item) {
-                    $column = array_get($view_column_item, 'item');
-                    $item = $column->column_item;
-                    if ($this->view_kind_type == ViewKindType::AGGREGATE) {
-                        $index = array_get($view_column_item, 'index');
-                        $summary_condition = array_get($column, 'view_summary_condition');
-                        $item->options([
-                            'summary' => true,
-                            'summary_index' => $index,
-                            'summary_condition' => $summary_condition,
-                            'group_condition' => array_get($column, 'view_group_condition'),
-                            'disable_currency_symbol' => ($summary_condition == SummaryCondition::COUNT),
-                        ]);
+                foreach ($cellColumns as [$item, $cellOptions]) {
+                    foreach ($cellOptions as $cellOption) {
+                        $item->options($cellOption);
                     }
-
-                    $item->options([
-                        'view_pivot_column' => $column->view_pivot_column_id ?? null,
-                        'view_pivot_table' => $column->view_pivot_table_id ?? null,
-                        'grid_column' => true,
-                        'grid_preset' => $column->getOption('grid_preset'),
-                    ]);
-
-                    $valueType = ValueType::getEnum($options['valueType']);
-                    $body_items[] = $valueType->getCustomValue($item, $data);
+                    $body_items[] = isset($valueType) ? $valueType->getCustomValue($item, $data) : null;
                 }
 
                 $link = '';
