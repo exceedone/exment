@@ -164,6 +164,8 @@ class Define
 
         'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
         'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        // the address of the Teams workflow (ISS02863): a secret, never shown again
+        'system_teams_workflow_url' => ['type' => 'password', 'group' => 'notify'],
         'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
 
         'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
