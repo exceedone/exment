@@ -511,4 +511,42 @@ class McpServerTest extends ApiTestBase
         $none = $this->data($this->tool($key, 'search_data', ['table' => 'custom_value_access_all', 'q' => 'no-record-has-these-words']));
         $this->assertSame(0, $none['count']);
     }
+
+    /**
+     * Read on through a search with words: every record the search of the data API finds, each
+     * once, the newest id first (ISS02885: the pages repeated records, the search had no order).
+     */
+    public function testSearchWithWordsReadsOnEachRecordOnce(): void
+    {
+        $this->setFeatures([Features::MCP => ['enabled' => true, 'role_groups' => null], Features::API_KEYS => ['enabled' => true, 'role_groups' => null]]);
+        $key = $this->key(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        config(['exment.mcp_max_rows' => 100]);
+        $args = ['table' => 'custom_value_access_all', 'q' => 'index'];
+
+        // what the search of the data API finds, all pages
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+        $expected = [];
+        for ($page = 1; $page <= 20; $page++) {
+            \Auth::forgetGuards();
+            $json = $this->withHeaders(['Authorization' => "Bearer $token"])
+                ->get(admin_urls('api', 'data', 'custom_value_access_all', 'query') . '?q=index&count=100&page=' . $page)
+                ->assertStatus(200)
+                ->json();
+            foreach ((array)($json['data'] ?? []) as $row) {
+                $expected[] = intval($row['id']);
+            }
+            if (!isset($json['next_page_url'])) {
+                break;
+            }
+        }
+        $this->assertGreaterThan(7, count($expected));
+        rsort($expected);
+
+        $ids = $this->readAllPages($key, $args + ['limit' => 7], PHP_INT_MAX);
+        $ints = [];
+        foreach ($ids as $id) {
+            $ints[] = intval($id);
+        }
+        $this->assertSame($expected, $ints, 'each record once, in the order of the newest id first');
+    }
 }

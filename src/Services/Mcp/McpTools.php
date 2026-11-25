@@ -28,9 +28,6 @@ class McpTools
     /** The longest search words. */
     public const MAX_QUERY_LENGTH = 200;
 
-    /** How far a search with words reads on with its cursor (the search reads from the start each time). */
-    public const MAX_SEARCH_DEPTH = 1000;
-
     /**
      * The names of the tools (only these are run and logged).
      *
@@ -375,18 +372,19 @@ class McpTools
         $cursor = $this->readCursor($args['cursor'] ?? null, $custom_table, $q);
 
         if ($q !== '') {
-            // the search has no order to read on from: it reads to the end of this page, and
-            // the records of the pages before are left out
-            $offset = intval($cursor['o'] ?? 0);
-            if ($offset + $limit > static::MAX_SEARCH_DEPTH) {
-                throw new ToolError('The search does not read on past ' . static::MAX_SEARCH_DEPTH . ' records: use more words.');
+            // The columns the table searches by words, as the search box of the data list
+            // (setSearchQueryOrWhere; searchValue with isApi and no columns searched no column).
+            // In one order, the newest id first, on from the last id of the page before: the
+            // search of searchValue has no order, so its pages would repeat and skip records.
+            $dbTable = getDBTableName($custom_table);
+            $query = $custom_table->getValueQuery();
+            $custom_table->getValueModel()->setSearchQueryOrWhere($query, $q);
+            if (isset($cursor)) {
+                $query->where($dbTable . '.id', '<', intval($cursor['i'] ?? 0));
             }
-            /** @var \Illuminate\Support\Collection<int, mixed> $found */
-            // the columns the table searches by words (as the search of the data API; with
-            // isApi and no columns given, searchValue searched no column and found nothing)
-            $found = $custom_table->searchValue($q, ['maxCount' => $offset + $limit]) ?? collect();
-            $more = $found->count() >= $offset + $limit;
-            $found = $found->slice($offset)->values();
+            $found = $query->orderByDesc($dbTable . '.id')->limit($limit + 1)->get();
+            $more = $found->count() > $limit;
+            $found = $found->take($limit);
         } else {
             // the newest first, on from the last record of the page before; one more than
             // asked, to know whether there are more
@@ -425,7 +423,7 @@ class McpTools
         $next = null;
         if ($last instanceof CustomValue && ($more || $stopped || $examined < $found->count())) {
             $next = $q !== ''
-                ? $this->makeCursor($custom_table, $q, ['o' => intval($cursor['o'] ?? 0) + $examined])
+                ? $this->makeCursor($custom_table, $q, ['i' => intval($last->id)])
                 : $this->makeCursor($custom_table, $q, ['u' => $last->getAttributes()['updated_at'] ?? null, 'i' => intval($last->id)]);
         }
 
