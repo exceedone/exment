@@ -1172,8 +1172,10 @@ EOT);
 
         \Exment::setTimeLimitLong();
 
-        // The button of the record's page is not shown when the form does not
-        // allow editing from display, the bulk update of the list is.
+        // The button of the record's page runs as it is shown
+        // (CustomOperation::enableButton): the table's "Disable on screen" of
+        // editing does not stop it (#2171), the permission to edit the record,
+        // the workflow lock and the operation's conditions do.
         $response = $operation->execute($this->custom_table, $ids, $request->all(), !is_nullorempty($id));
 
         if ($response === true) {

@@ -86,6 +86,22 @@ class OperationButtonWorkflowLockedTest extends FeatureTestBase
         $this->assertStringNotContainsString($this->buttonId($operation), $content);
     }
 
+    /**
+     * The button shown for a locked data runs too (CustomOperation::enableButton); without the
+     * option the request is refused as before.
+     */
+    public function testButtonForALockedDataRunsWhenTheOptionIsOn(): void
+    {
+        $custom_value = $this->createValue();
+        $operation = $this->createOperation(false);
+        $operation_locked = $this->createOperation(true);
+        $this->lock($custom_value);
+
+        $this->click($operation, $custom_value)->assertStatus(400)
+            ->assertJson(['result' => false, 'swaltext' => \Exceedone\Exment\Enums\ErrorCode::WORKFLOW_LOCK()->getMessage()]);
+        $this->click($operation_locked, $custom_value)->assertStatus(200)->assertJson(['result' => true]);
+    }
+
     public function testInactiveOperationHasNoButtonEvenWhenTheOptionIsOn(): void
     {
         $custom_value = $this->createValue();
@@ -180,6 +196,21 @@ class OperationButtonWorkflowLockedTest extends FeatureTestBase
         $reloaded = $this->table()->getValueModel($custom_value->id);
         $this->assertInstanceOf(CustomValue::class, $reloaded);
         $this->assertTrue($reloaded->lockedWorkflow(), 'the record should be locked by the workflow');
+    }
+
+    /**
+     * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
+     */
+    private function click(CustomOperation $operation, CustomValue $custom_value): \Illuminate\Testing\TestResponse
+    {
+        System::clearRequestSession();
+        foreach ($this->app['router']->getRoutes()->getRoutes() as $route) {
+            $route->flushController();
+        }
+
+        return $this->post(admin_urls('data', self::TABLE, $custom_value->id, 'operationClick'), [
+            'suuid' => $operation->suuid,
+        ], ['X-Requested-With' => 'XMLHttpRequest']);
     }
 
     private function getShowContent(CustomValue $custom_value): string
