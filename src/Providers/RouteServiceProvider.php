@@ -241,6 +241,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('security_check/fix', 'SecurityCheckController@fix');
             // the scheduled jobs (ISS02832)
             $router->get('scheduled_jobs', 'ScheduledJobController@index');
+            // the log management (ISS02839)
+            $router->get('log_management', 'LogManagementController@index');
+            $router->post('log_management/setting', 'LogManagementController@postSetting');
+            $router->get('log_management/logins.csv', 'LogManagementController@loginsCsv');
+            $router->get('log_management/files/{name}', 'LogManagementController@file')->where('name', '[A-Za-z0-9._-]+');
             $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
             // temporary raises of the API rate limit (ISS00442)
             $router->get('api_rate_raises', 'ApiRateRaiseController@index');

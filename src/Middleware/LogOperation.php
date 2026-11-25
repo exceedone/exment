@@ -56,6 +56,18 @@ class LogOperation extends BaseLogOperation
     }
 
     /**
+     * The methods kept: as the config says, and as the log management says (ISS02839: only the
+     * requests that change something, when it is chosen).
+     *
+     * @param string $method
+     * @return bool
+     */
+    protected function inAllowedMethods($method)
+    {
+        return \Exceedone\Exment\Services\LogManagement\LogSettings::logsMethod(strval($method)) && parent::inAllowedMethods($method);
+    }
+
+    /**
      * Determine if the request has a URI that should pass through CSRF verification.
      *
      * @param \Illuminate\Http\Request $request

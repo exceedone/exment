@@ -67,6 +67,8 @@ class SystemRequireList
         Tuning\CacheDriverTuning::class,
         Tuning\QueueTuning::class,
         Tuning\DebugLogTuning::class,
+        // the size of the logs (ISS02839)
+        Tuning\LogSizeTuning::class,
         Tuning\SearchIndexTuning::class,
         Tuning\DashboardCacheTuning::class,
         // what was found slow on a server (ISS02823)

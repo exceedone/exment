@@ -203,6 +203,9 @@ class Define
         // the days the logs are kept (ISS02839, Services\LogManagement\LogCatalog); empty: the default
         'log_retention_login_log' => ['type' => 'int', 'group' => 'log_management'],
         'log_retention_app_log' => ['type' => 'int', 'group' => 'log_management'],
+        'log_app_level' => ['group' => 'log_management'],
+        'log_app_daily' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'operation_log_scope' => ['default' => 'all', 'group' => 'log_management'],
 
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
@@ -370,6 +373,10 @@ class Define
         'security_check' => [
             'uri' => 'security_check',
             'icon' => 'fa-shield',
+        ],
+        'log_management' => [
+            'uri' => 'log_management',
+            'icon' => 'fa-archive',
         ],
         'scheduled_jobs' => [
             'uri' => 'scheduled_jobs',
@@ -633,6 +640,7 @@ class Define
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
         ['uri'=> 'scheduled_jobs', 'help_uri'=> 'scheduled_jobs'],
+        ['uri'=> 'log_management', 'help_uri'=> 'log_management'],
         ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
