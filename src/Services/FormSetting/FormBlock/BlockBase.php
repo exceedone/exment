@@ -127,6 +127,8 @@ abstract class BlockBase
             'form_block_type' => $this->custom_form_block->form_block_type ?? FormBlockType::DEFAULT,
             'available' => $this->custom_form_block->available ?? 1,
             'form_block_view_name' => $this->custom_form_block->form_block_view_name ?? $this->custom_form_block->label ?? null,
+            // the name in the other languages (ISS02859)
+            'name_locales' => isset($this->custom_form_block) ? $this->custom_form_block->name_locales : [],
             'form_block_target_table_id' => $this->custom_form_block->form_block_target_table_id ?? $this->target_table->id ?? $this->custom_table->id ?? null,
             'label' => static::getBlockLabelHeader($this->target_table),
             'header_name' => $this->getHtmlHeaderName(),

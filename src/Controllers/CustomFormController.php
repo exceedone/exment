@@ -564,6 +564,8 @@ class CustomFormController extends AdminControllerTableBase
 
         $form->text('form_view_name', exmtrans('custom_form.form_view_name'))
             ->required();
+        // the name in the other languages (ISS02859)
+        \Exceedone\Exment\Services\NameLocales::addArrayFields($form, exmtrans('custom_form.form_view_name'));
 
         $form->switchbool('default_flg', exmtrans('custom_form.default_flg'))
             ->default(false);
@@ -807,6 +809,9 @@ class CustomFormController extends AdminControllerTableBase
             $form = CustomForm::getEloquent($id);
         }
         $form->form_view_name = $request->get('form_view_name');
+        if (is_array($request->get('name_locales'))) {
+            $form->name_locales = $request->get('name_locales');
+        }
         $form->default_flg = $request->get('default_flg');
         $form->form_label_type = $request->get('form_label_type', FormLabelType::HORIZONTAL);
         $form->show_grid_type = $request->get('show_grid_type', ShowGridType::GRID);
@@ -829,6 +834,9 @@ class CustomFormController extends AdminControllerTableBase
             /** @var CustomFormBlock $block */
             $block->available = array_get($value, 'available') ?? 0;
             $block->form_block_view_name = array_get($value, 'form_block_view_name');
+            if (is_array(array_get($value, 'name_locales'))) {
+                $block->name_locales = array_get($value, 'name_locales');
+            }
             $submittedOptions = array_get($value, 'options', []);
             $blockOptions = array_replace(jsonToArray($block->options), $submittedOptions);
             if ($block->form_block_type == FormBlockType::ONE_TO_MANY) {
