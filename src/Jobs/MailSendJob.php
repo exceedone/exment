@@ -108,7 +108,8 @@ class MailSendJob extends Notification implements ShouldQueue
             $this->notify(new Jobs\NavbarJob(
                 $mail_template->getValue('mail_subject'),
                 $mail_template->getValue('mail_body'),
-                $this->notify_id ?? -1,
+                // a notice of the system, not of a notify setting: notify_id is unsigned, so -1 could not be saved on MySQL
+                0,
                 $this->userId,
                 \Exment::getUserId() ?? null,
                 $this->mailHistory->getParentId(),
