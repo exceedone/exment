@@ -166,12 +166,24 @@ class GridCellStyle
      * @param mixed $view_preset_key preset the current view picked, if any
      * @return static|null
      */
+    public static function make($custom_column, $view_preset_key = null)
+    {
+        if (!isset($custom_column)) {
+            return null;
+        }
+
+        $style = new static($custom_column, static::resolveSource($custom_column, $view_preset_key));
+
+        return $style->isEmpty() ? null : $style;
+    }
+
     /**
      * The style of a preset alone, for a column of the view that is no column of the table (a
      * system column: id, created user...). The preset is taken as it stands - per-value colors
      * are a column's own setting - as the cards of a kanban board do (#2152).
      *
      * @param mixed $view_preset_key
+     * @return static|null
      */
     public static function fromPreset($view_preset_key)
     {
@@ -183,17 +195,6 @@ class GridCellStyle
             return null;
         }
         $style = new static(null, (array) $options);
-
-        return $style->isEmpty() ? null : $style;
-    }
-
-    public static function make($custom_column, $view_preset_key = null)
-    {
-        if (!isset($custom_column)) {
-            return null;
-        }
-
-        $style = new static($custom_column, static::resolveSource($custom_column, $view_preset_key));
 
         return $style->isEmpty() ? null : $style;
     }
