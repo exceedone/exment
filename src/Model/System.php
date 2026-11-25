@@ -95,6 +95,8 @@ use Cache;
  * @method static string|null|void log_ip_mode($arg = null)
  * @method static bool|void log_archive_encrypt($arg = null)
  * @method static bool|void mail_log_no_body($arg = null)
+ * @method static bool|void browser_log_pages($arg = null)
+ * @method static int|null|void log_retention_browser_log($arg = null)
  * @method static bool|void log_privacy_notice_shown($arg = null)
  * @method static boolean|void login_use_2factor($arg = null)
  * @method static string|void login_2factor_provider($arg = null)
