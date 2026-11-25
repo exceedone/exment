@@ -1410,6 +1410,19 @@ return [
         'mapping_setting' => 'Zuordnungseinstellungen',
         'update_user_info' => 'Benutzerinformationen aktualisieren',
         'show_default_login_provider' => 'Standardanmeldung anzeigen',
+        'new_ip_header' => 'Anmeldungen von einem neuen Ort',
+        'login_notify_new_ip' => 'Den Benutzer über eine Anmeldung von einer neuen IP-Adresse informieren',
+        'login_notify_new_ip_mail' => 'Auch eine E-Mail senden',
+        'new_ip_subject' => 'Anmeldung von einer neuen IP-Adresse',
+        'new_ip_body' => "Bei Ihrem Konto gab es eine Anmeldung von einer IP-Adresse, die in den letzten :days Tagen nicht für eine Anmeldung verwendet wurde.
+
+Datum und Uhrzeit: :datetime
+IP-Adresse: :ip
+Browser: :browser
+
+Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Administratoren.",
+        'history_header' => 'Mein Anmeldeverlauf',
+        'history_help' => 'Die letzten :count Anmeldungen bei Ihrem Konto.',
         'sso_redirect_force' => 'Zur SSO-Anmeldung weiterleiten',
         'sso_setting' => 'SSO-Einstellungen',
         'sso_accept_mail_domain' => 'Zulässige Domains',
@@ -1466,6 +1479,8 @@ return [
             'login_button_font_color' => 'Geben Sie die Schriftfarbe der Anmeldeschaltfläche ein.',
             'login_button_font_color_hover' => 'Geben Sie die Schriftfarbe der Anmeldeschaltfläche (Hover) ein.',
             'show_default_login_provider' => 'Bei JA wird das Anmeldeformular mit Exment-ID und Passwort angezeigt.',
+            'login_notify_new_ip' => 'Nach einer Anmeldung erhält der Benutzer eine Benachrichtigung, wenn die IP-Adresse in den letzten :days Tagen nicht für eine Anmeldung desselben Benutzers verwendet wurde. Die erste Anmeldung eines Benutzers wird nicht gemeldet.',
+            'login_notify_new_ip_mail' => 'Die Benachrichtigung auch an die E-Mail-Adresse des Benutzers senden.',
             'sso_redirect_force' => 'Bei JA wird die Exment-Anmeldeseite nicht angezeigt, sondern direkt zur SSO-Anmeldeseite weitergeleitet. *Nur wirksam, wenn genau ein SSO-Anbieter vorhanden ist.',
             'sso_jit' => 'Bei JA wird, falls der angemeldete Benutzer nicht in Exment existiert, anhand der Anmeldeinformationen ein neuer Exment-Benutzer erstellt. Bei NEIN müssen Sie den Benutzer vorab in Exment anlegen.',
             'update_user_info' => 'Bei JA werden die Exment-Benutzerinformationen bei der Anmeldung aktualisiert.',

@@ -1410,6 +1410,19 @@ return [
         'mapping_setting' => '매핑 설정',
         'update_user_info' => '사용자 정보 업데이트',
         'show_default_login_provider' => '기본 로그인 표시',
+        'new_ip_header' => '새로운 장소에서의 로그인',
+        'login_notify_new_ip' => '새로운 IP 주소에서의 로그인을 본인에게 알림',
+        'login_notify_new_ip_mail' => '메일로도 알림',
+        'new_ip_subject' => '새로운 IP 주소에서의 로그인',
+        'new_ip_body' => "최근 :days일 동안 로그인에 사용되지 않은 IP 주소에서 회원님의 계정에 로그인이 있었습니다.
+
+일시: :datetime
+IP 주소: :ip
+브라우저: :browser
+
+본인이 아니라면 비밀번호를 변경하고 관리자에게 알려 주십시오.",
+        'history_header' => '로그인 기록',
+        'history_help' => '회원님 계정의 최근 로그인 :count건입니다.',
         'sso_redirect_force' => 'SSO 로그인으로 리디렉션',
         'sso_setting' => 'SSO 설정',
         'sso_accept_mail_domain' => '로그인 허용 도메인',
@@ -1466,6 +1479,8 @@ return [
             'login_button_font_color' => '로그인 버튼의 글자색을 입력하십시오.',
             'login_button_font_color_hover' => '로그인 버튼의 글자색(마우스 오버 시)을 입력하십시오.',
             'show_default_login_provider' => 'YES이면 Exment의 ID와 비밀번호를 사용하는 로그인 폼을 표시합니다.',
+            'login_notify_new_ip' => '로그인한 IP 주소가 같은 사용자의 최근 :days일 동안의 로그인에서 사용되지 않았으면 본인에게 알립니다. 사용자의 첫 로그인은 알리지 않습니다.',
+            'login_notify_new_ip_mail' => '알림을 사용자의 메일 주소로도 보냅니다.',
             'sso_redirect_force' => 'YES이면 Exment 로그인 페이지를 표시하지 않고 SSO 로그인 페이지로 바로 리디렉션합니다. ※SSO 공급자가 1개뿐인 경우에만 유효합니다.',
             'sso_jit' => 'YES이면 로그인한 사용자가 Exment에 존재하지 않을 때 로그인 정보를 사용하여 Exment 사용자를 새로 만듭니다. NO이면 사전에 Exment에 사용자를 만들어야 합니다.',
             'update_user_info' => 'YES이면 로그인 시 Exment의 사용자 정보를 업데이트합니다.',

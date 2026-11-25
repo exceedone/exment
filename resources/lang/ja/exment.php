@@ -1464,6 +1464,19 @@ return [
         'mapping_setting' => 'マッピング設定',
         'update_user_info' => 'ユーザー情報を更新する',
         'show_default_login_provider' => '既定のログインを表示する',
+        'new_ip_header' => '新しい場所からのログイン',
+        'login_notify_new_ip' => '新しいIPアドレスからのログインを本人に知らせる',
+        'login_notify_new_ip_mail' => 'メールでも知らせる',
+        'new_ip_subject' => '新しいIPアドレスからのログイン',
+        'new_ip_body' => "あなたのアカウントに、過去:days日間のログインで使われていないIPアドレスからログインがありました。
+
+日時: :datetime
+IPアドレス: :ip
+ブラウザー: :browser
+
+心当たりがない場合は、パスワードを変更し、管理者に連絡してください。",
+        'history_header' => 'ログイン履歴',
+        'history_help' => 'あなたのアカウントの最近のログイン :count 件です。',
         'sso_redirect_force' => 'SSOログインにリダイレクト',
         'sso_setting' => 'SSO設定',
         'sso_accept_mail_domain' => 'ログイン許可ドメイン',
@@ -1529,6 +1542,8 @@ return [
             'login_button_font_color' => 'ログインボタンの文字色を入力してください。',
             'login_button_font_color_hover' => 'ログインボタンの文字色(オンマウス時)を入力してください。',
             'show_default_login_provider' => 'YESの場合、ExmentのID・パスワードを使用したログインフォームを表示します。',
+            'login_notify_new_ip' => 'YESの場合、ログインしたIPアドレスが、同じユーザーの過去:days日間のログインで使われていないとき、本人に通知します。ユーザーの初めてのログインは通知しません。',
+            'login_notify_new_ip_mail' => 'YESの場合、通知をユーザーのメールアドレスにも送ります。',
             'sso_redirect_force' => 'YESの場合、Exmentのログインページを表示せず、SSOのログインページに直接リダイレクトします。※SSOのプロバイダが1件のみの場合に有効になります。',
             'sso_jit' => 'YESの場合、ログインしたユーザーがExmentに存在しなかった場合、ログイン情報を使用し、Exmentユーザーを新規作成します。NOの場合は、事前にExmentにユーザーを作成する必要があります。',
             'update_user_info' => 'YESの場合、ログイン時に、Exmentのユーザー情報を更新します。',
