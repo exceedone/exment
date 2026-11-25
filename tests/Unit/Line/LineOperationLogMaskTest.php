@@ -15,6 +15,22 @@ use Tests\TestCase;
  */
 class LineOperationLogMaskTest extends TestCase
 {
+    /**
+     * The masks are about the values the logs keep: "keep the input in the logs" on (ISS02839;
+     * off, every value is "***").
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = true;
+    }
+
+    protected function tearDown(): void
+    {
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = null;
+        parent::tearDown();
+    }
+
     protected function adminPath(string $uri): string
     {
         return ltrim(admin_base_path($uri), '/');

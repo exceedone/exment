@@ -36,10 +36,13 @@ class GuardOperationLogHandleAppliesMaskTest extends TestCase
     {
         parent::setUp();
         DB::beginTransaction();
+        // the masks are about the values the logs keep: "keep the input in the logs" on (ISS02839)
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = true;
     }
 
     protected function tearDown(): void
     {
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = null;
         DB::rollBack();
         parent::tearDown();
     }

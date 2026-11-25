@@ -1631,17 +1631,7 @@ parameters:
 			count: 1
 			path: vendor/exceedone/exment/src/Middleware/BootstrapPublicForm.php
 
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Middleware/ExmentDebug.php
 
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Middleware/ExmentDebug.php
 
 		-
 			message: '#^Called ''env'' outside of the config directory which returns null when the config is cached, use ''config''\.$#'

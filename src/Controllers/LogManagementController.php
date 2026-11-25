@@ -6,7 +6,9 @@ use Carbon\Carbon;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\LogManagement\LogArchiver;
 use Exceedone\Exment\Services\LogManagement\LogCatalog;
+use Exceedone\Exment\Services\LogManagement\LogPrivacy;
 use Exceedone\Exment\Services\LogManagement\LogSettings;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
@@ -77,7 +79,18 @@ class LogManagementController extends AdminControllerBase
                 'log_app_level' => strval(System::log_app_level()),
                 'log_app_daily' => boolval(System::log_app_daily()),
                 'operation_log_scope' => LogSettings::operationLogScope(),
+                'log_archive_enabled' => LogArchiver::enabled(),
+                'log_archive_driver' => LogArchiver::driver(),
+                'log_archive_years' => LogArchiver::years(),
+                'log_archive_encrypt' => LogArchiver::encrypted(),
+                'log_store_input' => LogPrivacy::storeInput(),
+                'log_ip_mode' => LogPrivacy::ipMode(),
+                'mail_log_no_body' => !LogPrivacy::mailBody(),
             ],
+            'ipModes' => LogPrivacy::IP_MODES,
+            'drivers' => LogArchiver::DRIVERS,
+            'archives' => $isSystem ? LogArchiver::files() : [],
+            'archiveUrl' => admin_urls('log_management', 'archives'),
             'levels' => LogSettings::LEVELS,
             'scopes' => LogSettings::SCOPES,
             'defaults' => ['login_log' => LogCatalog::DEFAULT_LOGIN_LOG_DAYS, 'app_log' => LogCatalog::DEFAULT_APP_LOG_DAYS],
@@ -110,6 +123,9 @@ class LogManagementController extends AdminControllerBase
             'log_retention_app_log' => 'nullable|integer|min:0|max:36500',
             'log_app_level' => 'nullable|in:' . implode(',', LogSettings::LEVELS),
             'operation_log_scope' => 'required|in:' . implode(',', LogSettings::SCOPES),
+            'log_archive_driver' => 'nullable|in:' . implode(',', LogArchiver::DRIVERS),
+            'log_archive_years' => 'nullable|integer|min:0|max:100',
+            'log_ip_mode' => 'nullable|in:' . implode(',', LogPrivacy::IP_MODES),
         ]);
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
@@ -121,6 +137,14 @@ class LogManagementController extends AdminControllerBase
         System::log_app_level(is_nullorempty($request->get('log_app_level')) ? null : strval($request->get('log_app_level')));
         System::log_app_daily(boolval($request->get('log_app_daily')));
         System::operation_log_scope(strval($request->get('operation_log_scope')));
+        System::log_archive_enabled(boolval($request->get('log_archive_enabled')));
+        System::log_archive_driver(strval($request->get('log_archive_driver') ?: LogArchiver::DRIVER_LOCAL));
+        $years = $request->get('log_archive_years');
+        System::log_archive_years(is_null($years) || $years === '' || intval($years) === 0 ? null : intval($years));
+        System::log_archive_encrypt(boolval($request->get('log_archive_encrypt')));
+        System::log_store_input(boolval($request->get('log_store_input')));
+        System::log_ip_mode(strval($request->get('log_ip_mode') ?: LogPrivacy::IP_KEEP));
+        System::mail_log_no_body(boolval($request->get('mail_log_no_body')));
         System::clearCache();
 
         admin_toastr(trans('admin.save_succeeded'));
@@ -192,6 +216,29 @@ class LogManagementController extends AdminControllerBase
             abort(404);
         }
         return response()->download($path, $name, ['Content-Type' => 'text/plain; charset=UTF-8']);
+    }
+
+    /**
+     * An archive file (system administrators): it may hold personal data.
+     *
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function archive(Request $request, string $kind, string $name)
+    {
+        static::denyUnlessSystem();
+        $path = LogArchiver::ROOT . '/' . $kind . '/' . $name;
+        if (!LogArchiver::isArchive($path)) {
+            abort(404);
+        }
+        $content = LogArchiver::read($path);
+        if (is_null($content)) {
+            abort(404);
+        }
+        return response($content, 200, [
+            'Content-Type' => 'application/gzip',
+            'Content-Disposition' => 'attachment; filename="' . $name . '"',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     /**

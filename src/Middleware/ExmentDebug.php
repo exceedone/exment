@@ -102,7 +102,12 @@ class ExmentDebug
     protected static function logRequest($request)
     {
         $hideColumns = LogOperation::getHideColumnsByPath($request->path());
-        $input = collect($request->input())->map(function ($value, $key) use ($hideColumns) {
+        $data = (array) $request->input();
+        // the values only when "keep the input in the logs" is on (ISS02839)
+        if (!\Exceedone\Exment\Services\LogManagement\LogPrivacy::storeInput()) {
+            $data = \Exceedone\Exment\Services\LogManagement\LogPrivacy::keysOnly($data);
+        }
+        $input = collect($data)->map(function ($value, $key) use ($hideColumns) {
             if (in_array($key, $hideColumns)) {
                 return "$key:xxxx";
             } elseif (is_array($value)) {
@@ -112,7 +117,12 @@ class ExmentDebug
             }
         })->implode(', ');
         $url = $request->fullUrl();
-        $headers = $request->headers->__toString();
+        // never the cookies nor the credentials
+        $headerBag = clone $request->headers;
+        foreach (['cookie', 'authorization', 'x-api-key', 'x-csrf-token', 'x-xsrf-token', 'php-auth-pw'] as $secret) {
+            $headerBag->remove($secret);
+        }
+        $headers = $headerBag->__toString();
         $ip = $request->ip();
 
         \Log::debug("\nIP : {$ip}\nURL : $url\nInput : $input\nHeaders --------------------------------------\n$headers");

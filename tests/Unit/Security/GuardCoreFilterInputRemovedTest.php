@@ -29,6 +29,22 @@ use ExmentAdminCore\Admin\Middleware\LogOperation as CoreLogOperation;
  */
 class GuardCoreFilterInputRemovedTest extends TestCase
 {
+    /**
+     * The masks are about the values the logs keep: "keep the input in the logs" on (ISS02839;
+     * off, every value is "***").
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = true;
+    }
+
+    protected function tearDown(): void
+    {
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = null;
+        parent::tearDown();
+    }
+
     /** Build a request path below the admin prefix ("admin/auth/reset/x" etc.). */
     private function adminPath(string $uri): string
     {

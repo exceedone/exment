@@ -28,6 +28,12 @@ class LogCatalog
     /** @var array<string, array<string, mixed>> the kinds an application or a feature added */
     protected static $registered = [];
 
+    /** The columns of the login records in their archive. */
+    public const LOGIN_LOG_COLUMNS = ['id', 'created_at', 'result', 'failure_reason', 'login_name', 'login_user_id', 'base_user_id', 'provider', 'provider_name', 'ip', 'user_agent'];
+
+    /** The columns of the operation log in its archive. */
+    public const OPERATION_LOG_COLUMNS = ['id', 'created_at', 'user_id', 'method', 'path', 'ip', 'input'];
+
     /** The days the login records are kept when nothing is set. */
     public const DEFAULT_LOGIN_LOG_DAYS = 365;
 
@@ -62,8 +68,8 @@ class LogCatalog
                 'label' => strval($definition['label'] ?? $key),
                 'location' => strval($definition['location'] ?? 'database'),
                 'retention_days' => static::call($definition['retention'] ?? null),
-                'archive' => boolval($definition['archive'] ?? false),
-                'compress' => boolval($definition['compress'] ?? false),
+                'archive' => boolval(static::call($definition['archive'] ?? false)),
+                'compress' => boolval(static::call($definition['compress'] ?? false)),
                 'size_bytes' => static::call($definition['size'] ?? null),
                 'count' => static::call($definition['count'] ?? null),
                 'managed_by' => $definition['managed_by'] ?? null,
@@ -93,6 +99,15 @@ class LogCatalog
                 \Log::warning('Exment log maintenance: ' . $key . ': ' . $e->getMessage());
             }
         }
+        // the archives older than they are kept (part 3)
+        try {
+            $archives = LogArchiver::prune($now);
+            if ($archives > 0) {
+                $deleted['log_archive'] = $archives;
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Exment log maintenance: log_archive: ' . $e->getMessage());
+        }
         return $deleted;
     }
 
@@ -114,6 +129,12 @@ class LogCatalog
         return [
             // the operation log: deleted by exment:schedule as the system setting says
             'operation_log' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
                 'label' => 'exment::exment.log_management.types.operation_log',
                 'location' => 'database',
                 'retention' => function () {
@@ -125,6 +146,12 @@ class LogCatalog
                 },
             ],
             'login_log' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
                 'label' => 'exment::exment.log_management.types.login_log',
                 'location' => 'database',
                 'retention' => function () {
@@ -136,8 +163,19 @@ class LogCatalog
                     }
                     $deleted = 0;
                     do {
-                        $ids = LoginLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->pluck('id')->all();
+                        $rows = LoginLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->get();
+                        $ids = $rows->pluck('id')->all();
                         if (!empty($ids)) {
+                            // into the archive first, when it is used (part 3)
+                            if (LogArchiver::enabled()) {
+                                LogArchiver::rows('login_log', static::LOGIN_LOG_COLUMNS, $rows->map(function ($row) {
+                                    return array_map(function ($column) use ($row) {
+                                        return $column === 'created_at' ? optional($row->created_at)->format('Y-m-d H:i:s') : $row->{$column};
+                                    }, static::LOGIN_LOG_COLUMNS);
+                                })->all(), function ($row) {
+                                    return substr(strval($row[array_search('created_at', static::LOGIN_LOG_COLUMNS, true)]), 0, 7);
+                                });
+                            }
                             $deleted += LoginLog::query()->whereIn('id', $ids)->delete();
                         }
                     } while (count($ids) === 1000);
@@ -150,6 +188,12 @@ class LogCatalog
             // the files of the application log, one a day (laravel-YYYY-MM-DD.log of Laravel's
             // daily channel). A single laravel.log is not deleted: it is the one being written
             'app_log' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
                 'label' => 'exment::exment.log_management.types.app_log',
                 'location' => 'storage/logs',
                 'retention' => function () {
@@ -158,7 +202,14 @@ class LogCatalog
                 'prune' => function (Carbon $before) {
                     $deleted = 0;
                     foreach (static::appLogFiles() as $file => $date) {
-                        if ($date < $before->format('Y-m-d') && @unlink($file)) {
+                        if ($date >= $before->format('Y-m-d')) {
+                            continue;
+                        }
+                        // into the archive first, when it is used (part 3): not deleted when it could not be
+                        if (LogArchiver::enabled() && !LogArchiver::file('app_log', substr($date, 0, 7), $file)) {
+                            continue;
+                        }
+                        if (@unlink($file)) {
                             $deleted++;
                         }
                     }

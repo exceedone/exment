@@ -206,6 +206,16 @@ class Define
         'log_app_level' => ['group' => 'log_management'],
         'log_app_daily' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
         'operation_log_scope' => ['default' => 'all', 'group' => 'log_management'],
+        // the archive of the old logs before they are deleted (part 3)
+        'log_archive_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'log_archive_driver' => ['default' => 'local', 'group' => 'log_management'],
+        'log_archive_years' => ['type' => 'int', 'group' => 'log_management'],
+        // what the logs keep of personal data (part 4)
+        'log_store_input' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'log_ip_mode' => ['default' => 'keep', 'group' => 'log_management'],
+        'log_archive_encrypt' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'mail_log_no_body' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'log_privacy_notice_shown' => ['type' => 'boolean', 'default' => '0'],
 
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],

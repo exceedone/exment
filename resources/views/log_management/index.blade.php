@@ -74,6 +74,57 @@
                     <p class="help-block">{{ exmtrans('log_management.setting.app_daily_help') }}</p>
                 </div>
             </div>
+            <h4 class="col-sm-offset-3" style="padding-left:15px">{{ exmtrans('log_management.privacy.header') }}</h4>
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <label><input type="checkbox" name="log_store_input" value="1" @if($settings['log_store_input']) checked @endif> {{ exmtrans('log_management.privacy.store_input') }}</label>
+                    <p class="help-block">{{ exmtrans('log_management.privacy.store_input_help') }}</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label" for="log_ip_mode">{{ exmtrans('log_management.privacy.ip_mode') }}</label>
+                <div class="col-sm-3">
+                    <select class="form-control" id="log_ip_mode" name="log_ip_mode">
+                        @foreach($ipModes as $mode)
+                            <option value="{{ $mode }}" @if($settings['log_ip_mode'] === $mode) selected @endif>{{ exmtrans('log_management.privacy.ip_' . $mode) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-sm-6 help-block">{{ exmtrans('log_management.privacy.ip_help') }}</div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <label><input type="checkbox" name="mail_log_no_body" value="1" @if($settings['mail_log_no_body']) checked @endif> {{ exmtrans('log_management.privacy.mail_body') }}</label>
+                    <p class="help-block">{{ exmtrans('log_management.privacy.mail_body_help') }}</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <label><input type="checkbox" name="log_archive_encrypt" value="1" @if($settings['log_archive_encrypt']) checked @endif> {{ exmtrans('log_management.privacy.archive_encrypt') }}</label>
+                    <p class="help-block">{{ exmtrans('log_management.privacy.archive_encrypt_help') }}</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <label><input type="checkbox" name="log_archive_enabled" value="1" @if($settings['log_archive_enabled']) checked @endif> {{ exmtrans('log_management.archive.enabled') }}</label>
+                    <p class="help-block">{{ exmtrans('log_management.archive.enabled_help') }}</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label" for="log_archive_driver">{{ exmtrans('log_management.archive.driver') }}</label>
+                <div class="col-sm-3">
+                    <select class="form-control" id="log_archive_driver" name="log_archive_driver">
+                        @foreach($drivers as $driver)
+                            <option value="{{ $driver }}" @if($settings['log_archive_driver'] === $driver) selected @endif>{{ exmtrans('log_management.archive.driver_' . $driver) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label" for="log_archive_years">{{ exmtrans('log_management.archive.years') }}</label>
+                <div class="col-sm-3"><input type="number" min="0" class="form-control" id="log_archive_years" name="log_archive_years" value="{{ old('log_archive_years', $settings['log_archive_years']) }}"></div>
+                <div class="col-sm-6 help-block">{{ exmtrans('log_management.archive.years_help') }}</div>
+            </div>
             <div class="form-group">
                 <label class="col-sm-3 control-label" for="operation_log_scope">{{ exmtrans('log_management.setting.operation_log_scope') }}</label>
                 <div class="col-sm-3">
@@ -163,6 +214,30 @@
                 </tr>
             @empty
                 <tr><td class="text-muted">{{ exmtrans('log_management.no_files') }}</td></tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+@if($isSystem)
+<div class="box box-default" id="log-management-archives">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ exmtrans('log_management.archive.header') }}</h3>
+    </div>
+    <div class="box-body">
+        <p class="text-muted small">{{ exmtrans('log_management.archive.help') }}</p>
+        <table class="table table-condensed">
+            <tbody>
+            @forelse($archives as $path => $archive)
+                <tr>
+                    <td><a href="{{ $archiveUrl }}/{{ $archive['kind'] }}/{{ rawurlencode(basename($path)) }}" data-pjax="false" target="_blank">{{ basename($path) }}</a></td>
+                    <td>{{ $archive['month'] }}</td>
+                    <td>{{ $bytes($archive['size']) }}</td>
+                </tr>
+            @empty
+                <tr><td class="text-muted">{{ exmtrans('log_management.archive.none') }}</td></tr>
             @endforelse
             </tbody>
         </table>
