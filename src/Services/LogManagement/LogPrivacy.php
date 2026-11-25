@@ -25,8 +25,14 @@ class LogPrivacy
 
     public const MASK = '***';
 
+    /** @var bool|null tests: the setting "keep the input in the logs" without the database */
+    public static $storeInput;
+
     public static function storeInput(): bool
     {
+        if (isset(static::$storeInput)) {
+            return static::$storeInput;
+        }
         try {
             return boolval(System::log_store_input());
         } catch (\Throwable $e) {

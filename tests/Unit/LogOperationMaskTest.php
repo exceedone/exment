@@ -19,6 +19,22 @@ use Exceedone\Exment\Middleware\LogOperation;
 class LogOperationMaskTest extends TestCase
 {
     /**
+     * The masks are about the values the logs keep: "keep the input in the logs" on (ISS02839;
+     * off, every value is "***").
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = true;
+    }
+
+    protected function tearDown(): void
+    {
+        \Exceedone\Exment\Services\LogManagement\LogPrivacy::$storeInput = null;
+        parent::tearDown();
+    }
+
+    /**
      * Mask a json input string the same way handle() does for a request on $path.
      */
     protected function mask(string $json, string $path): string
