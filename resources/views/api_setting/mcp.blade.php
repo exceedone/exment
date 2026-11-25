@@ -21,14 +21,17 @@
         <p class="text-muted">{{ exmtrans('api.mcp.keys_help') }} <a href="{{ $keys_url }}">{{ exmtrans('api.mcp.keys_link') }}</a></p>
 
         <h4>{{ exmtrans('api.mcp.tools') }}</h4>
-        <table class="table table-sm table-striped">
-            <thead><tr><th style="width:180px">{{ exmtrans('api.mcp.tool') }}</th><th style="width:140px">{{ exmtrans('api.mcp.scope') }}</th><th>{{ exmtrans('api.mcp.description') }}</th></tr></thead>
+        {{-- long names break and the table scrolls inside the box, never the page (ISS02894) --}}
+        <div class="table-responsive">
+        <table class="table table-sm table-striped" style="table-layout:fixed;width:100%;min-width:480px">
+            <thead><tr><th style="width:30%">{{ exmtrans('api.mcp.tool') }}</th><th style="width:20%">{{ exmtrans('api.mcp.scope') }}</th><th>{{ exmtrans('api.mcp.description') }}</th></tr></thead>
             <tbody>
             @foreach ($tools as $tool)
-                <tr><td><code>{{ $tool['name'] }}</code></td><td><code>{{ $tool['scope'] }}</code></td><td>{{ $tool['description'] }}</td></tr>
+                <tr><td style="overflow-wrap:anywhere"><code style="white-space:normal">{{ $tool['name'] }}</code></td><td style="overflow-wrap:anywhere"><code style="white-space:normal">{{ $tool['scope'] }}</code></td><td style="overflow-wrap:anywhere">{{ $tool['description'] }}</td></tr>
             @endforeach
             </tbody>
         </table>
+        </div>
 
         <h4>{{ exmtrans('api.mcp.recent') }}</h4>
         @if (empty($recent))
