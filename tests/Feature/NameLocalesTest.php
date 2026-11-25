@@ -58,7 +58,7 @@ class NameLocalesTest extends FeatureTestBase
     /**
      * The table, its column "text" and a view, given English names.
      *
-     * @return array{0: CustomTable, 1: CustomColumn, 2: CustomView}
+     * @return array<int, mixed> the table, the column, the view
      */
     protected function translated(): array
     {
@@ -72,7 +72,7 @@ class NameLocalesTest extends FeatureTestBase
         $view->name_locales = ['en' => static::EN_VIEW];
         $view->save();
         System::clearCache();
-        return [CustomTable::getEloquent($table->id), CustomColumn::getEloquent($column->id), CustomView::findOrFail($view->id)];
+        return [CustomTable::getEloquent($table->id), CustomColumn::getEloquent($column->id), CustomView::query()->where('id', $view->id)->firstOrFail()];
     }
 
     protected function beEnglish(): LoginUser
@@ -176,7 +176,7 @@ class NameLocalesTest extends FeatureTestBase
             'table_view_name' => $storedTable,
             'options' => [NameLocales::key('de') => 'Tabelle (de)'],
         ])->assertRedirect(admin_url('table'))->assertSessionHasNoErrors();
-        $saved = CustomTable::query()->findOrFail($table->id);
+        $saved = CustomTable::query()->where('id', $table->id)->firstOrFail();
         $this->assertSame($storedTable, $saved->getRawOriginal('table_view_name'));
         $this->assertSame('Tabelle (de)', $saved->getOption(NameLocales::key('de')));
         $this->assertSame(static::EN_TABLE, $saved->getOption(NameLocales::key('en')), 'the other languages stay');
@@ -188,7 +188,7 @@ class NameLocalesTest extends FeatureTestBase
             'column_view_name' => $storedColumn,
             'options' => [NameLocales::key('de') => 'Text (de)'],
         ])->assertRedirect(admin_url("column/{$table->table_name}"))->assertSessionHasNoErrors();
-        $saved = CustomColumn::query()->findOrFail($column->id);
+        $saved = CustomColumn::query()->where('id', $column->id)->firstOrFail();
         $this->assertSame($storedColumn, $saved->getRawOriginal('column_view_name'));
         $this->assertSame('Text (de)', $saved->getOption(NameLocales::key('de')));
 
@@ -200,7 +200,7 @@ class NameLocalesTest extends FeatureTestBase
             'view_view_name' => $storedView,
             'name_locales' => ['en' => static::EN_VIEW, 'de' => 'Alle (de)'],
         ]);
-        $saved = CustomView::query()->findOrFail($view->id);
+        $saved = CustomView::query()->where('id', $view->id)->firstOrFail();
         $this->assertSame($storedView, $saved->getRawOriginal('view_view_name'));
         $this->assertSame(['de' => 'Alle (de)', 'en' => static::EN_VIEW], $saved->name_locales);
 
@@ -214,7 +214,7 @@ class NameLocalesTest extends FeatureTestBase
             'menu_type' => MenuType::SYSTEM,
             'name_locales' => ['en' => 'Our home (en)'],
         ]);
-        $saved = Menu::query()->findOrFail($menu->id);
+        $saved = Menu::query()->where('id', $menu->id)->firstOrFail();
         $this->assertSame($storedMenu, $saved->getRawOriginal('title'));
         $this->assertSame(['en' => 'Our home (en)'], $saved->name_locales);
     }
@@ -274,13 +274,13 @@ class NameLocalesTest extends FeatureTestBase
     {
         \App::setLocale('ja');
         $json = (new TemplateImporter())->getMergeJson();
-        $baseInfo = collect($json['custom_tables'])->firstWhere('table_name', 'base_info');
+        $baseInfo = collect((array) $json['custom_tables'])->firstWhere('table_name', 'base_info');
         $this->assertNotNull($baseInfo);
         $this->assertSame('基本情報', $baseInfo['table_view_name']);
         $this->assertSame('Base Info', array_get($baseInfo, 'options.' . NameLocales::key('en')));
         $this->assertSame('Basisinformationen', array_get($baseInfo, 'options.' . NameLocales::key('de')));
         $this->assertArrayNotHasKey(NameLocales::key('ja'), (array) array_get($baseInfo, 'options'), 'the language of the import is the name itself');
-        $company = collect($baseInfo['custom_columns'])->firstWhere('column_name', 'company_name');
+        $company = collect((array) $baseInfo['custom_columns'])->firstWhere('column_name', 'company_name');
         $this->assertNotNull($company);
         $this->assertNotSame('', strval(array_get($company, 'options.' . NameLocales::key('en'))));
         // the menus are left to MenuTitle

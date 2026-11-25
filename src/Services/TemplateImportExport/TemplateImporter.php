@@ -1008,7 +1008,7 @@ class TemplateImporter
         }
 
         // the names in the other languages the template has (7.3, ISS02859)
-        return $this->addNameLocales($json, $original, $basePath, strval($locale));
+        return is_array($original) && is_array($json) ? $this->addNameLocales($json, $original, $basePath, strval($locale)) : $json;
     }
 
     /**

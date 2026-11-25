@@ -111,7 +111,8 @@ class NameLocales
     {
         $out = [];
         foreach ((array) $options as $key => $value) {
-            if (is_string($key) && strpos($key, static::PREFIX) === 0 && is_string($value) && trim($value) !== '') {
+            $key = strval($key);
+            if (strpos($key, static::PREFIX) === 0 && is_string($value) && trim($value) !== '') {
                 $out[substr($key, strlen(static::PREFIX))] = $value;
             }
         }
@@ -161,7 +162,9 @@ class NameLocales
     public static function addEmbeds($form, string $label): void
     {
         $locales = static::locales();
-        if (empty($locales)) {
+        // the quick form beside the menu tree (a widget form) has no embedded forms: the names
+        // are given on the edit page
+        if (empty($locales) || !$form instanceof \ExmentAdminCore\Admin\Form) {
             return;
         }
         $form->embeds('name_locales', exmtrans('name_locales.header'), function ($form) use ($locales, $label) {

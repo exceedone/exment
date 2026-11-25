@@ -62,16 +62,19 @@ class MenuTitle
                 $rows[$index]['title'] = $own;
                 continue;
             }
+            // a title of the install template: its text in the language (7.2.6)
+            if (static::isTarget($row)) {
+                $template = static::localize($row, $locale);
+                if ($template !== array_get($row, 'title')) {
+                    $rows[$index]['title'] = $template;
+                    continue;
+                }
+            }
             // a menu of a table still called as its table: the name of the table in the language
             $table = static::tableTitle($row, $locale);
             if ($table !== null) {
                 $rows[$index]['title'] = $table;
-                continue;
             }
-            if (!static::isTarget($row)) {
-                continue;
-            }
-            $rows[$index]['title'] = static::localize($row, $locale);
         }
         return $rows;
     }
