@@ -52,6 +52,7 @@ class Features
     public const MCP = 'mcp';
     public const SAFETY_CHECK = 'safety_check';
     public const DATA_MAINTENANCE = 'data_maintenance';
+    public const TEAMS_NOTIFY = 'teams_notify';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -151,6 +152,16 @@ class Features
             'description' => 'exment::exment.feature.features.api_keys_help',
             'endpoints' => ['auth/api_keys'],
         ]);
+        // the API of the members (Controllers\ApiMemberController, ISS00335): the users of an
+        // organization and the members of the role groups. Off until it is turned on; who may use it
+        // is the permission of the role groups
+        $core[\Exceedone\Exment\Controllers\ApiMemberController::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.api_members',
+            'description' => 'exment::exment.feature.features.api_members_help',
+            'api' => ['organization', 'user', 'role_group'],
+            'manual' => 'api_members',
+            'who' => false,
+        ]);
         // the MCP server (api/mcp, ISS00439): off until an administrator turns it on and
         // chooses the role groups whose users may use it from an AI
         $core[static::MCP] = static::definition([
@@ -176,6 +187,14 @@ class Features
             'description' => 'exment::exment.feature.features.data_maintenance_help',
             'endpoints' => ['data_maintenance'],
             'manual' => 'data_maintenance',
+            'who' => false,
+        ]);
+        // notifications to a person's Teams chat through a Teams workflow (ISS02863): off until a
+        // system administrator turns it on (and sets the address of the workflow)
+        $core[static::TEAMS_NOTIFY] = static::definition([
+            'label' => 'exment::exment.feature.features.teams_notify',
+            'description' => 'exment::exment.feature.features.teams_notify_help',
+            'manual' => 'notify_teams',
             'who' => false,
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants

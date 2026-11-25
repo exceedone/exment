@@ -348,7 +348,7 @@ class Paths
             return $found;
         }
         $ids = DB::table(static::TABLE)->whereNull('node_id')->where('path_key', $key)
-            ->orderByDesc('id')->pluck('workspace_id')->map('intval')->unique()->all();
+            ->orderByDesc('id')->pluck('workspace_id')->map(fn ($v) => intval($v))->unique()->all();
         return FileWorkspace::query()->whereIn('id', $ids)->get()->filter(function (FileWorkspace $workspace) {
             return static::segment($workspace) !== null;
         })->values()->all();
