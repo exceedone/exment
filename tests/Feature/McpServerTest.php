@@ -135,7 +135,10 @@ class McpServerTest extends ApiTestBase
         $this->mcp($key, ['jsonrpc' => '2.0', 'method' => 'notifications/initialized'])->assertStatus(202);
 
         $tools = $this->mcp($key, ['jsonrpc' => '2.0', 'id' => 3, 'method' => 'tools/list'], ['MCP-Protocol-Version' => '2025-06-18'])->assertOk()->json('result.tools');
-        $this->assertSame(['list_tables', 'get_table', 'search_data', 'get_data', 'list_attachments', 'get_workflow_status'], array_column($tools, 'name'));
+        $this->assertSame([
+            'list_tables', 'get_table', 'search_data', 'get_data', 'list_attachments', 'get_workflow_status',
+            'list_organization_users', 'list_user_organizations', 'list_role_groups', 'get_role_group',
+        ], array_column($tools, 'name'));
         foreach ($tools as $tool) {
             $this->assertTrue($tool['annotations']['readOnlyHint'], $tool['name']);
         }
