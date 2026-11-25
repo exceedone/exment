@@ -377,10 +377,19 @@ class McpServerTest extends ApiTestBase
             'list_attachments' => ['table' => 'custom_value_edit', 'id' => $record->id],
             'get_workflow_status' => ['table' => 'custom_value_edit', 'id' => $record->id],
         ];
+        // the tools of the members (ISS00335): not in a key "for MCP", see McpMemberToolsTest
+        $memberArgs = [
+            'list_organization_users' => ['organization_id' => 1],
+            'list_user_organizations' => ['user_id' => 1],
+            'list_role_groups' => [],
+            'get_role_group' => ['role_group_id' => 1],
+        ];
+        $this->assertSame(McpGuide::MEMBER_TOOLS, array_keys($memberArgs));
+        $this->assertSame(array_keys(McpGuide::TOOL_SCOPES), array_merge(array_keys($args), array_keys($memberArgs)));
         $all = UserApiKeys::readOnlyScopes();
         foreach (McpGuide::TOOL_SCOPES as $tool => $scope) {
             $token = $this->getUser1AccessToken(array_values(array_diff($all, [$scope])));
-            $denied = $this->tool($token, $tool, $args[$tool]);
+            $denied = $this->tool($token, $tool, $args[$tool] ?? $memberArgs[$tool]);
             $this->assertTrue($denied['isError'], "$tool without $scope");
             $this->assertStringContainsString('"' . $scope . '"', $denied['content'][0]['text'], "$tool names $scope");
         }

@@ -98,6 +98,13 @@ class McpMemberToolsTest extends ApiTestBase
             $this->assertTrue($definitions[$name]['annotations']['readOnlyHint']);
             $this->assertStringContainsString('adding or removing members is done with the REST API', $definitions[$name]['description']);
         }
+        // their scopes on the pages (McpGuide), but not in a key "for MCP" of every user
+        foreach (static::TOOLS as $name) {
+            $this->assertArrayHasKey($name, \Exceedone\Exment\Services\Mcp\McpGuide::TOOL_SCOPES);
+        }
+        $this->assertSame(static::TOOLS, \Exceedone\Exment\Services\Mcp\McpGuide::MEMBER_TOOLS);
+        $this->assertNotContains(ApiScope::USER_ORG_READ, \Exceedone\Exment\Services\Mcp\McpGuide::scopes());
+        $this->assertNotContains(ApiScope::ROLE_GROUP_READ, \Exceedone\Exment\Services\Mcp\McpGuide::scopes());
         // no tool that changes the members
         foreach (McpTools::names() as $name) {
             $this->assertDoesNotMatchRegularExpression('/^(add|remove|set|delete|update)_/', $name);
