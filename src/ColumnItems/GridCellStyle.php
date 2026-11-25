@@ -98,7 +98,7 @@ class GridCellStyle
      */
     protected const MARKED_STYLES = [self::STYLE_DOT, self::STYLE_LVL];
 
-    /** @var \Exceedone\Exment\Model\CustomColumn */
+    /** @var \Exceedone\Exment\Model\CustomColumn|null null: a preset alone (fromPreset) */
     protected $custom_column;
 
     /** @var string */
@@ -143,7 +143,7 @@ class GridCellStyle
      * at the list - a value the renderer does not recognise is read as "not
      * set", never printed.
      *
-     * @param \Exceedone\Exment\Model\CustomColumn $custom_column
+     * @param \Exceedone\Exment\Model\CustomColumn|null $custom_column null: a preset alone (fromPreset)
      * @param array<string, mixed> $source already resolved `grid_*` settings
      */
     protected function __construct($custom_column, array $source)
@@ -166,6 +166,27 @@ class GridCellStyle
      * @param mixed $view_preset_key preset the current view picked, if any
      * @return static|null
      */
+    /**
+     * The style of a preset alone, for a column of the view that is no column of the table (a
+     * system column: id, created user...). The preset is taken as it stands - per-value colors
+     * are a column's own setting - as the cards of a kanban board do (#2152).
+     *
+     * @param mixed $view_preset_key
+     */
+    public static function fromPreset($view_preset_key)
+    {
+        if (is_nullorempty($view_preset_key)) {
+            return null;
+        }
+        $options = CellStylePreset::resolveOptions($view_preset_key);
+        if (is_nullorempty($options)) {
+            return null;
+        }
+        $style = new static(null, (array) $options);
+
+        return $style->isEmpty() ? null : $style;
+    }
+
     public static function make($custom_column, $view_preset_key = null)
     {
         if (!isset($custom_column)) {
@@ -423,8 +444,10 @@ class GridCellStyle
         if (isset($this->bg_color)) {
             $array['background-color'] = $this->bg_color;
         }
+        // drawn inside the cell, not as its border: with the collapsed borders of the table a
+        // border paints over a pinned (sticky) column scrolled over it (#2155)
         if (isset($this->border_color)) {
-            $array['border-color'] = $this->border_color;
+            $array['box-shadow'] = 'inset 0 0 0 1px ' . $this->border_color;
         }
         if (isset($this->font_weight)) {
             $array['font-weight'] = $this->font_weight;
@@ -452,7 +475,7 @@ class GridCellStyle
         }
 
         if ($this->style === static::STYLE_AVATAR) {
-            return $this->avatarHtml($html, $text);
+            return $this->avatarHtml($html, $text, $value);
         }
 
         if ($this->style === static::STYLE_BAR) {
@@ -486,14 +509,18 @@ class GridCellStyle
     /**
      * Initial in a colored circle, then the name.
      *
-     * The circle color comes from the text and never from a setting: a people
-     * column has no fixed option list to configure, but the same person must
-     * still keep the same color on every row and every page.
+     * The initial comes from the text, the color from the stored value, as the
+     * other styles take it (#2154: "color per value" is set by value, and the
+     * label of a select_valtext differs from it). Without a color for it, one
+     * made from the text: a people column has no fixed option list to
+     * configure, but the same person must still keep the same color on every
+     * row and every page.
      *
      * @param string $html
      * @param mixed $text
+     * @param mixed $value the stored value
      */
-    protected function avatarHtml($html, $text): string
+    protected function avatarHtml($html, $text, $value = null): string
     {
         $text = is_scalar($text) ? strval($text) : '';
         if ($text === '') {
@@ -501,7 +528,7 @@ class GridCellStyle
         }
 
         $initial = mb_substr($text, 0, 1);
-        $color = $this->colorFor($text) ?? static::hashColor($text);
+        $color = $this->colorFor(is_scalar($value) && strval($value) !== '' ? $value : $text) ?? static::hashColor($text);
 
         return '<span class="exm-cell-avatar"><span class="exm-cell-av" style="background-color:' . e($color) . '">'
             . esc_html($initial) . '</span>' . $html . '</span>';
@@ -524,7 +551,7 @@ class GridCellStyle
         // A decimal column with the percent option stores 0-1 and already
         // prints its own "%" - follow both, or the bar and its number would
         // tell two different stories.
-        if (isset($number) && boolval($this->custom_column->getOption('percent_format'))) {
+        if (isset($number) && isset($this->custom_column) && boolval($this->custom_column->getOption('percent_format'))) {
             $number *= 100;
         }
 
@@ -703,7 +730,7 @@ class GridCellStyle
         // Only a fixed option list can be colored this way: a free text column
         // has no stable order, so the same value could change color between
         // pages once a new value appears.
-        if (!in_array(array_get($this->custom_column, 'column_type'), [ColumnType::SELECT, ColumnType::SELECT_VALTEXT], true)) {
+        if (!isset($this->custom_column) || !in_array(array_get($this->custom_column, 'column_type'), [ColumnType::SELECT, ColumnType::SELECT_VALTEXT], true)) {
             return $this->auto_colors;
         }
 

@@ -3774,6 +3774,7 @@ return [
             'kanban_moved' => 'Moved %s to "%s"',
             'kanban_inline_saved' => 'Saved %s',
             'kanban_view_saved' => 'Saved the view "%s". It was created as your own view and can be opened from the view list.',
+            'kanban_view_saved_system' => 'Saved the view "%s". It was created as a system view and can be opened from the view list.',
             'kanban_blank_filtered' => 'No card matches the filter. Change it, or reset the board.',
             'kanban_created' => 'Added %s',
             'kanban_assigned' => 'Changed the assignee of %s records',

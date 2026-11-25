@@ -3373,6 +3373,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      * Whether login user has permission about view.
      */
 
+    /**
+     * Whether user views are used for this table: the system setting, and not one of the tables
+     * of config exment.userview_unavailable_table.
+     */
+    public function userViewAvailable(): bool
+    {
+        $userview_unavailable_table = config('exment.userview_unavailable_table', '');
+        if (!is_nullorempty($userview_unavailable_table) && in_array($this->table_name, explode(',', $userview_unavailable_table))) {
+            return false;
+        }
+        return boolval(System::userview_available());
+    }
+
     // @phpstan-ignore-next-line
     public function hasViewPermission()
     {
