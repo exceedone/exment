@@ -70,6 +70,7 @@ return [
         'column' => 'Column',
         'row_up' => 'Row Up',
         'row_down' => 'Row Down',
+        'row_copy' => 'Copy Row',
         'open' => 'Open',
         'open_blank' => 'Open Blank',
         'open_all' => 'Open All',

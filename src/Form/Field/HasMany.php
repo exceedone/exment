@@ -13,6 +13,25 @@ use Illuminate\Support\Arr;
 class HasMany extends AdminHasMany
 {
     /**
+     * Whether a row can be copied while the form is filled in (#1595).
+     *
+     * @var bool
+     */
+    protected $rowCopy = false;
+
+    /**
+     * Show a button on every row that adds a copy of it (#1595).
+     *
+     * @param bool $rowCopy
+     * @return $this
+     */
+    public function rowCopy(bool $rowCopy = true)
+    {
+        $this->rowCopy = $rowCopy;
+        return $this;
+    }
+
+    /**
      * Render the `HasMany` field.
      *
      * @throws \Exception
@@ -89,6 +108,7 @@ class HasMany extends AdminHasMany
         $jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
         $errortitle = json_encode(exmtrans("common.error"), $jsonFlags);
         $requiremessage = json_encode(sprintf(exmtrans("common.message.exists_row"), esc_html($this->label)), $jsonFlags);
+        $copyScript = $this->rowCopyScript($jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -119,6 +139,7 @@ $('#has-many-{$this->column}').off('click.admin_remove').on('click.admin_remove'
     $(this).trigger('admin_hasmany_row_change');
 });
 
+{$copyScript}
 $("button[type='submit']").click(function(){
     if ($('#has-many-{$this->column}').attr('required') === undefined) {
         return true;
@@ -136,6 +157,59 @@ EOT;
         Admin::script($script);
 
         return $script;
+    }
+
+    /**
+     * The copy button of every row, and what it does (#1595).
+     *
+     * The rows are drawn by the view of admin-core, so the button is put next
+     * to the delete button of each row here - the rows on the page, and every
+     * row added later.
+     *
+     * @param int $jsonFlags
+     * @return string
+     */
+    protected function rowCopyScript(int $jsonFlags): string
+    {
+        if (!$this->rowCopy || !boolval(array_get($this->options, 'allowCreate', true))) {
+            return '';
+        }
+        $column = json_encode(strval($this->column), $jsonFlags);
+        $label = json_encode(strval(exmtrans('common.row_copy')), $jsonFlags);
+        $buttons = "rowcopy_{$this->column}";
+
+        return <<<EOT
+var $buttons = function () {
+    $('#has-many-{$this->column} .has-many-{$this->column}-form').each(function () {
+        var form = $(this);
+        if (form.find('.row-copy').length) {
+            return;
+        }
+        var button = $('<div class="row-copy btn btn-default btn-sm float-end me-2"><i class="fa fa-copy"></i>&nbsp;</div>');
+        button.append(document.createTextNode($label));
+        var remove = form.find('.remove').last();
+        if (remove.length) {
+            button.insertAfter(remove);
+        } else {
+            form.append($('<div class="form-group"><div class="pb-5"></div></div>').find('div').append(button).end());
+        }
+    });
+};
+$buttons();
+$('#has-many-{$this->column}').off('admin_hasmany_row_change.row_copy').on('admin_hasmany_row_change.row_copy', $buttons);
+$('#has-many-{$this->column}').off('click.admin_row_copy').on('click.admin_row_copy', '.row-copy', function () {
+    if (!window.ExmentHasManyCopy) {
+        return;
+    }
+    window.ExmentHasManyCopy.copyRow(
+        $('#has-many-{$this->column}'),
+        $(this).closest('.has-many-{$this->column}-form'),
+        $column,
+        '.has-many-{$this->column}-form'
+    );
+});
+
+EOT;
     }
 
     public function getScript(): string

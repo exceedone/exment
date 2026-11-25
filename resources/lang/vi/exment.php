@@ -70,6 +70,7 @@ return [
         'column' => 'Cột',
         'row_up' => 'Lên một hàng',
         'row_down' => 'Xuống một hàng',
+        'row_copy' => 'Sao chép hàng',
         'open' => 'Mở',
         'open_blank' => 'Mở trong cửa sổ mới',
         'open_all' => 'Mở tất cả',

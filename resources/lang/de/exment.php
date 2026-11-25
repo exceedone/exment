@@ -70,6 +70,7 @@ return [
         'column' => 'Spalte',
         'row_up' => 'Zeile nach oben',
         'row_down' => 'Zeile nach unten',
+        'row_copy' => 'Zeile kopieren',
         'open' => 'Öffnen',
         'open_blank' => 'In neuem Fenster öffnen',
         'open_all' => 'Alle öffnen',

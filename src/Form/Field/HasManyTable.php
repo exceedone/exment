@@ -46,6 +46,13 @@ class HasManyTable extends HasMany
     protected $hideDeleteButtonRow = null;
 
     /**
+     * Whether a row can be copied while the form is filled in (#1595).
+     *
+     * @var bool
+     */
+    protected $rowCopy = false;
+
+    /**
      * Options for template.
      *
      * @var array
@@ -128,6 +135,18 @@ class HasManyTable extends HasMany
     {
         $this->rowUpDown = $rowUpDown;
         $this->power = $power;
+        return $this;
+    }
+
+    /**
+     * Show a button on every row that adds a copy of it (#1595).
+     *
+     * @param bool $rowCopy
+     * @return $this
+     */
+    public function rowCopy(bool $rowCopy = true)
+    {
+        $this->rowCopy = $rowCopy;
         return $this;
     }
 
@@ -262,6 +281,7 @@ class HasManyTable extends HasMany
         $indexName = "index_{$this->column}";
 
         $rowUpDownClassName = $this->rowUpDown;
+        $columnJson = json_encode(strval($this->column), $jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -324,6 +344,18 @@ $('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').
 
     row.stop().css('background-color', '#FFFFCC').animate({backgroundColor: "rgba(0,0,0,0.0)"}, 1000);
 
+});
+
+$('#has-many-table-{$this->column}').off('click.admin_row_copy', '.row-copy').on('click.admin_row_copy', '.row-copy', function () {
+    if (!window.ExmentHasManyCopy) {
+        return;
+    }
+    window.ExmentHasManyCopy.copyRow(
+        $('#has-many-table-{$this->column}'),
+        $(this).closest('.has-many-table-{$this->column}-row'),
+        {$columnJson},
+        '.has-many-table-{$this->column}-row'
+    );
 });
 
 $("button[type='submit']").click(function(){
@@ -428,6 +460,7 @@ EOT;
             'template'     => $template,
             'relationName' => $this->relationName,
             'hasRowUpDown' => isset($this->rowUpDown),
+            'rowCopy' => $this->rowCopy,
             'tableitems' => $tableitems,
             'hiddens' => $hiddens,
             'helps' => $helps,

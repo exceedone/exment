@@ -70,6 +70,7 @@ return [
         'column' => '列',
         'row_up' => '1行上へ',
         'row_down' => '1行下へ',
+        'row_copy' => '行を複製',
         'open' => '開く',
         'open_blank' => '新規ウィンドウで開く',
         'open_all' => 'すべて開く',

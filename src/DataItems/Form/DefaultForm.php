@@ -125,7 +125,7 @@ class DefaultForm extends FormBase
                                     ->setRelationName($relation_name)
                                     ->gridEmbeds();
                             }
-                        );
+                        )->rowCopy();
                     }
                 }
                 // n:n
@@ -238,7 +238,7 @@ EOT;
                     $this->setCustomFormColumns($form, $customFormColumns);
                 })->setRelationName($relationName);
             }
-        )->setTableWidth(12, 0);
+        )->setTableWidth(12, 0)->rowCopy();
 
         if (isset($lazyLoadUrl)) {
             $hasmany->lazyLoad($lazyLoadUrl);

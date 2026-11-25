@@ -70,6 +70,7 @@ return [
         'column' => '列',
         'row_up' => '上移一行',
         'row_down' => '下移一行',
+        'row_copy' => '复制行',
         'open' => '打开',
         'open_blank' => '在新窗口中打开',
         'open_all' => '全部展开',

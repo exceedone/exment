@@ -70,6 +70,7 @@ return [
         'column' => 'Columna',
         'row_up' => 'Subir fila',
         'row_down' => 'Bajar fila',
+        'row_copy' => 'Copiar fila',
         'open' => 'Abrir',
         'open_blank' => 'Abrir en una ventana nueva',
         'open_all' => 'Abrir todo',

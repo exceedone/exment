@@ -70,6 +70,7 @@ return [
         'column' => '열',
         'row_up' => '한 행 위로',
         'row_down' => '한 행 아래로',
+        'row_copy' => '행 복제',
         'open' => '열기',
         'open_blank' => '새 창에서 열기',
         'open_all' => '모두 펼치기',
