@@ -270,6 +270,35 @@ trait InitializeFormTrait
             ->required()
             ->min(0)
             ->max(SafetyCheckSender::ANSWER_URL_MAX_EXPIRE_DAYS);
+
+        // 送信対象 (GitHub #2180): all empty is every user
+        if (System::organization_available()) {
+            $targetOrganizations = System::safety_check_target_organizations();
+            $organizationTable = CustomTable::getEloquent(Enums\SystemTableName::ORGANIZATION);
+            $form->multipleSelect('safety_check_target_organizations', exmtrans('system.safety_check_target_organizations'))
+                ->help(exmtrans('system.help.safety_check_target_organizations'))
+                ->ajax($organizationTable->getOptionAjaxUrl())
+                ->options(function ($option) use ($organizationTable, $targetOrganizations) {
+                    return $organizationTable->getSelectOptions([
+                        'selected_value' => $targetOrganizations,
+                    ]);
+                });
+        }
+
+        $form->select('safety_check_target_view', exmtrans('system.safety_check_target_view'))
+            ->help(exmtrans('system.help.safety_check_target_view'))
+            ->options(SafetyCheckSender::targetViewOptions());
+
+        $excludedUsers = System::safety_check_excluded_users();
+        $userTable = CustomTable::getEloquent(Enums\SystemTableName::USER);
+        $form->multipleSelect('safety_check_excluded_users', exmtrans('system.safety_check_excluded_users'))
+            ->help(exmtrans('system.help.safety_check_excluded_users'))
+            ->ajax($userTable->getOptionAjaxUrl())
+            ->options(function ($option) use ($userTable, $excludedUsers) {
+                return $userTable->getSelectOptions([
+                    'selected_value' => $excludedUsers,
+                ]);
+            });
     }
 
 
