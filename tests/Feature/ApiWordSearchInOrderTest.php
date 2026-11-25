@@ -37,6 +37,21 @@ class ApiWordSearchInOrderTest extends ApiTestBase
         }
     }
 
+    /**
+     * Not stopped at keyword_search_count: the search read at most that many matches of each
+     * column (in no order), so a page past it was empty or repeated others. With a small limit
+     * the pages still have every match, each once (this fails without the fix).
+     */
+    public function testNotStoppedAtTheKeywordSearchCount(): void
+    {
+        $all = $this->allPages('custom_value_access_all', 'index', 20);
+        $this->assertGreaterThan(10, count($all));
+
+        config(['exment.keyword_search_count' => 5]);
+        $limited = $this->allPages('custom_value_access_all', 'index', 3);
+        $this->assertSame($all, $limited);
+    }
+
     public function testTheAnswerKeepsItsForm(): void
     {
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
