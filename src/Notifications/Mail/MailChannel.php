@@ -54,6 +54,8 @@ class MailChannel
                     $message->text($mailMessage->getBody());
                 } else {
                     $message->html($mailMessage->getBody());
+                    // and the same as text, for a mail program that does not show HTML (ISS02863)
+                    $message->text(static::htmlToText(strval($mailMessage->getBody())));
                 }
 
                 $this->setAttachments($message, $mailMessage, $tmpZipPath);
@@ -164,5 +166,33 @@ class MailChannel
         ]);
 
         $model->save();
+    }
+
+    /**
+     * The text of an HTML body: a line per paragraph, line break and list item (numbered for an
+     * ordered list), a link as "text (address)".
+     */
+    public static function htmlToText(string $html): string
+    {
+        $text = preg_replace_callback('#<ol[^>]*>(.*?)</ol>#is', function ($m) {
+            $n = 0;
+            $items = preg_replace_callback('#<li[^>]*>#i', function () use (&$n) {
+                $n++;
+                return "\n" . $n . '. ';
+            }, $m[1]);
+            return "\n" . ($items ?? $m[1]) . "\n\n";
+        }, $html) ?? $html;
+        $text = preg_replace('#<li[^>]*>#i', "\n- ", $text) ?? $text;
+        $text = preg_replace_callback('#<a\s[^>]*href=(["\x27])(.*?)\1[^>]*>(.*?)</a>#is', function ($m) {
+            $label = trim(strip_tags($m[3]));
+            $href = html_entity_decode($m[2], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            return $label === '' || $label === $href ? $href : $label . ' (' . $href . ')';
+        }, $text) ?? $text;
+        $text = preg_replace('#<br\s*/?>#i', "\n", $text) ?? $text;
+        $text = preg_replace('#</(p|div|h[1-6]|tr|ul|ol|table)>#i', "\n\n", $text) ?? $text;
+        $text = html_entity_decode(strip_tags($text), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $text = preg_replace("/[ \t]+\n/", "\n", $text) ?? $text;
+        $text = preg_replace("/\n{3,}/", "\n\n", $text) ?? $text;
+        return trim($text);
     }
 }
