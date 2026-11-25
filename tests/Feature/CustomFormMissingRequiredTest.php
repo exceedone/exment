@@ -81,7 +81,7 @@ class CustomFormMissingRequiredTest extends FeatureTestBase
             'table_view_name' => 'missing required',
             'table_name' => 'form_missing_required',
             'fields' => [
-                ['type' => ColumnType::TEXT, 'label' => '件名', 'column_name' => 'title', 'required' => true],
+                ['type' => ColumnType::TEXT, 'label' => '件名<b>', 'column_name' => 'title', 'required' => true],
                 ['type' => ColumnType::TEXT, 'label' => 'メモ', 'column_name' => 'memo'],
             ],
         ]));
