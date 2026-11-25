@@ -402,4 +402,35 @@ class McpServerTest extends ApiTestBase
             $this->assertStringNotContainsString('does not have the scope', (string)($result['content'][0]['text'] ?? ''), "$tool with a key for MCP");
         }
     }
+
+    /**
+     * search_data with words finds the records the search of the data API finds (it found
+     * nothing: searchValue with isApi and no columns searched no column).
+     */
+    public function testSearchWithWords(): void
+    {
+        $this->setFeatures([Features::MCP => ['enabled' => true, 'role_groups' => null], Features::API_KEYS => ['enabled' => true, 'role_groups' => null]]);
+        $key = $this->key(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+
+        $found = $this->data($this->tool($key, 'search_data', ['table' => 'custom_value_access_all', 'q' => 'index_002', 'limit' => 50]));
+        $this->assertGreaterThan(0, $found['count'], 'the words find records');
+        $ids = array_column($found['rows'], 'id');
+        sort($ids);
+
+        // the same as the search of the data API (Api2Test::testDataQuery)
+        $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
+        \Auth::forgetGuards();
+        $api = $this->withHeaders(['Authorization' => "Bearer $token"])
+            ->get(admin_urls('api', 'data', 'custom_value_access_all', 'query') . '?q=index_002&count=50')
+            ->assertStatus(200)
+            ->json('data');
+        $this->assertIsArray($api);
+        $apiIds = array_column($api, 'id');
+        sort($apiIds);
+        $this->assertSame($apiIds, $ids);
+
+        // words nothing has
+        $none = $this->data($this->tool($key, 'search_data', ['table' => 'custom_value_access_all', 'q' => 'no-record-has-these-words']));
+        $this->assertSame(0, $none['count']);
+    }
 }

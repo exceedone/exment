@@ -365,7 +365,9 @@ class McpTools
             throw new ToolError('"q" is too long (at most ' . static::MAX_QUERY_LENGTH . ' characters).');
         }
         if ($q !== '') {
-            $found = $custom_table->searchValue($q, ['maxCount' => $limit, 'isApi' => true]) ?? collect();
+            // the columns the table searches by words (as the search of the data API; with
+            // isApi and no columns given, searchValue searched no column and found nothing)
+            $found = $custom_table->searchValue($q, ['maxCount' => $limit]) ?? collect();
         } else {
             $found = $custom_table->getValueQuery()->orderByDesc('updated_at')->orderByDesc('id')->limit($limit)->get();
         }
