@@ -526,6 +526,11 @@
             "title": "模板"
         },
         {
+            "menu_type": "system",
+            "menu_name": "trash",
+            "title": "回收站"
+        },
+        {
             "menu_type": "parent_node",
             "menu_name": "admin_user",
             "title": "设置：用户与权限"
