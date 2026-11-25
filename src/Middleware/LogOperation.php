@@ -32,8 +32,9 @@ class LogOperation extends BaseLogOperation
                 'input'   => json_encode(static::maskInputArray((array)$request->input(), $request->path())),
             ];
 
+            // written after the response (ISS02903); a row that cannot be written is kept in a file
             try {
-                OperationLogModel::create($log);
+                \Exceedone\Exment\Services\LogManagement\LogWriter::insert(OperationLogModel::class, $log);
             } catch (\Exception $exception) {
                 // pass
             }
