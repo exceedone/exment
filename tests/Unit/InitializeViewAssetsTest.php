@@ -8,14 +8,14 @@ namespace Exceedone\Exment\Tests\Unit;
  */
 class InitializeViewAssetsTest extends UnitTestBase
 {
-    protected function view(): string
+    protected function initializeView(): string
     {
         return (string) file_get_contents(exment_package_path('resources/views/initialize/index.blade.php'));
     }
 
     public function testNoBootstrap3LeftoversAreLoaded(): void
     {
-        $view = $this->view();
+        $view = $this->initializeView();
         $this->assertStringContainsString('Admin::js()', $view);
         $this->assertStringNotContainsString('bootstrap3-editable', $view);
         $this->assertStringNotContainsString('slimScroll', $view);
