@@ -185,6 +185,49 @@ class CustomForm extends ModelBase implements Interfaces\TemplateImporterInterfa
         return $this;
     }
 
+    /**
+     * Whether a new record of this form is refused while a required column the form does not have
+     * is empty (ISS00374). Off: saved as before (a form of a part of the columns on purpose).
+     */
+    // @phpstan-ignore-next-line
+    public function getCheckMissingRequiredAttribute()
+    {
+        return boolval($this->getOption('check_missing_required', false));
+    }
+
+    // @phpstan-ignore-next-line
+    public function setCheckMissingRequiredAttribute($check_missing_required)
+    {
+        $this->setOption('check_missing_required', boolval($check_missing_required));
+        return $this;
+    }
+
+    /**
+     * The required columns of the table that the default block of this form does not have. The
+     * required rule is checked only on the columns of the form, so a record made with it has these
+     * empty unless check_missing_required is on.
+     *
+     * @return \Illuminate\Support\Collection<int, CustomColumn>
+     */
+    public function missingRequiredColumns()
+    {
+        $block = $this->custom_form_blocks()->where('form_block_type', \Exceedone\Exment\Enums\FormBlockType::DEFAULT)->first();
+        $placed = isset($block)
+            ? $block->custom_form_columns()->where('form_column_type', \Exceedone\Exment\Enums\FormColumnType::COLUMN)->pluck('form_column_target_id')->map(function ($id) {
+                return intval($id);
+            })->all()
+            : [];
+
+        $table = $this->custom_table_cache ?? $this->custom_table;
+        $missing = [];
+        foreach (isset($table) ? $table->custom_columns : [] as $column) {
+            if (boolval($column->getOption('required')) && !in_array(intval($column->id), $placed, true)) {
+                $missing[] = $column;
+            }
+        }
+        return collect($missing);
+    }
+
     // @phpstan-ignore-next-line
     public function getShowGridTypeAttribute()
     {
