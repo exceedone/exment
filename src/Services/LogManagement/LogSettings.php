@@ -29,6 +29,7 @@ class LogSettings
 
     public static function apply(): void
     {
+        static::applyPrivacy();
         try {
             if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
                 return;
@@ -53,6 +54,40 @@ class LogSettings
             config([
                 'logging.channels.single.driver' => 'daily',
                 'logging.channels.single.days' => 0,
+            ]);
+            $changed = true;
+        }
+        if ($changed) {
+            foreach (array_merge(static::FILE_CHANNELS, ['stack', strval(config('logging.default'))]) as $channel) {
+                try {
+                    Log::forgetChannel($channel);
+                } catch (\Throwable $e) {
+                    // not made yet
+                }
+            }
+        }
+    }
+
+    /**
+     * The files of the application log: made with log_file_permission (0640), and tapped by
+     * LogPrivacyTap (part 4). Without the database too.
+     */
+    public static function applyPrivacy(): void
+    {
+        $permission = strval(config('exment.log_file_permission', '0640'));
+        $mode = preg_match('/^0?[0-7]{3}$/', $permission) === 1 ? intval(octdec($permission)) : 0640;
+        $changed = false;
+        foreach (static::FILE_CHANNELS as $channel) {
+            if (!is_array(config("logging.channels.{$channel}"))) {
+                continue;
+            }
+            $taps = (array) config("logging.channels.{$channel}.tap", []);
+            if (!in_array(LogPrivacyTap::class, $taps, true)) {
+                $taps[] = LogPrivacyTap::class;
+            }
+            config([
+                "logging.channels.{$channel}.tap" => $taps,
+                "logging.channels.{$channel}.permission" => $mode,
             ]);
             $changed = true;
         }

@@ -769,6 +769,15 @@ return [
                 'warning' => '有新版本。',
                 'fix' => '请在系统设置的“版本”中更新 Exment，在功能管理中更新官方插件。',
             ],
+            'logs' => [
+                'label' => '日志与个人信息',
+                'explain' => '日志可能被盗：只应保留必要的个人信息，并且只有所有者可以读取其文件。',
+                'store_input' => '日志正在保留输入的值（日志管理）。',
+                'debug' => '调试模式正在记录每个请求或每条带值的 SQL（.env 的 EXMENT_DEBUG_MODE_*）。',
+                'readable' => '服务器上的任何人都可以读取日志或归档文件。',
+                'fix' => "请关闭“在日志中保留输入的值”和调试模式。文件：\nchmod -R o-rwx :storage/logs :storage/app/log_archive",
+                'warning' => '日志正在保留输入的值（日志管理）。',
+            ],
             'supported_versions' => [
                 'label' => 'PHP 和数据库的版本',
                 'explain' => 'PHP 和数据库只在一定期间内提供安全修复。请使用仍提供修复的版本：PHP 8.3 及以上、MySQL 8.0、MariaDB 10.11 或 SQL Server 2016 及以上。',
@@ -5075,6 +5084,21 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'privacy' => [
+            'header' => '日志中的个人信息',
+            'store_input' => '在日志中保留输入的值',
+            'store_input_help' => '关闭（推荐）：操作记录只保留所发送内容的键，值为 ***（画面、API、MCP），应用日志会隐藏邮箱地址和 SQL 中的值。开启：与以前一样保留值（密码、令牌和密钥仍会隐藏）。',
+            'ip_mode' => '日志中的 IP 地址',
+            'ip_keep' => '原样',
+            'ip_truncate' => '缩短（IPv4 /24、IPv6 /48）',
+            'ip_hash' => '哈希（相同地址得到相同文本）',
+            'ip_help' => '登录记录和操作记录。审计通常需要原样的地址。',
+            'archive_encrypt' => '用 APP_KEY 加密归档',
+            'archive_encrypt_help' => '从现在起写入的月份会加密。丢失 APP_KEY 将无法读取。关闭时为 gzip 文件（在 S3 上由 S3 加密）。',
+            'mail_body' => '不在邮件发送记录中保留正文',
+            'mail_body_help' => '开启时，邮件发送记录只保留地址和主题。关闭时，与以前一样也保留正文（显示在发送历史中）。',
+            'update_notice' => '从 Exment 7.3.0 起，操作记录不再保留所发送内容的值（只保留键，值为 ***），应用日志会隐藏邮箱地址和 SQL 中的值。如需像以前一样保留值，请在管理员设置的“日志管理”中开启“在日志中保留输入的值”。新的日志文件以 0640 创建（EXMENT_LOG_FILE_PERMISSION）。',
+        ],
         'archive' => [
             'header' => '归档',
             'enabled' => '删除旧日志前，按月汇总为 gzip 文件',

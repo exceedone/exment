@@ -30,18 +30,16 @@ class LoginRecorder
                 return;
             }
             $credentials = (array) $event->credentials;
+            // what was typed is not kept: it may be a password typed in the wrong field (part 4).
+            // A known user is told by the ids, an unknown one by the reason
             static::write(LoginLog::RESULT_FAILURE, $event->user, [
                 'failure_reason' => isset($event->user) ? LoginLog::REASON_WRONG_PASSWORD : LoginLog::REASON_UNKNOWN_USER,
-                'login_name' => static::loginName($credentials),
                 'provider' => strval(array_get($credentials, 'login_type') ?: LoginType::PURE),
                 'provider_name' => ($credentials['login_setting'] ?? null) instanceof LoginSetting ? strval($credentials['login_setting']->provider_name) : null,
             ]);
         });
         Event::listen(Lockout::class, function (Lockout $event) {
-            $request = $event->request;
-            static::write(LoginLog::RESULT_LOCKOUT, null, [
-                'login_name' => static::loginName((array) $request->only(['username', 'email', 'user_code'])),
-            ]);
+            static::write(LoginLog::RESULT_LOCKOUT, null);
         });
         Event::listen(Logout::class, function (Logout $event) {
             if (static::isPages($event->guard)) {
@@ -63,19 +61,6 @@ class LoginRecorder
     protected static function isPages(?string $guard): bool
     {
         return in_array(strval($guard), ['admin', strval(config('admin.auth.guard', 'admin'))], true);
-    }
-
-    /**
-     * @param array<string, mixed> $credentials
-     */
-    protected static function loginName(array $credentials): ?string
-    {
-        foreach (['username', 'email', 'user_code'] as $key) {
-            if (is_string($value = array_get($credentials, $key)) && $value !== '') {
-                return mb_substr($value, 0, 256);
-            }
-        }
-        return null;
     }
 
     /**
@@ -119,7 +104,7 @@ class LoginRecorder
                 'provider' => $provider,
                 'provider_name' => $providerName,
                 'result' => $result,
-                'ip' => mb_substr(strval($request->ip()), 0, 64) ?: null,
+                'ip' => mb_substr(strval(LogPrivacy::ip($request->ip())), 0, 64) ?: null,
                 'user_agent' => mb_substr(strval($request->userAgent()), 0, 512) ?: null,
                 'created_at' => \Carbon\Carbon::now(),
             ], array_filter($values, function ($value) {

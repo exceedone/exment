@@ -769,6 +769,15 @@ return [
                 'warning' => 'Es ist eine neuere Version verfügbar.',
                 'fix' => 'Aktualisieren Sie Exment unter „Version“ in den Systemeinstellungen und die offiziellen Plugins in der Funktionsverwaltung.',
             ],
+            'logs' => [
+                'label' => 'Protokolle und personenbezogene Daten',
+                'explain' => 'Protokolle können gestohlen werden: Sie sollten nur so viele personenbezogene Daten enthalten wie nötig, und nur der Eigentümer sollte ihre Dateien lesen.',
+                'store_input' => 'Die Protokolle behalten die Eingaben (Protokollverwaltung).',
+                'debug' => 'Ein Debug-Modus schreibt jede Anfrage oder jedes SQL mit seinen Werten (.env EXMENT_DEBUG_MODE_*).',
+                'readable' => 'Die Dateien der Protokolle oder ihres Archivs kann jeder auf dem Server lesen.',
+                'fix' => "Schalten Sie „Eingaben in den Protokollen behalten“ und die Debug-Modi aus. Für die Dateien:\nchmod -R o-rwx :storage/logs :storage/app/log_archive",
+                'warning' => 'Die Protokolle behalten die Eingaben (Protokollverwaltung).',
+            ],
             'supported_versions' => [
                 'label' => 'Versionen von PHP und der Datenbank',
                 'explain' => 'PHP und die Datenbank erhalten Sicherheitskorrekturen nur für eine bestimmte Zeit. Verwenden Sie Versionen, die sie noch erhalten: PHP 8.3 oder neuer, MySQL 8.0, MariaDB 10.11 oder SQL Server 2016 oder neuer.',
@@ -5075,6 +5084,21 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'privacy' => [
+            'header' => 'Personenbezogene Daten in den Protokollen',
+            'store_input' => 'Eingaben in den Protokollen behalten',
+            'store_input_help' => 'Aus (empfohlen): Das Vorgangsprotokoll behält die Schlüssel des Gesendeten (Seiten, API, MCP) mit den Werten als ***, und das Anwendungsprotokoll maskiert E-Mail-Adressen und die Werte in SQL. Ein: Die Werte bleiben wie bisher erhalten (Passwörter, Token und geheime Schlüssel werden weiterhin maskiert).',
+            'ip_mode' => 'IP-Adresse in den Protokollen',
+            'ip_keep' => 'Unverändert',
+            'ip_truncate' => 'Gekürzt (IPv4 /24, IPv6 /48)',
+            'ip_hash' => 'Gehasht (dieselbe Adresse ergibt denselben Text)',
+            'ip_help' => 'Die Anmeldeprotokolle und das Vorgangsprotokoll. Prüfungen benötigen die Adresse meist unverändert.',
+            'archive_encrypt' => 'Archiv mit APP_KEY verschlüsseln',
+            'archive_encrypt_help' => 'Ab jetzt geschriebene Monate werden verschlüsselt. Geht APP_KEY verloren, kann das Archiv nicht gelesen werden. Aus: gzip-Dateien (auf S3 von S3 verschlüsselt).',
+            'mail_body' => 'Text nicht im E-Mail-Versandprotokoll behalten',
+            'mail_body_help' => 'Ein: Das E-Mail-Versandprotokoll behält nur die Adressen und den Betreff. Aus: auch den Text, wie bisher (der Versandverlauf zeigt ihn).',
+            'update_notice' => 'Ab Exment 7.3.0 behält das Vorgangsprotokoll keine Werte des Gesendeten (nur die Schlüssel, als ***), und das Anwendungsprotokoll maskiert E-Mail-Adressen und die Werte in SQL. Um die Werte wie bisher zu behalten, schalten Sie unter Verwaltungseinstellungen > Protokollverwaltung „Eingaben in den Protokollen behalten“ ein. Neue Protokolldateien werden mit 0640 angelegt (EXMENT_LOG_FILE_PERMISSION).',
+        ],
         'archive' => [
             'header' => 'Archiv',
             'enabled' => 'Alte Protokolle vor dem Löschen in eine gzip-Datei pro Monat legen',
