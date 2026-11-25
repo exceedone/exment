@@ -68,7 +68,7 @@ class SystemController extends AdminControllerBase
     /**
      * Index interface.
      *
-     * @return Content
+     * @return Content|\Illuminate\Http\RedirectResponse
      */
     public function index(Request $request, Content $content)
     {

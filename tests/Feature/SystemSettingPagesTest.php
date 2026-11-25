@@ -190,8 +190,8 @@ class SystemSettingPagesTest extends FeatureTestBase
 
         // "?advanced=1#meili": the hash never reaches the server, the page sends it on
         $page = $this->get(admin_url('system') . '?advanced=1')->assertOk();
-        $page->assertSee(json_encode(admin_url('meili_setting')), false);
-        $page->assertSee(json_encode(admin_url('safety_check_setting')), false);
+        $page->assertSee(strval(json_encode(admin_url('meili_setting'))), false);
+        $page->assertSee(strval(json_encode(admin_url('safety_check_setting'))), false);
     }
 
     public function testTheSystemMenuHasThePages(): void
