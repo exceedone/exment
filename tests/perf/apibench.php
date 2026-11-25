@@ -29,7 +29,8 @@ if (!$method || !$path) {
 $token = getenv('APIBENCH_TOKEN') ?: '';
 $top = intval(getenv('APIBENCH_TOP') ?: 5);
 
-$prefix = trim(strval(config('admin.route.prefix')), '/');
+// (before the boot: no config() yet) the admin prefix, "admin" by default
+$prefix = trim(strval(getenv('APIBENCH_PREFIX') !== false ? getenv('APIBENCH_PREFIX') : 'admin'), '/');
 $uri = '/' . ltrim(($prefix === '' ? '' : $prefix . '/') . ltrim($path, '/'), '/');
 $server = [
     'HTTP_ACCEPT' => 'application/json',
@@ -40,6 +41,9 @@ if (isset($body)) {
     $server['CONTENT_TYPE'] = 'application/json';
 }
 $request = Illuminate\Http\Request::create($uri, strtoupper($method), [], [], [], $server, $body);
+// the request first (Exment's providers read it), then the boot (the facades for Event::listen)
+$app->instance('request', $request);
+$kernel->bootstrap();
 
 $queries = [];
 $sqlMs = 0.0;
