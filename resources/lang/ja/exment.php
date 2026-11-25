@@ -1569,6 +1569,8 @@ return [
     ],
 
     '2factor' => [
+        'login_unknown' => '不明',
+        'login_location_separator' => '・',
         '2factor' => '2段階認証',
         'login' => '認証',
         'submit_verify_code' => '認証コード送信',
@@ -2418,6 +2420,8 @@ return [
         'changedata_column' => 'リンク列を選択',
         'changedata_column_then' => 'の値をコピーする',
         'default_flg' => '既定のフォーム',
+        'check_missing_required' => 'このフォームにない必須の列も確かめる',
+        'check_missing_required_help' => 'オンにすると、このフォームにない必須の列が空のときは、このフォームから新しいデータを保存しません。オフのときは、その列は空のまま保存されます（公開フォームなど、一部の列だけのフォーム）。',
         'field_showing_type' => 'フィールド種類',
         'form_column_view_name' => 'フィールド表示名',
         'image_aslink' => '画像をリンクとして表示',
@@ -2481,6 +2485,7 @@ return [
         ],
 
         'message' => [
+            'missing_required_empty' => '保存しませんでした。必須の列 :names がこのフォームになく、値がありません。フォームに足すか、「このフォームにない必須の列も確かめる」をオフにしてください。',
             'no_exists_column' => '必須項目が設定されていません。',
             'confirm_required' => '必須項目が設定されていません。このまま保存してもよろしいでしょうか？',
             'image_need_delete' => '※画像を差し替える場合、列を一度削除後、再度追加してください。',
