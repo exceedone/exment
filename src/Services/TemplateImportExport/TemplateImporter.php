@@ -1000,12 +1000,80 @@ class TemplateImporter
         // merge language file
         $locale = \App::getLocale();
         $langpath = "$basePath/lang/$locale/lang.json";
+        $original = $json;
 
         if (File::exists($langpath)) {
             $lang = json_decode_ex(File::get($langpath), true);
             $json = $this->mergeTemplate($json, $lang);
         }
 
+        // the names in the other languages the template has (7.3, ISS02859)
+        return is_array($original) && is_array($json) ? $this->addNameLocales($json, $original, $basePath, strval($locale)) : $json;
+    }
+
+    /**
+     * Give the tables, columns and views of a template their names in every language its
+     * lang/<locale>/lang.json have (and English, the language of config.json, when the template
+     * is translated), as name_locale_<locale> in their options. The names of the language of the
+     * import are the names themselves. Not the menus: a menu of a table follows its table, and
+     * the menus of the system follow MenuTitle (so a title changed later is not overruled).
+     *
+     * @param array<string, mixed> $json the template, merged with the language of the import
+     * @param array<string, mixed> $original config.json as it is
+     * @return array<string, mixed>
+     */
+    protected function addNameLocales(array $json, array $original, string $basePath, string $locale): array
+    {
+        $files = File::glob("$basePath/lang/*/lang.json") ?: [];
+        if (empty($files)) {
+            return $json;
+        }
+        $byLocale = [];
+        foreach ($files as $file) {
+            $lang = json_decode_ex(File::get($file), true);
+            if (is_array($lang)) {
+                $byLocale[basename(dirname($file))] = $this->mergeTemplate($original, $lang);
+            }
+        }
+        // config.json of a translated template is English
+        if (!isset($byLocale['en'])) {
+            $byLocale['en'] = $original;
+        }
+        unset($byLocale[$locale]);
+
+        $put = function (array &$item, $name, string $loc) {
+            if (!is_string($name) || trim($name) === '') {
+                return;
+            }
+            $options = array_get($item, 'options');
+            $options = is_array($options) ? $options : [];
+            $options[\Exceedone\Exment\Services\NameLocales::key($loc)] = $name;
+            $item['options'] = $options;
+        };
+        foreach ($byLocale as $loc => $other) {
+            foreach ((array) array_get($json, 'custom_tables', []) as $t => $table) {
+                if (!is_array($table)) {
+                    continue;
+                }
+                $otherTable = array_get($other, "custom_tables.$t");
+                if (!is_array($otherTable) || array_get($otherTable, 'table_name') !== array_get($table, 'table_name')) {
+                    continue;
+                }
+                $put($json['custom_tables'][$t], array_get($otherTable, 'table_view_name'), strval($loc));
+                foreach ((array) array_get($table, 'custom_columns', []) as $c => $column) {
+                    $otherColumn = array_get($otherTable, "custom_columns.$c");
+                    if (is_array($column) && is_array($otherColumn) && array_get($otherColumn, 'column_name') === array_get($column, 'column_name')) {
+                        $put($json['custom_tables'][$t]['custom_columns'][$c], array_get($otherColumn, 'column_view_name'), strval($loc));
+                    }
+                }
+            }
+            foreach ((array) array_get($json, 'custom_views', []) as $v => $view) {
+                $otherView = array_get($other, "custom_views.$v");
+                if (is_array($view) && is_array($otherView) && array_get($otherView, 'view_view_name') !== null) {
+                    $put($json['custom_views'][$v], array_get($otherView, 'view_view_name'), strval($loc));
+                }
+            }
+        }
         return $json;
     }
 

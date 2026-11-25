@@ -5326,4 +5326,10 @@ return [
         'message_public_form_script' => '这是演示站点：公开表单的自定义 CSS 和 JavaScript 不会被保存。',
         'message_system_admin' => '这是演示站点：系统管理员不会被更改。',
     ],
+    // the names of tables, columns, views and menus in the other languages (7.3, ISS02859)
+    'name_locales' => [
+        'header' => '其他语言的名称',
+        'help' => '向选择了这些语言的用户显示的%s。为空时，直接显示上面的名称。',
+        'name_in' => '%s名称',
+    ],
 ];

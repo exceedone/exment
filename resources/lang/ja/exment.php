@@ -5354,4 +5354,10 @@ return [
         'message_public_form_script' => 'デモ環境のため、公開フォームのカスタムCSS・JavaScriptは保存されません。',
         'message_system_admin' => 'デモ環境のため、システム管理者は変更されません。',
     ],
+    // the names of tables, columns, views and menus in the other languages (7.3, ISS02859)
+    'name_locales' => [
+        'header' => 'ほかの言語の名前',
+        'help' => 'これらの言語を選んだユーザーに出す%sです。空なら、上の名前をそのまま出します。',
+        'name_in' => '%sの名前',
+    ],
 ];

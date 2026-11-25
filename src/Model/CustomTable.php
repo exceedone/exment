@@ -74,14 +74,32 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     use Traits\AutoSUuidTrait;
     use Traits\TemplateTrait;
     use Traits\ColumnOptionQueryTrait;
+    use Traits\NameLocalesTrait;
+
+    /** the names in the other languages, read only for the API (ISS02859) */
+    protected $appends = ['name_locales'];
 
     protected $casts = ['options' => 'json'];
+
+    /**
+     * The name in the language of the user, when one is given for it (ISS02859): the
+     * stored name otherwise, and always on the pages and in the code that edit or export it
+     * (NameLocales).
+     *
+     * @param mixed $value the stored name
+     * @return mixed
+     */
+    public function getTableViewNameAttribute($value)
+    {
+        $options = $this->getAttributeValue('options');
+        return \Exceedone\Exment\Services\NameLocales::pick(is_array($options) ? $options : null, $value);
+    }
     protected $guarded = ['id', 'suuid', 'system_flg'];
 
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['suuid'],
+        'excepts' => ['suuid', 'name_locales'],
         'uniqueKeys' => ['table_name'],
         'langs' => [
             'keys' => ['table_name'],

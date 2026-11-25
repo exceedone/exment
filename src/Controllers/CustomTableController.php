@@ -340,6 +340,9 @@ class CustomTableController extends AdminControllerBase
                 $form->switchbool('editable_with_parent', exmtrans("custom_table.editable_with_parent"))->help(exmtrans("custom_table.help.editable_with_parent"))
                     ->default("1");
             }
+
+            // the name in the other languages (ISS02859)
+            \Exceedone\Exment\Services\NameLocales::addFields($form, exmtrans("custom_table.table_view_name"));
         })->disableHeader()->preserveExistingValues();
 
         // if create table, show menulist

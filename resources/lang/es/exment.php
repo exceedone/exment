@@ -5326,4 +5326,10 @@ return [
         'message_public_form_script' => 'Este es un sitio de demostración: no se guardan el CSS y el JavaScript personalizados de los formularios públicos.',
         'message_system_admin' => 'Este es un sitio de demostración: los administradores del sistema no se cambian.',
     ],
+    // the names of tables, columns, views and menus in the other languages (7.3, ISS02859)
+    'name_locales' => [
+        'header' => 'Nombres en otros idiomas',
+        'help' => '%s que se muestra a un usuario que eligió uno de estos idiomas. Vacío: el nombre de arriba, tal cual.',
+        'name_in' => 'Nombre en %s',
+    ],
 ];
