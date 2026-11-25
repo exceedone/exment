@@ -50,6 +50,109 @@ class SecurityCheckTest extends UnitTestBase
         $this->assertFalse((new Security\AppKeySecurity())->canFix());
     }
 
+    /**
+     * The list of the APP_KEY of the download zips, as read by the check.
+     *
+     * @param array<string, true>|null $hashes null: read the file again
+     */
+    protected function shippedList(?array $hashes): void
+    {
+        $ref = new \ReflectionProperty(Security\AppKeySecurity::class, 'shipped');
+        $ref->setAccessible(true);
+        $ref->setValue(null, $hashes);
+    }
+
+    /**
+     * The APP_KEY of a download zip: named by the line its .env has (EXMENT_SHIPPED_APP_KEY_SHA256),
+     * or by the list of the zips published. A high risk, with its own words.
+     */
+    public function testTheKeyOfTheDownloadZip(): void
+    {
+        $zipKey = 'base64:' . base64_encode(random_bytes(32));
+        try {
+            // the line of the .env of the zip
+            config(['app.key' => $zipKey, 'exment.shipped_app_key_sha256' => hash('sha256', $zipKey)]);
+            $this->shippedList([]);
+            $item = new Security\AppKeySecurity();
+            $this->assertTrue(Security\AppKeySecurity::isShipped());
+            $this->assertSame(SystemRequireResult::NG, $item->checkResult());
+            $this->assertTrue($item->isHigh());
+            $this->assertSame(exmtrans('security_check.item.app_key.shipped_warning'), $item->getMessage());
+            $this->assertSame(exmtrans('security_check.item.app_key.shipped_fix'), $item->getFixText());
+            $this->assertFalse($item->canFix(), 'a new key is never made from the screen');
+            // written in capitals
+            config(['exment.shipped_app_key_sha256' => strtoupper(hash('sha256', $zipKey))]);
+            $this->assertTrue(Security\AppKeySecurity::isShipped());
+
+            // php artisan key:generate: the line stays and does not match any more
+            config(['app.key' => 'base64:' . base64_encode(random_bytes(32))]);
+            $item = new Security\AppKeySecurity();
+            $this->assertFalse(Security\AppKeySecurity::isShipped());
+            $this->assertSame(SystemRequireResult::OK, $item->checkResult());
+            $this->assertFalse($item->isHigh());
+            $this->assertSame(exmtrans('security_check.item.app_key.fix'), $item->getFixText());
+
+            // the list of the zips published (a zip without the line)
+            config(['app.key' => $zipKey, 'exment.shipped_app_key_sha256' => null]);
+            $this->shippedList([hash('sha256', $zipKey) => true]);
+            $item = new Security\AppKeySecurity();
+            $this->assertSame(SystemRequireResult::NG, $item->checkResult());
+            $this->assertTrue($item->isHigh());
+            $this->assertSame(exmtrans('security_check.item.app_key.shipped_warning'), $item->getMessage());
+
+            // a sample value keeps its own words and is no high risk
+            config(['app.key' => 'SomeRandomString']);
+            $item = new Security\AppKeySecurity();
+            $this->assertSame(SystemRequireResult::NG, $item->checkResult());
+            $this->assertFalse($item->isHigh());
+            $this->assertSame(exmtrans('security_check.item.app_key.warning'), $item->getMessage());
+        } finally {
+            $this->shippedList(null);
+        }
+    }
+
+    /**
+     * The list shipped with Exment: SHA-256 only (never a key), and a key of this site is not in it.
+     */
+    public function testTheListOfTheDownloadZips(): void
+    {
+        $file = exment_package_path(Security\AppKeySecurity::SHIPPED_LIST);
+        $this->assertFileExists($file);
+        $hashes = 0;
+        foreach (file($file, FILE_IGNORE_NEW_LINES) ?: [] as $line) {
+            $line = trim($line);
+            if ($line === '' || strpos($line, '#') === 0) {
+                continue;
+            }
+            $this->assertMatchesRegularExpression('/^[0-9a-f]{64}$/', $line, 'a line of the list is a SHA-256');
+            $hashes++;
+        }
+        $this->assertGreaterThan(0, $hashes);
+        $this->shippedList(null);
+        try {
+            config(['app.key' => 'base64:' . base64_encode(random_bytes(32)), 'exment.shipped_app_key_sha256' => null]);
+            $this->assertFalse(Security\AppKeySecurity::isShipped());
+            $this->assertSame(SystemRequireResult::OK, (new Security\AppKeySecurity())->checkResult());
+        } finally {
+            $this->shippedList(null);
+        }
+    }
+
+    /**
+     * The words of the key of the zip, in every language.
+     */
+    public function testTheWordsOfTheKeyOfTheZipInEveryLanguage(): void
+    {
+        foreach (['de', 'en', 'es', 'ja', 'ko', 'vi', 'zh_CN'] as $locale) {
+            foreach (['shipped_warning', 'shipped_fix'] as $name) {
+                $text = trans('exment::exment.security_check.item.app_key.' . $name, [], $locale);
+                $this->assertIsString($text);
+                $this->assertStringStartsNotWith('exment::', $text, "$name in $locale");
+            }
+            $this->assertStringContainsString('key:generate', trans('exment::exment.security_check.item.app_key.shipped_fix', [], $locale));
+        }
+    }
+
     public function testDisplayErrors(): void
     {
         try {
