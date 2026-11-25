@@ -426,7 +426,7 @@ class UserApiKeyPageTest extends FeatureTestBase
         $made = $this->post(admin_url('auth/api_keys'), ['name' => 'claude', 'scope_type' => 'mcp', 'table_type' => 'all', 'days' => '30', 'current_password' => 'user1user1']);
         $made->assertOk();
         $this->assertSame(1, preg_match('/exk_[0-9a-f]{48}/', (string)$made->getContent(), $m));
-        $plain = strval($m[0]);
+        $plain = strval($m[0] ?? '');
         /** @var UserApiKey $key */
         $key = UserApiKey::where('user_id', $this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1))->firstOrFail();
         $this->assertSame(McpGuide::scopes(), $key->scopes);
@@ -448,11 +448,11 @@ class UserApiKeyPageTest extends FeatureTestBase
         // read only has the scopes of MCP too: the settings carry it
         $made = $this->post(admin_url('auth/api_keys'), ['name' => 'ro', 'scope_type' => 'read_only', 'table_type' => 'all', 'days' => '30', 'current_password' => 'user1user1']);
         $this->assertSame(1, preg_match('/exk_[0-9a-f]{48}/', (string)$made->getContent(), $m));
-        $made->assertSee('Bearer ' . $m[0]);
+        $made->assertSee('Bearer ' . strval($m[0] ?? ''));
         // a key without value_read: not for MCP, the settings keep the placeholder
         $made = $this->post(admin_url('auth/api_keys'), ['name' => 'me only', 'scope_type' => 'custom', 'scopes' => ['me'], 'table_type' => 'all', 'days' => '30', 'current_password' => 'user1user1']);
         $this->assertSame(1, preg_match('/exk_[0-9a-f]{48}/', (string)$made->getContent(), $m2));
-        $made->assertDontSee('Bearer ' . $m2[0])->assertSee('Bearer exk_...');
+        $made->assertDontSee('Bearer ' . strval($m2[0] ?? ''))->assertSee('Bearer exk_...');
     }
 
     public function testTheKeysPageSaysWhenMcpIsOff(): void
