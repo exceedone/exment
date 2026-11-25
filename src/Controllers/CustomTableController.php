@@ -311,6 +311,14 @@ class CustomTableController extends AdminControllerBase
                 ->default(config('exment.revision_count_default', 100))
                 ->attribute(['data-filter' => json_encode(['key' => 'options_revision_flg', 'value' => "1"])])
             ;
+            // the deleted data deleted for good after these days, kept in the archive (ISS00147)
+            if (!isset($id) || \Exceedone\Exment\Services\TrashPurge::purgeable(CustomTable::getEloquent($id))) {
+                $form->number(\Exceedone\Exment\Services\TrashPurge::OPTION, exmtrans("custom_table.deleted_keep_days"))
+                    ->help(exmtrans("custom_table.help.deleted_keep_days"))
+                    ->min(0)
+                    ->rules('nullable|integer|min:0')
+                ;
+            }
 
             $form->select('data_submit_redirect', exmtrans("system.data_submit_redirect"))
                 ->options(DataSubmitRedirectEx::transKeyArray("custom_table.data_submit_redirect_options"))

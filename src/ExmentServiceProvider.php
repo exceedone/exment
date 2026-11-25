@@ -110,6 +110,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
+        \Exceedone\Exment\Console\TrashPurgeCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
         \Exceedone\Exment\Console\MaintenanceCommand::class,
@@ -665,6 +666,9 @@ class ExmentServiceProvider extends ServiceProvider
 
         // the logs older than they are kept (ISS02839)
         $schedule->command('exment:log-maintenance')->dailyAt('03:40')->withoutOverlapping(60);
+
+        // the deleted data past the days of its table: archived, then deleted for good (ISS00147)
+        $schedule->command('exment:trash-purge')->dailyAt('03:50')->withoutOverlapping(120);
 
         // maintenance mode: the planned start and end (never skipped in a maintenance)
         $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);

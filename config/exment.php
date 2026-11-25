@@ -1137,6 +1137,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The archive of the deleted data deleted for good (ISS00147)
+    |--------------------------------------------------------------------------
+    | exment:trash-purge deletes for good the deleted data older than the days of its table
+    | (the table setting), after writing it to deleted_archives and copying its files.
+    | keep_days: the days an archive is kept (0: kept forever).
+    | disk: the disk of the copied files (empty: the disk of the attachments), folder: the folder in it.
+    */
+    'deleted_archive_keep_days' => env('EXMENT_DELETED_ARCHIVE_KEEP_DAYS', 365),
+    'deleted_archive_disk' => env('EXMENT_DELETED_ARCHIVE_DISK'),
+    'deleted_archive_folder' => env('EXMENT_DELETED_ARCHIVE_FOLDER', 'archives/deleted'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Document upload max count one request
     |--------------------------------------------------------------------------
     |

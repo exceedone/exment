@@ -1906,6 +1906,7 @@ IP 地址: :ip
         'use_label_id_flg' => '将 ID 用作标签',
         'revision_flg' => '使用数据变更历史',
         'revision_count' => '变更历史版本数',
+        'deleted_keep_days' => '删除后到彻底删除的天数',
         'notify_flg' => '登记/更新时通知',
         'custom_columns' => '列列表',
         'all_user_editable_flg' => '所有用户均可编辑',
@@ -1992,6 +1993,7 @@ IP 地址: :ip
             'use_label_id_flg' => '设置为 YES 时，将数据的 id 值作为标题项显示。详情请参阅<a href="%s" target="_blank">此处<i class="fa fa-external-link"></i></a>。',
             'revision_flg' => '设置为 YES 时，保存每条数据时将保存数据的变更历史。此外，还可以在每条数据的页面中恢复以前保存的信息。',
             'revision_count' => '保存数据变更历史的最大条数。超出时将删除较早的历史。',
+            'deleted_keep_days' => '已删除的数据（回收站中的数据）在超过此天数后，由夜间处理彻底删除。彻底删除前，会将数据、子数据、评论、变更历史和附件保存到归档中。为空或 0 时不会彻底删除。',
             'notify_flg' => '设置为 YES 时，在添加或更新数据时向有权限的用户发送通知。',
             'all_user_editable_flg' => '设置为 YES 时，所有用户都可以编辑此表中的所有数据。',
             'all_user_viewable_flg' => '设置为 YES 时，所有用户都可以查看此表中的所有数据。',
@@ -5287,6 +5289,7 @@ IP 地址: :ip
             'meili_reconcile' => '全文搜索：修复索引',
             'maintenance_tick' => '维护模式：计划的开始和结束',
             'log_maintenance' => '日志：删除旧日志',
+            'trash_purge' => '回收站：彻底删除旧的已删除数据（保存到归档）',
             'batch' => '插件批处理：:name',
         ],
         'cron' => [

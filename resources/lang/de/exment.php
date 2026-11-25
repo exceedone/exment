@@ -1906,6 +1906,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'use_label_id_flg' => 'ID als Bezeichnung verwenden',
         'revision_flg' => 'Änderungsverlauf verwenden',
         'revision_count' => 'Anzahl der Versionen im Änderungsverlauf',
+        'deleted_keep_days' => 'Tage bis zum endgültigen Löschen gelöschter Daten',
         'notify_flg' => 'Benachrichtigung bei Erstellung/Aktualisierung',
         'custom_columns' => 'Spaltenliste',
         'all_user_editable_flg' => 'Alle Benutzer können bearbeiten',
@@ -1992,6 +1993,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'use_label_id_flg' => 'Bei YES wird der Wert der Daten-ID als Überschrift angezeigt. Einzelheiten finden Sie <a href="%s" target="_blank">hier<i class="fa fa-external-link"></i></a>.',
             'revision_flg' => 'Bei YES wird beim Speichern von Daten der Änderungsverlauf gespeichert. Außerdem können Sie auf der jeweiligen Datenseite frühere Stände wiederherstellen.',
             'revision_count' => 'Die maximale Anzahl gespeicherter Einträge im Änderungsverlauf. Werden mehr Einträge gespeichert, werden die ältesten gelöscht.',
+            'deleted_keep_days' => 'Gelöschte Daten (im Papierkorb) werden nach so vielen Tagen von der nächtlichen Verarbeitung endgültig gelöscht. Vorher werden die Daten, ihre untergeordneten Daten, Kommentare, Änderungsverläufe und Anhänge in einem Archiv aufbewahrt. Leer oder 0: nie endgültig löschen.',
             'notify_flg' => 'Bei YES wird beim Hinzufügen / Aktualisieren von Daten eine Benachrichtigung an berechtigte Benutzer gesendet.',
             'all_user_editable_flg' => 'Bei YES können alle Benutzer alle Daten dieser Tabelle bearbeiten.',
             'all_user_viewable_flg' => 'Bei YES können alle Benutzer alle Daten dieser Tabelle anzeigen.',
@@ -5287,6 +5289,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'meili_reconcile' => 'Volltextsuche: Index reparieren',
             'maintenance_tick' => 'Wartungsmodus: geplanter Beginn und geplantes Ende',
             'log_maintenance' => 'Protokolle: alte löschen',
+            'trash_purge' => 'Papierkorb: alte gelöschte Daten endgültig löschen (im Archiv aufbewahrt)',
             'batch' => 'Plugin-Batch: :name',
         ],
         'cron' => [
