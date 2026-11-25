@@ -95,10 +95,19 @@ class NotifyRunner
      */
     public static function runNow(Notify $notify, CustomValue $custom_value, array $options): void
     {
+        // the bells of the notification written at once (NotifyNavbarBatch)
+        NotifyNavbarBatch::start();
         try {
             $notify->notifyUser($custom_value, $options);
         } catch (\Throwable $ex) {
             \Log::error('[Exment] a notification of a saved record failed (notify ' . $notify->id . ', ' . $custom_value->custom_table->table_name . ' ' . $custom_value->id . '): ' . $ex->getMessage(), ['exception' => $ex]);
+        } finally {
+            // the users told before a failure keep their bells, as before
+            try {
+                NotifyNavbarBatch::flush();
+            } catch (\Throwable $ex) {
+                \Log::error('[Exment] the bells of a notification were not written (notify ' . $notify->id . '): ' . $ex->getMessage(), ['exception' => $ex]);
+            }
         }
     }
 

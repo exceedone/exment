@@ -77,6 +77,27 @@ class NotifyLaterTest extends UnitTestBase
         $this->assertSame($sync['got'], $got);
     }
 
+    /**
+     * The bells written at once have the same columns as the bells saved one by one.
+     */
+    public function testTheBellsWrittenAtOnceAreTheSame(): void
+    {
+        $sync = $this->bells(NotifyRunner::SYNC, 'bulk_sync');
+        $later = $this->bells(NotifyRunner::AFTER_RESPONSE, 'bulk_later');
+
+        $columns = function (Notify $notify): array {
+            return NotifyNavbar::withoutGlobalScopes()->where('notify_id', $notify->id)->orderBy('target_user_id')->get()
+                ->map(function ($bell) {
+                    $row = $bell->getAttributes();
+                    unset($row['id'], $row['notify_id'], $row['created_at'], $row['updated_at']);
+                    ksort($row);
+                    return $row;
+                })->all();
+        };
+        $this->assertCount(2, $columns($later['notify']));
+        $this->assertEquals($columns($sync['notify']), $columns($later['notify']));
+    }
+
     public function testTheShareAndTheDeleteStayAtOnce(): void
     {
         config(['exment.notify_mode' => NotifyRunner::AFTER_RESPONSE]);
