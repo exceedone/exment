@@ -87,7 +87,7 @@ class MeiliSavedSearchTest extends FeatureTestBase
     {
         // Ids come from the DB: hardcoded ones only exist in one fixture, and
         // validShareTargets() drops whatever does not exist -> targets end up [].
-        $ids = RoleGroup::orderBy('id')->limit(2)->pluck('id')->map('intval')->all();
+        $ids = RoleGroup::orderBy('id')->limit(2)->pluck('id')->map(fn ($v) => intval($v))->all();
         if (count($ids) < 2) {
             $this->markTestSkipped('needs at least 2 role groups seeded');
         }
