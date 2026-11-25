@@ -186,6 +186,7 @@ return [
         'english' => 'Tiếng Anh',
         'japanese' => 'Tiếng Nhật',
         'back_button' => 'QUAY LẠI',
+        'back' => 'Quay lại',
         'message' => [
             'confirm_execute' => 'Bạn có chắc chắn muốn %s?',
             'success_execute' => 'Thực hiện thành công!',

@@ -186,6 +186,7 @@ return [
         'english' => '영어',
         'japanese' => '일본어',
         'back_button' => '뒤로',
+        'back' => '뒤로',
         'message' => [
             'confirm_execute' => '%s을(를) 실행하시겠습니까?',
             'success_execute' => '실행이 완료되었습니다!',
