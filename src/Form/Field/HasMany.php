@@ -273,7 +273,8 @@ EOT;
         if (!$this->rowCopy || !boolval(array_get($this->options, 'allowCreate', true))) {
             return '';
         }
-        $column = json_encode(strval($this->column), $jsonFlags);
+        // the column of a HasMany is the relation name (a string)
+        $column = json_encode(is_array($this->column) ? '' : $this->column, $jsonFlags);
         $label = json_encode(strval(exmtrans('common.row_copy')), $jsonFlags);
         $buttons = "rowcopy_{$this->column}";
 

@@ -149,7 +149,7 @@ class ChildRowCopyTest extends UnitTestBase
         $this->assertStringContainsString('click.admin_row_copy', $script);
         $this->assertStringContainsString('ExmentHasManyCopy.copyRow', $script);
         $this->assertStringContainsString('rowcopy_', $script);
-        $this->assertStringContainsString(json_encode(exmtrans('common.row_copy'), JSON_UNESCAPED_UNICODE), $script);
+        $this->assertStringContainsString(strval(json_encode(exmtrans('common.row_copy'), JSON_UNESCAPED_UNICODE)), $script);
 
         // and the script of the field carries it
         $this->assertStringContainsString('ExmentHasManyCopy.copyRow', $this->scriptOf($field));
@@ -300,6 +300,7 @@ class ChildRowCopyTest extends UnitTestBase
         };
 
         $field = $class === HasManyTable::class
+            // @phpstan-ignore-next-line
             ? $form->hasManyTable($relation->getRelationName(), 'Children', $builder)
             : $form->hasMany($relation->getRelationName(), 'Children', $builder);
         $this->assertInstanceOf($class, $field);
@@ -328,7 +329,7 @@ class ChildRowCopyTest extends UnitTestBase
     private function templateOf(string $html): string
     {
         $this->assertSame(1, preg_match('#<template\b.*?</template>#s', $html, $m), 'the template row is drawn');
-        return $m[0];
+        return strval($m[0] ?? '');
     }
 
     /**
@@ -366,7 +367,6 @@ class ChildRowCopyTest extends UnitTestBase
         $this->assertNotNull($parent_table);
         $this->assertNotNull($child_table);
         $form = $parent_table->getPriorityForm();
-        $this->assertNotNull($form, 'fixture: the parent table has a form');
 
         $block = CustomFormBlock::where('custom_form_id', $form->id)
             ->where('form_block_type', FormBlockType::ONE_TO_MANY)

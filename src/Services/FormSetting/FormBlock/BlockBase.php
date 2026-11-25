@@ -153,7 +153,7 @@ abstract class BlockBase
     protected function getSortColumnOptions(): array
     {
         $form_block_type = $this->custom_form_block->form_block_type ?? null;
-        if ($form_block_type != FormBlockType::ONE_TO_MANY || !isset($this->target_table)) {
+        if ($form_block_type != FormBlockType::ONE_TO_MANY) {
             return [];
         }
 

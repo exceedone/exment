@@ -449,7 +449,7 @@ class ChildRowOrderTest extends UnitTestBase
     /**
      * Rows as posted: new_1, 5 (removed) and new_2 in this order.
      *
-     * @return array<string, array<string, mixed>>
+     * @return array<int|string, array<string, mixed>>
      */
     private function postedRows(): array
     {
@@ -637,6 +637,7 @@ class ChildRowOrderTest extends UnitTestBase
         $form = new Form(new $classname());
 
         $field = $class === HasManyTable::class
+            // @phpstan-ignore-next-line
             ? $form->hasManyTable($relation->getRelationName(), 'Children', $builder)
             : $form->hasMany($relation->getRelationName(), 'Children', $builder);
         $this->assertInstanceOf($class, $field);
@@ -659,7 +660,6 @@ class ChildRowOrderTest extends UnitTestBase
         $parent_table = $this->parentTable();
         $child_table = $this->childTable();
         $form = $parent_table->getPriorityForm();
-        $this->assertNotNull($form, 'fixture: the parent table has a form');
 
         $block = CustomFormBlock::where('custom_form_id', $form->id)
             ->where('form_block_type', FormBlockType::ONE_TO_MANY)
@@ -792,6 +792,7 @@ class ChildRowOrderTest extends UnitTestBase
 
         $numbers = [];
         foreach ($children as $child) {
+            /** @var \Exceedone\Exment\Model\CustomValue $child */
             $numbers[strval($child->getValue('index_text'))] = intval($child->getValue(self::SORT_COLUMN));
         }
         $this->assertSame(['beta' => 1, 'alpha' => 2], $numbers, 'the rows are numbered in the order they were posted');

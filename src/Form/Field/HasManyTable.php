@@ -283,7 +283,8 @@ class HasManyTable extends HasMany
         $indexName = "index_{$this->column}";
 
         $rowUpDownClassName = $this->rowUpDown;
-        $columnJson = json_encode(strval($this->column), $jsonFlags);
+        // the column of a HasMany is the relation name (a string)
+        $columnJson = json_encode(is_array($this->column) ? '' : $this->column, $jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
