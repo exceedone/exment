@@ -537,6 +537,16 @@ class SystemController extends AdminControllerBase
         if (($response = $form->validateRedirect($request)) instanceof \Illuminate\Http\RedirectResponse) {
             return $response;
         }
+        // the IP filters: IPv4 and IPv6, an address or a range (ISS02909). A wrong line would
+        // never match, and a filter of wrong lines only refuses everyone.
+        if ($advanced) {
+            foreach (['web_ip_filters', 'api_ip_filters'] as $key) {
+                $invalid = \Exceedone\Exment\Services\IpAddress::invalidRules(strval($request->get($key)));
+                if (count($invalid) > 0) {
+                    return back()->withInput()->withErrors([$key => exmtrans('maintenance.error.ip', ['ip' => implode(', ', $invalid)])]);
+                }
+            }
+        }
 
         DB::beginTransaction();
         try {
