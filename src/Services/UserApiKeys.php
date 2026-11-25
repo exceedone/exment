@@ -470,11 +470,15 @@ class UserApiKeys
 
     protected static function writeUse(UserApiKey $key, Carbon $at, string $ip, int $count): void
     {
-        UserApiKey::where('id', $key->id)->update([
-            'last_used_at' => $at,
-            'last_used_ip' => $ip,
-            'use_count' => \DB::raw('use_count + ' . max(1, $count)),
-        ]);
+        // a record: written after the response (ISS02903)
+        $id = $key->id;
+        \Exceedone\Exment\Services\LogManagement\LogWriter::defer('the use of an API key', function () use ($id, $at, $ip, $count) {
+            UserApiKey::where('id', $id)->update([
+                'last_used_at' => $at,
+                'last_used_ip' => $ip,
+                'use_count' => \DB::raw('use_count + ' . max(1, $count)),
+            ]);
+        });
     }
 
     /**

@@ -1137,6 +1137,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The archive of the deleted data deleted for good (ISS00147)
+    |--------------------------------------------------------------------------
+    | exment:trash-purge deletes for good the deleted data older than the days of its table
+    | (the table setting), after writing it to deleted_archives and copying its files.
+    | keep_days: the days an archive is kept (0: kept forever).
+    | disk: the disk of the copied files (empty: the disk of the attachments), folder: the folder in it.
+    */
+    'deleted_archive_keep_days' => env('EXMENT_DELETED_ARCHIVE_KEEP_DAYS', 365),
+    'deleted_archive_disk' => env('EXMENT_DELETED_ARCHIVE_DISK'),
+    'deleted_archive_folder' => env('EXMENT_DELETED_ARCHIVE_FOLDER', 'archives/deleted'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Document upload max count one request
     |--------------------------------------------------------------------------
     |
@@ -1397,6 +1410,12 @@ return [
     'mcp_calls_per_minute' => env('EXMENT_MCP_CALLS_PER_MINUTE', 60),
 
     /*
+    | The longest a search_data call reads records, in seconds: then it answers with what it has
+    | and next_cursor to read on. 0: no limit (the time of PHP only).
+    */
+    'mcp_search_seconds' => env('EXMENT_MCP_SEARCH_SECONDS', 0),
+
+    /*
     |--------------------------------------------------------------------------
     | Show Select field with group option
     |--------------------------------------------------------------------------
@@ -1593,6 +1612,17 @@ return [
     | writes the same file needs 0660.
     */
     'log_file_permission' => env('EXMENT_LOG_FILE_PERMISSION', '0640'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | How the records of the logs are written (ISS02903)
+    |--------------------------------------------------------------------------
+    | The operation log, the logins and the last use of an API key, without making the response
+    | wait. "after_response" (the default): after the response is sent. "queue": by the queue
+    | (QUEUE_CONNECTION other than sync; without one, after_response). "sync": at once, as before.
+    | A record that cannot be written is kept in storage/logs/exment-log-fallback.log.
+    */
+    'log_write_mode' => env('EXMENT_LOG_WRITE_MODE', 'after_response'),
 
     /*
     |--------------------------------------------------------------------------

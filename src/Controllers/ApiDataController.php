@@ -90,7 +90,7 @@ class ApiDataController extends AdminControllerTableBase
         // @phpstan-ignore-next-line
         $this->setOrderByQuery($model, $orderby_list);
 
-        $paginator = $model->paginate($count);
+        $paginator = $this->paginateOf($model, $request, $count);
 
         return $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
@@ -176,7 +176,7 @@ class ApiDataController extends AdminControllerTableBase
         // @phpstan-ignore-next-line
         $this->setOrderByQuery($model, $orderby_list);
 
-        $paginator = $model->paginate($count);
+        $paginator = $this->paginateOf($model, $request, $count);
 
         return $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
@@ -638,6 +638,7 @@ class ApiDataController extends AdminControllerTableBase
             'maxCount' => $count,
             'executeSearch' => false,
             'isApi' => true,
+            'simplePaginate' => $this->withoutTotal($request),
         ]);
         $paginator = $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [

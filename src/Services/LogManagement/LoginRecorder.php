@@ -152,7 +152,8 @@ class LoginRecorder
             }
             [$provider, $providerName] = static::providerOf($user);
             $request = request();
-            LoginLog::create(array_merge([
+            // written after the response (ISS02903): the lock counts at once (ThrottlesLogins)
+            LogWriter::insert(LoginLog::class, array_merge([
                 'login_user_id' => is_object($user) ? $user->id ?? null : null,
                 'base_user_id' => is_object($user) ? $user->base_user_id ?? null : null,
                 'login_name' => is_object($user) ? mb_substr(strval($user->username ?? ''), 0, 256) ?: null : null,

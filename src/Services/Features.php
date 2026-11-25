@@ -197,6 +197,15 @@ class Features
             'manual' => 'notify_teams',
             'who' => false,
         ]);
+        // the trash (Services\Trash, ISS00334): the deleted rows of all the tables on one page. Off
+        // until it is turned on; who may use it is the permission to see the deleted rows of a table
+        $core[Trash::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.trash',
+            'description' => 'exment::exment.feature.features.trash_help',
+            'endpoints' => ['trash'],
+            'menu' => 'trash',
+            'who' => false,
+        ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
         $core[static::TUNING] = static::definition([
