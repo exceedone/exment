@@ -77,6 +77,8 @@ use Cache;
  * @method static string|void operation_log_automatic_hour($arg = null)
  * @method static string|void operation_log_automatic_minute($arg = null)
  * @method static Carbon|void operation_log_automatic_executed($arg = null)
+ * @method static int|null|void log_retention_login_log($arg = null)
+ * @method static int|null|void log_retention_app_log($arg = null)
  * @method static boolean|void login_use_2factor($arg = null)
  * @method static string|void login_2factor_provider($arg = null)
  * @method static array|void system_admin_users($arg = null)

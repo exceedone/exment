@@ -200,6 +200,9 @@ class Define
         'operation_log_automatic_hour' => ['group' => 'operation_log'],
         'operation_log_automatic_minute' => ['group' => 'operation_log'],
         'operation_log_automatic_executed' => ['type' => 'datetime'],
+        // the days the logs are kept (ISS02839, Services\LogManagement\LogCatalog); empty: the default
+        'log_retention_login_log' => ['type' => 'int', 'group' => 'log_management'],
+        'log_retention_app_log' => ['type' => 'int', 'group' => 'log_management'],
 
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],

@@ -3705,6 +3705,7 @@ return [
             'role_group' => 'Nhóm vai trò',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => 'Kiểm toán', 'help' => 'Người dùng có thể xem log và báo cáo kiểm toán IT (không thể thay đổi).'],
             'system' => [
                 'label' => 'Quản trị hệ thống',
                 'help' => 'Có thể sử dụng, thiết lập và thay đổi tất cả chức năng của Exment.',
@@ -5025,6 +5026,14 @@ return [
             'planned' => 'Đã lên lịch bảo trì: từ :start_at đến :end_at. Trong thời gian này không thể sử dụng trang.',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => 'Nhật ký thao tác',
+            'login_log' => 'Nhật ký đăng nhập',
+            'app_log' => 'Log ứng dụng',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => 'Tác vụ theo lịch',
         'description' => 'Các tác vụ mà cron của máy chủ (schedule:run) chạy vào những thời điểm cố định.',
@@ -5087,6 +5096,7 @@ return [
             'file_server_purge' => 'Chia sẻ tệp: dọn thùng rác',
             'meili_reconcile' => 'Tìm kiếm toàn văn: sửa chỉ mục',
             'maintenance_tick' => 'Chế độ bảo trì: bắt đầu và kết thúc theo kế hoạch',
+            'log_maintenance' => 'Log: xóa log cũ',
             'batch' => 'Batch của plugin: :name',
         ],
         'cron' => [
