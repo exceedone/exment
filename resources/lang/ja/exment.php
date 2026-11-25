@@ -4160,6 +4160,8 @@ IPアドレス: :ip
 
     'mail_template' => [
         'disable_body' => '(セキュリティのため、本文は非表示になります)',
+        'send_failed_subject' => 'メールを送信できませんでした',
+        'send_failed_body' => 'メールを送信できませんでした。メール送信履歴で結果を確認してください。',
     ],
 
     'template' =>[

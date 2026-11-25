@@ -4136,6 +4136,8 @@ IP 地址: :ip
     ],
     'mail_template' => [
         'disable_body' => '（出于安全原因，正文已隐藏）',
+        'send_failed_subject' => '邮件未能发送',
+        'send_failed_body' => '邮件未能发送。请在邮件发送历史中查看结果。',
     ],
     'template' => [
         'header' => '模板',

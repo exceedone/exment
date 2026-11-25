@@ -146,7 +146,12 @@ class MailSendJob extends Notification implements ShouldQueue
      */
     protected function saveFailedHistory($exception)
     {
-        if (!isset($this->mailInfo) || !isset($this->mailHistory)) {
+        // a job made without the mail (should not happen): nothing to log
+        /** @var MailInfo|null $mailInfo */
+        $mailInfo = $this->mailInfo;
+        /** @var MailHistory|null $mailHistory */
+        $mailHistory = $this->mailHistory;
+        if (is_null($mailInfo) || is_null($mailHistory)) {
             return;
         }
         (new MailChannel())->saveHistory($this->toMail(null), MailChannel::RESULT_FAILED, static::errorReason($exception));
@@ -200,23 +205,34 @@ class MailSendJob extends Notification implements ShouldQueue
             ->getValueModel()
             ->where('value->mail_key_name', MailKeyName::SENDMAIL_ERROR)
             ->first();
-        if (!$mail_template) {
-            return;
+        // the template "sendmail_error"; without it (a deleted one) the text of Exment
+        $subject = $mail_template ? $mail_template->getValue('mail_subject') : null;
+        $body = $mail_template ? $mail_template->getValue('mail_body') : null;
+        if (is_nullorempty($subject)) {
+            $subject = exmtrans('mail_template.send_failed_subject');
+        }
+        if (is_nullorempty($body)) {
+            $body = exmtrans('mail_template.send_failed_body');
         }
 
+        /** @var MailHistory|null $mailHistory */
+        $mailHistory = $this->mailHistory;
         foreach ($this->failureNoticeTargets() as $target_user_id) {
-            if (!Cache::add(static::NOTICE_CACHE_PREFIX . $target_user_id, 1, static::NOTICE_INTERVAL_SECONDS)) {
+            $key = static::NOTICE_CACHE_PREFIX . $target_user_id;
+            // told already in this time (a cache that keeps nothing does not stop the notice)
+            if (!Cache::add($key, 1, static::NOTICE_INTERVAL_SECONDS) && Cache::has($key)) {
                 continue;
             }
-            $this->notifyNow(new Jobs\NavbarJob(
-                $mail_template->getValue('mail_subject'),
-                $mail_template->getValue('mail_body'),
+            // written at once: the bell does not wait for the queue that could not send the mail
+            (new Jobs\NavbarJob(
+                $subject,
+                $body,
                 -1,
                 $target_user_id,
                 $this->userId,
-                isset($this->mailHistory) ? $this->mailHistory->getParentId() : null,
-                isset($this->mailHistory) ? $this->mailHistory->getParentType() : null
-            ));
+                $mailHistory ? $mailHistory->getParentId() : null,
+                $mailHistory ? $mailHistory->getParentType() : null
+            ))->toNavbar(null);
         }
     }
 }

@@ -4136,6 +4136,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
     ],
     'mail_template' => [
         'disable_body' => '(Aus Sicherheitsgründen wird der Text ausgeblendet)',
+        'send_failed_subject' => 'Eine E-Mail konnte nicht gesendet werden',
+        'send_failed_body' => 'Eine E-Mail konnte nicht gesendet werden. Das Ergebnis steht im E-Mail-Versandverlauf.',
     ],
     'template' => [
         'header' => 'Vorlage',

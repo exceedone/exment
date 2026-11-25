@@ -33,6 +33,7 @@ class MailSendQueueTest extends UnitTestBase
     {
         parent::setUp();
         config(['mail.from.address' => 'exment-from@example.com']);
+        config(['cache.default' => 'array']);
         $this->forgetNotices();
     }
 

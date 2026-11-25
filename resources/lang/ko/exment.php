@@ -4136,6 +4136,8 @@ IP 주소: :ip
     ],
     'mail_template' => [
         'disable_body' => '(보안상의 이유로 본문은 표시되지 않습니다)',
+        'send_failed_subject' => '메일을 보내지 못했습니다',
+        'send_failed_body' => '메일을 보내지 못했습니다. 메일 발송 이력에서 결과를 확인하세요.',
     ],
     'template' => [
         'header' => '템플릿',

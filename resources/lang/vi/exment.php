@@ -4136,6 +4136,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
     ],
     'mail_template' => [
         'disable_body' => '(Vì lý do bảo mật, nội dung được ẩn)',
+        'send_failed_subject' => 'Không thể gửi một email',
+        'send_failed_body' => 'Không thể gửi một email. Hãy xem kết quả trong lịch sử gửi email.',
     ],
     'template' => [
         'header' => 'Mẫu',
