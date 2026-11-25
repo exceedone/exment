@@ -221,9 +221,30 @@ class TrashPurgeTest extends FeatureTestBase
         $value = $this->deletedRow(31);
 
         $this->assertSame(0, $this->purge(['--dry-run' => true]));
-        $this->assertStringContainsString('target 1', Artisan::output());
+        $this->assertStringContainsString('would purge 1, would skip 0', Artisan::output());
         $this->assertNotNull($this->find($value));
         $this->assertCount(0, $this->archives($value));
+    }
+
+    public function testDryRunUsesTheSameSkipRules(): void
+    {
+        $this->keepDays(30);
+        $purged = $this->deletedRow(31);
+        $kept = $this->deletedRow(31);
+        // a child of the second row is not deleted: a real run keeps that row
+        $childTable = $this->table(static::CHILD);
+        $childId = DB::table(getDBTableName($childTable))->where('parent_id', $kept->id)->orderBy('id')->value('id');
+        DB::table(getDBTableName($childTable))->where('id', $childId)->update(['deleted_at' => null]);
+        System::clearRequestSession();
+
+        $this->assertSame(0, $this->purge(['--dry-run' => true]));
+        $this->assertStringContainsString('would purge 1, would skip 1 (children not deleted: 1)', Artisan::output());
+        $this->assertNotNull($this->find($purged));
+
+        $this->assertSame(0, $this->purge());
+        $this->assertStringContainsString('purged 1, skipped 1', Artisan::output());
+        $this->assertNull($this->find($purged));
+        $this->assertNotNull($this->find($kept));
     }
 
     public function testTheTableOption(): void

@@ -110,7 +110,7 @@ class TrashPurge
     /**
      * Purge the old deleted rows of a table.
      *
-     * @return array{target: int, purged: int, skipped: int}
+     * @return array{target: int, purged: int, skipped: int, skipped_children?: int}
      */
     public static function purgeTable(CustomTable $table, bool $dryRun = false, ?Carbon $now = null): array
     {
@@ -121,8 +121,7 @@ class TrashPurge
         $threshold = static::threshold($table, $now);
 
         if ($dryRun) {
-            $result['target'] = static::query($table, $threshold)->count();
-            return $result;
+            return static::countTable($table, $threshold);
         }
 
         $lastId = 0;
@@ -148,6 +147,67 @@ class TrashPurge
         } while ($values->count() === static::CHUNK_SIZE);
 
         return $result;
+    }
+
+    /**
+     * What a real run would do, with the same skip rules (--dry-run): the rows that would be
+     * purged, and the rows that would be kept because they still have child rows not deleted.
+     * A child row that would go with its parent is not counted, as in a real run. A file that
+     * cannot be copied is only found by a real run.
+     *
+     * @return array{target: int, purged: int, skipped: int, skipped_children: int}
+     */
+    public static function countTable(CustomTable $table, Carbon $threshold): array
+    {
+        $result = ['target' => 0, 'purged' => 0, 'skipped' => 0, 'skipped_children' => 0];
+        $withParent = [];
+        $lastId = 0;
+        do {
+            $values = static::query($table, $threshold)
+                ->where('id', '>', $lastId)
+                ->orderBy('id')
+                ->limit(static::CHUNK_SIZE)
+                ->get();
+            foreach ($values as $value) {
+                $lastId = $value->id;
+                if (isset($withParent[$value->id])) {
+                    continue;
+                }
+                $result['target']++;
+                try {
+                    $alive = false;
+                    $children = static::children($value, 1, $alive);
+                } catch (\Throwable $e) {
+                    $result['skipped']++;
+                    continue;
+                }
+                if ($alive) {
+                    $result['skipped']++;
+                    $result['skipped_children']++;
+                    continue;
+                }
+                $result['purged']++;
+                static::markChildren($children, $table->table_name, $withParent);
+            }
+        } while ($values->count() === static::CHUNK_SIZE);
+
+        return $result;
+    }
+
+    /**
+     * The ids of the rows of a table found among the children (at any depth).
+     *
+     * @param array<int, array<string, mixed>> $children
+     * @param array<int|string, bool> $ids
+     */
+    protected static function markChildren(array $children, string $tableName, array &$ids): void
+    {
+        foreach ($children as $child) {
+            if (($child['table_name'] ?? null) === $tableName && isset($child['id'])) {
+                $ids[$child['id']] = true;
+            }
+            static::markChildren(is_array($child['children'] ?? null) ? $child['children'] : [], $tableName, $ids);
+        }
     }
 
     /**
