@@ -59,51 +59,65 @@
             (targets[rest] = targets[rest] || []).push(this);
         });
 
-        var changed = [];
-        var done = {};
+        // the inputs of the row that is copied, the same way
+        var sources = {};
         $src.find('[name]').each(function () {
             var rest = restOf(String(this.getAttribute('name')), column, srcKey);
             if (rest === null || skipped(rest, this) || !targets[rest]) {
                 return;
             }
-            var type = String(this.getAttribute('type') || '').toLowerCase();
+            (sources[rest] = sources[rest] || []).push(this);
+        });
+
+        var changed = [];
+        $.each(sources, function (rest, srcEls) {
+            var dstEls = targets[rest];
 
             // a group of checkboxes or radio buttons is copied by which ones are on
-            if (type === 'checkbox' || type === 'radio') {
-                var on = this.checked;
-                var value = this.value;
-                $.each(targets[rest], function (i, el) {
-                    if (el.value === value && el.checked !== on) {
-                        el.checked = on;
+            $.each(srcEls, function (i, from) {
+                if (!isCheck(from)) {
+                    return;
+                }
+                $.each(dstEls, function (j, el) {
+                    if (isCheck(el) && el.value === from.value && el.checked !== from.checked) {
+                        el.checked = from.checked;
                         changed.push(el);
                     }
                 });
-                return;
-            }
+            });
 
-            // the same name once more (a hidden input that goes with a checkbox)
-            if (done[rest]) {
-                return;
-            }
-            done[rest] = true;
-
-            $.each(targets[rest], function (i, el) {
-                if (String(el.getAttribute('type') || '').toLowerCase() === 'checkbox' ||
-                    String(el.getAttribute('type') || '').toLowerCase() === 'radio') {
+            // The other inputs of one name go in pairs of the same kind: a select
+            // has a hidden input of its name before it (sent when nothing is
+            // chosen), and a select must get its value from the select.
+            var srcOthers = $.grep(srcEls, function (el) { return !isCheck(el); });
+            var used = [];
+            $.each(dstEls, function (i, el) {
+                if (isCheck(el)) {
                     return;
                 }
+                var from = null;
+                $.each(srcOthers, function (j, cand) {
+                    if (used.indexOf(cand) < 0 && kindOf(cand) === kindOf(el)) {
+                        from = cand;
+                        return false;
+                    }
+                });
+                if (from === null) {
+                    return;
+                }
+                used.push(from);
                 if (el.tagName === 'SELECT') {
-                    copySelect(this, el);
+                    copySelect(from, el);
                 } else {
-                    el.value = this.value;
+                    el.value = from.value;
                     // a rich text editor keeps its text outside the textarea
                     if (window.tinymce && el.id && window.tinymce.get(el.id)) {
-                        var from = this.id ? window.tinymce.get(this.id) : null;
-                        window.tinymce.get(el.id).setContent(from ? from.getContent() : this.value);
+                        var editor = from.id ? window.tinymce.get(from.id) : null;
+                        window.tinymce.get(el.id).setContent(editor ? editor.getContent() : from.value);
                     }
                 }
                 changed.push(el);
-            }.bind(this));
+            });
         });
 
         // the plugins (select2, iCheck, switches, calculations) follow the inputs
@@ -112,8 +126,40 @@
             if ($el.iCheck && $el.closest('[class*="icheckbox"], [class*="iradio"]').length) {
                 $el.iCheck('update');
             }
+            syncSwitch($el);
             $el.trigger('change');
         });
+    }
+
+    function isCheck(el) {
+        var type = String(el.getAttribute('type') || '').toLowerCase();
+        return type === 'checkbox' || type === 'radio';
+    }
+
+    function kindOf(el) {
+        return el.tagName + ':' + String(el.getAttribute('type') || '').toLowerCase();
+    }
+
+    // A YES/NO switch posts the hidden input after it; the checkbox it is drawn
+    // from has no name, so it is put in step with the hidden input here.
+    function syncSwitch($hidden) {
+        if (String($hidden.attr('type') || '').toLowerCase() !== 'hidden') {
+            return;
+        }
+        var $wrapper = $hidden.prev('.bootstrap-switch');
+        var $checkbox = $wrapper.length
+            ? $wrapper.find('input.la_checkbox[data-onvalue]').first()
+            : $hidden.prevAll('input.la_checkbox[data-onvalue]').first();
+        if (!$checkbox.length) {
+            return;
+        }
+        var on = String($hidden.val()) === String($checkbox.data('onvalue'));
+        if ($wrapper.length && $checkbox.bootstrapSwitch) {
+            // true: do not run onSwitchChange, the hidden input has the value already
+            $checkbox.bootstrapSwitch('state', on, true);
+        } else {
+            $checkbox.prop('checked', on);
+        }
     }
 
     // A select that loads its choices as it is searched has only the chosen ones
