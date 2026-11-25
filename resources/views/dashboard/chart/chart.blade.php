@@ -1,4 +1,5 @@
-<div>
+{{-- Chart.js 4: a responsive chart takes its size from its container, so the container has the height --}}
+<div style="position: relative; height: {{ (int) $chart_height }}px;">
     <canvas data-canvas-id="{{$suuid}}"></canvas>
 </div>
 <script type="text/javascript">
@@ -8,6 +9,8 @@
         if (!canvas) { return; }
         var ctx = canvas.getContext('2d');
         ctx.canvas.height = {!! $chart_height !!};
+        // the native mouse event of a Chart.js 4 event (it wraps the browser's one in `native`)
+        var nativeOf = function (evt) { return (evt && evt.native) ? evt.native : (evt || {}); };
         // click-to-filter: {column, values[], selected[], highlight} when the group column is a
         // filter-bar item (else null) — ChartItem::clickFilter
         var click = {!! $chart_click !!};
@@ -64,11 +67,12 @@
         // layout keeps above the plot so a label on a full-height bar still fits in the canvas
         var LABEL_GAP = 3, LABEL_H = 11, LABEL_ROOM = LABEL_GAP + LABEL_H + 2;
 
-        // Chart.js 2.x plugin: the value on every bar / point / slice (faded along with its point)
+        // Chart.js 4 plugin: the value on every bar / point / slice (faded along with its point)
         var displayPlugin = {
+            id: 'exmentValueLabels',
             afterDatasetsDraw: function (chart) {
-                var c = chart.chart.ctx, meta = chart.getDatasetMeta(0), data = chart.data.datasets[0].data;
-                if (!meta || !meta.data) { return; }
+                var c = chart.ctx, meta = chart.getDatasetMeta(0), data = chart.data.datasets[0].data;
+                if (!meta || !meta.data || !chart.isDatasetVisible(0)) { return; }
                 var area = chart.chartArea;
                 c.save();
                 c.font = '600 11px sans-serif';
@@ -79,15 +83,19 @@
                     c.textAlign = 'center';
                     meta.data.forEach(function (el, i) {
                         var n = num(data[i]);
-                        if (n === null || el.hidden) { return; }
+                        if (n === null || !el) { return; }
                         var text = fmt(n), x, y;
                         @if($chart_type == 'pie')
-                        var pos = el.tooltipPosition();
+                        // a slice hidden from the legend keeps its element, at zero size
+                        if (!chart.getDataVisibility(i)) { return; }
+                        var pos = el.tooltipPosition(true);
                         c.textBaseline = 'middle';
                         x = pos.x;
                         y = pos.y;
                         @else
-                        var m = el._model;
+                        if (el.skip) { return; }
+                        // the final position (not the one mid-animation), as in Chart.js 2
+                        var m = el.getProps(['x', 'y'], true);
                         c.textBaseline = 'bottom';
                         y = m.y - LABEL_GAP;
                         // keep a label centered on an edge point from spilling out sideways
@@ -113,7 +121,7 @@
                     backgroundColor: pointColors(),
                     fill: true,
                     @else
-                    lineTension: 0, // draw straightline
+                    tension: 0, // draw straightline
                     borderColor: base,
                     pointBackgroundColor: pointColors(),
                     pointRadius: pointRadii(),
@@ -132,50 +140,56 @@
                 layout: { padding: { top: display.labels ? LABEL_ROOM : 0 } },
                 @endif
                 onClick: function (evt, elements) {
-                    if (click && elements.length) { ExmentDashboard.pick(click.column, click.values[elements[0]._index], evt.ctrlKey || evt.metaKey); }
+                    var e = nativeOf(evt);
+                    if (click && elements.length) { ExmentDashboard.pick(click.column, click.values[elements[0].index], !!(e.ctrlKey || e.metaKey)); }
                 },
-                hover: { onHover: function (evt, elements) { evt.target.style.cursor = (click && elements.length) ? 'pointer' : 'default'; } },
-                tooltips: { callbacks: { label: function (item, data) {
-                    var v = data.datasets[item.datasetIndex].data[item.index];
-                    var text = (@json($chart_type == 'pie') && data.labels ? data.labels[item.index] + ': ' : '') + (v == null ? '' : String(v));
-                    return text;
-                } } },
-                @if(!$chart_legend)
-                legend : {
-                    display: false
+                onHover: function (evt, elements, chart) {
+                    var target = (chart && chart.canvas) || nativeOf(evt).target;
+                    if (target) { target.style.cursor = (click && elements.length) ? 'pointer' : 'default'; }
                 },
-                @endif
+                plugins: {
+                    tooltip: { callbacks: { label: function (context) {
+                        var v = context.raw, labels = context.chart.data.labels;
+                        var text = (@json($chart_type == 'pie') && labels ? labels[context.dataIndex] + ': ' : '') + (v == null ? '' : String(v));
+                        return text;
+                    } } },
+                    @if(!$chart_legend)
+                    legend: {
+                        display: false
+                    },
+                    @endif
+                },
                 @if($chart_type != 'pie')
                 scales: {
-                    xAxes: [{
+                    x: {
                         ticks: {
                             @if(!$chart_axisx_label)
                             display: false,
                             @endif
                         },
                         @if($chart_axisx_name)
-                        scaleLabel: {
+                        title: {
                             display: true,
-                            labelString: @json($chart_axisx)
+                            text: @json($chart_axisx)
                         }
                         @endif
-                    }],
-                    yAxes: [{
+                    },
+                    y: {
+                        // Chart.js 4 starts a bar's value axis at zero by default; 2.x did only
+                        // when asked, so the option decides both ways
+                        beginAtZero: {{ $chart_begin_zero ? 'true' : 'false' }},
                         ticks: {
                             @if(!$chart_axisy_label)
                             display: false,
                             @endif
-                            @if($chart_begin_zero)
-                            beginAtZero: true,
-                            @endif
                         },
                         @if($chart_axisy_name)
-                        scaleLabel: {
+                        title: {
                             display: true,
-                            labelString: @json($chart_axisy)
+                            text: @json($chart_axisy)
                         }
                         @endif
-                    }]
+                    }
                 },
                 @endif
             }
@@ -184,13 +198,13 @@
         @if(!empty($chart_color_edit))
         // paint a color (dashboard editors): right-click a bar / slice; a line is one series
         ctx.canvas.addEventListener('contextmenu', function (evt) {
-            var el = myChart.getElementAtEvent(evt)[0];
+            var el = myChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true)[0];
             if (!el) { return; }
             evt.preventDefault();
             @if($chart_type == 'line')
             ExmentDashboard.colorMenu('{{ $suuid }}', { kind: 'series', key: '', color: base }, evt);
             @else
-            ExmentDashboard.colorMenu('{{ $suuid }}', { kind: 'points', key: String(labels[el._index]), color: baseOf(el._index) }, evt);
+            ExmentDashboard.colorMenu('{{ $suuid }}', { kind: 'points', key: String(labels[el.index]), color: baseOf(el.index) }, evt);
             @endif
         });
         @endif
@@ -217,7 +231,11 @@
             display: function (opts) {
                 display = $.extend(display, opts || {});
                 @if($chart_type != 'pie')
-                myChart.options.layout.padding.top = display.labels ? LABEL_ROOM : 0;
+                // Chart.js 4: chart.options is a resolved view; the options as given live in
+                // config.options and are resolved again by update()
+                var opts4 = myChart.config.options;
+                opts4.layout = opts4.layout || {};
+                opts4.layout.padding = { top: display.labels ? LABEL_ROOM : 0 };
                 @endif
                 myChart.update();
             },
