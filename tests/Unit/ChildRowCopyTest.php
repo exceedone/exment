@@ -16,6 +16,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
+use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\ViewErrorBag;
@@ -45,6 +46,7 @@ class ChildRowCopyTest extends UnitTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
         System::clearRequestSession();
         System::clearCache();
+        $this->clearPageScripts();
 
         \Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
@@ -55,7 +57,22 @@ class ChildRowCopyTest extends UnitTestBase
     {
         System::clearRequestSession();
         System::clearCache();
+        $this->clearPageScripts();
         parent::tearDown();
+    }
+
+    /**
+     * A field puts its script into the static script list of admin-core when it
+     * is rendered. In a real request the list starts empty, but in a test run it
+     * is kept from one test to the next, so a page drawn by a later test would
+     * carry the scripts of the fields of the tests before it.
+     *
+     * @return void
+     */
+    private function clearPageScripts(): void
+    {
+        Admin::$script = [];
+        Admin::$deferredScript = [];
     }
 
     // ----------------------------------------------------------- the field
