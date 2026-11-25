@@ -382,7 +382,9 @@ class McpTools
                 throw new ToolError('The search does not read on past ' . static::MAX_SEARCH_DEPTH . ' records: use more words.');
             }
             /** @var \Illuminate\Support\Collection<int, mixed> $found */
-            $found = $custom_table->searchValue($q, ['maxCount' => $offset + $limit, 'isApi' => true]) ?? collect();
+            // the columns the table searches by words (as the search of the data API; with
+            // isApi and no columns given, searchValue searched no column and found nothing)
+            $found = $custom_table->searchValue($q, ['maxCount' => $offset + $limit]) ?? collect();
             $more = $found->count() >= $offset + $limit;
             $found = $found->slice($offset)->values();
         } else {
