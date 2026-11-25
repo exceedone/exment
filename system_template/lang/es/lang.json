@@ -526,6 +526,11 @@
             "title": "Plantilla"
         },
         {
+            "menu_type": "system",
+            "menu_name": "trash",
+            "title": "Papelera"
+        },
+        {
             "menu_type": "parent_node",
             "menu_name": "admin_user",
             "title": "Configuración: usuarios y permisos"

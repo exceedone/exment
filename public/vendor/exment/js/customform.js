@@ -9,8 +9,11 @@ var Exment;
             //CustomFromEvent.resizeEvent($('.custom_form_area'));
         }
         static AddEventOnce() {
-            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
-            $(document).on('ifChanged.exment_custom_form', '.box-custom_form_block .icheck_hasmany_type', {}, (ev) => {
+            // ifChanged while iCheck is loaded (it does not trigger a native change), else the native
+            // change; only one of them, so the handlers run once
+            const checkEvent = (CustomFromEvent.hasICheck() ? 'ifChanged' : 'change') + '.exment_custom_form';
+            $(document).on(checkEvent, '.box-custom_form_block .icheck_toggleblock', {}, CustomFromEvent.toggleFromBlock);
+            $(document).on(checkEvent, '.box-custom_form_block .icheck_hasmany_type', {}, (ev) => {
                 CustomFromEvent.syncLazyLoadOptions($(ev.target).closest('.box-custom_form_block'));
             });
             $(document).on('click.exment_custom_form', '.box-custom_form_block .custom_form_column_item .delete', {}, CustomFromEvent.deleteColumnEvent);
@@ -37,8 +40,14 @@ var Exment;
                 if (!isTable) {
                     $lazyLoad.prop('checked', false);
                 }
-                $lazyLoad.prop('disabled', !isTable).iCheck('update');
+                $lazyLoad.prop('disabled', !isTable);
+                if (CustomFromEvent.hasICheck()) {
+                    $lazyLoad.iCheck('update');
+                }
             });
+        }
+        static hasICheck() {
+            return !!$.fn && typeof $.fn.iCheck === 'function';
         }
         /**
          * Call loading event

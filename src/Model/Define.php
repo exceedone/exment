@@ -443,6 +443,11 @@ class Define
             'uri' => 'cell_style_preset',
             'icon' => 'fa-paint-brush',
         ],
+        // the deleted rows of all the tables (ISS00334)
+        'trash' => [
+            'uri' => 'trash',
+            'icon' => 'fa-trash',
+        ],
         'workflow' => [
             'uri' => 'workflow',
             'icon' => 'fa-share-alt',

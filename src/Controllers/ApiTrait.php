@@ -63,6 +63,31 @@ trait ApiTrait
     }
 
     /**
+     * Whether the list is read without counting all of it (total=0, ISS02885): no COUNT(*) of
+     * the whole table, so a big table answers sooner. The answer has no total, last_page and
+     * last_page_url; next_page_url is null on the last page.
+     */
+    protected function withoutTotal(Request $request): bool
+    {
+        if (!$request->has('total')) {
+            return false;
+        }
+        return in_array(strtolower(strval($request->get('total'))), ['0', 'false'], true);
+    }
+
+    /**
+     * A page of the query: with the total, or without it (withoutTotal()).
+     *
+     * @param mixed $query an Eloquent or query builder
+     * @param int|string $count
+     * @return mixed the paginator
+     */
+    protected function paginateOf($query, Request $request, $count)
+    {
+        return $this->withoutTotal($request) ? $query->simplePaginate($count) : $query->paginate($count);
+    }
+
+    /**
      * Get count parameter for list count
      *
      * @param Request $request
