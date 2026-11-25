@@ -13,7 +13,7 @@
             <a href="{{ $logUrl }}" class="btn btn-default btn-sm"><i class="fa fa-archive" aria-hidden="true"></i> {{ exmtrans('log_management.header') }}</a>
         </form>
         <p class="text-muted small" style="margin:8px 0 0">
-            {{ \Exceedone\Exment\Controllers\AuditReportController::loginLogNote($report) }}
+            {{ $loginLogNote }}
             @if($ipMode !== 'keep') {{ exmtrans('audit_report.ip_mode_note') }} @endif
             {{ exmtrans('audit_report.export_logged') }}
         </p>
@@ -62,3 +62,83 @@
     </div>
 </div>
 @endforeach
+
+<div class="box box-default" id="audit-report-files">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ exmtrans('audit_report.files_header') }}</h3>
+    </div>
+    <div class="box-body">
+        <p class="text-muted small">{{ exmtrans('audit_report.files_help') }}</p>
+        <form method="post" action="{{ $verifyUrl }}" enctype="multipart/form-data" class="form-inline" style="margin-bottom:8px">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <label for="audit-verify">{{ exmtrans('audit_report.verify') }}</label>
+            <input type="file" id="audit-verify" name="report" accept="application/pdf" class="form-control input-sm">
+            <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-check" aria-hidden="true"></i> {{ exmtrans('audit_report.verify_button') }}</button>
+        </form>
+        @if(count($files) === 0)
+            <p class="text-muted">{{ exmtrans('audit_report.none') }}</p>
+        @else
+        <div class="table-responsive">
+        <table class="table table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th>{{ exmtrans('audit_report.made_at') }}</th>
+                    <th>{{ exmtrans('audit_report.period') }}</th>
+                    <th>{{ exmtrans('audit_report.made_by') }}</th>
+                    <th>SHA-256</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach($files as $file)
+                <tr>
+                    <td style="white-space:nowrap">{{ optional($file->created_at)->format('Y-m-d H:i') }}</td>
+                    <td style="white-space:nowrap">{{ $file->period_from->format('Y-m-d') }} - {{ $file->period_to->format('Y-m-d') }}</td>
+                    <td>{{ $userName($file->made_user_id) }}</td>
+                    <td><code class="small">{{ $file->sha256 }}</code></td>
+                    <td>
+                        @if(!is_null(\Exceedone\Exment\Services\AuditReport\AuditReportStore::path($file)))
+                            <a href="{{ $fileUrl }}/{{ $file->id }}" class="btn btn-default btn-xs" data-pjax="false" target="_blank"><i class="fa fa-download" aria-hidden="true"></i> PDF</a>
+                        @endif
+                    </td>
+                </tr>
+            @endforeach
+            </tbody>
+        </table>
+        </div>
+        @endif
+    </div>
+</div>
+
+@if($isSystem)
+<div class="box box-default" id="audit-report-settings">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ exmtrans('audit_report.settings_header') }}</h3>
+    </div>
+    <form method="post" action="{{ $settingUrl }}" class="form-horizontal" pjax-container>
+        <input type="hidden" name="_token" value="{{ csrf_token() }}">
+        <div class="box-body">
+            <div class="form-group">
+                <label class="col-sm-3 control-label" for="audit_report_schedule">{{ exmtrans('audit_report.schedule') }}</label>
+                <div class="col-sm-3">
+                    <select class="form-control" id="audit_report_schedule" name="audit_report_schedule">
+                    @foreach($schedules as $option)
+                        <option value="{{ $option }}" @if($schedule === $option) selected @endif>{{ exmtrans('audit_report.schedule_option.' . $option) }}</option>
+                    @endforeach
+                    </select>
+                </div>
+                <div class="col-sm-6 help-block">{{ exmtrans('audit_report.schedule_help') }}</div>
+            </div>
+            <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <label><input type="checkbox" name="audit_report_mail" value="1" @if($mail) checked @endif> {{ exmtrans('audit_report.mail') }}</label>
+                    <p class="help-block">{{ exmtrans('audit_report.mail_help') }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="box-footer">
+            <button type="submit" class="btn btn-primary pull-right">{{ trans('admin.save') }}</button>
+        </div>
+    </form>
+</div>
+@endif

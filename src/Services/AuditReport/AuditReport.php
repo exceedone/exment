@@ -23,6 +23,8 @@ use Exceedone\Exment\Model\UserApiKey;
 use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\LogManagement\LogCatalog;
+use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
+use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Support\Facades\Schema;
 
 /**
@@ -34,7 +36,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class AuditReport
 {
-    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'log_retention'];
+    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'security', 'log_retention'];
 
     /** Days without a login after which an account is "not used" (the default). */
     public const DEFAULT_INACTIVE_DAYS = 90;
@@ -182,6 +184,8 @@ class AuditReport
                 return ['kind', 'workspace', 'target', 'created_user', 'created_at', 'expires_at', 'password', 'download', 'access', 'last_accessed', 'state', 'marks'];
             case 'public_forms':
                 return ['table', 'form', 'state', 'period', 'proxy_user', 'created_at'];
+            case 'security':
+                return ['item', 'result', 'detail'];
             case 'log_retention':
                 return ['log', 'retention', 'archive', 'count'];
         }
@@ -607,6 +611,70 @@ class AuditReport
     }
 
     /**
+     * The state of the site: the version, the security check (its items of the site, and of the
+     * server when they are shown), the last backup.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsSecurity(): array
+    {
+        $rows = [];
+        $rows[] = [static::text('security.version'), strval(\Exment::version(false)), 'PHP ' . PHP_VERSION];
+        try {
+            foreach ((new SecurityCheck())->items() as $item) {
+                try {
+                    $result = strval($item->checkResult());
+                    $rows[] = [strval($item->getLabel()), static::text('security.result_' . (in_array($result, [SystemRequireResult::OK, SystemRequireResult::WARNING, SystemRequireResult::NG], true) ? $result : 'other')), strval($item->getMessage())];
+                } catch (\Throwable $e) {
+                    $rows[] = [strval($item->getLabel()), static::text('security.result_other'), ''];
+                }
+            }
+        } catch (\Throwable $e) {
+            // the check could not run here
+        }
+        $rows[] = [static::text('security.last_backup'), $this->date($this->lastBackup(), true), ''];
+        return $rows;
+    }
+
+    /**
+     * When the last backup was made (the files of the backup), null when there is none.
+     */
+    protected function lastBackup(): ?Carbon
+    {
+        try {
+            $disk = (new \Exceedone\Exment\Services\BackupRestore\Backup())->disk();
+            $last = null;
+            foreach ($disk->files('list') as $file) {
+                if (!str_ends_with(strtolower($file), '.zip')) {
+                    continue;
+                }
+                $time = intval($disk->lastModified($file));
+                $last = max($last ?? 0, $time);
+            }
+            return is_null($last) ? null : Carbon::createFromTimestamp($last);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * The users who may read the report (the system administrators and the users with Audit):
+     * base user ids. The job tells them of a report made.
+     *
+     * @return array<int, int>
+     */
+    public function auditorIds(): array
+    {
+        $ids = [];
+        foreach ($this->accounts() as $account) {
+            if ($account['audit'] && !is_nullorempty($account['base_user_id'])) {
+                $ids[intval($account['base_user_id'])] = true;
+            }
+        }
+        return array_keys($ids);
+    }
+
+    /**
      * @return array<int, array<int, string>>
      */
     protected function rowsLogRetention(): array
@@ -681,6 +749,8 @@ class AuditReport
                 'created_at' => isset($login->created_at) ? Carbon::parse($login->created_at) : null,
                 'system_permissions' => $permissions,
                 'role_groups' => $groups,
+                'base_user_id' => $userId,
+                'audit' => isset($permissions[Permission::SYSTEM]) || isset($permissions[Permission::AUDIT]),
             ];
         }
         return $this->accounts = $accounts;
@@ -693,7 +763,7 @@ class AuditReport
      * @param mixed $userId
      * @param mixed $enum
      * @param array<int, string> $admins the system administrators
-     * @return array{0: array<int, string>, 1: array<int, string>}
+     * @return array{0: array<string, string>, 1: array<int, string>} the permissions (key => label) and the groups
      */
     protected function systemPermissionsOf($userId, $enum, array $admins, bool $permissionOn): array
     {
@@ -708,7 +778,7 @@ class AuditReport
         if (!$permissionOn) {
             // without the permissions, every user may do everything
             $permissions[Permission::SYSTEM] = static::permissionText(Permission::SYSTEM);
-            return [array_values($permissions), []];
+            return [$permissions, []];
         }
         $orgIds = AuthUserOrgHelper::getOrganizationIdsForQuery($enum, $userId);
         foreach (RoleGroup::getHasPermissionRoleGroup($userId, $orgIds) as $group) {
@@ -726,7 +796,7 @@ class AuditReport
                 $groups[] = strval($group->role_group_view_name);
             }
         }
-        return [array_values($permissions), $groups];
+        return [$permissions, $groups];
     }
 
     /**
