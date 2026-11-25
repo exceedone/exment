@@ -14,6 +14,9 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class DefaultTableProvider extends ProviderBase
 {
+    /** rows whose references are preloaded together (bounds the preload's memory) */
+    protected const PRELOAD_WINDOW = 1000;
+
     // @phpstan-ignore-next-line
     protected $grid;
     // @phpstan-ignore-next-line
@@ -165,17 +168,35 @@ class DefaultTableProvider extends ProviderBase
         $bodies = [];
 
         list($firstColumns, $custom_columns, $lastColumns) = $columnDefines;
-        foreach ($records as $record) {
-            $body_items = [];
-            // add items
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_columns, "value.", ConditionType::COLUMN));
-            $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
+        foreach (collect($records)->chunk(static::PRELOAD_WINDOW) as $window) {
+            $this->preloadReferenceValues($window, $columnDefines);
 
-            $bodies[] = $body_items;
+            foreach ($window as $record) {
+                $body_items = [];
+                // add items
+                $body_items = array_merge($body_items, $this->getBodyItems($record, $firstColumns));
+                $body_items = array_merge($body_items, $this->getBodyItems($record, $custom_columns, "value.", ConditionType::COLUMN));
+                $body_items = array_merge($body_items, $this->getBodyItems($record, $lastColumns));
+
+                $bodies[] = $body_items;
+            }
         }
 
         return $bodies;
+    }
+
+    /**
+     * Load the records referenced by one window of rows (select_table export column, parent id) in a few batches,
+     * so that getSelectTableExportValue() / getParentExportValue() are answered from the request cache.
+     * Only a cache warm-up: values that are not preloaded are queried one by one as before.
+     *
+     * @param iterable<mixed> $records
+     * @param array<mixed> $columnDefines
+     * @return void
+     */
+    protected function preloadReferenceValues($records, $columnDefines)
+    {
+        ExportReferencePreload::preload($this->custom_table, $records, $columnDefines);
     }
 
     /**

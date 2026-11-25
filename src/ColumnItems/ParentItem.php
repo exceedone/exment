@@ -9,6 +9,7 @@ use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\RelationTable;
 use Exceedone\Exment\Enums\FilterType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Services\DataImportExport\Providers\Import\ImportParentLookup;
 
 /**
  * @property \Exceedone\Exment\Model\CustomColumn $custom_column
@@ -226,13 +227,27 @@ class ParentItem implements ItemInterface
             $result = false;
         } elseif (is_null($target_column_name = array_get($setting, 'target_column_name'))) {
         } else {
-            // get target value
-            $target_value = $this->custom_table->getValueModel()->where(ColumnQueryKey::json($target_column_name, $this->custom_table)->expression(), $value)->first();
+            // batched lookup of the import (null = not decided there, use the original query)
+            $lookup = array_get($setting, 'parent_lookup');
+            $resolved = $lookup instanceof ImportParentLookup
+                ? $lookup->resolve($this->custom_table, $target_column_name, $value)
+                : null;
 
-            if (!isset($target_value)) {
-                $result = false;
+            if (!is_null($resolved)) {
+                if (!$resolved['found']) {
+                    $result = false;
+                } else {
+                    $value = $resolved['id'];
+                }
             } else {
-                $value = $target_value->id;
+                // get target value
+                $target_value = $this->custom_table->getValueModel()->where(ColumnQueryKey::json($target_column_name, $this->custom_table)->expression(), $value)->first();
+
+                if (!isset($target_value)) {
+                    $result = false;
+                } else {
+                    $value = $target_value->id;
+                }
             }
         }
 

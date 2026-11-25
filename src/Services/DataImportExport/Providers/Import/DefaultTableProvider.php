@@ -35,6 +35,19 @@ class DefaultTableProvider extends ProviderBase
      */
     protected $oneRecordCreateCount = 0;
 
+    /**
+     * In-file unique check index. Only set while validateImportData() is running.
+     *
+     * @var ImportUniqueCheckIndex|null
+     */
+    protected $uniqueCheckIndex;
+
+    /**
+     * Immutable validation descriptors. Only set while validateImportData() is running.
+     *
+     * @var ImportValidationDescriptors|null
+     */
+    protected $validationDescriptors;
     // @phpstan-ignore-next-line
     public function __construct($args = [])
     {
@@ -102,6 +115,8 @@ class DefaultTableProvider extends ProviderBase
         $this->custom_table->setSelectTableValues(collect($value_customs));
 
         $results = [];
+        // parent lookups of this sheet / chunk only; released when this method returns
+        $options['parentLookup'] = new ImportParentLookup($value_customs);
         foreach ($value_customs as $line_no => $value_custom) {
             $options['datalist'] = $value_customs;
             ///// convert data first.
@@ -146,21 +161,46 @@ class DefaultTableProvider extends ProviderBase
             return [[], $this->selectTableNotFounds];
         }
 
+        // the ids were converted after getDataObject() preloaded the raw values: load them in batches instead of one find() per id
+        $this->preloadSelectTableValues($dataObjects);
+
         ///// get all table columns
         $validate_columns = $this->custom_table->custom_columns;
 
         $error_data = [];
         $success_data = [];
-        foreach ($dataObjects as $line_no => $value) {
-            $check = $this->validateDataRow($line_no, $value, $validate_columns, $dataObjects);
-            if ($check === true) {
-                $success_data[] = $value;
-            } else {
-                $error_data = array_merge($error_data, $check);
+        // index for the in-file unique check, valid only for this data set (chunk / sheet)
+        $this->uniqueCheckIndex = new ImportUniqueCheckIndex($dataObjects);
+        // descriptors are valid only for this call: table definition, user and request must not change in between
+        $this->validationDescriptors = new ImportValidationDescriptors();
+        try {
+            foreach ($dataObjects as $line_no => $value) {
+                $check = $this->validateDataRow($line_no, $value, $validate_columns, $dataObjects);
+                if ($check === true) {
+                    $success_data[] = $value;
+                } else {
+                    $error_data = array_merge($error_data, $check);
+                }
             }
+        } finally {
+            $this->uniqueCheckIndex = null;
+            $this->validationDescriptors = null;
         }
 
         return [$success_data, $error_data];
+    }
+
+    /**
+     * Preload the records referenced through select_table columns (see ImportSelectTablePreload). Protected so that
+     * the harness can switch it off to compare with the previous step.
+     *
+     * @param mixed $dataObjects
+     * @return void
+     */
+    // @phpstan-ignore-next-line
+    protected function preloadSelectTableValues($dataObjects)
+    {
+        ImportSelectTablePreload::preload($this->custom_table, $dataObjects);
     }
 
     /**
@@ -211,7 +251,19 @@ class DefaultTableProvider extends ProviderBase
             $errors[] = sprintf(exmtrans('custom_value.import.import_error_format'), ($line_no+1), $code->getMessage());
         }
 
-        list($uniqueCheckSiblings, $uniqueCheckIgnoreIds) = $this->getUniqueCheckParams($line_no, $dataObjects);
+        if (isset($this->uniqueCheckIndex)) {
+            $uniqueCheckOptions = [
+                'uniqueCheckIndex' => $this->uniqueCheckIndex,
+                'uniqueCheckRowKey' => $line_no,
+                'uniqueCheckIgnoreIds' => $this->uniqueCheckIndex->getIgnoreIds(),
+            ];
+        } else {
+            list($uniqueCheckSiblings, $uniqueCheckIgnoreIds) = $this->getUniqueCheckParams($line_no, $dataObjects);
+            $uniqueCheckOptions = [
+                'uniqueCheckSiblings' => $uniqueCheckSiblings,
+                'uniqueCheckIgnoreIds' => $uniqueCheckIgnoreIds,
+            ];
+        }
 
         // execute validation
         $validator = $this->custom_table->validateValue(array_dot_reverse($data), $model, [
@@ -220,10 +272,9 @@ class DefaultTableProvider extends ProviderBase
             'appendKeyName' => true,
             'checkCustomValueExists' => false,
             'validateLock' => false,
-            'uniqueCheckSiblings' => $uniqueCheckSiblings,
-            'uniqueCheckIgnoreIds' => $uniqueCheckIgnoreIds,
             'calledType' => ValidateCalledType::IMPORT,
-        ]);
+            'validationDescriptors' => $this->validationDescriptors,
+        ] + $uniqueCheckOptions);
 
         if ($validator->fails()) {
             // create error message

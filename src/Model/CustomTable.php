@@ -24,6 +24,8 @@ use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\FormHelper;
+use Exceedone\Exment\Services\DataImportExport\Providers\Import\ImportUniqueCheckIndex;
+use Exceedone\Exment\Services\DataImportExport\Providers\Import\ImportValidationDescriptors;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
 use Exceedone\Exment\ColumnItems\WorkflowItem;
@@ -742,6 +744,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'appendErrorAllColumn' => false, // if error, append error message for all column
             'validateLock' => true, // whether validate update lock
             'calledType' => null, // Whether this validation is called.
+            'validationDescriptors' => null, // (import) ImportValidationDescriptors. If set, immutable rule descriptors are reused between rows.
         ], $options);
         $systemColumn = $options['systemColumn'];
         $column_name_prefix = $options['column_name_prefix'];
@@ -760,7 +763,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $rules = $this->getValidateRules($value, $custom_value, $options);
 
         // get custom attributes
-        $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
+        if ($options['validationDescriptors'] instanceof ImportValidationDescriptors) {
+            $customAttributes = $options['validationDescriptors']->customAttributes($this, $systemColumn, $column_name_prefix, $appendKeyName);
+        } else {
+            $customAttributes = $this->getValidateCustomAttributes($systemColumn, $column_name_prefix, $appendKeyName);
+        }
 
         // execute validation
         /** @var ExmentCustomValidator $validator */
@@ -883,11 +890,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'column_name_prefix' => null,  // appending error key's prefix, and value prefix
             'appendKeyName' => true, // whether appending key name if eror
             'checkCustomValueExists' => true, // whether checking require custom column
+            'validationDescriptors' => null, // (import) ImportValidationDescriptors
         ], $options);
         $systemColumn = $options['systemColumn'];
         $column_name_prefix = $options['column_name_prefix'];
         $appendKeyName = $options['appendKeyName'];
         $checkCustomValueExists = $options['checkCustomValueExists'];
+
+        if ($options['validationDescriptors'] instanceof ImportValidationDescriptors) {
+            return $this->getValidateRulesByDescriptors($options['validationDescriptors'], $value, $custom_value, $options);
+        }
 
         // get fields for validation
         $rules = [];
@@ -940,6 +952,81 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $field_rules = $field_validator->getRules($value);
 
             // merge rules
+            $rules = array_merge($field_rules, $rules);
+        }
+
+        return $rules;
+    }
+
+    /**
+     * Same result as getValidateRules(), reusing immutable per-column descriptors (import path, see ImportValidationDescriptors).
+     * Columns that cannot be described are built per row exactly as getValidateRules() does.
+     *
+     * @param ImportValidationDescriptors $descriptors
+     * @param array $value
+     * @param CustomValue|null $custom_value
+     * @param array $options
+     * @return array
+     */
+    // @phpstan-ignore-next-line
+    protected function getValidateRulesByDescriptors(ImportValidationDescriptors $descriptors, $value, $custom_value, array $options)
+    {
+        $systemColumn = $options['systemColumn'];
+        $column_name_prefix = $options['column_name_prefix'];
+        $checkCustomValueExists = $options['checkCustomValueExists'];
+
+        // set required column's name for validation.
+        $this->setColumnsName($value, $custom_value, $options);
+
+        $rules = [];
+
+        // create parent type validation array
+        if ($systemColumn) {
+            $custom_table_parent = $descriptors->remember(
+                $descriptors->key($this, 'parent_table'),
+                function () {
+                    $custom_relation_parent = CustomRelation::getRelationByChild($this, RelationType::ONE_TO_MANY);
+                    return $custom_relation_parent ? $custom_relation_parent->parent_custom_table : null;
+                }
+            );
+
+            if (!isset($custom_table_parent)) {
+                $parent_id_rules = [new EmptyRule()];
+            } elseif (!$checkCustomValueExists) {
+                $parent_id_rules = ['nullable', 'numeric'];
+            } else {
+                $parent_id_rules = ['nullable', 'numeric', new CustomValueRule($custom_table_parent)];
+            }
+            $parent_type_rules = isset($custom_table_parent) ? ['nullable', "in:". $custom_table_parent->table_name] : [new EmptyRule()];
+
+            // create common validate rules.
+            $rules = array_merge([
+                'id' => ['nullable', 'numeric'],
+                'parent_id' => $parent_id_rules,
+                'parent_type' => $parent_type_rules,
+                'suuid' => ['nullable', 'regex:/^[a-z0-9]{20}$/'],
+                'created_at' => ['nullable', 'date'],
+                'updated_at' => ['nullable', 'date'],
+                'deleted_at' => ['nullable', 'date'],
+            ], $rules);
+        }
+
+        foreach ($descriptors->columns($this, $column_name_prefix) as $descriptor) {
+            if (!is_null($descriptor['rules'])) {
+                // the field has no validator when the key is missing from the input
+                if (!Arr::has($value, $descriptor['key'])) {
+                    continue;
+                }
+                $field_rules = ImportValidationDescriptors::freshRules($descriptor['rules']);
+            } else {
+                $field = FormHelper::getFormField($this, $descriptor['column'], $custom_value, null, $column_name_prefix, true);
+                $field_validator = $field->getValidator($value);
+                if (!$field_validator) {
+                    continue;
+                }
+                $field_rules = $field_validator->getRules($value);
+            }
+
             $rules = array_merge($field_rules, $rules);
         }
 
@@ -1001,6 +1088,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             'appendErrorAllColumn' => false, // if error, append error message for all column
             'uniqueCheckSiblings' => [], // unique validation Siblings. Please mremove myself values.
             'uniqueCheckIgnoreIds' => [], // ignore ids.
+            'uniqueCheckIndex' => null, // (import) ImportUniqueCheckIndex. If set, siblings are checked by the index instead of 'uniqueCheckSiblings'.
+            'uniqueCheckRowKey' => null, // (import) current row's key in 'uniqueCheckIndex'.
         ], $options);
 
         $errors = [];
@@ -1014,38 +1103,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         foreach ($unique_columns as $unique_column) {
-            $column_keys = [];
-
             // check input data
-            $is_duplicate = collect($options['uniqueCheckSiblings'])
-                ->contains(function ($row) use ($input, $unique_column, $prefix, &$column_keys) {
-                    foreach ([1,2,3] as $key) {
-                        if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
-                            continue;
-                        }
-                        $column = null;
-                        if ($column_id == SystemColumn::PARENT_ID) {
-                            $column_name = SystemColumn::PARENT_ID;
-                        } else {
-                            $column = CustomColumn::getEloquent($column_id);
-                            if (is_null($column)) {
-                                continue;
-                            }
-                            $column_name = $prefix . $column->column_name;
-                        }
-                        // get input value
-                        $value = array_get($input, $column_name);
-                        $other = array_get($row, $column_name);
-                        if (is_null($value) && is_null($other)) {
-                            continue;
-                        }
-                        if ($value != $other) {
-                            return false;
-                        }
-                        $column_keys[] = $column ?? $column_name;
+            if ($options['uniqueCheckIndex'] instanceof ImportUniqueCheckIndex) {
+                list($is_duplicate, $column_keys) = $options['uniqueCheckIndex']->findDuplicate(
+                    $this->getUniqueSiblingNames($unique_column, $prefix),
+                    $input,
+                    $options['uniqueCheckRowKey'],
+                    function ($siblings) use ($input, $unique_column, $prefix) {
+                        return $this->scanUniqueSiblings($siblings, $input, $unique_column, $prefix);
                     }
-                    return !empty($column_keys);
-                });
+                );
+            } else {
+                list($is_duplicate, $column_keys) = $this->scanUniqueSiblings($options['uniqueCheckSiblings'], $input, $unique_column, $prefix);
+            }
 
             if (!$is_duplicate) {
                 $column_keys = [];
@@ -1145,6 +1215,83 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
         }
         return $errors;
+    }
+
+    /**
+     * Get value names (e.g. "value.code", "parent_id") of the unique definition, in the same order and
+     * with the same skipping rules as scanUniqueSiblings.
+     *
+     * @param array $unique_column
+     * @param string $prefix
+     * @return array<int, string>
+     */
+    protected function getUniqueSiblingNames($unique_column, string $prefix): array
+    {
+        $names = [];
+        foreach ([1,2,3] as $key) {
+            if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
+                continue;
+            }
+            if ($column_id == SystemColumn::PARENT_ID) {
+                $names[] = SystemColumn::PARENT_ID;
+                continue;
+            }
+            $column = CustomColumn::getEloquent($column_id);
+            if (is_null($column)) {
+                continue;
+            }
+            $names[] = $prefix . $column->column_name;
+        }
+        return $names;
+    }
+
+    /**
+     * Scan siblings in order and find the first duplicated one, by loose comparison.
+     * $column_keys intentionally accumulates across siblings (legacy behavior, reflected in the error text).
+     *
+     * @param iterable<mixed> $siblings
+     * @param array $input
+     * @param array $unique_column
+     * @param string $prefix
+     * @return array{0: bool, 1: array<int, mixed>} [is duplicate, matched columns]
+     */
+    protected function scanUniqueSiblings($siblings, $input, $unique_column, string $prefix): array
+    {
+        $column_keys = [];
+
+        foreach ($siblings as $row) {
+            foreach ([1,2,3] as $key) {
+                if (is_null($column_id = array_get($unique_column, "unique{$key}"))) {
+                    continue;
+                }
+                $column = null;
+                if ($column_id == SystemColumn::PARENT_ID) {
+                    $column_name = SystemColumn::PARENT_ID;
+                } else {
+                    $column = CustomColumn::getEloquent($column_id);
+                    if (is_null($column)) {
+                        continue;
+                    }
+                    $column_name = $prefix . $column->column_name;
+                }
+                // get input value
+                $value = array_get($input, $column_name);
+                $other = array_get($row, $column_name);
+                if (is_null($value) && is_null($other)) {
+                    continue;
+                }
+                if ($value != $other) {
+                    continue 2;
+                }
+                $column_keys[] = $column ?? $column_name;
+            }
+
+            if (!empty($column_keys)) {
+                return [true, $column_keys];
+            }
+        }
+
+        return [false, $column_keys];
     }
 
     /**

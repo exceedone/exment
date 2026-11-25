@@ -16,6 +16,7 @@ use Exceedone\Exment\Services\DataImportExport\Formats\FormatBase;
 use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\SpOut;
 use Exceedone\Exment\Services\DataImportExport\Formats\SpOut\Xlsx;
 use Exceedone\Exment\Services\UserTimezone;
+use Exceedone\Exment\Services\DataImportExport\Providers\Import\ImportParentLookup;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Validator;
@@ -633,7 +634,16 @@ trait DataImportExportServiceTrait
                 }
 
                 $target_table = CustomTable::getEloquent(array_get($data, 'parent_type'));
-                $parent_item = ParentItem::getItem($target_table);
+                $lookup = array_get($options, 'parentLookup');
+                if ($lookup instanceof ImportParentLookup && isset($target_table)) {
+                    // one ParentItem per parent table instead of one (with a CustomRelation query) per row
+                    $parent_item = $lookup->parentItem($target_table);
+                    if (isset($s)) {
+                        $s['parent_lookup'] = $lookup;
+                    }
+                } else {
+                    $parent_item = ParentItem::getItem($target_table);
+                }
                 if (isset($parent_item)) {
                     static::getImportColumnValue($data, $key, $value, $parent_item, $target_table->table_view_name, $s ?? null, $target_table, $options);
                 }
