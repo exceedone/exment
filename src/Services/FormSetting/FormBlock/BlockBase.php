@@ -136,8 +136,35 @@ abstract class BlockBase
             'custom_form_rows' => $this->getCustomFormRows(),
             'hasmany_type' => $this->custom_form_block->getOption('hasmany_type'),
             'lazy_load_enabled' => $this->custom_form_block->getOption('lazy_load_enabled', 0),
+            // the number column the rows are kept in order by (#1595)
+            'sort_column' => $this->custom_form_block->getOption('sort_column'),
+            'sort_columns' => $this->getSortColumnOptions(),
             'form_block_order' => $this->custom_form_block->getOption('form_block_order')
         ];
+    }
+
+
+    /**
+     * The number columns of the child table a 1:n block can keep its rows in
+     * order by (#1595), column_name => label.
+     *
+     * @return array<string, string>
+     */
+    protected function getSortColumnOptions(): array
+    {
+        $form_block_type = $this->custom_form_block->form_block_type ?? null;
+        if ($form_block_type != FormBlockType::ONE_TO_MANY || !isset($this->target_table)) {
+            return [];
+        }
+
+        $options = [];
+        foreach ($this->target_table->custom_columns_cache as $custom_column) {
+            if (in_array($custom_column->column_type, CustomFormBlock::sortColumnTypes(), true)) {
+                $options[strval($custom_column->column_name)] = strval($custom_column->column_view_name);
+            }
+        }
+
+        return $options;
     }
 
 

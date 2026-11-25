@@ -2346,6 +2346,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'available' => 'Verwenden',
         'hasmany_type' => 'Formular als Tabelle darstellen',
         'lazy_load_enabled' => 'Laden der Daten untergeordneter Tabellen optimieren',
+        'sort_column' => 'Sortierspalte',
         'header_basic_setting' => 'Grundeinstellungen des Formulars',
         'changedata' => 'Einstellungen zur Datenverknüpfung',
         'relation_filter' => 'Relationsfilter',
@@ -2416,6 +2417,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'append_hr' => 'Bei JA wird unter der Überschrift eine Trennlinie gezogen.',
             'hasmany_type_table' => 'Wenn aktiviert, werden die Daten der untergeordneten Seite in Tabellenform angezeigt. * Empfohlen bei wenigen Elementen. In Tabellenform ist die mehrspaltige Einstellung deaktiviert, und es werden nur die Einstellungen der Elemente berücksichtigt.',
             'lazy_load_enabled' => 'Lädt diese untergeordnete Tabelle automatisch, nachdem die Bearbeitungsseite geöffnet wurde. Verfügbar für 1:N-Blöcke in Tabellenform beim Bearbeiten vorhandener Daten. Speichern ist erst nach Abschluss des Ladevorgangs möglich. Wird die Tabellenform deaktiviert, wird auch diese Einstellung beim Speichern des Formulars ausgeschaltet.',
+            'sort_column' => 'Eine Zahlenspalte der untergeordneten Tabelle, die die Reihenfolge der Zeilen enthält. Wenn gesetzt, können die Zeilen im Eingabeformular nach oben und unten verschoben werden, und beim Speichern wird von oben 1, 2, 3... geschrieben. Die Liste auf der Detailseite folgt dieser Reihenfolge.',
         ],
         'message' => [
             'missing_required_empty' => 'Nicht gespeichert: Die Pflichtspalten :names sind nicht in diesem Formular und haben keinen Wert. Fügen Sie sie dem Formular hinzu oder schalten Sie „Pflichtspalten prüfen, die nicht im Formular sind“ aus.',

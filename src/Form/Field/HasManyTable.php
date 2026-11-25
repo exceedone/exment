@@ -131,12 +131,14 @@ class HasManyTable extends HasMany
      * @param integer $power
      * @return $this
      */
-    public function rowUpDown($rowUpDown, $power = 1)
+    public function rowUpDown($rowUpDown, $power = 1, bool $sortValue = false)
     {
         $this->rowUpDown = $rowUpDown;
         $this->power = $power;
+        $this->rowUpDownSort = $sortValue;
         return $this;
     }
+
 
     /**
      * Show a button on every row that adds a copy of it (#1595).
@@ -434,6 +436,8 @@ EOT;
 
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
         list($tableitems, $hiddens, $requires, $helps) = $this->getTableItem($form);
+
+        $this->sortValueByRowUpDown();
 
         // set related forms
         $relatedforms = [];
