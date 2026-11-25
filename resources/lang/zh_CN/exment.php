@@ -429,6 +429,13 @@ return [
         'system_slack' => 'Slack 设置',
         'system_slack_user_column' => 'Slack ID 设置列（用户）',
         'system_line' => 'LINE 设置',
+        'system_teams' => 'Teams（工作流）',
+        'system_teams_workflow_url' => 'Teams 工作流的地址',
+        'system_teams_workflow_unset' => '未设置',
+        'system_teams_workflow_set' => '已设置（不显示）',
+        'system_teams_workflow_url_new' => '新地址',
+        'system_teams_workflow_url_help' => 'Teams 工作流“收到 Teams Webhook 请求时”的 URL（https）。这是机密值，不会再次显示；留空则继续使用已设置的地址。工作流的创建方法见手册：:manual',
+        'system_teams_workflow_url_clear' => '删除地址',
         'system_line_channel_token' => '频道访问令牌',
         'system_line_channel_secret' => '频道密钥',
         'system_line_oa_basic_id' => 'LINE 官方账号 Basic ID',
@@ -761,6 +768,16 @@ return [
                 'explain' => '将 Exment 和官方插件保持为最新版本。已发布安全修复的插件请立即更新。',
                 'warning' => '有新版本。',
                 'fix' => '请在系统设置的“版本”中更新 Exment，在功能管理中更新官方插件。',
+            ],
+            'supported_versions' => [
+                'label' => 'PHP 和数据库的版本',
+                'explain' => 'PHP 和数据库只在一定期间内提供安全修复。请使用仍提供修复的版本：PHP 8.3 及以上、MySQL 8.0、MariaDB 10.11 或 SQL Server 2016 及以上。',
+                'php_until' => '修复提供至 :date',
+                'php_ended' => 'PHP :version 的安全支持已于 :date 结束。',
+                'php_ending' => 'PHP :version 的安全支持将于 :date 结束。',
+                'database_old' => ':database :version 比推荐版本（:recommended 及以上）旧。',
+                'warning' => 'PHP :version 的安全支持将于 :date 结束。',
+                'fix' => '请将 PHP 升级到 8.3 及以上（租用服务器请在管理画面中更改 PHP 版本）。请将数据库升级到推荐版本。在此之前 Exment 仍可运行。',
             ],
             'session_cookie' => [
                 'label' => '会话 cookie',
@@ -1488,6 +1505,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => '未知',
+        'login_location_separator' => '・',
         '2factor' => '双重验证',
         'login' => '验证',
         'submit_verify_code' => '发送验证码',
@@ -2310,6 +2329,8 @@ return [
         'changedata_column' => '选择链接列',
         'changedata_column_then' => '复制此列的值',
         'default_flg' => '默认表单',
+        'check_missing_required' => '也检查此表单中没有的必填列',
+        'check_missing_required_help' => '开启后，此表单中没有的必填列为空时，不保存用此表单新建的数据。关闭时，这些列以空值保存（如公开表单等只有部分列的表单）。',
         'field_showing_type' => '字段类型',
         'form_column_view_name' => '字段显示名称',
         'image_aslink' => '以链接形式显示图片',
@@ -2366,6 +2387,7 @@ return [
             'lazy_load_enabled' => '打开编辑页面后自动加载此子表。适用于编辑已有数据时以表格形式显示的一对多区块。加载完成前无法保存。取消表格形式并保存表单后，此设置也将关闭。',
         ],
         'message' => [
+            'missing_required_empty' => '未保存：必填列 :names 不在此表单中且没有值。请将其加入表单，或关闭“也检查此表单中没有的必填列”。',
             'no_exists_column' => '未设置必填项目。',
             'confirm_required' => '未设置必填项目。确定要直接保存吗？',
             'image_need_delete' => '※更换图片时，请先删除该列，然后重新添加。',
@@ -3683,6 +3705,7 @@ return [
             'role_group' => '角色组',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => '审计', 'help' => '可以查看日志和 IT 审计报告（不能更改）。'],
             'system' => [
                 'label' => '系统管理',
                 'help' => '可以使用、设置和更改 Exment 的所有功能。',
@@ -4325,6 +4348,8 @@ return [
         'notify_action_target' => '通知对象',
         'mail_template_id' => '通知模板',
         'flex_template_id' => 'LINE Flex 模板',
+        'teams_open' => '打开',
+        'teams_setting_link' => 'Teams 工作流设置',
         'line_show_detail' => '查看详情',
         'notify_button_name' => '按钮显示名称',
         'notify_select' => '选择发送对象',
@@ -4353,6 +4378,7 @@ return [
             'notify_action_target_add_workflow' => '※如需通知“操作执行人”，请将“通知条件设置”中的“也通知操作执行人”设为 YES。',
             'mail_template_id' => '选择要发送的邮件模板。如需新建模板，请事先在邮件模板页面创建新模板。',
             'flex_template_id' => '发送到 LINE 的 Flex 消息模板。选择后将以卡片形式发送（未选择时以文本发送）。仅当目标表设有工作流且收件人对待处理的操作有执行权限时，才会自动添加“批准”“驳回”按钮。',
+            'teams_personal' => '通过系统设置中的 Teams 工作流发送到每个目标用户的 Teams 聊天（用户的邮箱地址即 Teams 账户）。',
             'webhook_url' => '要发送 Slack 或 Teams 通知，需要获取 Webhook URL。<a href="%s" target="_blank">了解详情</a> <br/>Slack 与 Teams 互不兼容。',
             'mention_here' => '发送“@here”提及，通知指定频道中状态为活跃的所有成员。※如需单独提及，请设置下方的“通知对象”项目。',
             'slack_user_column_not_setting' => '※系统设置中的“Slack ID 设置列（用户）”尚未登记。指定用于登记 Slack ID 的列后，即可设置通知对象。',
@@ -4377,6 +4403,7 @@ return [
             'show_page' => '系统内提醒',
             'slack' => 'Slack',
             'microsoft_teams' => 'Microsoft Teams',
+            'teams_personal' => 'Teams（个人）',
             'line' => 'LINE',
         ],
         'notify_action_target_options' => [
@@ -4858,6 +4885,8 @@ return [
             'scheduled_jobs_help' => '服务器的 cron（schedule:run）运行的任务：任务列表、最近的运行记录和“立即运行”。任务连续多次失败时通知系统管理员。仅在使用期间保留记录。仅系统管理员可以使用。',
             'api_rate_raise' => '临时提高 API 限制',
             'api_rate_raise_help' => '在期限之前，允许某个用户或 API 客户端每分钟发出更多 API 请求，用于导入或迁移数据。到期后恢复原来的限制。仅限系统管理员。',
+            'teams_notify' => 'Teams 通知（个人聊天）',
+            'teams_notify_help' => '通过 Teams 工作流（Power Automate）将通知发送到个人的 Teams 聊天。请在系统设置中设置工作流的地址。',
         ],
         'message_not_used_user' => '如需使用，请联系管理员。',
         'open_feature' => '打开功能管理',
@@ -4997,6 +5026,14 @@ return [
             'planned' => '已计划维护：从 :start_at 到 :end_at。期间站点无法使用。',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => '操作记录',
+            'login_log' => '登录记录',
+            'app_log' => '应用日志',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => '计划任务',
         'description' => '服务器的 cron（schedule:run）在固定时间运行的任务列表。',
@@ -5059,6 +5096,7 @@ return [
             'file_server_purge' => '文件共享：清空回收站',
             'meili_reconcile' => '全文搜索：修复索引',
             'maintenance_tick' => '维护模式：计划的开始和结束',
+            'log_maintenance' => '日志：删除旧日志',
             'batch' => '插件批处理：:name',
         ],
         'cron' => [

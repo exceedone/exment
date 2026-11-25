@@ -444,6 +444,13 @@ return [
         'system_slack' => 'Slack Setting',
         'system_slack_user_column' => 'Slack ID Setting Column(User)',
         'system_line' => 'LINE Setting',
+        'system_teams' => 'Teams (workflow)',
+        'system_teams_workflow_url' => 'Address of the Teams workflow',
+        'system_teams_workflow_unset' => 'Not set',
+        'system_teams_workflow_set' => 'Set (not shown)',
+        'system_teams_workflow_url_new' => 'New address',
+        'system_teams_workflow_url_help' => 'The URL of a Teams workflow "When a Teams webhook request is received" (https). It is kept secret: it is not shown again, and an empty field keeps the one set. See the manual for the workflow: :manual',
+        'system_teams_workflow_url_clear' => 'Delete the address',
         'system_line_channel_token' => 'Channel access token',
         'system_line_channel_secret' => 'Channel secret',
         'system_line_oa_basic_id' => 'LINE Official Account Basic ID',
@@ -781,6 +788,16 @@ return [
                 'explain' => 'Keep Exment and the official plugins up to date. A plugin with a fix for safety is updated at once.',
                 'warning' => 'There is a newer version.',
                 'fix' => 'Update Exment from "Version" in the system setting, and the official plugins from Feature management.',
+            ],
+            'supported_versions' => [
+                'label' => 'Versions of PHP and the database',
+                'explain' => 'PHP and the database get security fixes only for a time. Use versions that still get them: PHP 8.3 or later, MySQL 8.0, MariaDB 10.11 or SQL Server 2016 or later.',
+                'php_until' => 'fixes until :date',
+                'php_ended' => 'The security support of PHP :version ended on :date.',
+                'php_ending' => 'The security support of PHP :version ends on :date.',
+                'database_old' => ':database :version is older than the recommended version (:recommended or later).',
+                'warning' => 'The security support of PHP :version ends on :date.',
+                'fix' => 'Update PHP to 8.3 or later (on a rental server, the PHP version in its control panel). Update the database to the recommended version. Exment keeps working until then.',
             ],
             'session_cookie' => [
                 'label' => 'The session cookie',
@@ -1559,6 +1576,8 @@ return [
     ],
 
     '2factor' => [
+        'login_unknown' => 'Unknown',
+        'login_location_separator' => ', ',
         '2factor' => 'Two-Step Authentication',
         'login' => 'Authentication',
         'submit_verify_code' => 'Authentication code transmission',
@@ -2407,6 +2426,8 @@ return [
         'changedata_column' => 'Select Link Column',
         'changedata_column_then' => 'Copy this column',
         'default_flg' => 'Default Form',
+        'check_missing_required' => 'Check the required columns not on this form',
+        'check_missing_required_help' => 'On: a new record made with this form is not saved while a required column the form does not have is empty. Off: it is saved with those columns empty (a form of a part of the columns, such as a public form).',
         'field_showing_type' => 'Field Type',
         'form_column_view_name' => 'Field Display Name',
         'image_aslink' => 'Display image as a link',
@@ -2470,6 +2491,7 @@ return [
         ],
 
         'message' => [
+            'missing_required_empty' => 'Not saved: the required columns :names are not on this form and have no value. Add them to the form, or turn off "Check the required columns not on this form".',
             'no_exists_column' => 'Required items have not been set.',
             'confirm_required' => 'Required items are not set. Are you sure you want to save it as it is?',
             'image_need_delete' => '* When replacing the image, delete the column once and then add it again.',
@@ -3816,6 +3838,7 @@ return [
         ],
 
         'role_type_option_system' => [
+            'audit' => ['label' => 'Audit', 'help' => 'Users can read the logs and the IT audit report (nothing can be changed).'],
             'system' => ['label' => 'System Setting', 'help' => 'Users can edit system setting.'],
             'login_user' => ['label' => 'Manage login user', 'help' => 'You can manage the users who log in to Exment.'],
             'filter_multiuser_all' => ['label' => 'Get All User and Org', 'help' => 'Information of all users/organizations can be obtained regardless of the setting of User/organization filter.'],
@@ -4360,6 +4383,8 @@ return [
         'notify_action_target' => 'Notify Target',
         'mail_template_id' => 'Notify Mail Template',
         'flex_template_id' => 'LINE Flex template',
+        'teams_open' => 'Open',
+        'teams_setting_link' => 'Teams workflow setting',
         'line_show_detail' => 'View details',
         'notify_button_name' => 'Button display name',
         'notify_select' => 'Select Notify Target',
@@ -4389,6 +4414,7 @@ return [
             'notify_action_target_add_workflow' => '*When notifying the "worker", set "Notify the worker" in "Notification condition settings" to YES.',
             'mail_template_id' => 'Select the template of the mail to send. When creating a new one, please create a new template in the mail template page beforehand.',
             'flex_template_id' => 'Flex message template for LINE. If selected, sends a card (otherwise plain text). Approve/Reject buttons are added automatically only when the target table has a workflow and the recipient has authority on a pending action.',
+            'teams_personal' => 'Sent to each target user\'s Teams chat by the Teams workflow set in the system setting (the user\'s e-mail address is the Teams account).',
             'webhook_url' => 'To make Slack or Teams notifications, you need to get a webhook URL. <a href="%s" target="_blank">Learn more</a> <br/>Slack and Teams are not compatible.',
             'mention_here' => 'Sends an @here mention that notifies all members with active status on the specified channel. * To perform individual mentions, set the "Notification target" item below.',
             'slack_user_column_not_setting' => '*The "Slack ID setting column (user)" in the system settings is not registered. After specifying the column to register Slack ID, you can set the notification target.',
@@ -4414,6 +4440,7 @@ return [
             'show_page' => 'In-system alert',
             'slack' => 'Slack',
             'microsoft_teams' => 'Microsoft Teams',
+            'teams_personal' => 'Teams (personal)',
             'line' => 'LINE',
         ],
 
@@ -4874,6 +4901,8 @@ return [
             'safety_check' => 'Safety check',
             'data_maintenance' => 'Data maintenance',
             'data_maintenance_help' => 'The administrators of a table tidy its data at once (for now: delete the attachments at once). Deleted files cannot be brought back. The users who may change the table can use it.',
+            'teams_notify' => 'Teams notifications (personal chat)',
+            'teams_notify_help' => 'Notifications to a person\'s Teams chat through a Teams workflow (Power Automate). Set the address of the workflow in the system setting.',
             'safety_check_help' => 'Asks whether the users are safe, as after an earthquake (the page to send it, the answer page, the automatic sending from earthquake reports, the answers by LINE). Turning it off does not remove what was sent and answered.',
             'tuning' => 'Tuning',
             'tuning_help' => 'The check of the settings that make the site faster ("Tuning" in "Settings: System"). For the system administrators only. What it asks to change are the server settings, as php.ini and .env.',
@@ -5025,6 +5054,14 @@ return [
         ],
     ],
 
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => 'Operation log',
+            'login_log' => 'Login record',
+            'app_log' => 'Application log',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => 'Scheduled Jobs',
         'description' => 'The jobs the cron of the server (schedule:run) runs at set times.',
@@ -5087,6 +5124,7 @@ return [
             'file_server_purge' => 'File sharing: empty the trash',
             'meili_reconcile' => 'Full-text search: repair the index',
             'maintenance_tick' => 'Maintenance mode: the planned start and end',
+            'log_maintenance' => 'Logs: delete the old ones',
             'batch' => 'Plugin batch: :name',
         ],
         'cron' => [

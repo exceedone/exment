@@ -429,6 +429,13 @@ return [
         'system_slack' => 'Slack-Einstellungen',
         'system_slack_user_column' => 'Spalte für die Slack-ID (Benutzer)',
         'system_line' => 'LINE-Einstellungen',
+        'system_teams' => 'Teams (Workflow)',
+        'system_teams_workflow_url' => 'Adresse des Teams-Workflows',
+        'system_teams_workflow_unset' => 'Nicht festgelegt',
+        'system_teams_workflow_set' => 'Festgelegt (wird nicht angezeigt)',
+        'system_teams_workflow_url_new' => 'Neue Adresse',
+        'system_teams_workflow_url_help' => 'Die URL eines Teams-Workflows „Wenn eine Teams-Webhookanforderung empfangen wird“ (https). Sie ist geheim: Sie wird nicht erneut angezeigt, und ein leeres Feld behält die festgelegte. Zum Workflow siehe das Handbuch: :manual',
+        'system_teams_workflow_url_clear' => 'Adresse löschen',
         'system_line_channel_token' => 'Channel-Zugriffstoken',
         'system_line_channel_secret' => 'Channel-Secret',
         'system_line_oa_basic_id' => 'Basic ID des offiziellen LINE-Kontos',
@@ -761,6 +768,16 @@ return [
                 'explain' => 'Halten Sie Exment und die offiziellen Plugins auf dem neuesten Stand. Plugins mit einer Sicherheitskorrektur werden umgehend aktualisiert.',
                 'warning' => 'Es ist eine neuere Version verfügbar.',
                 'fix' => 'Aktualisieren Sie Exment unter „Version“ in den Systemeinstellungen und die offiziellen Plugins in der Funktionsverwaltung.',
+            ],
+            'supported_versions' => [
+                'label' => 'Versionen von PHP und der Datenbank',
+                'explain' => 'PHP und die Datenbank erhalten Sicherheitskorrekturen nur für eine bestimmte Zeit. Verwenden Sie Versionen, die sie noch erhalten: PHP 8.3 oder neuer, MySQL 8.0, MariaDB 10.11 oder SQL Server 2016 oder neuer.',
+                'php_until' => 'Korrekturen bis :date',
+                'php_ended' => 'Die Sicherheitsunterstützung von PHP :version endete am :date.',
+                'php_ending' => 'Die Sicherheitsunterstützung von PHP :version endet am :date.',
+                'database_old' => ':database :version ist älter als die empfohlene Version (:recommended oder neuer).',
+                'warning' => 'Die Sicherheitsunterstützung von PHP :version endet am :date.',
+                'fix' => 'Aktualisieren Sie PHP auf 8.3 oder neuer (bei einem Mietserver die PHP-Version in dessen Verwaltung). Aktualisieren Sie die Datenbank auf die empfohlene Version. Exment funktioniert bis dahin weiter.',
             ],
             'session_cookie' => [
                 'label' => 'Session-Cookie',
@@ -1488,6 +1505,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => 'Unbekannt',
+        'login_location_separator' => ', ',
         '2factor' => 'Zwei-Faktor-Authentifizierung',
         'login' => 'Authentifizierung',
         'submit_verify_code' => 'Authentifizierungscode senden',
@@ -2310,6 +2329,8 @@ return [
         'changedata_column' => 'Verknüpfungsspalte auswählen',
         'changedata_column_then' => 'den Wert dieser Spalte kopieren',
         'default_flg' => 'Standardformular',
+        'check_missing_required' => 'Pflichtspalten prüfen, die nicht im Formular sind',
+        'check_missing_required_help' => 'Ein: Ein neuer Datensatz aus diesem Formular wird nicht gespeichert, solange eine Pflichtspalte, die das Formular nicht enthält, leer ist. Aus: Er wird mit diesen Spalten leer gespeichert (ein Formular mit einem Teil der Spalten, z. B. ein öffentliches Formular).',
         'field_showing_type' => 'Feldtyp',
         'form_column_view_name' => 'Anzeigename des Felds',
         'image_aslink' => 'Bild als Link anzeigen',
@@ -2366,6 +2387,7 @@ return [
             'lazy_load_enabled' => 'Lädt diese untergeordnete Tabelle automatisch, nachdem die Bearbeitungsseite geöffnet wurde. Verfügbar für 1:N-Blöcke in Tabellenform beim Bearbeiten vorhandener Daten. Speichern ist erst nach Abschluss des Ladevorgangs möglich. Wird die Tabellenform deaktiviert, wird auch diese Einstellung beim Speichern des Formulars ausgeschaltet.',
         ],
         'message' => [
+            'missing_required_empty' => 'Nicht gespeichert: Die Pflichtspalten :names sind nicht in diesem Formular und haben keinen Wert. Fügen Sie sie dem Formular hinzu oder schalten Sie „Pflichtspalten prüfen, die nicht im Formular sind“ aus.',
             'no_exists_column' => 'Pflichtfelder sind nicht festgelegt.',
             'confirm_required' => 'Pflichtfelder sind nicht festgelegt. Möchten Sie trotzdem speichern?',
             'image_need_delete' => '* Um das Bild zu ersetzen, löschen Sie die Spalte einmal und fügen Sie sie dann erneut hinzu.',
@@ -3683,6 +3705,7 @@ return [
             'role_group' => 'Rollengruppe',
         ],
         'role_type_option_system' => [
+            'audit' => ['label' => 'Prüfung', 'help' => 'Benutzer können die Protokolle und den IT-Prüfbericht lesen (nichts ändern).'],
             'system' => [
                 'label' => 'Systemverwaltung',
                 'help' => 'Sie können alle Funktionen von Exment verwenden, einrichten und ändern.',
@@ -4325,6 +4348,8 @@ return [
         'notify_action_target' => 'Benachrichtigungsziel',
         'mail_template_id' => 'Benachrichtigungsvorlage',
         'flex_template_id' => 'LINE-Flex-Vorlage',
+        'teams_open' => 'Öffnen',
+        'teams_setting_link' => 'Einstellung des Teams-Workflows',
         'line_show_detail' => 'Details anzeigen',
         'notify_button_name' => 'Anzeigename der Schaltfläche',
         'notify_select' => 'Empfänger auswählen',
@@ -4353,6 +4378,7 @@ return [
             'notify_action_target_add_workflow' => '*Um den „ausführenden Benutzer“ zu benachrichtigen, setzen Sie in den „Einstellungen für Benachrichtigungsbedingungen“ die Option „Auch den ausführenden Benutzer benachrichtigen“ auf JA.',
             'mail_template_id' => 'Wählen Sie die Vorlage für die zu sendende Benachrichtigung aus. Wenn Sie eine neue Vorlage benötigen, erstellen Sie diese bitte vorher auf der Seite für Benachrichtigungsvorlagen.',
             'flex_template_id' => 'Flex-Nachrichtenvorlage für LINE. Bei Auswahl wird eine Karte gesendet (sonst reiner Text). Schaltflächen zum Genehmigen/Ablehnen werden nur dann automatisch hinzugefügt, wenn die Zieltabelle einen Workflow hat und der Empfänger zur Ausführung einer offenen Aktion berechtigt ist.',
+            'teams_personal' => 'Wird über den in den Systemeinstellungen festgelegten Teams-Workflow an den Teams-Chat jedes Zielbenutzers gesendet (die E-Mail-Adresse des Benutzers ist das Teams-Konto).',
             'webhook_url' => 'Für Benachrichtigungen über Slack oder Teams benötigen Sie eine Webhook-URL. <a href="%s" target="_blank">Mehr erfahren</a> <br/>Slack und Teams sind nicht miteinander kompatibel.',
             'mention_here' => 'Sendet eine @here-Erwähnung, die alle im angegebenen Kanal aktiven Mitglieder benachrichtigt. *Für individuelle Erwähnungen legen Sie unten das Feld „Benachrichtigungsziel“ fest.',
             'slack_user_column_not_setting' => '*Die „Spalte für Slack-ID (Benutzer)“ ist in den Systemeinstellungen nicht festgelegt. Nachdem Sie die Spalte für die Slack-ID angegeben haben, können Sie das Benachrichtigungsziel festlegen.',
@@ -4377,6 +4403,7 @@ return [
             'show_page' => 'Systeminterne Meldung',
             'slack' => 'Slack',
             'microsoft_teams' => 'Microsoft Teams',
+            'teams_personal' => 'Teams (persönlich)',
             'line' => 'LINE',
         ],
         'notify_action_target_options' => [
@@ -4858,6 +4885,8 @@ return [
             'scheduled_jobs_help' => 'Die Aufgaben, die der Cron des Servers ausführt (schedule:run): ihre Liste, ihre letzten Läufe und „Jetzt ausführen“. Die Systemadministratoren werden benachrichtigt, wenn eine Aufgabe mehrmals hintereinander fehlschlägt. Die Läufe werden nur gespeichert, solange die Funktion genutzt wird. Nur Systemadministratoren können sie nutzen.',
             'api_rate_raise' => 'Vorübergehende Erhöhung des API-Limits',
             'api_rate_raise_help' => 'Erlaubt einem Benutzer oder einem API-Client bis zu einem Zeitpunkt mehr API-Anfragen pro Minute, z. B. für einen Import oder eine Datenübernahme. Danach gilt wieder das normale Limit. Nur für Systemadministratoren.',
+            'teams_notify' => 'Teams-Benachrichtigungen (persönlicher Chat)',
+            'teams_notify_help' => 'Benachrichtigungen an den Teams-Chat einer Person über einen Teams-Workflow (Power Automate). Legen Sie die Adresse des Workflows in den Systemeinstellungen fest.',
         ],
         'message_not_used_user' => 'Wenn Sie diese Funktion benötigen, wenden Sie sich bitte an Ihren Administrator.',
         'open_feature' => 'Funktionsverwaltung öffnen',
@@ -4997,6 +5026,14 @@ return [
             'planned' => 'Eine Wartung ist geplant: von :start_at bis :end_at. In dieser Zeit kann die Website nicht genutzt werden.',
         ],
     ],
+    // ISS02839
+    'log_management' => [
+        'types' => [
+            'operation_log' => 'Vorgangsprotokoll',
+            'login_log' => 'Anmeldeprotokoll',
+            'app_log' => 'Anwendungsprotokoll',
+        ],
+    ],
     'scheduled_jobs' => [
         'header' => 'Geplante Aufgaben',
         'description' => 'Die Aufgaben, die der Cron des Servers (schedule:run) zu festen Zeiten ausführt.',
@@ -5059,6 +5096,7 @@ return [
             'file_server_purge' => 'Dateifreigabe: Papierkorb leeren',
             'meili_reconcile' => 'Volltextsuche: Index reparieren',
             'maintenance_tick' => 'Wartungsmodus: geplanter Beginn und geplantes Ende',
+            'log_maintenance' => 'Protokolle: alte löschen',
             'batch' => 'Plugin-Batch: :name',
         ],
         'cron' => [
