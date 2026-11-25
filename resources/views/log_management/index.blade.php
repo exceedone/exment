@@ -1,4 +1,7 @@
 {{-- The log management (ISS02839): LogManagementController --}}
+<p>
+    <a href="{{ admin_urls('log_management', 'audit') }}" class="btn btn-default btn-sm" id="log-management-audit-report"><i class="fa fa-clipboard" aria-hidden="true"></i> {{ exmtrans('audit_report.header') }}</a>
+</p>
 <div class="box box-default" id="log-management-types">
     <div class="box-header with-border">
         <h3 class="box-title">{{ exmtrans('log_management.types_header') }}</h3>
