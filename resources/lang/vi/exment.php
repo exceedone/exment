@@ -3634,6 +3634,7 @@ return [
             'kanban_moved' => 'Đã chuyển %s sang "%s"',
             'kanban_inline_saved' => 'Đã lưu %s',
             'kanban_view_saved' => 'Đã lưu chế độ xem "%s". Chế độ xem này được tạo dành riêng cho bạn và có thể mở từ danh sách chế độ xem.',
+            'kanban_view_saved_system' => 'Đã lưu chế độ xem "%s". Chế độ xem này được tạo là chế độ xem hệ thống và có thể mở từ danh sách chế độ xem.',
             'kanban_blank_filtered' => 'Không có thẻ nào khớp với điều kiện lọc. Vui lòng thay đổi điều kiện hoặc đặt lại bảng.',
             'kanban_created' => 'Đã thêm %s',
             'kanban_assigned' => 'Đã thay đổi người phụ trách của %s bản ghi',

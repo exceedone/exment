@@ -1351,6 +1351,12 @@ EOT);
             'suuid' => strval($view->suuid),
             'url' => $this->custom_table->getGridUrl(true, ['view' => $view->suuid]),
             'name' => strval($view->view_view_name),
+            'view_type' => intval($view->view_type),
+            // what was made: a user view, or a system view where user views are not used (#2151)
+            'message' => exmtrans(
+                intval($view->view_type) === \Exceedone\Exment\Enums\ViewType::USER ? 'custom_view.message.kanban_view_saved' : 'custom_view.message.kanban_view_saved_system',
+                strval($view->view_view_name)
+            ),
         ]);
     }
 

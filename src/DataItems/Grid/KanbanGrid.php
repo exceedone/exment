@@ -2509,6 +2509,17 @@ class KanbanGrid extends GridBase
      * @param CustomTable $custom_table
      * @return bool
      */
+    /**
+     * The kind of view "save this board" makes: a user view, or a system view where user views
+     * are not used for the table.
+     *
+     * @param \Exceedone\Exment\Model\CustomTable $custom_table
+     */
+    public static function savedViewType($custom_table): int
+    {
+        return $custom_table->userViewAvailable() ? ViewType::USER : ViewType::SYSTEM;
+    }
+
     public static function canSaveAsView($custom_table): bool
     {
         return $custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
@@ -2537,8 +2548,10 @@ class KanbanGrid extends GridBase
         $view->custom_table_id = $this->custom_table->id;
         // personal by default: a board narrowed to one person's work does not
         // belong in everybody's view list. It can be shared afterwards, the
-        // same way any other user view is.
-        $view->view_type = ViewType::USER;
+        // same way any other user view is. Where user views are not used (the
+        // system setting, or exment.userview_unavailable_table), a system view,
+        // as the view settings screen makes it (#2151).
+        $view->view_type = static::savedViewType($this->custom_table);
         $view->view_kind_type = ViewKindType::KANBAN;
         $view->view_view_name = $name;
         $view->options = $source->options;

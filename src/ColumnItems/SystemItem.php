@@ -243,10 +243,55 @@ class SystemItem implements ItemInterface
     public function gridStyle()
     {
         $option = $this->getSystemColumnOption();
-        return $this->getStyleString([
+        $array = [
             'min-width' => array_get($option, 'min_width', config('exment.grid_min_width', 100)) . 'px',
             'max-width' => array_get($option, 'max_width', config('exment.grid_max_width', 300)) . 'px',
-        ]);
+        ];
+        // the cell style the view gave the column (#2152), last so that it wins
+        $cell_style = $this->getGridCellStyle();
+        if (isset($cell_style)) {
+            $array = array_merge($array, $cell_style->tdStyle());
+        }
+        return $this->getStyleString($array);
+    }
+
+    /**
+     * get html(for display): with the cell style the view gave the column, as a column of the
+     * table gets it (#2152; the cards of a kanban board already did).
+     *
+     * @return mixed
+     */
+    public function html()
+    {
+        $cell_style = $this->getGridCellStyle();
+        $html = $this->_getMultipleValue(function ($v) use ($cell_style) {
+            $inner = $this->_html($v);
+            if (!isset($cell_style) || is_nullorempty($inner)) {
+                return $inner;
+            }
+            return $cell_style->wrap($inner, $v, $this->_text($v));
+        });
+
+        return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
+    }
+
+    /** @var GridCellStyle|null|false false: not built yet */
+    protected $grid_cell_style = false;
+
+    /**
+     * The cell style of the view's preset, on a list of the view only.
+     *
+     * @return GridCellStyle|null
+     */
+    protected function getGridCellStyle()
+    {
+        if (!boolval(array_get($this->options, 'grid_column'))) {
+            return null;
+        }
+        if ($this->grid_cell_style === false) {
+            $this->grid_cell_style = GridCellStyle::fromPreset(array_get($this->options, 'grid_preset'));
+        }
+        return $this->grid_cell_style;
     }
 
     /**
