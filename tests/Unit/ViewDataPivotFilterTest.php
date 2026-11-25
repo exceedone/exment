@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Tests\Unit;
 
 use Exceedone\Exment\Enums\FilterOption;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 
 /**
@@ -33,12 +34,23 @@ class ViewDataPivotFilterTest extends UnitTestBase
             ]],
         ];
         list($custom_view, $data) = $this->getCustomView($options);
-        $expected = collect($data)->pluck('id')->map(fn ($id) => intval($id))->sort()->values()->all();
+        $expected = [];
+        foreach ($data as $value) {
+            $expected[] = intval($value->id);
+        }
+        sort($expected);
         $this->assertGreaterThan(0, count($expected), 'the filter finds records');
 
-        // as the API viewdata reads it
-        $paginator = $custom_view->getDataPaginate(['maxCount' => 1000, 'executeSearch' => false, 'isApi' => true]);
-        $ids = collect($paginator->items())->pluck('id')->map(fn ($id) => intval($id))->sort()->values()->all();
+        // as the API viewdata reads it: a view of its own, as a request has (the search service
+        // of a view joins a table once, so the view of the query above would not join it again)
+        $fresh = CustomView::query()->find($custom_view->id);
+        $this->assertNotNull($fresh);
+        $paginator = $fresh->getDataPaginate(['maxCount' => 1000, 'executeSearch' => false, 'isApi' => true]);
+        $ids = [];
+        foreach ($paginator->items() as $item) {
+            $ids[] = intval($item->id);
+        }
+        sort($ids);
 
         $this->assertSame($expected, $ids);
         $this->assertSame(count($expected), $paginator->total());
