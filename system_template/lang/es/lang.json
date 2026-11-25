@@ -556,6 +556,16 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "Configuración de la confirmación de seguridad"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "Configuración de la búsqueda de texto completo"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "feature",
             "title": "Gestión de funciones"
         },

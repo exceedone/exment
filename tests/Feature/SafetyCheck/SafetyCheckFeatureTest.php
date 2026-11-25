@@ -153,9 +153,10 @@ class SafetyCheckFeatureTest extends FeatureTestBase
     {
         $this->setFeature(false);
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->get(admin_url('system') . '?advanced=1')->assertSee(exmtrans('safety.feature_off'));
+        // the settings have a page of their own (#2157)
+        $this->get(admin_url('safety_check_setting'))->assertSee(exmtrans('safety.feature_off'));
         $this->setFeature(true);
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
-        $this->get(admin_url('system') . '?advanced=1')->assertDontSee(exmtrans('safety.feature_off'));
+        $this->get(admin_url('safety_check_setting'))->assertDontSee(exmtrans('safety.feature_off'));
     }
 }

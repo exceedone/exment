@@ -556,6 +556,16 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "Cài đặt xác nhận an toàn"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "Cài đặt tìm kiếm toàn văn"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "feature",
             "title": "Quản lý tính năng"
         },
