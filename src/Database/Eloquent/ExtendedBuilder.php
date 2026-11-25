@@ -65,7 +65,6 @@ class ExtendedBuilder extends Builder
 
         $results = $this->executeQuery($page, $perPage, $columns, $perPage + 1);
 
-        // @phpstan-ignore-next-line
         return $this->simplePaginator($results, $perPage, $page, [
             'path' => Paginator::resolveCurrentPath(),
             'pageName' => $pageName,
