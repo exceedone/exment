@@ -41,7 +41,8 @@ final class ChartFilter
                 continue;
             }
             $customColumn = $table->custom_columns->firstWhere('column_name', $column);
-            if ($customColumn === null) {
+            // a file or image column saved before #2166: its values are storage paths
+            if (!FilterBarForm::isFilterable($customColumn)) {
                 continue;
             }
             $this->columns[$column] = $customColumn;
