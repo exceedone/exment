@@ -1410,6 +1410,12 @@ return [
     'mcp_calls_per_minute' => env('EXMENT_MCP_CALLS_PER_MINUTE', 60),
 
     /*
+    | The longest a search_data call reads records, in seconds: then it answers with what it has
+    | and next_cursor to read on. 0: no limit (the time of PHP only).
+    */
+    'mcp_search_seconds' => env('EXMENT_MCP_SEARCH_SECONDS', 0),
+
+    /*
     |--------------------------------------------------------------------------
     | Show Select field with group option
     |--------------------------------------------------------------------------
