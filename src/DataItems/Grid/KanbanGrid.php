@@ -2509,21 +2509,21 @@ class KanbanGrid extends GridBase
      * @param CustomTable $custom_table
      * @return bool
      */
+    public static function canSaveAsView($custom_table): bool
+    {
+        return $custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
+            && $custom_table->hasViewPermission() === true;
+    }
+
     /**
      * The kind of view "save this board" makes: a user view, or a system view where user views
-     * are not used for the table.
+     * are not used for the table (#2151).
      *
      * @param \Exceedone\Exment\Model\CustomTable $custom_table
      */
     public static function savedViewType($custom_table): int
     {
         return $custom_table->userViewAvailable() ? ViewType::USER : ViewType::SYSTEM;
-    }
-
-    public static function canSaveAsView($custom_table): bool
-    {
-        return $custom_table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
-            && $custom_table->hasViewPermission() === true;
     }
 
 
