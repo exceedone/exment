@@ -831,6 +831,16 @@ class RouteServiceProvider extends ServiceProvider
                     // User, Organization --------------------------------------------------
                     $router->get("user_organization/select", 'ApiController@userOrganizationSelect')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
 
+                    // the users of an organization, the role groups and their members (ISS00335)
+                    $router->get("organization/{id}/users", 'ApiMemberController@organizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE));
+                    $router->post("organization/{id}/users", 'ApiMemberController@addOrganizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_WRITE));
+                    $router->delete("organization/{id}/users", 'ApiMemberController@removeOrganizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_WRITE));
+                    $router->get("user/{id}/organizations", 'ApiMemberController@userOrganizations')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE));
+                    $router->get("role_group", 'ApiMemberController@roleGroups')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE));
+                    $router->get("role_group/{id}", 'ApiMemberController@roleGroup')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE));
+                    $router->post("role_group/{id}/members", 'ApiMemberController@addRoleGroupMembers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_WRITE));
+                    $router->delete("role_group/{id}/members", 'ApiMemberController@removeRoleGroupMembers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_WRITE));
+
                     // Workflow --------------------------------------------------
                     $router->get("wf/workflow", 'ApiWorkflowController@getList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
                     $router->get("wf/workflow/{id}", 'ApiWorkflowController@get')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));

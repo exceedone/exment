@@ -183,6 +183,9 @@ class LogOperation extends BaseLogOperation
             // follower, the secret authenticates the webhook.
             'system_line_channel_token',
             'system_line_channel_secret',
+            // the address of the Teams workflow: whoever has it can post to the chats
+            'system_teams_workflow_url',
+            'system_teams_workflow_url_new',
         ];
     }
 

@@ -118,6 +118,8 @@ class DemoMode
         'system_line_channel_token',
         'system_line_channel_secret',
         'system_line_oa_basic_id',
+        // Teams workflow
+        'system_teams_workflow_url',
         // automatic safety check sends by itself
         'safety_check_auto_enabled',
         // full-text search server
@@ -150,6 +152,7 @@ class DemoMode
         'system_mail_password',
         'system_line_channel_token',
         'system_line_channel_secret',
+        'system_teams_workflow_url',
         'meili_key',
         'recaptcha_site_key',
         'recaptcha_secret_key',
