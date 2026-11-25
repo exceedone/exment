@@ -1296,7 +1296,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * The session key of the list state of the tables (ISS00363): "<this>.<table_name>".
+     * The first part of the cache key of the list state of the tables (ISS00363), see
+     * gridStateCacheKey().
      */
     public const GRID_STATE_SESSION_KEY = 'exment.grid_state';
 
@@ -1362,10 +1363,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function getGridState(): ?array
     {
-        if (!app()->bound('session')) {
+        $key = $this->gridStateCacheKey();
+        if (is_null($key)) {
             return null;
         }
-        $state = session(static::GRID_STATE_SESSION_KEY . '.' . $this->table_name);
+        $state = \Cache::get($key);
         if (!is_array($state) || !is_string(array_get($state, 'view')) || array_get($state, 'view') === '') {
             return null;
         }
@@ -1386,7 +1388,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
      */
     public function saveGridState($custom_view = null, ?array $query = null): void
     {
-        if (!app()->bound('session')) {
+        $key = $this->gridStateCacheKey();
+        if (is_null($key)) {
             return;
         }
         if (is_null($custom_view)) {
@@ -1398,9 +1401,38 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $query = Arr::except($query ?? Request::query(), static::GRID_STATE_EXCEPT_KEYS);
 
-        session()->put(static::GRID_STATE_SESSION_KEY . '.' . $this->table_name, [
+        \Cache::put($key, [
             'view' => $custom_view->suuid,
             'query' => $query,
+        ], now()->addMinutes(max(1, intval(config('session.lifetime', 120)))));
+    }
+
+    /**
+     * The cache key of the list state of this table: of this session, this user and this table.
+     *
+     * Not in the session itself: a request writes back the whole session when it ends, so a
+     * request that began before the list was opened (a box of the dashboard, loaded at the same
+     * time) would put back the session without the state. In the cache each table has its own
+     * key, written only when its list is opened. It lives as long as a session; a new login has a
+     * new session id, so a new state.
+     *
+     * @return string|null null without a session
+     */
+    protected function gridStateCacheKey(): ?string
+    {
+        if (!app()->bound('session')) {
+            return null;
+        }
+        $sessionId = strval(session()->getId());
+        if ($sessionId === '') {
+            return null;
+        }
+        $user = \Exment::user();
+        return implode(':', [
+            static::GRID_STATE_SESSION_KEY,
+            hash('sha256', $sessionId),
+            isset($user) ? strval($user->base_user_id) : '0',
+            $this->table_name,
         ]);
     }
 
