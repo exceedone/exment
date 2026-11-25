@@ -227,12 +227,17 @@ class PluginServiceProvider extends ServiceProvider
         }
         $isApi = $plugin_type == PluginType::API;
 
+        // the names of the routes: the same routes are made under each prefix (an API plugin: with
+        // and without "api"), and a name twice stops route:cache ("Another route has already been
+        // assigned name"). Each route needs a name: AuthenticatePluginApi finds the plugin from it
+        // (its 3rd part, the plugin id), so the next ones get ".1", ".2" at the end.
+        $named = [];
         foreach (stringToArray($prefix) as $p) {
             Route::group([
                 'prefix'        => url_join(config('admin.route.prefix'), $p),
                 'namespace'     => 'Exceedone\Exment\Services\Plugin',
                 'middleware'    => $this->resolveRouteMiddleware($json, $isApi),
-            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json) {
+            ], function (Router $router) use ($plugin, $isApi, $defaultFunction, $pluginPage, $plugin_type, $json, &$named) {
                 // if crud, set crud routing
                 if ($plugin_type == PluginType::CRUD) {
                     $router->get("oauth", "PluginCrudController@oauth");
@@ -288,7 +293,10 @@ class PluginServiceProvider extends ServiceProvider
                             if (!empty($skip = $this->resolveRouteExcept($route))) {
                                 $router->withoutMiddleware($skip);
                             }
-                            $router->name("exment.plugins.{$plugin->id}.{$method}.{$func}");
+                            $name = "exment.plugins.{$plugin->id}.{$method}.{$func}";
+                            $n = $named[$name] ?? 0;
+                            $named[$name] = $n + 1;
+                            $router->name($n === 0 ? $name : "{$name}.{$n}");
                         }
                     }
                 }

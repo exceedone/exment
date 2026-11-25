@@ -60,14 +60,23 @@ class Tinymce extends Textarea
      */
     public function readonly()
     {
-        $this->config('readonly', '1');
+        $this->config('readonly', true);
 
         return parent::readonly();
     }
 
     /**
+     * The names of the language files of TinyMCE 8 (tinymce-i18n) for the locales of Exment
+     * whose name is not the same.
+     */
+    public const LANGUAGE_ALIASES = [
+        'ko' => 'ko-KR',
+        'zh' => 'zh-CN',
+    ];
+
+    /**
      * The language of TinyMCE for a locale: the one of public/vendor/exment/tinymce/langs when it has
-     * a file for it (ja, zh_CN, vi ...), else English (built in).
+     * a file for it (ja, de, es, ko-KR, vi, zh-CN from tinymce-i18n), else English (built in).
      */
     public static function tinymceLanguage(?string $locale): string
     {
@@ -79,7 +88,14 @@ class Tinymce extends Textarea
             public_path('vendor/exment/tinymce/langs'),
             exment_package_path('public/vendor/exment/tinymce/langs'),
         ];
-        $names = array_unique([$locale, str_replace('-', '_', $locale), explode('_', str_replace('-', '_', $locale))[0]]);
+        $base = explode('_', str_replace('-', '_', $locale))[0];
+        $names = array_unique(array_filter([
+            $locale,
+            str_replace('_', '-', $locale),
+            str_replace('-', '_', $locale),
+            $base,
+            static::LANGUAGE_ALIASES[$base] ?? null,
+        ]));
         foreach ($names as $name) {
             foreach ($dirs as $dir) {
                 if (is_file($dir . '/' . $name . '.js')) {
@@ -127,6 +143,62 @@ class Tinymce extends Textarea
         return $this;
     }
 
+    /**
+     * Whether the editor uploads images (pasted or chosen).
+     */
+    protected function enableImage(): bool
+    {
+        return !$this->disableImage && !boolval(config('exment.diable_upload_images_editor', false));
+    }
+
+    /**
+     * The settings of TinyMCE 8 (ISS00404: 5.10.9 was out of support).
+     *
+     * @return array<string, mixed>
+     */
+    public function tinymceConfigs(): array
+    {
+        $enableImage = $this->enableImage();
+
+        // if readonly, disable tool bar
+        if (array_boolval($this->config, 'readonly')) {
+            $toolbar = false;
+        } else {
+            $toolbar = [
+                'undo redo cut copy paste | blocks fontfamily fontsize',
+                'bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link ' . ($enableImage ? 'image ' : '') . 'code',
+            ];
+        }
+
+        $configs = array_merge([
+            'selector' => "{$this->getElementClassSelector()}",
+            'toolbar'=> $toolbar,
+            // (paste, the colors and hr are in the core since TinyMCE 6)
+            'plugins'=> 'link lists code image',
+            'menubar' => false,
+            // the language file of TinyMCE when it has one (langs/<locale>.js), else English (ISS02835)
+            'language' => static::tinymceLanguage(\App::getLocale()),
+            'valid_elements' => $this->getValidElements(),
+            'convert_urls' => false,
+            'paste_data_images' => $enableImage,
+            'branding' => false,
+            'promotion' => false,
+            // TinyMCE 8 on our own server, under the GPL (without it the editor is made read only)
+            'license_key' => 'gpl',
+        ], $this->config);
+        // (a boolean since TinyMCE 6)
+        $configs['readonly'] = array_boolval($configs, 'readonly');
+
+        if ($enableImage) {
+            $configs = array_merge([
+                'automatic_uploads' => true,
+                'file_picker_types' => 'image',
+                'content_style' => 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
+            ], $configs);
+        }
+        return $configs;
+    }
+
     public function render()
     {
         // Remove required attributes(for timymce bug).
@@ -136,90 +208,66 @@ class Tinymce extends Textarea
         })->toArray();
         $this->rules = array_values($this->rules);
 
-        // the language file of TinyMCE when it has one (langs/<locale>.js), else English (ISS02835)
-        $locale = static::tinymceLanguage(\App::getLocale());
-
-        $enableImage = !$this->disableImage && !boolval(config('exment.diable_upload_images_editor', false));
-
-        // if readonly, disable tool bar
-        if (array_boolval($this->config, 'readonly')) {
-            $toolbar = false;
-        } elseif ($enableImage) {
-            $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link image code'];
-        } else {
-            $toolbar = ['undo redo cut copy paste | formatselect fontselect fontsizeselect ', ' bold italic underline forecolor backcolor | alignleft aligncenter alignright alignjustify outdent indent blockquote bullist numlist | hr link code'];
-        }
-
-        $configs = array_merge([
-            'selector' => "{$this->getElementClassSelector()}",
-            'toolbar'=> $toolbar,
-            'plugins'=> 'textcolor hr link lists code image paste',
-            'menubar' => false,
-            'language' => $locale,
-            'valid_elements' => $this->getValidElements(),
-            'convert_urls' => false,
-            'paste_enable_default_filters' => false,
-            'paste_data_images' => $enableImage,
-            'branding' => false,
-        ], $this->config);
-
-        if ($enableImage) {
-            $configs = array_merge([
-                'automatic_uploads' => true,
-                'file_picker_types' => 'image',
-                'content_style' => 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }',
-            ], $configs);
-        }
-
-        $configs = json_encode($configs);
+        $enableImage = $this->enableImage();
+        $configs = json_encode($this->tinymceConfigs());
 
         $max_file_size = \Exment::getUploadMaxFileSize();
-        $message = exmtrans('custom_value.message.editor_image_oversize');
-        $url =  url_join($this->getPostImageUri(), 'tmpimages') . '?_token='. csrf_token();
+        $message = json_encode(strval(exmtrans('custom_value.message.editor_image_oversize')));
+        $url = json_encode(url_join($this->getPostImageUri(), 'tmpimages') . '?_token='. csrf_token());
 
         $this->script = <<<EOT
         var config = $configs;
         if(pBool('$enableImage')){
-            config['images_upload_handler'] = function(blobInfo, success, failure){
-                const image_size = blobInfo.blob().size;
-                const max_size   = $max_file_size;
-                if( image_size  > max_size){
-                    failure('$message');
-                    return;
-                };
-                var xhr, formData;
-
-                xhr = new XMLHttpRequest();
-                xhr.withCredentials = false;
-                xhr.open('POST', '$url');
-                xhr.onload = function() {
-                    var json = JSON.parse(xhr.responseText);
-
-                    if (xhr.status >= 400 && xhr.status < 500) {
-                        failure('Error: ' + json[0]);
+            // TinyMCE 6+: the handler returns a promise of the URL of the image
+            config['images_upload_handler'] = function(blobInfo, progress){
+                return new Promise(function(resolve, reject){
+                    const image_size = blobInfo.blob().size;
+                    const max_size   = $max_file_size;
+                    if( image_size  > max_size){
+                        reject({ message: $message, remove: true });
                         return;
-                    }
-                    else if (xhr.status < 200 || xhr.status >= 300) {
-                        failure('HTTP Error: ' + xhr.status);
-                        return;
-                    }
+                    };
+                    var xhr = new XMLHttpRequest();
+                    xhr.withCredentials = false;
+                    xhr.open('POST', $url);
+                    xhr.upload.onprogress = function (e) {
+                        if (e.lengthComputable) {
+                            progress(e.loaded / e.total * 100);
+                        }
+                    };
+                    xhr.onload = function() {
+                        var json = null;
+                        try {
+                            json = JSON.parse(xhr.responseText);
+                        } catch (e) {
+                        }
 
-                    if (!json || typeof json.location != 'string') {
-                        failure('Invalid JSON: ' + xhr.responseText);
-                        return;
-                    }
+                        if (xhr.status >= 400 && xhr.status < 500) {
+                            reject({ message: 'Error: ' + (json ? json[0] : xhr.status), remove: true });
+                            return;
+                        }
+                        else if (xhr.status < 200 || xhr.status >= 300) {
+                            reject({ message: 'HTTP Error: ' + xhr.status, remove: true });
+                            return;
+                        }
 
-                    success(json.location);
-                };
+                        if (!json || typeof json.location != 'string') {
+                            reject({ message: 'Invalid JSON: ' + xhr.responseText, remove: true });
+                            return;
+                        }
 
-                xhr.onerror = function () {
-                    failure('Image upload failed due to a XHR Transport error. Code: ' + xhr.status);
-                };
+                        resolve(json.location);
+                    };
 
-                formData = new FormData();
-                formData.append('file', blobInfo.blob(), blobInfo.filename());
+                    xhr.onerror = function () {
+                        reject({ message: 'Image upload failed due to a XHR Transport error. Code: ' + xhr.status, remove: true });
+                    };
 
-                xhr.send(formData);
+                    var formData = new FormData();
+                    formData.append('file', blobInfo.blob(), blobInfo.filename());
+
+                    xhr.send(formData);
+                });
             };
 
             config['file_picker_callback'] = function (cb, value, meta) {

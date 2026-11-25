@@ -123,7 +123,7 @@ trait WorkflowDesignTrait
      *
      * ステップ1 → ステップ2 と順に入力する代わりに、空のキャンバスから始めて
      * 保存（wfd-save）時に workflows のレコードごと作る。作った直後は
-     * workflow/{id}/design へ移り、ステップ3・ステップ4 が押せる状態になる。
+     * workflow/{id}/design へ移り、「設定完了する」が押せる状態になる（ステップ3「通知設定」・ステップ4「利用設定」は設定完了のあと）。
      *
      * @param Request $request
      * @param Content $content

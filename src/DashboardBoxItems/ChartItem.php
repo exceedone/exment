@@ -970,7 +970,7 @@ class ChartItem implements ItemInterface
                     $custom_table = null;
                 }
                 $options = [];
-                foreach ($custom_table ? $custom_table->custom_columns : [] as $column) {
+                foreach (\Exceedone\Exment\Services\Dashboard\FilterBarForm::filterableColumns($custom_table) as $column) {
                     $options[$column->column_name] = $column->column_view_name . ' (' . $column->column_name . ')';
                 }
                 return $options;

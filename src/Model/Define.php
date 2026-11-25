@@ -164,6 +164,8 @@ class Define
 
         'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
         'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        // the address of the Teams workflow (ISS02863): a secret, never shown again
+        'system_teams_workflow_url' => ['type' => 'password', 'group' => 'notify'],
         'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
 
         'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
@@ -540,10 +542,12 @@ class Define
         'sqlsrv' => 'SQLServer',
     ];
 
+    // min: the install stops below it. recommended: the versions that still get fixes from their
+    // makers (the security check and exment:update say so below it; ISS00216)
     public const DATABASE_VERSION = [
-        'mysql' => ['min' => '5.7.8'],
-        'mariadb' => ['min' => '10.2.7'],
-        'sqlsrv' => ['min' => '13.0.0.0'],
+        'mysql' => ['min' => '5.7.8', 'recommended' => '8.0'],
+        'mariadb' => ['min' => '10.2.7', 'recommended' => '10.11'],
+        'sqlsrv' => ['min' => '13.0.0.0', 'recommended' => '13.0'],
     ];
 
     /**
@@ -621,7 +625,11 @@ class Define
         ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
         ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'system', 'help_uri'=> 'system_setting'],
+        // the flow designer, before "workflow" (a "*" is one part of the path, as the id)
+        ['uri'=> 'workflow/design/create', 'help_uri'=> 'workflow_design'],
+        ['uri'=> 'workflow/*/design', 'help_uri'=> 'workflow_design'],
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
+        ['uri'=> 'line/link', 'help_uri'=> 'line'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> 'security_check', 'help_uri'=> 'security_check'],

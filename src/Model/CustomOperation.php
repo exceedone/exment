@@ -261,12 +261,31 @@ class CustomOperation extends ModelBase
     }
 
     /**
+     * Whether the button of this operation is shown on the record's page and may run there.
+     *
+     * The user has to be allowed to edit the record (its permission, its parent, an
+     * administrator's user record), as CustomValue::enableEdit() answers, but:
+     * - "Disable on screen" of the table (options.form_action_disable_flg, edit) only hides the
+     *   [Edit] button: the buttons of the data update settings are updates the administrator
+     *   defined, and they are shown and run as on v4 (#2171).
+     * - A data the workflow locks has the button only when the setting says so
+     *   (options.button_workflow_locked, #1623).
+     *
+     * @param CustomValue $custom_value
+     * @return bool|\Exceedone\Exment\Enums\ErrorCode true, or why not
+     */
+    public function enableButton($custom_value)
+    {
+        return $custom_value->enableEdit(false, true, !boolval($this->getOption('button_workflow_locked')));
+    }
+
+    /**
      * execute update operation
      *
      * @param CustomTable $custom_table
      * @param int|string $id signle id or id string
      * @param array $inputs input from dialog form
-     * @param bool $checkFormAction if true, check the record's edit permission as display (the button of the record's page)
+     * @param bool $checkFormAction if true, the button of the record's page: checked as the button is shown (enableButton)
      * @return bool success or not
      */
 
@@ -280,9 +299,11 @@ class CustomOperation extends ModelBase
         // request has to hold to the same: the edit permission of each record,
         // its workflow lock and its parent, as CustomValue::enableEdit() answers.
         // That includes UserTrait::disabled_edit_trait: only an administrator
-        // changes an administrator's user record.
+        // changes an administrator's user record. The button of the record's
+        // page is checked as it is shown (enableButton).
         foreach ($custom_values as $custom_value) {
-            if (($code = $custom_value->enableEdit($checkFormAction)) !== true) {
+            $code = $checkFormAction ? $this->enableButton($custom_value) : $custom_value->enableEdit(false);
+            if ($code !== true) {
                 return ($code instanceof \Exceedone\Exment\Enums\ErrorCode ? $code : \Exceedone\Exment\Enums\ErrorCode::PERMISSION_DENY())->getMessage();
             }
         }
