@@ -1611,6 +1611,9 @@ return [
             // LINE Messaging API channel credentials (admin/system?advanced=1)
             'system_line_channel_token',
             'system_line_channel_secret',
+            // the address of the Teams workflow (ISS02863)
+            'system_teams_workflow_url',
+            'system_teams_workflow_url_new',
             // Plugin DB connection password
             'custom_password',
             // Plugin CRUD page auth (key / id+password)

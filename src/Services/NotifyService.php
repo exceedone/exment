@@ -461,6 +461,10 @@ class NotifyService
                     $params['flex_template_id'] = array_get($action_setting, 'flex_template_id');
                     static::notifyLine($params);
                     break;
+
+                case NotifyAction::TEAMS_PERSONAL:
+                    static::notifyTeamsPersonal($params);
+                    break;
             }
             // call notified trigger operations
             //CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
@@ -471,6 +475,53 @@ class NotifyService
             'custom_value' => $custom_value,
             'notify' => $notify,
         ]);
+    }
+
+    /**
+     * A person's Teams chat through the Teams workflow (ISS02863): the subject and the body of the
+     * mail template, in the language of the person, with the link to the data. Nothing while the
+     * feature is not used, without the address of the workflow, or without the mail address.
+     *
+     * @param array<string, mixed> $params
+     * @return Notifications\TeamsWorkflowSender|null
+     */
+    public static function notifyTeamsPersonal(array $params = [])
+    {
+        if (!Features::enabled(Features::TEAMS_NOTIFY) || is_nullorempty(\Exceedone\Exment\Model\System::system_teams_workflow_url())) {
+            return null;
+        }
+        $params = array_merge([
+            'mail_template' => null,
+            'prms' => [],
+            'user' => null,
+            'custom_value' => null,
+            'subject' => null,
+            'body' => null,
+            'replaceOptions' => [],
+            // the link of the card; the data when not given (a plugin gives the page of its own)
+            'url' => null,
+        ], $params);
+        $user = $params['user'];
+        $email = $user instanceof CustomValue ? $user->getValue('email') : null;
+        if (is_nullorempty($email)) {
+            return null;
+        }
+
+        $locale = UserLocale::forUser($user) ?? UserLocale::siteDefault();
+        return UserLocale::runAs($user, function () use ($params, $email, $locale) {
+            static::replaceSubjectBody($params);
+            $subject = static::replaceWord($params['subject'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+            $body = static::replaceWord($params['body'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+            $custom_value = $params['custom_value'];
+            $login = \Exment::user();
+            $sender = Notifications\TeamsWorkflowSender::make($email, strval($subject), strval($body), [
+                'url' => $params['url'] ?? (isset($custom_value) ? $custom_value->getUrl() : null),
+                'sender' => isset($login) && isset($login->base_user) ? strval($login->base_user->getLabel()) : strval(\Exceedone\Exment\Model\System::site_name()),
+                'locale' => $locale,
+            ]);
+            $sender->send();
+            return $sender;
+        });
     }
 
     /**

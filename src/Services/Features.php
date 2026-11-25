@@ -52,6 +52,7 @@ class Features
     public const MCP = 'mcp';
     public const SAFETY_CHECK = 'safety_check';
     public const DATA_MAINTENANCE = 'data_maintenance';
+    public const TEAMS_NOTIFY = 'teams_notify';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -176,6 +177,14 @@ class Features
             'description' => 'exment::exment.feature.features.data_maintenance_help',
             'endpoints' => ['data_maintenance'],
             'manual' => 'data_maintenance',
+            'who' => false,
+        ]);
+        // notifications to a person's Teams chat through a Teams workflow (ISS02863): off until a
+        // system administrator turns it on (and sets the address of the workflow)
+        $core[static::TEAMS_NOTIFY] = static::definition([
+            'label' => 'exment::exment.feature.features.teams_notify',
+            'description' => 'exment::exment.feature.features.teams_notify_help',
+            'manual' => 'notify_teams',
             'who' => false,
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
