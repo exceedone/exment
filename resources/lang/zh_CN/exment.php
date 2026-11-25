@@ -5381,6 +5381,8 @@ IP 地址: :ip
         'setting' => [
             'login_log_days' => '登录记录保留天数',
             'permission_change_days' => '角色组变更历史保留天数',
+            'data_access_days' => '数据读写保留天数',
+            'data_access_daily_days' => '每日数量保留天数',
             'app_log_days' => '应用日志（按日文件）保留天数',
             'days_help' => '留空：:default 天。0：保留至删除。',
             'app_level' => '应用日志级别',
@@ -5413,6 +5415,8 @@ IP 地址: :ip
             'operation_log' => '操作记录',
             'login_log' => '登录记录',
             'permission_change' => '角色组的变更历史',
+            'data_access' => '数据的读写',
+            'data_access_daily' => '数据的读写（每日数量）',
             'app_log' => '应用日志',
         ],
     ],

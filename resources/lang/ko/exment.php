@@ -5381,6 +5381,8 @@ IP 주소: :ip
         'setting' => [
             'login_log_days' => '로그인 기록 보존 일수',
             'permission_change_days' => '역할 그룹 변경 이력 보존 일수',
+            'data_access_days' => '데이터 읽기·쓰기 보존 일수',
+            'data_access_daily_days' => '일별 건수 보존 일수',
             'app_log_days' => '애플리케이션 로그(일별 파일) 보존 일수',
             'days_help' => '비우면 :default일. 0이면 삭제할 때까지 보존합니다.',
             'app_level' => '애플리케이션 로그 수준',
@@ -5413,6 +5415,8 @@ IP 주소: :ip
             'operation_log' => '조작 기록',
             'login_log' => '로그인 기록',
             'permission_change' => '역할 그룹의 변경 이력',
+            'data_access' => '데이터 읽기·쓰기',
+            'data_access_daily' => '데이터 읽기·쓰기 (일별 건수)',
             'app_log' => '애플리케이션 로그',
         ],
     ],

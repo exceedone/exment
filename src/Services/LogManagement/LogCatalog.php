@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\Services\LogManagement;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Model\DataAccessDaily;
+use Exceedone\Exment\Model\DataAccessLog;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Model\PermissionChangeLog;
@@ -230,6 +232,68 @@ class LogCatalog
                 },
                 'count' => function () {
                     return PermissionChangeLog::tableExists() ? PermissionChangeLog::query()->count() : 0;
+                },
+            ],
+            // the reads and the writes of the data (ISS02905): the rows, deleted only once counted
+            'data_access' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
+                'label' => 'exment::exment.log_management.types.data_access',
+                'location' => 'database',
+                'retention' => function () {
+                    return static::days(System::log_retention_data_access(), DataAccessLogs::DEFAULT_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    if (!DataAccessLog::tableExists()) {
+                        return 0;
+                    }
+                    // the days not counted yet stay
+                    $until = DataAccessLogs::summarizedUntil();
+                    if (is_null($until)) {
+                        return 0;
+                    }
+                    if ($until->copy()->addDay()->lt($before)) {
+                        $before = $until->copy()->addDay();
+                    }
+                    $deleted = 0;
+                    do {
+                        $rows = DataAccessLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->get();
+                        $ids = $rows->pluck('id')->all();
+                        if (!empty($ids)) {
+                            if (LogArchiver::enabled()) {
+                                LogArchiver::rows('data_access', DataAccessLogs::COLUMNS, $rows->map(function ($row) {
+                                    return array_map(function ($column) use ($row) {
+                                        return $column === 'created_at' ? optional($row->created_at)->format('Y-m-d H:i:s') : $row->{$column};
+                                    }, DataAccessLogs::COLUMNS);
+                                })->all(), function ($row) {
+                                    return substr(strval($row[1]), 0, 7);
+                                });
+                            }
+                            $deleted += DataAccessLog::query()->whereIn('id', $ids)->delete();
+                        }
+                    } while (count($ids) === 1000);
+                    return $deleted;
+                },
+                'count' => function () {
+                    return DataAccessLog::tableExists() ? DataAccessLog::query()->count() : 0;
+                },
+            ],
+            // their counts of each day, which the IT audit report reads (kept longer)
+            'data_access_daily' => [
+                'label' => 'exment::exment.log_management.types.data_access_daily',
+                'location' => 'database',
+                'retention' => function () {
+                    return static::days(System::log_retention_data_access_daily(), DataAccessLogs::DEFAULT_DAILY_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    return DataAccessLog::tableExists() ? DataAccessDaily::query()->where('date', '<', $before->format('Y-m-d'))->delete() : 0;
+                },
+                'count' => function () {
+                    return DataAccessLog::tableExists() ? DataAccessDaily::query()->count() : 0;
                 },
             ],
             // the files of the application log, one a day (laravel-YYYY-MM-DD.log of Laravel's

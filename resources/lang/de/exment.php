@@ -5381,6 +5381,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'setting' => [
             'login_log_days' => 'Anmeldeprotokolle: Tage aufbewahren',
             'permission_change_days' => 'Verlauf der Rollengruppen: Tage aufbewahren',
+            'data_access_days' => 'Lese- und Schreibzugriffe: Tage aufbewahren',
+            'data_access_daily_days' => 'Ihre Tageszahlen: Tage aufbewahren',
             'app_log_days' => 'Anwendungsprotokoll (tägliche Dateien): Tage aufbewahren',
             'days_help' => 'Leer: :default Tage. 0: bis zum Löschen aufbewahrt.',
             'app_level' => 'Stufe des Anwendungsprotokolls',
@@ -5413,6 +5415,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'operation_log' => 'Vorgangsprotokoll',
             'login_log' => 'Anmeldeprotokoll',
             'permission_change' => 'Verlauf der Rollengruppen',
+            'data_access' => 'Lese- und Schreibzugriffe auf Daten',
+            'data_access_daily' => 'Lese- und Schreibzugriffe auf Daten, pro Tag',
             'app_log' => 'Anwendungsprotokoll',
         ],
     ],

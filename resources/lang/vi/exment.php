@@ -5381,6 +5381,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'setting' => [
             'login_log_days' => 'Nhật ký đăng nhập: số ngày lưu',
             'permission_change_days' => 'Lịch sử nhóm vai trò: số ngày lưu',
+            'data_access_days' => 'Đọc và ghi dữ liệu: số ngày lưu',
+            'data_access_daily_days' => 'Số lượng theo ngày: số ngày lưu',
             'app_log_days' => 'Log ứng dụng (tệp theo ngày): số ngày lưu',
             'days_help' => 'Để trống: :default ngày. 0: lưu đến khi xóa.',
             'app_level' => 'Mức log ứng dụng',
@@ -5413,6 +5415,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'operation_log' => 'Nhật ký thao tác',
             'login_log' => 'Nhật ký đăng nhập',
             'permission_change' => 'Lịch sử nhóm vai trò',
+            'data_access' => 'Đọc và ghi dữ liệu',
+            'data_access_daily' => 'Đọc và ghi dữ liệu theo ngày',
             'app_log' => 'Log ứng dụng',
         ],
     ],

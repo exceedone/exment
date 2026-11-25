@@ -361,6 +361,8 @@ class ExmentServiceProvider extends ServiceProvider
         });
         // the record of the logins of the pages, and the settings of the application log (ISS02839)
         \Exceedone\Exment\Services\LogManagement\LoginRecorder::register();
+        // the reads and the writes of the data (ISS02905)
+        \Exceedone\Exment\Services\LogManagement\DataAccessLogs::register();
         \Exceedone\Exment\Services\LogManagement\LogSettings::apply();
 
         // Perf: publishes() only feeds the `vendor:publish` console command; running it on
