@@ -471,7 +471,8 @@ class LoginService
         }
 
         $exment_user = null;
-        \ExmentDB::transaction(function () use ($custom_login_user, &$exment_user) {
+        $assignedJitRoles = false;
+        \ExmentDB::transaction(function () use ($custom_login_user, &$exment_user, &$assignedJitRoles) {
             $exment_user = CustomTable::getEloquent(SystemTableName::USER)->getValueModel();
 
             $update_user_columns = static::getUserColumns();
@@ -493,8 +494,13 @@ class LoginService
                 })->toArray();
 
                 \DB::table(SystemTableName::ROLE_GROUP_USER_ORGANIZATION)->insert($jit_rolegroups);
+                $assignedJitRoles = true;
             }
         });
+
+        if ($assignedJitRoles) {
+            System::clearCache();
+        }
 
         return $exment_user;
     }
@@ -556,12 +562,21 @@ class LoginService
                 $stream = $socialiteProvider->getAvatar($custom_login_user->token);
             }
             // if user obj has avatar, download avatar.
-            elseif (isset($custom_login_user->avatar)) {
+            // The URL comes from the provider's profile: not the server itself nor
+            // the link-local range, a short time, and an image of a few MB at most.
+            elseif (isset($custom_login_user->avatar) && \Exceedone\Exment\Services\WebhookUrlGuard::isAllowed($custom_login_user->avatar, true)) {
                 $client = new \GuzzleHttp\Client();
                 $response = $client->request('GET', $custom_login_user->avatar, [
                     'http_errors' => false,
+                    'timeout' => 10,
+                    'connect_timeout' => 5,
+                    'allow_redirects' => false,
+                    'stream' => true,
                 ]);
-                $stream = $response->getBody()->getContents();
+                $contents = $response->getStatusCode() == 200 ? $response->getBody()->read(5 * 1024 * 1024 + 1) : '';
+                if ($contents !== '' && strlen($contents) <= 5 * 1024 * 1024 && @getimagesizefromstring($contents) !== false) {
+                    $stream = $contents;
+                }
             }
             // file upload.
             if (isset($stream) && isset($custom_login_user->id)) {

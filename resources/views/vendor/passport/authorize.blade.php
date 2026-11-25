@@ -58,7 +58,7 @@
             </form>
 
             <!-- Cancel Button -->
-            <form method="post" action="/admin/oauth/authorize">
+            <form method="post" action="{{admin_urls('oauth', 'authorize')}}">
                 {{ csrf_field() }}
                 {{ method_field('DELETE') }}
 

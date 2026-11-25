@@ -11,6 +11,8 @@ use ExmentAdminCore\Admin\Widgets\Box;
 use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Grid\Exporter;
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\CustomOperationType;
+use Exceedone\Exment\Enums\ErrorCode;
 use Illuminate\Http\Request;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -44,6 +46,8 @@ use Symfony\Component\HttpFoundation\Response;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Services\TableService;
+use Exceedone\Exment\Services\Workflow\WorkflowBulkService;
+use Exceedone\Exment\Enums\WorkflowCommentType;
 use Carbon\Carbon;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Elibyy\TCPDF\Facades\TCPDF;
@@ -217,7 +221,6 @@ class CustomValueController extends AdminControllerTableBase
                 'page_type' => PluginPageType::LIST
             ]);
         }
-
         $this->AdminContent($content);
 
         // if table setting is "one_record_flg" (can save only one record)
@@ -299,6 +302,9 @@ class CustomValueController extends AdminControllerTableBase
                     TableService::appendCreateAndDownloadButtonQRCode($tools, $this->custom_table);
                 });
             }
+            if ($request->boolean('lazy_grid_rows') && $grid instanceof Grid) {
+                return response($grid->render());
+            }
             if ($modal) {
                 $content = $grid_item->renderModal($grid);
                 Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
@@ -326,7 +332,6 @@ class CustomValueController extends AdminControllerTableBase
         if (!$modal) {
             PartialCrudService::setGridContent($this->custom_table, $content);
         }
-
         if (!$modalframe || $modal) {
             Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
                 'is_modal' => $modal,
@@ -356,7 +361,20 @@ class CustomValueController extends AdminControllerTableBase
             'page_type' => PluginPageType::CREATE
         ]);
 
-        if (!is_null($copy_id = $request->get('copy_id'))) {
+        $copy_from = $this->getCopyFromSource($request);
+        if (isset($copy_from)) {
+            // start from the values of a record of another table (#1828); the
+            // record is made only when the user saves
+            [$copy, $from_custom_value] = $copy_from;
+            $model = $copy->makeNewModel($from_custom_value);
+            $form = $this->form(null)->editing(function ($form) {
+                $this->filterCopyColumn($form->model());
+            })->replicate($model);
+            admin_info(
+                exmtrans('custom_copy.copy_from.button'),
+                exmtrans('custom_copy.copy_from.message', esc_html($copy->from_custom_table->table_view_name), esc_html($from_custom_value->getLabel()))
+            );
+        } elseif (!is_null($copy_id = $request->get('copy_id'))) {
             // ignore file and autonumber from target model
             $form = $this->form(null)->editing(function($form) {
                 $model = $form->model();
@@ -551,8 +569,9 @@ class CustomValueController extends AdminControllerTableBase
             static::DATANAME_CUSTOM_VIEW_SUUID => $this->custom_view->suuid,
             static::DATANAME_CUSTOM_VIEW_NAME => $this->custom_view->view_view_name,
         ]);
-        $content->row($row);
 
+        $content->row($row);
+        $this->appendBackToListButton();
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
             'page_type' => PluginPageType::EDIT,
             'custom_value' => $custom_value
@@ -767,6 +786,51 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * Render one opt-in relation block after the edit page has loaded.
+     *
+     * @param Request $request
+     * @param string $tableKey
+     * @param int|string $id
+     * @param int|string $blockId
+      * @return \Illuminate\Http\JsonResponse|Response
+     */
+    public function lazyRelation(Request $request, $tableKey, $id, $blockId)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::EDIT, $id)) instanceof Response) {
+            return $response;
+        }
+
+        if ($this->redirectShow($id) !== null) {
+            abort(403);
+        }
+
+        return response()->json($this->custom_form->form_item->id($id)->renderLazyRelationBlock($blockId));
+    }
+
+    /**
+     * A "back to the list" button at the left of the page title of the data show and edit pages,
+     * where it is easy to reach.
+     * It goes where the small "list" button of the box goes (the table's list).
+     * Added by script: the page title is made by the admin layout, which has no place for buttons.
+     */
+    protected function appendBackToListButton(): void
+    {
+        $url = json_encode($this->custom_table->getGridUrl(true));
+        $label = json_encode(exmtrans('custom_value.back_to_list'));
+        \Admin::script(<<<EOT
+(function () {
+    var h1 = $('#pjax-container .content-header > h1').first();
+    if (!h1.length || h1.find('.exm-back-to-list').length) {
+        return;
+    }
+    var a = $('<a class="btn exm-back-to-list"><i class="fa fa-arrow-left"></i> </a>').attr('href', {$url});
+    a.append(document.createTextNode({$label}));
+    h1.addClass('exm-has-back-to-list').prepend(a);
+})();
+EOT);
+    }
+
+    /**
      * Show interface.
      *
      * @param Request $request
@@ -811,6 +875,7 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $show_item->setOptionBoxes($row);
             });
+            $this->appendBackToListButton();
         }
 
         Plugin::pluginExecuteEvent(PluginEventType::LOADED, $this->custom_table, [
@@ -880,6 +945,32 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * Replace the file of an attachment (the file it had becomes an older version).
+     */
+    // @phpstan-ignore-next-line
+    public function documentReplace(Request $request, $tableKey, $id, $documentId)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->documentReplace($request->file('file_data'), $documentId);
+    }
+
+    /**
+     * The older versions of an attachment.
+     */
+    // @phpstan-ignore-next-line
+    public function documentVersions(Request $request, $tableKey, $id, $documentId)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->documentVersions($documentId);
+    }
+
+    /**
      * file delete custom column.
      */
     // @phpstan-ignore-next-line
@@ -908,6 +999,42 @@ class CustomValueController extends AdminControllerTableBase
         return $show_item->addComment($comment);
     }
 
+
+    /**
+     * The html a comment will be shown as (the preview of the comment box).
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function previewComment(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->previewComment($request->get('comment'));
+    }
+
+    /**
+     * Attach an image pasted or dropped into the comment box.
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function uploadCommentImage(Request $request, $tableKey, $id)
+    {
+        if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
+            return $response;
+        }
+
+        $show_item = $this->custom_form->show_item->id($id);
+        return $show_item->uploadCommentImage($request->file('file'));
+    }
 
     /**
      * remove comment.
@@ -970,6 +1097,20 @@ class CustomValueController extends AdminControllerTableBase
         if (!isset($plugin)) {
             abort(404);
         }
+        // only a plugin the page offers: active, set for this table, usable by the user
+        $offered = Plugin::getPluginsByTable($this->custom_table)->contains(function ($p) use ($plugin) {
+            return $p->id == $plugin->id;
+        });
+        if (!$offered) {
+            abort(404);
+        }
+        // and on a record the user may see
+        if (isset($id)) {
+            $custom_value = $this->custom_table->getValueModel($id);
+            if (!isset($custom_value) || $custom_value->enableAccess() !== true) {
+                return getAjaxResponse(['result' => false, 'swaltext' => ErrorCode::PERMISSION_DENY()->getMessage()]);
+            }
+        }
 
         \Exment::setTimeLimitLong();
 
@@ -1021,9 +1162,19 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
+        // Only what the screens offer: an active operation of this table that
+        // is run by a button (the record's page) or as a bulk update (the list).
+        if ($operation->custom_table_id != $this->custom_table->id
+            || !$operation->active_flg
+            || !$operation->matchOperationType([CustomOperationType::BUTTON, CustomOperationType::BULK_UPDATE])) {
+            abort(404);
+        }
+
         \Exment::setTimeLimitLong();
 
-        $response = $operation->execute($this->custom_table, $ids, $request->all());
+        // The button of the record's page is not shown when the form does not
+        // allow editing from display, the bulk update of the list is.
+        $response = $operation->execute($this->custom_table, $ids, $request->all(), !is_nullorempty($id));
 
         if ($response === true) {
             return getAjaxResponse([
@@ -1313,6 +1464,138 @@ class CustomValueController extends AdminControllerTableBase
     }
 
     /**
+     * The modal of the workflow action run on the ticked records of the list (#1648).
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @return Response
+     */
+    public function workflowBulkModal(Request $request, $tableKey)
+    {
+        $service = new WorkflowBulkService($this->custom_table, $request->input('id'));
+        $count = count($service->getIds());
+        $candidates = $service->getCandidates();
+
+        $form = new ModalForm();
+        $form->action(admin_urls('data', $this->custom_table->table_name, 'workflowBulkClick'));
+        $form->method('POST');
+
+        if ($candidates->count() == 0) {
+            $form->descriptionHtml('<p>' . esc_html(exmtrans('workflow.bulk.message.no_action', $count)) . '</p>');
+            return getAjaxResponse([
+                'body'  => $form->render(),
+                'script' => $form->getScript(),
+                'title' => exmtrans('workflow.bulk.title'),
+                'showSubmit' => false,
+            ]);
+        }
+
+        $form->descriptionHtml('<p>' . esc_html(exmtrans('workflow.bulk.message.description', $count)) . '</p>');
+
+        $options = $candidates->mapWithKeys(function ($candidate) use ($count) {
+            $action = $candidate['action'];
+            return [$action->id => exmtrans('workflow.bulk.action_option', $action->action_name, count($candidate['ids']), $count)];
+        })->toArray();
+        $field = $form->select('action_id', exmtrans('workflow.action_name'))
+            ->options($options)
+            ->required()
+            ->disableClear();
+        if (count($options) == 1) {
+            $field->default(array_key_first($options));
+        }
+
+        // the next work users: only when one of the actions asks for them on one of the records
+        $selectActions = $candidates->filter(function ($candidate) use ($service) {
+            return $service->needsNextWorkUsers($candidate['action']);
+        });
+        if ($selectActions->count() > 0) {
+            list($userOptions, $ajax) = CustomValueAuthoritable::getUserOrgSelectOptions($this->custom_table, null, true);
+            $field = $form->multipleSelect('next_work_users', exmtrans('workflow.next_work_users'))
+                ->options($userOptions)
+                ->ajax($ajax)
+                ->help(exmtrans('workflow.bulk.help.next_work_users', $selectActions->map(function ($candidate) {
+                    return $candidate['action']->action_name;
+                })->implode(exmtrans('common.separate_word'))));
+            if ($selectActions->count() == $candidates->count()) {
+                $field->required();
+            }
+        }
+
+        $commentActions = $candidates->filter(function ($candidate) {
+            return $candidate['action']->comment_type != WorkflowCommentType::NOTUSE;
+        });
+        if ($commentActions->count() > 0) {
+            $field = $form->textarea('comment', exmtrans('common.comment'))->rows(3);
+            $requiredActions = $candidates->filter(function ($candidate) {
+                return $candidate['action']->comment_type == WorkflowCommentType::REQUIRED;
+            });
+            if ($requiredActions->count() == $candidates->count()) {
+                $field->required();
+            } elseif ($requiredActions->count() > 0) {
+                $field->help(exmtrans('workflow.bulk.help.comment', $requiredActions->map(function ($candidate) {
+                    return $candidate['action']->action_name;
+                })->implode(exmtrans('common.separate_word'))));
+            }
+        }
+
+        $form->hidden('id')->default(implode(',', $service->getIds()));
+        $form->setWidth(9, 3);
+
+        return getAjaxResponse([
+            'body'  => $form->render(),
+            'script' => $form->getScript(),
+            'title' => exmtrans('workflow.bulk.title'),
+            'submitlabel' => exmtrans('workflow.bulk.submit'),
+        ]);
+    }
+
+    /**
+     * Run the workflow action on the ticked records of the list (#1648).
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @return array<string, mixed>
+     */
+    public function workflowBulkClick(Request $request, $tableKey)
+    {
+        $service = new WorkflowBulkService($this->custom_table, $request->input('id'));
+        $action = is_numeric($request->input('action_id')) ? WorkflowAction::where('id', $request->input('action_id'))->first() : null;
+        $data = [
+            'comment' => $request->get('comment'),
+            'next_work_users' => $request->get('next_work_users'),
+        ];
+
+        $error = $service->validate($action, $data);
+        if (!is_null($error)) {
+            return [
+                'result'  => false,
+                'toastr' => $error,
+            ];
+        }
+
+        \Exment::setTimeLimitLong();
+        /** @var WorkflowAction $action */
+        $result = $service->execute($action, $data);
+        $skipped = WorkflowBulkService::skippedText($result);
+
+        if (count($result['executed']) == 0) {
+            return [
+                'result'  => false,
+                'swal' => exmtrans('workflow.bulk.message.none_executed'),
+                'swaltext' => $skipped,
+                // the list behind is stale
+                'reload' => true,
+            ];
+        }
+
+        return [
+            'result'  => true,
+            'swal' => exmtrans('workflow.bulk.message.executed', count($result['executed'])),
+            'swaltext' => $skipped,
+        ];
+    }
+
+    /**
      * get copy modal
      */
     // @phpstan-ignore-next-line
@@ -1365,6 +1648,55 @@ class CustomValueController extends AdminControllerTableBase
             'script' => $form->getScript(),
             'title' => $label
         ]);
+    }
+
+    /**
+     * The copy setting and the record the new-record form starts from.
+     *
+     * From "copy_from" (the suuid of a copy setting) and "copy_from_id" (a record
+     * of its source table). Anything that does not hold - another table's
+     * setting, a setting not on the create form, a record the user may not see -
+     * gives null, and the form opens empty.
+     *
+     * @param Request $request
+     * @return array{0: CustomCopy, 1: \Exceedone\Exment\Model\CustomValue}|null
+     */
+    protected function getCopyFromSource(Request $request): ?array
+    {
+        $uuid = $request->get('copy_from');
+        $id = $request->get('copy_from_id');
+        if (!is_string($uuid) || is_nullorempty($id)) {
+            return null;
+        }
+
+        $copy = $this->getCopyFromSetting($uuid);
+        if (!isset($copy)) {
+            return null;
+        }
+
+        $from_custom_value = getModelName($copy->from_custom_table)::find($id);
+        if (!isset($from_custom_value) || $from_custom_value->enableAccess() !== true) {
+            return null;
+        }
+        return [$copy, $from_custom_value];
+    }
+
+    /**
+     * A copy setting whose button is on this table's new-record form.
+     *
+     * @param mixed $uuid
+     * @return CustomCopy|null
+     */
+    protected function getCopyFromSetting($uuid): ?CustomCopy
+    {
+        if (!is_string($uuid)) {
+            return null;
+        }
+        /** @var CustomCopy|null $copy */
+        $copy = CustomCopy::getCreateSources($this->custom_table)->first(function ($copy) use ($uuid) {
+            return $copy->suuid === $uuid;
+        });
+        return $copy;
     }
 
     /**
@@ -1450,8 +1782,22 @@ class CustomValueController extends AdminControllerTableBase
             abort(404);
         }
 
-        // execute copy
+        // The copy is a setting of this table; the record is one the user may
+        // see; the copy creates a record in the other table, so the user may
+        // create there (the button holds to the same).
+        if ($copy->from_custom_table_id != $this->custom_table->id) {
+            abort(404);
+        }
         $custom_value = getModelName($this->custom_table)::find($id);
+        if (!isset($custom_value) || $custom_value->enableAccess() !== true) {
+            return getAjaxResponse(['result' => false, 'swaltext' => ErrorCode::PERMISSION_DENY()->getMessage()]);
+        }
+        $to_custom_table = $copy->to_custom_table;
+        if (!isset($to_custom_table) || $to_custom_table->enableCreate(true) !== true) {
+            return getAjaxResponse(['result' => false, 'swaltext' => ErrorCode::PERMISSION_DENY()->getMessage()]);
+        }
+
+        // execute copy
         $response = $copy->executeRequest($custom_value, $request);
 
         if (isset($response)) {
@@ -1612,9 +1958,13 @@ class CustomValueController extends AdminControllerTableBase
                     continue;
                 }
 
-                if (($response = $this->firstFlow($request, CustomValuePageType::EDIT)) instanceof Response) {
+                // the edit permission of the row (enableEdit() refuses a row in the trash)
+                if (!$custom_value->custom_table->hasPermissionEditData($custom_value)) {
                     \DB::rollback();
-                    return $response;
+                    return getAjaxResponse([
+                        'result'  => false,
+                        'message' => ErrorCode::PERMISSION_DENY()->getMessage(),
+                    ]);
                 }
 
                 $custom_value->restore();
@@ -1746,8 +2096,19 @@ class CustomValueController extends AdminControllerTableBase
             System::setRequestSession(Define::SYSTEM_KEY_SESSION_FORM_DATA_TYPE, $form_data_type);
         }
 
-        // set form
-        $this->custom_form = $this->custom_table->getPriorityForm($id);
+        // set form. getPriorityForm() loads a record + evaluates form-priority conditions; it is
+        // only needed for form pages (create/edit/show/delete/import) and for one-record-table grids
+        // (which render a form). Skip it for plain list/export pages where custom_form is never
+        // dereferenced — see the only $this->custom_form usages (show_item / form_item).
+        $skipForm = in_array($formActionType, [
+            CustomValuePageType::GRID,
+            CustomValuePageType::GRIDMODAL,
+            CustomValuePageType::EXPORT,
+        ], true) && !$this->custom_table->isOneRecord();
+
+        if (!$skipForm) {
+            $this->custom_form = $this->custom_table->getPriorityForm($id);
+        }
     }
 
     /**
@@ -1891,6 +2252,10 @@ class CustomValueController extends AdminControllerTableBase
 
         $img_width = $this->mmToPixel($_img_width);
         $img_height = $this->mmToPixel($_img_height);
+
+        // null when the PDF could not be made (the callers check isset)
+        $tmpPath = null;
+        $fileName = null;
 
         DB::beginTransaction();
         try {

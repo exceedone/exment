@@ -27,7 +27,17 @@ class LineInstaller
         }
         static::ensureFlexTemplateTable();
         static::ensureSendLogTable();
-        static::ensureLinkMenu();
+        // The "LINE" page is opened from the user menu (top right), not the side menu:
+        // every user links their own account there, like the user setting page.
+    }
+
+    /**
+     * Whether the user menu shows "LINE": only when the site has a LINE official account,
+     * because the link code page needs its basic ID.
+     */
+    public static function linkAvailable(): bool
+    {
+        return trim((string) System::system_line_oa_basic_id()) !== '';
     }
 
     public const OWNED_MARKERS = [
@@ -90,6 +100,10 @@ class LineInstaller
         }
     }
 
+    /**
+     * The side menu item of v7.0. Only for rolling back the migration
+     * 2026_11_21_000000_move_line_link_menu_to_user_menu; new sites do not get it.
+     */
     public static function ensureLinkMenu(): void
     {
         if (Menu::where('menu_type', MenuType::CUSTOM)->where('menu_name', 'line_link')->exists()) {

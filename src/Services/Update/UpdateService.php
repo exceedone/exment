@@ -104,6 +104,7 @@ class UpdateService
     // @phpstan-ignore-next-line
     public static function callPublish()
     {
-        \Artisan::call('exment:update');
+        // the administrator chose the update: the database is updated also on a production site
+        \Artisan::call('exment:update', ['--force' => true]);
     }
 }

@@ -1,0 +1,50 @@
+{
+    "template_view_name": "시스템 성능 로그",
+    "description": "실행 URL, 사용자, 시간, SQL 쿼리 등 시스템 성능 로그를 기록하기 위한 템플릿입니다.",
+    "custom_tables": [
+        {
+            "table_name": "system_logs",
+            "table_view_name": "시스템 성능 로그",
+            "description": "실행된 SQL 쿼리, 실행 URL, 사용자, 시간 등 시스템 성능 로그를 기록합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "url",
+                    "column_view_name": "실행 URL"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "실행 사용자"
+                },
+                {
+                    "column_name": "create_at",
+                    "column_view_name": "실행 시간"
+                },
+                {
+                    "column_name": "sql",
+                    "column_view_name": "SQL"
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5160ffbedcfce843fb8e",
+            "form_view_name": "폼"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "d9ce8f6d3b288d6da84b",
+            "view_view_name": "전체 레코드"
+        }
+    ],
+    "custom_copies": [],
+    "admin_menu": [
+        {
+            "title": "시스템 성능 로그",
+            "menu_type": "table",
+            "menu_name": "system_logs"
+        }
+    ]
+}

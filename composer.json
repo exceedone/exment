@@ -28,19 +28,20 @@
         "laravel/helpers": "^1.7",
         "laravel/ui": "^4.2",
         "webpatser/laravel-uuid": "^4.0",
-        "phpoffice/phpspreadsheet": "^1.29",
+        "phpoffice/phpspreadsheet": "^1.29.9",
         "exment-git/spout": "^4.0",
         "mews/purifier": "^3.2",
         "myclabs/php-enum": "^1.8",
         "laravel/passport": "^13.0",
         "laravel/slack-notification-channel": "^3.0",
         "lcobucci/jwt": "^5.1",
+        "exceedone/exment-plugins-release": "~7.2.0",
         "composer/composer": "^2.7",
         "kylekatarnls/update-helper": "^1.2",
         "laravel/socialite": "^5.20",
         "simplesoftwareio/simple-qrcode": "2.0",
         "elibyy/tcpdf-laravel": "^13.0",
-        "exceedone/exment-admin-core": "^1.0.1"
+        "exceedone/exment-admin-core": "^1.0.5"
     },
     "suggest": {
         "directorytree/ldaprecord": "Required to use the LDAP login. Install with: composer require directorytree/ldaprecord",

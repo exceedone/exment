@@ -1,12 +1,3 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var Exment;
 (function (Exment) {
     class CommonEvent {
@@ -14,7 +5,7 @@ var Exment;
          * Call only once. It's $(document).on event.
          */
         static AddEventOnce() {
-            $(document).on('change', '[data-changedata]', {}, (ev) => __awaiter(this, void 0, void 0, function* () { yield CommonEvent.changeModelData($(ev.target)); }));
+            $(document).on('change', '[data-changedata]', {}, async (ev) => { await CommonEvent.changeModelData($(ev.target)); });
             $(document).on('ifChanged change check', '[data-filter],[data-filtertrigger]', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
@@ -22,13 +13,23 @@ var Exment;
                 CommonEvent.addSelect2();
                 CommonEvent.setFormFilter($(ev.target));
             });
+            // Lazy relations load sequentially after the initial page becomes idle; keep submits disabled until they hydrate.
+            CommonEvent.bindLazyRelationLoad();
+            CommonEvent.bindLazyRelationAddGuard();
+            CommonEvent.startLazyRelationAutoload();
+            // Rows inserted by the Core lazy grid exist only after AddEvent ran, so bind row navigation and
+            // row actions (data-add-swal, e.g. restore / hard delete) to them. Both skip already-bound elements.
+            $(document).off('admin:lazy-grid:loaded.exmentRowLink').on('admin:lazy-grid:loaded.exmentRowLink', () => {
+                CommonEvent.initGridRowLink();
+                CommonEvent.addShowModalEvent();
+            });
+            CommonEvent.syncLazyRelationSubmitState();
             $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
             $(document).on('change', '[data-linkage]', {}, CommonEvent.setLinkageEvent);
             $(document).off('click', '[data-help-text]').on('click', '[data-help-text]', {}, CommonEvent.showHelpModalEvent);
             $(document).off('click', '[copyScript]').on('click', '[copyScript]', {}, CommonEvent.copyScriptEvent);
-
             // Day-count filter value (X日前/X日後の日付): integer in [0, 99999] (max 5 digits).
             // The number-spinner plugin reads the value with parseInt, so a full-width (IME) value such
             // as "１２３" makes parseInt return NaN and breaks the +/- buttons. Normalize full-width digits
@@ -45,16 +46,19 @@ var Exment;
             };
             $(document)
                 .on('input', 'input[data-day-count]', {}, (ev) => {
-                    if (ev && ev.originalEvent && ev.originalEvent.isComposing) {
-                        return;
-                    }
-                    sanitizeDayCount(ev.currentTarget);
-                })
+                if (ev && ev.originalEvent && ev.originalEvent.isComposing) {
+                    return;
+                }
+                sanitizeDayCount(ev.currentTarget);
+            })
                 .on('compositionend', 'input[data-day-count]', {}, (ev) => {
-                    sanitizeDayCount(ev.currentTarget);
-                });
+                sanitizeDayCount(ev.currentTarget);
+            });
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
+                // PJAX replaces the form DOM, so recalculate whether a deferred relation still blocks submit.
+                CommonEvent.syncLazyRelationSubmitState();
+                $(document).trigger('exment:lazy-relation:complete');
             });
             $(document).on('pjax:error', function (xhr, textStatus, error, options) {
                 CommonEvent.pjaxError(xhr, textStatus, error, options);
@@ -72,12 +76,167 @@ var Exment;
             CommonEvent.addShowModalEvent();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
+            CommonEvent.initGridRowLink();
+            $.numberformat('[number_format]:not(".disableNumberFormat")');
+        }
+        /** Bind grid row navigation unless the table disables it. Already-bound rows are skipped. */
+        static initGridRowLink() {
             let gridrow_select_transition = $('#gridrow_select_transition').val() || "default";
             if (gridrow_select_transition !== 'none' &&
                 (gridrow_select_transition !== 'default' || !$('#gridrow_select_disabled').val())) {
                 CommonEvent.tableHoverLink();
             }
-            $.numberformat('[number_format]:not(".disableNumberFormat")');
+        }
+        /** Bind manual lazy-relation load clicks once for the document. */
+        static bindLazyRelationLoad() {
+            $(document).on('click', '.lazy-relation-load', {}, (ev) => {
+                CommonEvent.loadLazyRelation($(ev.target).closest('.lazy-relation-load'));
+            });
+        }
+        /**
+         * Block the "New" action of a relation block whose rows are not loaded yet. A capture listener runs before the
+         * delegated add handler registered by the field script (which is re-registered on every hydration), so no row is created.
+         */
+        static bindLazyRelationAddGuard() {
+            if (window.__exmentLazyRelationAddGuardBound) {
+                return;
+            }
+            window.__exmentLazyRelationAddGuardBound = true;
+            document.addEventListener('click', (ev) => {
+                const target = ev.target;
+                const add = target && target.closest ? target.closest('.add') : null;
+                if (!add) {
+                    return;
+                }
+                const $add = $(add);
+                const $block = $add.closest('.has-many-table-div');
+                if ($add.data('lazy-relation-add-locked') || $block.find('tbody[data-lazy-relation-url]').length > 0) {
+                    ev.preventDefault();
+                    ev.stopImmediatePropagation();
+                }
+            }, true);
+        }
+        /** Lock the add action of every block that still has a lazy placeholder. Unlocking happens only after a successful load. */
+        static lockPendingLazyRelationAdd($root = $(document)) {
+            $root.find('.has-many-table-div').each(function () {
+                const $block = $(this);
+                if ($block.find('tbody[data-lazy-relation-url]').length === 0) {
+                    return;
+                }
+                const $add = $block.find('.add');
+                if ($add.length === 0 || $add.data('lazy-relation-add-locked')) {
+                    return;
+                }
+                $add.data('lazy-relation-add-locked', true)
+                    .data('lazy-relation-add-original-disabled', $add.hasClass('disabled'))
+                    .data('lazy-relation-add-original-aria', $add.attr('aria-disabled'))
+                    .addClass('disabled').attr('aria-disabled', 'true');
+            });
+        }
+        /** Restore the add action to the state it had before it was locked. */
+        static unlockLazyRelationAdd($block) {
+            const $add = $block.find('.add');
+            if (!$add.data('lazy-relation-add-locked')) {
+                return;
+            }
+            if (!$add.data('lazy-relation-add-original-disabled')) {
+                $add.removeClass('disabled');
+            }
+            const originalAria = $add.data('lazy-relation-add-original-aria');
+            if (typeof originalAria === 'undefined') {
+                $add.removeAttr('aria-disabled');
+            }
+            else {
+                $add.attr('aria-disabled', originalAria);
+            }
+            $add.removeData('lazy-relation-add-locked')
+                .removeData('lazy-relation-add-original-disabled')
+                .removeData('lazy-relation-add-original-aria');
+        }
+        /** Fetch one relation fragment, then allow the next queued relation to load. */
+        static async loadLazyRelation($button) {
+            const $tbody = $button.closest('tbody[data-lazy-relation-url]');
+            const $form = $tbody.closest('form');
+            const $block = $tbody.closest('.has-many-table-div');
+            const url = $tbody.data('lazy-relation-url');
+            if (!hasValue(url) || $button.data('lazy-relation-loading')) {
+                return;
+            }
+            $button.data('lazy-relation-loading', true).prop('disabled', true);
+            try {
+                const response = await $.get(url);
+                CommonEvent.hydrateLazyRelation($tbody, response);
+                CommonEvent.unlockLazyRelationAdd($block);
+            }
+            catch (_error) {
+                $button.data('lazy-relation-loading', false).prop('disabled', false);
+                toastr.error($('#exment_lazy_relation_load_failed').val());
+            }
+            finally {
+                CommonEvent.syncLazyRelationSubmitState($form);
+                $(document).trigger('exment:lazy-relation:complete');
+            }
+        }
+        /** Replace a placeholder with its relation rows and initialize fragment scripts. */
+        static hydrateLazyRelation($tbody, response) {
+            const $fragment = $('<div>').html(response.html);
+            const $sourceTable = $fragment.find('table.has-many-table').first();
+            const $targetTable = $tbody.closest('table.has-many-table');
+            $targetTable.find('tbody').replaceWith($sourceTable.find('tbody'));
+            $targetTable.closest('.has-many-table-div').find('template').replaceWith($fragment.find('template'));
+            $.each(response.scripts || [], function (_index, script) {
+                const formClasses = script.match(/\.form-[a-z0-9]+/g) || [];
+                const $form = $targetTable.closest('form');
+                $.each(formClasses, function (_classIndex, formClass) {
+                    $form.addClass(formClass.substring(1));
+                });
+                $.globalEval(script);
+            });
+            CommonEvent.AddEvent();
+        }
+        /** Start the single sequential auto-loader after the browser becomes idle. */
+        static startLazyRelationAutoload() {
+            if (window.__exmentLazyRelationAutoloadStarted) {
+                return;
+            }
+            window.__exmentLazyRelationAutoloadStarted = true;
+            const loadNext = () => {
+                const $button = $('.lazy-relation-load').filter(function () {
+                    return !$(this).data('lazy-relation-autoload-attempted');
+                }).first();
+                if ($button.length === 0) {
+                    return;
+                }
+                $button.data('lazy-relation-autoload-attempted', true).trigger('click');
+            };
+            $(document).on('exment:lazy-relation:complete', loadNext);
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(loadNext, { timeout: 1000 });
+            }
+            else {
+                setTimeout(loadNext, 500);
+            }
+        }
+        /** Disable submits while relation inputs are absent, then restore their prior state. */
+        static syncLazyRelationSubmitState($forms = $('form')) {
+            CommonEvent.lockPendingLazyRelationAdd();
+            $forms.each(function () {
+                const $form = $(this);
+                const hasPendingLazyRelations = $form.find('tbody[data-lazy-relation-url]').length > 0;
+                $form.find(':submit').each(function () {
+                    const $submit = $(this);
+                    const originalDisabled = $submit.data('lazy-relation-original-disabled');
+                    if (hasPendingLazyRelations) {
+                        if (typeof originalDisabled === 'undefined') {
+                            $submit.data('lazy-relation-original-disabled', $submit.prop('disabled'));
+                        }
+                        $submit.prop('disabled', true);
+                    }
+                    else if (typeof originalDisabled !== 'undefined') {
+                        $submit.prop('disabled', originalDisabled).removeData('lazy-relation-original-disabled');
+                    }
+                });
+            });
         }
         /**
          * toggle right-top help link and color
@@ -111,7 +270,8 @@ var Exment;
                 }
                 if (isMatch) {
                     // set new url
-                    var help_url = URLJoin(manual_base_uri, help.help_uri);
+                    // a full URL (the manual of a plugin) as it is, a page of the manual after its base
+                    var help_url = /^https?:\/\//i.test(help.help_uri) ? help.help_uri : URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
                     // chenge color
                     //$manual.children('i').addClass('help_personal');
@@ -167,10 +327,14 @@ var Exment;
                     else {
                         CommonEvent.redirectCallback(res);
                     }
-                } catch (e) {
-                    // Guard: a synchronous exception inside redirectCallback
-                    // (e.g. NProgress failing to find #app on the initialize page)
-                    // must not prevent resolve() from running and closing the dialog.
+                }
+                catch (e) {
+                    // Guard: a synchronous exception thrown inside redirectCallback
+                    // (e.g. NProgress failing to find its parent element on pages
+                    // that do not include the standard #app wrapper) must not
+                    // prevent resolve() from being called below, as that would
+                    // leave a SweetAlert preConfirm promise permanently pending
+                    // and the dialog stuck in "processing" state.
                     console.warn('[Exment] redirectCallback error (suppressed):', e);
                 }
                 // show toastr
@@ -421,6 +585,16 @@ var Exment;
                     clearTimeout(rowClickTimer);
                     rowClickTimer = null;
                 }
+                // Excel-like keyboard mode (the toolbar switch, grid_tools.js):
+                // there a click selects a cell and does not leave the page.
+                // The row is opened by a double click on a cell that cannot
+                // be edited - on an editable one that gesture edits.
+                if ($(ev.target).closest('table.exm-kbd-on').length > 0) {
+                    let kbdClicks = ev.detail || (ev.originalEvent ? ev.originalEvent.detail : 0) || 1;
+                    if (kbdClicks < 2 || $(ev.target).closest('td.exm-editable').length > 0) {
+                        return;
+                    }
+                }
                 // The click that puts the editor away is spent doing exactly
                 // that. The editor commits itself on blur, and navigating now
                 // would leave the page while that save is still in flight.
@@ -489,7 +663,7 @@ var Exment;
                 // window; the second click arrives with detail == 2 and has
                 // already cancelled the timer at the top of this handler.
                 if ($(ev.target).closest('td.exm-editable').length > 0) {
-                    let clicks = ev.detail || (ev.originalEvent ? ev.originalEvent.detail : 0) || 1;
+                    const clicks = ev.detail || (ev.originalEvent ? ev.originalEvent.detail : 0) || 1;
                     if (clicks > 1) {
                         return;
                     }
@@ -500,7 +674,6 @@ var Exment;
             }).on('mousedown', function () {
                 inlineEditWasOpen = $('td.exm-editing,td.exm-saving').length > 0;
             }).addClass('tableHoverLinkEvent');
-
             $('.janCodeRow').on('click', function (ev) {
                 let janCodeId = $(ev.target).closest('tr').attr('jan-code-id');
                 let id = $(ev.target).closest('tr').attr('id');
@@ -517,10 +690,10 @@ var Exment;
                 // set change event
                 let $targetBox = CommonEvent.getBlockElement(key.split('/')[0]);
                 let column_name = key.split('/')[1];
-                $targetBox.on('change', CommonEvent.getClassKey(column_name), { data: data }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                $targetBox.on('change', CommonEvent.getClassKey(column_name), { data: data }, async (ev) => {
                     Exment.CalcEvent.resetLoopConnt();
-                    yield CommonEvent.changeModelData($(ev.target), ev.data.data);
-                }));
+                    await CommonEvent.changeModelData($(ev.target), ev.data.data);
+                });
                 // if hasvalue to_block, add event when click add button
                 for (let table_name in data) {
                     let target_table_data = data[table_name];
@@ -532,7 +705,7 @@ var Exment;
                         if (!hasValue(d.to_block)) {
                             continue;
                         }
-                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, (ev) => __awaiter(this, void 0, void 0, function* () {
+                        $(d.to_block).on('click', '.add', { key: key, data: target_table_data, index: i, table_name: table_name }, async (ev) => {
                             // get target
                             let $target = CommonEvent.getParentRow($(ev.target)).find(CommonEvent.getClassKey(ev.data.key));
                             let data = ev.data.data;
@@ -546,8 +719,8 @@ var Exment;
                             // create rensou array.
                             let modelArray = {};
                             modelArray[ev.data.table_name] = data;
-                            yield CommonEvent.changeModelData($target, modelArray);
-                        }));
+                            await CommonEvent.changeModelData($target, modelArray);
+                        });
                     }
                 }
             }
@@ -555,117 +728,111 @@ var Exment;
         /**
         * get model and change value
         */
-        static changeModelData($target_1) {
-            return __awaiter(this, arguments, void 0, function* ($target, data = null) {
-                var $d = $.Deferred();
-                // get parent element from the form field.
-                var $parent = CommonEvent.getParentRow($target);
-                // if has data, get from data object
-                if (hasValue(data)) {
-                    for (var table_name in data) {
-                        var target_table_data = data[table_name];
-                        if (!hasValue(target_table_data)) {
+        static async changeModelData($target, data = null) {
+            var $d = $.Deferred();
+            // get parent element from the form field.
+            var $parent = CommonEvent.getParentRow($target);
+            // if has data, get from data object
+            if (hasValue(data)) {
+                for (var table_name in data) {
+                    var target_table_data = data[table_name];
+                    if (!hasValue(target_table_data)) {
+                        continue;
+                    }
+                    // get selected model
+                    // get value.
+                    var value = $target.val();
+                    if (!hasValue(value)) {
+                        await CommonEvent.setModelItem(null, $parent, $target, target_table_data);
+                        continue;
+                    }
+                    const webapi = Exment.WebApi.make();
+                    webapi.findValue(table_name, value, {
+                        data: target_table_data,
+                    })
+                        .done(async function (modeldata, context) {
+                        await CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
+                        $d.resolve();
+                    })
+                        .fail(function (errordata) {
+                        console.log(errordata);
+                        $d.reject();
+                    });
+                }
+            }
+            // getItem
+            var changedata_data = $target.data('changedata');
+            if (hasValue(changedata_data)) {
+                var getitem = changedata_data.getitem;
+                if (hasValue(getitem)) {
+                    var send_data = {};
+                    send_data['value'] = $target.val();
+                    // get data-key
+                    for (var index in getitem.key) {
+                        var key = getitem.key[index];
+                        var $elem = $parent.find(CommonEvent.getClassKey(key));
+                        if ($elem.length == 0) {
                             continue;
                         }
-                        // get selected model
-                        // get value.
-                        var value = $target.val();
-                        if (!hasValue(value)) {
-                            yield CommonEvent.setModelItem(null, $parent, $target, target_table_data);
-                            continue;
-                        }
-                        const webapi = Exment.WebApi.make();
-                        webapi.findValue(table_name, value, {
-                            data: target_table_data,
-                        })
-                            .done(function (modeldata, context) {
-                            return __awaiter(this, void 0, void 0, function* () {
-                                yield CommonEvent.setModelItem(modeldata, $parent, $target, context.data);
-                                $d.resolve();
-                            });
-                        })
-                            .fail(function (errordata) {
-                            console.log(errordata);
-                            $d.reject();
-                        });
+                        send_data[key] = $elem.val();
                     }
-                }
-                // getItem
-                var changedata_data = $target.data('changedata');
-                if (hasValue(changedata_data)) {
-                    var getitem = changedata_data.getitem;
-                    if (hasValue(getitem)) {
-                        var send_data = {};
-                        send_data['value'] = $target.val();
-                        // get data-key
-                        for (var index in getitem.key) {
-                            var key = getitem.key[index];
-                            var $elem = $parent.find(CommonEvent.getClassKey(key));
-                            if ($elem.length == 0) {
-                                continue;
-                            }
-                            send_data[key] = $elem.val();
+                    // send ajax
+                    $.ajaxSetup({
+                        headers: {
+                            'X-CSRF-TOKEN': $('[name="_token"]').val()
                         }
-                        // send ajax
-                        $.ajaxSetup({
-                            headers: {
-                                'X-CSRF-TOKEN': $('[name="_token"]').val()
-                            }
-                        });
-                        $.ajax({
-                            url: getitem.uri,
-                            type: 'POST',
-                            data: send_data,
-                            context: {
-                                target: $target,
-                                parent: $parent,
-                            }
-                        })
-                            .done(function (data) {
-                            CommonEvent.setModelItemKey(this.target, this.parent, data);
-                            $d.resolve();
-                        })
-                            .fail(function (data) {
-                            console.log(data);
-                            $d.reject();
-                        });
-                    }
+                    });
+                    $.ajax({
+                        url: getitem.uri,
+                        type: 'POST',
+                        data: send_data,
+                        context: {
+                            target: $target,
+                            parent: $parent,
+                        }
+                    })
+                        .done(function (data) {
+                        CommonEvent.setModelItemKey(this.target, this.parent, data);
+                        $d.resolve();
+                    })
+                        .fail(function (data) {
+                        console.log(data);
+                        $d.reject();
+                    });
                 }
-                return $d.promise();
-            });
+            }
+            return $d.promise();
         }
         /**
          * set getmodel or getitem data to form
          */
-        static setModelItem(modeldata, $changedata_target, $elem, options) {
-            return __awaiter(this, void 0, void 0, function* () {
-                // loop for options
-                for (let i = 0; i < options.length; i++) {
-                    let option = options[i];
-                    // if has changedata_to_block, get $elem using changedata_to_block
-                    if (hasValue(option.to_block)) {
-                        $changedata_target = $(option.to_block);
-                        // if has to_lastindex, get last children item
-                        if (hasValue(option.to_lastindex)) {
-                            $changedata_target = $changedata_target.find(option.to_block_form).last();
-                        }
+        static async setModelItem(modeldata, $changedata_target, $elem, options) {
+            // loop for options
+            for (let i = 0; i < options.length; i++) {
+                let option = options[i];
+                // if has changedata_to_block, get $elem using changedata_to_block
+                if (hasValue(option.to_block)) {
+                    $changedata_target = $(option.to_block);
+                    // if has to_lastindex, get last children item
+                    if (hasValue(option.to_lastindex)) {
+                        $changedata_target = $changedata_target.find(option.to_block_form).last();
                     }
-                    // get element
-                    let $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
-                    if (!hasValue(modeldata)) {
-                        yield CommonEvent.setValue($elem, null);
-                    }
-                    else {
-                        // get element value from model
-                        let from = modeldata['value'][option.from];
-                        yield CommonEvent.setValue($elem, from);
-                    }
-                    // view filter execute
-                    CommonEvent.setFormFilter($elem);
-                    // add $elem to option
-                    option['elem'] = $elem;
                 }
-            });
+                // get element
+                let $elem = $changedata_target.find(CommonEvent.getClassKey(option.to));
+                if (!hasValue(modeldata)) {
+                    await CommonEvent.setValue($elem, null);
+                }
+                else {
+                    // get element value from model
+                    let from = modeldata['value'][option.from];
+                    await CommonEvent.setValue($elem, from);
+                }
+                // view filter execute
+                CommonEvent.setFormFilter($elem);
+                // add $elem to option
+                option['elem'] = $elem;
+            }
         }
         /**
          * set getmodel or getitem data to form
@@ -833,7 +1000,6 @@ var Exment;
             }).addClass('added-select2');
         }
         /**
-         * Get form block erea. (hasmany or default form)
          * @param block_name block name
          */
         static getBlockElement(block_name) {
@@ -869,9 +1035,17 @@ var Exment;
             }
             return $el.closest('.input-group').find('.fa-calendar').length > 0;
         }
+        /**
+         * Datepicker helpers used by addFieldEvent().
+         * Exment date inputs are matched by DATE_INPUT_SELECTOR; isExmentDatePickerInput() then excludes
+         * inputs that only inherit data-column_type="date" (the "X days" Number filter field).
+         */
         static get DATE_INPUT_SELECTOR() {
             return '[data-add-date], input[data-column_type="date"]';
         }
+        /**
+         * Element the datetimepicker is bound to: the .input-group.date wrapper when present, else the element itself.
+         */
         static datePickerTarget($el) {
             var $wrapper = $el.closest('.input-group.date');
             return $wrapper.length ? $wrapper : $el;
@@ -890,6 +1064,10 @@ var Exment;
             }
             return $el.data('DateTimePicker') || $group.data('DateTimePicker') || $input.data('DateTimePicker') || null;
         }
+        /**
+         * Initialize a datetimepicker for the element and return the instance.
+         * bootstrap-datetimepicker needs a relatively positioned widget parent: the input-group, else the form-group, else the parent.
+         */
         static initDatePicker($el) {
             var $parent = $el.closest('.input-group');
             if (!$parent.length) {
@@ -906,6 +1084,11 @@ var Exment;
                 .addClass('added-datepicker');
             return CommonEvent.findDatePicker($el);
         }
+        /**
+         * Toggle the "exment-dtp-opening" class on <html>. CSS uses it to keep the widget fixed and hidden at (0,0)
+         * until it is positioned, so opening a picker inside a scrollable table cannot create temporary scrollbars.
+         * A safety timeout clears it in case dp.show never fires (picker not initialized yet, etc.).
+         */
         static setDatePickerOpeningGuard(on) {
             var classList = document.documentElement.classList;
             if (window.__exment_dtp_opening_timer) {
@@ -921,6 +1104,10 @@ var Exment;
                 classList.remove('exment-dtp-opening');
             }, 1500);
         }
+        /**
+         * Move the widget to <body> (absolute positioning, so it follows the page scroll and is never clipped by
+         * overflow containers) and place it below the anchor input, or above when there is no room below.
+         */
         static placeDatePickerWidget($widget, $anchor) {
             $widget.css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden', 'z-index': 9999 });
             if ($widget.parent()[0] !== document.body) {
@@ -933,7 +1120,6 @@ var Exment;
                 var anchorTop = off.top - winTop, anchorLeft = off.left - winLeft;
                 var anchorH = $anchor.outerHeight(), anchorW = $anchor.outerWidth();
                 var widgetH = $widget.outerHeight(), widgetW = $widget.outerWidth();
-
                 // Vertical: prefer below, then above; otherwise clamp toward the side with more space.
                 var spaceBelow = winH - (anchorTop + anchorH), spaceAbove = anchorTop;
                 var placeBelow, top;
@@ -949,7 +1135,6 @@ var Exment;
                     placeBelow = spaceBelow >= spaceAbove;
                     top = placeBelow ? Math.min(anchorTop + anchorH, Math.max(0, winH - widgetH)) : Math.max(0, anchorTop - widgetH);
                 }
-
                 // Horizontal: align left, else align the right edge, else clamp to the viewport.
                 var left;
                 if (anchorLeft + widgetW <= winW) {
@@ -964,7 +1149,6 @@ var Exment;
                 // Shift slightly left when the input has an addon/icon so the arrow still points at the input.
                 var hasAddon = $anchor.closest('.input-group').find('.input-group-addon, .input-group-btn, .btn').length > 0;
                 left = Math.max(0, Math.min(left - (hasAddon ? 36 : 0), winW - widgetW));
-
                 $widget.toggleClass('top', !placeBelow).toggleClass('bottom', placeBelow)
                     .css({ top: winTop + top, left: winLeft + left, bottom: 'auto', right: 'auto' });
             }
@@ -975,113 +1159,104 @@ var Exment;
          */
         static addFieldEvent() {
             var SELECTOR = CommonEvent.DATE_INPUT_SELECTOR;
-
             // Lazy init/show (installed once): covers pages where the datetimepicker plugin loads after the initial AddEvent().
             if (!window.__exment_datepicker_lazy_init) {
                 window.__exment_datepicker_lazy_init = true;
                 $(document)
                     .off('click.exmentDtpLazy')
                     .on('click.exmentDtpLazy', SELECTOR, function () {
-                        try {
-                            if (typeof $.fn.datetimepicker !== 'function') {
-                                return;
-                            }
-                            var $src = $(this);
-                            // Skip Number filter fields that merely inherit data-column_type="date".
-                            if (!CommonEvent.isExmentDatePickerInput($src)) {
-                                return;
-                            }
-                            var picker = CommonEvent.findDatePicker($src) || CommonEvent.initDatePicker($src);
-                            if (picker && typeof picker.show === 'function') {
-                                picker.show();
-                            }
+                    try {
+                        if (typeof $.fn.datetimepicker !== 'function') {
+                            return;
                         }
-                        catch (e) {
+                        var $src = $(this);
+                        // Skip Number filter fields that merely inherit data-column_type="date".
+                        if (!CommonEvent.isExmentDatePickerInput($src)) {
+                            return;
                         }
-                    });
+                        var picker = CommonEvent.findDatePicker($src) || CommonEvent.initDatePicker($src);
+                        if (picker && typeof picker.show === 'function') {
+                            picker.show();
+                        }
+                    }
+                    catch (e) {
+                    }
+                });
             }
-
             if (typeof $.fn.datetimepicker === 'function') {
                 if (!window.__exment_datetimepicker_body_fix) {
                     window.__exment_datetimepicker_body_fix = true;
-
                     // Pre-show guard for pickers inside scrollable tables (see setDatePickerOpeningGuard).
                     $(document)
                         .off('mousedown.exmentDtpPrep pointerdown.exmentDtpPrep touchstart.exmentDtpPrep focusin.exmentDtpPrep')
                         .on('mousedown.exmentDtpPrep pointerdown.exmentDtpPrep touchstart.exmentDtpPrep focusin.exmentDtpPrep', SELECTOR + ', .input-group .input-group-addon, .input-group .btn', function (e) {
-                            try {
-                                var $src = $(this);
-                                var $dateInput = $src.is(SELECTOR) ? $src : $src.closest('.input-group').find('input[data-column_type="date"], input[data-add-date]').first();
-                                // Skip Number filter fields (e.g. "X days before/after") that only inherit
-                                // data-column_type="date"; their up/down buttons must keep working.
-                                if (!CommonEvent.isExmentDatePickerInput($dateInput) || !$dateInput.closest('.table-responsive').length) {
-                                    return;
-                                }
-                                CommonEvent.setDatePickerOpeningGuard(true);
-
-                                // Clicking the input itself already opens the picker (allowInputToggle); calling show() too
-                                // would open two widgets. For an addon/button click, open it ourselves and stop the default.
-                                if (e && (e.type === 'mousedown' || e.type === 'pointerdown' || e.type === 'touchstart') && !$src.is('input')) {
-                                    var picker = CommonEvent.findDatePicker($dateInput);
-                                    if (picker && typeof picker.show === 'function') {
-                                        picker.show();
-                                    }
-                                    return false;
-                                }
+                        try {
+                            var $src = $(this);
+                            var $dateInput = $src.is(SELECTOR) ? $src : $src.closest('.input-group').find('input[data-column_type="date"], input[data-add-date]').first();
+                            // Skip Number filter fields (e.g. "X days before/after") that only inherit
+                            // data-column_type="date"; their up/down buttons must keep working.
+                            if (!CommonEvent.isExmentDatePickerInput($dateInput) || !$dateInput.closest('.table-responsive').length) {
+                                return;
                             }
-                            catch (e2) {
+                            CommonEvent.setDatePickerOpeningGuard(true);
+                            // Clicking the input itself already opens the picker (allowInputToggle); calling show() too
+                            // would open two widgets. For an addon/button click, open it ourselves and stop the default.
+                            if (e && (e.type === 'mousedown' || e.type === 'pointerdown' || e.type === 'touchstart') && !$src.is('input')) {
+                                var picker = CommonEvent.findDatePicker($dateInput);
+                                if (picker && typeof picker.show === 'function') {
+                                    picker.show();
+                                }
+                                return false;
                             }
-                        })
+                        }
+                        catch (e2) {
+                        }
+                    })
                         .off('dp.hide.exmentDtpPrep')
                         .on('dp.hide.exmentDtpPrep', function () {
-                            CommonEvent.setDatePickerOpeningGuard(false);
-                        });
-
+                        CommonEvent.setDatePickerOpeningGuard(false);
+                    });
                     // dp.show may be triggered on a plain .input-group wrapper (no .date class); only act for Exment date inputs.
                     $(document)
                         .off('dp.show.exmentFix')
                         .on('dp.show.exmentFix', function (ev) {
-                            try {
-                                var $t = $(ev.target);
-                                var isExmentDate = $t.is(SELECTOR) ||
-                                    $t.closest('[data-add-date]').length > 0 ||
-                                    $t.closest('.input-group').find('input[data-column_type="date"]').length > 0;
-                                if (!isExmentDate) {
-                                    return;
-                                }
-
-                                // If another datepicker plugin is also bound, hide it to avoid "two calendars".
-                                $('.datepicker.datepicker-dropdown:visible').hide();
-
-                                var $anchor = $t.is('input') ? $t : $t.closest('.input-group').find('input[data-column_type="date"], input[data-add-date], input').first();
-                                // Ensure the pre-show guard is set even for a keyboard-triggered show.
-                                if ($anchor.length && $anchor.closest('.table-responsive').length) {
-                                    CommonEvent.setDatePickerOpeningGuard(true);
-                                }
-
-                                // IMPORTANT: do not call picker.widgetParent() here; that method triggers hide/show.
-                                var picker = CommonEvent.findDatePicker($t);
-                                var $widget = (picker && typeof picker.widget === 'function') ? picker.widget() : null;
-                                if (!$widget || !$widget.length) {
-                                    // Fallback: some pages store the instance differently.
-                                    $widget = $('.bootstrap-datetimepicker-widget:visible').first();
-                                }
-                                if (!$widget.length) {
-                                    return;
-                                }
-                                // Repeated init or a race can leave more than one widget; keep only this one visible.
-                                $('.bootstrap-datetimepicker-widget:visible').not($widget)
-                                    .css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden' })
-                                    .hide();
-                                CommonEvent.placeDatePickerWidget($widget, $anchor);
-                                CommonEvent.setDatePickerOpeningGuard(false);
+                        try {
+                            var $t = $(ev.target);
+                            var isExmentDate = $t.is(SELECTOR) ||
+                                $t.closest('[data-add-date]').length > 0 ||
+                                $t.closest('.input-group').find('input[data-column_type="date"]').length > 0;
+                            if (!isExmentDate) {
+                                return;
                             }
-                            catch (e) {
-                                // swallow to avoid breaking picker display
+                            // If another datepicker plugin is also bound, hide it to avoid "two calendars".
+                            $('.datepicker.datepicker-dropdown:visible').hide();
+                            var $anchor = $t.is('input') ? $t : $t.closest('.input-group').find('input[data-column_type="date"], input[data-add-date], input').first();
+                            // Ensure the pre-show guard is set even for a keyboard-triggered show.
+                            if ($anchor.length && $anchor.closest('.table-responsive').length) {
+                                CommonEvent.setDatePickerOpeningGuard(true);
                             }
-                        });
+                            // IMPORTANT: do not call picker.widgetParent() here; that method triggers hide/show.
+                            var picker = CommonEvent.findDatePicker($t);
+                            var $widget = (picker && typeof picker.widget === 'function') ? picker.widget() : null;
+                            if (!$widget || !$widget.length) {
+                                // Fallback: some pages store the instance differently.
+                                $widget = $('.bootstrap-datetimepicker-widget:visible').first();
+                            }
+                            if (!$widget.length) {
+                                return;
+                            }
+                            // Repeated init or a race can leave more than one widget; keep only this one visible.
+                            $('.bootstrap-datetimepicker-widget:visible').not($widget)
+                                .css({ position: 'absolute', top: 0, left: 0, right: 'auto', bottom: 'auto', visibility: 'hidden' })
+                                .hide();
+                            CommonEvent.placeDatePickerWidget($widget, $anchor);
+                            CommonEvent.setDatePickerOpeningGuard(false);
+                        }
+                        catch (e) {
+                            // swallow to avoid breaking picker display
+                        }
+                    });
                 }
-
                 // Initialize pickers for the date inputs already on the page.
                 var targets = $(SELECTOR).filter(function () {
                     return CommonEvent.isExmentDatePickerInput($(this));
@@ -1457,3 +1632,24 @@ const b64toBlob = (b64Data, contentType = '', sliceSize = 512) => {
     const blob = new Blob(byteArrays, { type: contentType });
     return blob;
 };
+/**
+ * A switch field (YES/NO, boolean column) is a checkbox that bootstrapSwitch turns into a switch, and a hidden
+ * input next to it holds the value that is posted. When the switch is not made (e.g. a script stopped before it,
+ * #1716), the checkbox stays a plain checkbox and changing it did not change the hidden input, so the first value
+ * was saved. Keep the hidden input in step with the plain checkbox. (bootstrapSwitch triggers only
+ * "change.bootstrapSwitch", so this does not run for a working switch.)
+ */
+$(document).on('change', 'input[type="checkbox"].la_checkbox[data-onvalue]', function () {
+    const $checkbox = $(this);
+    if ($checkbox.closest('.bootstrap-switch').length > 0) {
+        return;
+    }
+    const $hidden = $checkbox.nextAll('input[type="hidden"]').first();
+    if ($hidden.length == 0) {
+        return;
+    }
+    const value = String($checkbox.prop('checked') ? $checkbox.data('onvalue') : $checkbox.data('offvalue'));
+    if ($hidden.val() !== value) {
+        $hidden.val(value).trigger('change');
+    }
+});

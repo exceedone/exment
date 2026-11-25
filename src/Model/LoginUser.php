@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Storage;
 use Exceedone\Exment\Notifications\MailSender;
 use Exceedone\Exment\Enums\MailKeyName;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 /**
  * @phpstan-consistent-constructor
@@ -106,7 +107,8 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         foreach (System::header_user_info() as $field) {
             if ($field == SystemColumn::CREATED_AT) {
                 $title = exmtrans('common.created_at');
-                $value = $base_user->created_at;
+                // in the time zone of the user (ISS02835)
+                $value = \Exceedone\Exment\Services\UserTimezone::display($base_user->created_at);
             } else {
                 /** @var CustomColumn|null $column */
                 $column = CustomColumn::find($field);
@@ -116,7 +118,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
                 $title = $column->column_view_name;
                 $value = $base_user->getValue($column->column_name, true);
             }
-            $headers[] = exmtrans('common.format_keyvalue', $title, $value);
+            if (is_array($value)) {
+                $value = implode(exmtrans('common.separate_word'), $value);
+            }
+            // the header prints this as HTML; the names and values are text a user may write
+            $headers[] = exmtrans('common.format_keyvalue', esc_html($title), esc_html($value));
         }
         return implode('<br />', $headers);
     }
@@ -133,6 +139,11 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
         $avatar = $this->avatar;
         if ($avatar) {
             return Storage::disk(config('admin.upload.disk'))->url($avatar);
+        }
+        // without one: the initials of the user's name, as ExmentPM draws them
+        $base = $this->base_user;
+        if (isset($base)) {
+            return \Exceedone\Exment\Services\InitialsAvatar::url(strval($base->getLabel()));
         }
         return asset(Define::USER_IMAGE_LINK);
     }
@@ -337,6 +348,12 @@ class LoginUser extends ModelBase implements \Illuminate\Contracts\Auth\Authenti
 
         static::saving(function ($model) {
             $model->setBcryptPassword();
+
+            // A "remember me" cookie is checked only against remember_token, not against the password.
+            // Renew the token when the password changes, so that the cookies issued before no longer sign in.
+            if ($model->exists && $model->isDirty('password')) {
+                $model->setRememberToken(Str::random(60));
+            }
         });
 
         static::saved(function ($model) {

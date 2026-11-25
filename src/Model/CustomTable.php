@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ShowPositionType;
 use Exceedone\Exment\Enums\FileType;
 use Exceedone\Exment\Revisionable\Revision;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\FormHelper;
 use Exceedone\Exment\Validator\EmptyRule;
 use Exceedone\Exment\Validator\CustomValueRule;
@@ -425,7 +426,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         $custom_value = $this->getValueModel($id);
-
         if (isset($custom_value)) {
             $custom_form_priorities = $this->custom_form_priorities->sortBy('order');
             foreach ($custom_form_priorities as $custom_form_priority) {
@@ -482,10 +482,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Get Label Columns.
      *
-     * @return Collection|string
+        * @return Collection<int, CustomColumnMulti>|string
      */
-
-    // @phpstan-ignore-next-line
     public function getLabelColumns()
     {
         $key = 'custom_table_use_label_flg_' . $this->table_name;
@@ -494,7 +492,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             if (boolval(config('exment.expart_mode', false)) && isset($table_label_format)) {
                 return $table_label_format;
             }
-            return $this->table_labels;
+            $labelColumns = CustomColumnMulti::allRecords(function ($labelColumn) {
+                return $labelColumn->custom_table_id == $this->id
+                    && $labelColumn->multisetting_type == MultisettingType::TABLE_LABELS;
+            }, false);
+            return $labelColumns->values();
         });
     }
 
@@ -680,6 +682,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
+            // the name becomes a table name in SQL; a template or an import
+            // saves without the screen's check, so a new or changed name is checked here
+            if ($model->isDirty('table_name') && !preg_match('/\A[a-zA-Z0-9_-]+\z/', (string)$model->table_name)) {
+                throw new \InvalidArgumentException('Invalid table name: ' . json_encode((string)$model->table_name));
+            }
             $model->prepareJson('options');
         });
 
@@ -769,6 +776,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $errors = array_merge(
             $this->validatorPlugin($value, $custom_value, ['called_type' => $options['calledType']]),
+            $errors
+        );
+
+        // demo mode: the login ID of a user who can log in stays
+        $errors = array_merge(
+            DemoMode::userLoginErrors($this, $value, $custom_value, $options),
             $errors
         );
 
@@ -1381,9 +1394,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
         if (isset($query_key)) {
             // get table
-            $obj = static::firstRecordCache(function ($table) use ($query_key, $obj) {
-                return array_get($table, $query_key) == $obj;
-            });
+            $obj = static::firstRecordCacheBy([$query_key], [$obj]);
             if (!isset($obj)) {
                 return null;
             }
@@ -2195,8 +2206,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return true;
         }
         // if custom table option's select_load_ajax is true, return false (as ajax).
-        elseif (isset($options['custom_column']) && boolval(array_get($options['custom_column'], 'options.select_load_ajax'))) {
-            return false;
+        elseif (isset($options['custom_column'])) {
+            $customColumn = $options['custom_column'];
+            $selectLoadAjax = $customColumn instanceof CustomColumn
+                ? $customColumn->getOption('select_load_ajax')
+                : array_get($customColumn, 'options.select_load_ajax');
+            if (boolval($selectLoadAjax)) {
+                return false;
+            }
         }
 
         // get count table. get Database value directly
@@ -2304,14 +2321,18 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     protected function getAccessibleUserOrganizationIds($target_table)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE, $target_table, $this->table_name);
-        return System::requestSession($key, function () use ($target_table) {
+        $userId = \Exment::getUserId();
+        $key .= '.user.' . md5((string) ($userId ?? 'guest'));
+        $resolver = function () use ($target_table) {
             // $target_table : user or org
             $table = CustomTable::getEloquent($target_table);
             $query = $table->getValueQuery();
             $table->filterDisplayTable($query, $this);
 
             return $query->select(['id'])->pluck('id');
-        });
+        };
+
+        return isset($userId) ? System::cache($key, $resolver) : System::requestSession($key, $resolver);
     }
 
 
@@ -2403,7 +2424,6 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $options
         );
         $selected_value = $options['selected_value'];
-
         // if ajax, return []. (set callQuery is false)
         if (!$this->isGetOptions(array_merge(['callQuery' => false], $options))) {
             return $this->getSelectedOptionDefault($selected_value);
@@ -2417,11 +2437,45 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             return $this->getSelectedOptionDefault($selected_value);
         }
 
-        $items = $query->get()->pluck("label", "id");
+        $items = $this->getRequestCachedSelectOptions($options, function () use ($query) {
+            $models = $query->get();
+
+            return $models->mapWithKeys(function ($model) {
+                return [$model->id => $model->label];
+            });
+        });
 
         return $this->putSelectedValue($items, $selected_value, $options);
     }
 
+    /**
+     * Reuse an unfiltered select option list while rendering one request.
+     *
+     * Filtered options may depend on arbitrary closures or view state, so they
+     * deliberately bypass this cache.
+     *
+     * @param array<string, mixed> $options
+     * @param \Closure $resolver
+     * @return Collection<int|string, mixed>
+     */
+    protected function getRequestCachedSelectOptions(array $options, \Closure $resolver): Collection
+    {
+        if (isset($options['filterCallback']) || isset($options['target_view']) || isset($options['target_id'])) {
+            return $resolver();
+        }
+
+        $displayTable = array_get($options, 'display_table');
+        $displayTable = $displayTable instanceof CustomTable ? $displayTable->id : $displayTable;
+        $key = 'select_options.' . $this->id . '.' . md5(json_encode([
+            'display_table' => $displayTable,
+            'all' => boolval(array_get($options, 'all')),
+            'permission' => array_get($options, 'permission'),
+        ]) ?: '');
+
+        /** @var Collection<int|string, mixed> $cached */
+        $cached = System::requestSession($key, $resolver);
+        return clone $cached;
+    }
     /**
      * get ajax uri for options for select, multipleselect.
      *
@@ -3255,6 +3309,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasPermission($role_key = Permission::AVAILABLE_VIEW_CUSTOM_VALUE)
     {
+        // the rule of an application for this table (TablePolicy)
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->table_name)) && !is_null($decided = $policy->hasPermission($this, $role_key))) {
+            return $decided;
+        }
         // if system doesn't use role, return true
         if (!System::permission_available()) {
             return true;
@@ -3342,6 +3400,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasPermissionData($id)
     {
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->table_name)) && !is_null($decided = $policy->hasPermissionData($this, $id))) {
+            return $decided;
+        }
         $result = $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_CUSTOM_VALUE, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE);
 
         // check parent data permission
@@ -3373,6 +3434,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasPermissionEditData($id)
     {
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->table_name)) && !is_null($decided = $policy->hasPermissionEditData($this, $id))) {
+            return $decided;
+        }
         return $this->_hasPermissionData($id, Permission::AVAILABLE_ACCESS_CUSTOM_VALUE, Permission::AVAILABLE_ALL_EDIT_CUSTOM_VALUE, Permission::AVAILABLE_EDIT_CUSTOM_VALUE);
     }
 
@@ -3993,6 +4057,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     public function validateValueDestroy($id)
     {
         $ids = stringToArray($id);
+
+        // demo mode: a user who can log in is not deleted
+        if (!is_null($res = DemoMode::userDestroyError($this, $ids))) {
+            return $res;
+        }
 
         // check if data referenced
         if ($this->checkReferenced($this, $ids)) {

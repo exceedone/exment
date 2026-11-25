@@ -1,0 +1,251 @@
+{
+    "template_view_name": "제품 판매 회사용 템플릿",
+    "description": "제품 판매 회사용 템플릿입니다. 계약 관리와 제품 관리가 포함되어 있습니다.",
+    "custom_tables": [
+        {
+            "table_name": "client",
+            "table_view_name": "고객",
+            "description": "고객 정보를 관리합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "client_code",
+                    "column_view_name": "고객 코드"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "고객명"
+                }
+            ]
+        },
+        {
+            "table_name": "agency",
+            "table_view_name": "대리점",
+            "custom_columns": [
+                {
+                    "column_name": "agency_code",
+                    "column_view_name": "대리점 코드"
+                },
+                {
+                    "column_name": "agency_name",
+                    "column_view_name": "대리점명"
+                }
+            ]
+        },
+        {
+            "table_name": "product",
+            "table_view_name": "제품",
+            "custom_columns": [
+                {
+                    "column_name": "product_code",
+                    "column_view_name": "제품 코드"
+                },
+                {
+                    "column_name": "product_name",
+                    "column_view_name": "제품명"
+                }
+            ]
+        },
+        {
+            "table_name": "product_version",
+            "table_view_name": "제품 버전",
+            "custom_columns": [
+                {
+                    "column_name": "product_version_code",
+                    "column_view_name": "제품 버전 코드"
+                },
+                {
+                    "column_name": "product_version_name",
+                    "column_view_name": "제품 버전명"
+                },
+                {
+                    "column_name": "cost",
+                    "column_view_name": "원가"
+                }
+            ]
+        },
+        {
+            "table_name": "contract",
+            "table_view_name": "계약",
+            "custom_columns": [
+                {
+                    "column_name": "contract_code",
+                    "column_view_name": "계약 코드"
+                },
+                {
+                    "column_name": "client",
+                    "column_view_name": "고객"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "상태",
+                    "options": {
+                        "select_item_valtext": "1,문의\n2,체험\n3,견적\n4,청구\n5,유지보수\n6,완료"
+                    }
+                },
+                {
+                    "column_name": "contract_date",
+                    "column_view_name": "계약일"
+                },
+                {
+                    "column_name": "trial_start_date",
+                    "column_view_name": "체험 시작일"
+                },
+                {
+                    "column_name": "trial_end_date",
+                    "column_view_name": "체험 종료일"
+                },
+                {
+                    "column_name": "mitumorisyo_date",
+                    "column_view_name": "견적서 작성일"
+                },
+                {
+                    "column_name": "seikyusyo_date",
+                    "column_view_name": "청구서 작성일"
+                },
+                {
+                    "column_name": "nyukin_planed_date",
+                    "column_view_name": "입금 예정일"
+                },
+                {
+                    "column_name": "nyukin_date",
+                    "column_view_name": "입금일"
+                },
+                {
+                    "column_name": "attachment_files",
+                    "column_view_name": "첨부 파일"
+                },
+                {
+                    "column_name": "subscription_claim_type",
+                    "column_view_name": "월 계약/연 계약",
+                    "options": {
+                        "select_item": [
+                            "月間",
+                            "年間"
+                        ]
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_term",
+                    "column_view_name": "계약 기간(월/년)",
+                    "options": {
+                        "help": "월 계약인 경우 계약할 개월 수를, 연 계약인 경우 계약할 연수를 입력하십시오."
+                    }
+                },
+                {
+                    "column_name": "subscription_agreement_start_date",
+                    "column_view_name": "계약 시작일"
+                },
+                {
+                    "column_name": "subscription_agreement_limit_date",
+                    "column_view_name": "계약 만료일"
+                },
+                {
+                    "column_name": "subscription_end_date",
+                    "column_view_name": "계약 종료일"
+                }
+            ]
+        },
+        {
+            "table_name": "contract_detail",
+            "table_view_name": "계약 명세",
+            "custom_columns": [
+                {
+                    "column_name": "fixed_price",
+                    "column_view_name": "정가"
+                },
+                {
+                    "column_name": "comment",
+                    "column_view_name": "코멘트"
+                },
+                {
+                    "column_name": "product_version_id",
+                    "column_view_name": "제품 버전"
+                },
+                {
+                    "column_name": "num",
+                    "column_view_name": "수량"
+                },
+                {
+                    "column_name": "zeinuki_price",
+                    "column_view_name": "세전 가격"
+                },
+                {
+                    "column_name": "tax_rate",
+                    "column_view_name": "세율"
+                },
+                {
+                    "column_name": "tax_price",
+                    "column_view_name": "세액"
+                },
+                {
+                    "column_name": "zeikomi_price",
+                    "column_view_name": "세금 포함 가격"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "29150ee399f540216b6d",
+            "form_view_name": "폼"
+        },
+        {
+            "suuid": "5f861dd652ee0fbff3a2",
+            "form_view_name": "폼",
+            "custom_form_blocks": [
+                {
+                    "custom_form_columns": [
+                        {
+                            "options": {
+                                "text": "구독 계약 정보"
+                            },
+                            "form_column_target_name": "header"
+                        }
+                    ],
+                    "form_block_target_table_name": null
+                },
+                {
+                    "form_block_view_name": "하위 테이블 - 계약 항목",
+                    "form_block_target_table_name": "contract_detail"
+                }
+            ]
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "table",
+            "menu_name": "contract",
+            "title": "계약"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "contract2",
+            "title": "계약"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "client",
+            "title": "고객"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "product",
+            "title": "제품"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "agency",
+            "title": "대리점"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "saller",
+            "title": "영업 지원(SFA)"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "manage",
+            "title": "고객 관리(CRM)"
+        }
+    ]
+}

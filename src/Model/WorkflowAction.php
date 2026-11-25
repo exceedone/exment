@@ -415,6 +415,15 @@ class WorkflowAction extends ModelBase
         $workflow_value = null;
         $status_to = $this->getStatusToId($custom_value);
 
+        // The users of the next step come from the request only where the next
+        // step lets the user pick them (ACTION_SELECT), and only as users or
+        // organizations that exist. Otherwise the workflow's own setting decides.
+        if (array_key_exists('next_work_users', $data)) {
+            $data['next_work_users'] = ($next === true)
+                ? $this->filterSelectedNextWorkUsers($status_to, $data['next_work_users'])
+                : [];
+        }
+
         // capture the other members of the assigned organization(s)
         // BEFORE forwarding (ACTION_SELECT authorities are read from the current workflow value).
         $sameOrgUserIds = ($next === true)
@@ -890,6 +899,42 @@ class WorkflowAction extends ModelBase
     }
 
     /**
+     * What running this action on the record needs about the next work users - the same
+     * checks actionModal() makes before it shows the submit button (#1648, run on many records).
+     *
+     * @param CustomValue $custom_value
+     * @return array{select: bool, found: bool} select: the next users have to be chosen (ACTION_SELECT);
+     *     found: when they are not chosen, someone can do the next step
+     */
+    public function getNextWorkUsersRequirement($custom_value): array
+    {
+        $result = ['select' => false, 'found' => true];
+
+        $statusTo = $this->getStatusToId($custom_value);
+        if ($this->isActionNext($custom_value) !== true || WorkflowStatus::getWorkflowStatusCompleted($statusTo)) {
+            return $result;
+        }
+
+        $nextActions = WorkflowStatus::getActionsByFrom($statusTo, $this->workflow);
+        $normalActions = $nextActions->filter(function ($action) {
+            return !boolval($action->ignore_work);
+        });
+        if ($normalActions->count() == 0) {
+            return $result;
+        }
+
+        if ($nextActions->contains(function ($nextAction) {
+            return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+        })) {
+            $result['select'] = true;
+            return $result;
+        }
+
+        $result['found'] = $this->getNextActionAuthorities($custom_value, $statusTo, $normalActions)->count() > 0;
+        return $result;
+    }
+
+    /**
      * Get action modal form
      *
      * @param CustomValue $custom_value
@@ -1195,5 +1240,36 @@ class WorkflowAction extends ModelBase
             // @phpstan-ignore-next-line
             $query->whereColumn(SystemTableName::WORKFLOW_ACTION . '.status_from', SystemTableName::WORKFLOW_VALUE . '.workflow_status_to_id');
         }
+    }
+
+    /**
+     * The users and organizations picked for the next step, kept only when the
+     * next step is picked at the action (ACTION_SELECT).
+     *
+     * @param mixed $status_to
+     * @param mixed $selected "user_{id}" / "organization_{id}"
+     * @return array<string>
+     */
+    protected function filterSelectedNextWorkUsers($status_to, $selected): array
+    {
+        $nextActions = WorkflowStatus::getActionsByFrom($status_to, $this->workflow);
+        $select = $nextActions->contains(function ($nextAction) {
+            return $nextAction->getOption('work_target_type') == WorkflowWorkTargetType::ACTION_SELECT;
+        });
+        if (!$select) {
+            return [];
+        }
+
+        $result = [];
+        foreach (collect(toArray($selected))->filter() as $user_organization) {
+            if (!is_string($user_organization) || !preg_match('/^(user|organization)_(\d+)$/', $user_organization, $m)) {
+                continue;
+            }
+            $table = CustomTable::getEloquent($m[1] == 'user' ? SystemTableName::USER : SystemTableName::ORGANIZATION);
+            if ($table && $table->getValueModel()->query()->withoutGlobalScopes()->where('id', $m[2])->exists()) {
+                $result[] = $user_organization;
+            }
+        }
+        return $result;
     }
 }

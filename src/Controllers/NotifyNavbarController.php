@@ -12,8 +12,9 @@ use Exceedone\Exment\Form\Tools\SwalMenuButton;
 use Exceedone\Exment\Grid\Tools\BatchCheck;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\NotifyNavbar;
-use Exceedone\Exment\Model\Plugin;
-use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Services\RecordUrl;
+use Exceedone\Exment\Services\UserTimezone;
+use ExmentAdminCore\Admin\Layout\Content;
 
 class NotifyNavbarController extends AdminControllerBase
 {
@@ -42,7 +43,10 @@ class NotifyNavbarController extends AdminControllerBase
             return $custom_table->table_view_name;
         });
         $grid->column('notify_subject', exmtrans('notify_navbar.notify_subject'))->sortable();
-        $grid->column('created_at', exmtrans('common.created_at'))->sortable();
+        // in the time zone of the user (ISS02835)
+        $grid->column('created_at', exmtrans('common.created_at'))->sortable()->display(function ($created_at) {
+            return UserTimezone::display($created_at);
+        });
 
         $grid->disableCreation();
         $grid->disableExport();
@@ -57,6 +61,14 @@ class NotifyNavbarController extends AdminControllerBase
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableEdit();
+
+            // notify_navbar/{id} opens the record of a notification; the eye
+            // opens the notification itself
+            $actions->disableView();
+            $actions->prepend((new Linker())
+                ->url(admin_url("notify_navbar/{$actions->row->id}") . '?content=1')
+                ->icon('fa-eye')
+                ->tooltip(exmtrans('notify_navbar.show_content')));
 
             if (isset($actions->row->parent_id)) {
                 // reference target data
@@ -139,6 +151,30 @@ class NotifyNavbarController extends AdminControllerBase
     protected function form($id = null)
     {
         return new Form(new NotifyNavbar());
+    }
+
+    /**
+     * Open a notification.
+     *
+     * A notification of a record the user may see is marked read and opens
+     * that record - on the screen of the plugin that shows the table, when
+     * one does (RecordUrl). The notification itself is shown with ?content=1,
+     * and when there is no record, or the user may not see it.
+     *
+     * @param mixed $id
+     */
+    public function show(Request $request, Content $content, $id)
+    {
+        if (!boolval($request->query('content'))) {
+            $model = NotifyNavbar::find($id);
+            $custom_value = $model instanceof NotifyNavbar ? $this->accessibleRecord($model) : null;
+            if ($model instanceof NotifyNavbar && isset($custom_value)) {
+                $this->markRead($model);
+                return redirect(RecordUrl::url($custom_value));
+            }
+        }
+
+        return parent::show($request, $content, $id);
     }
 
     /**
@@ -235,6 +271,8 @@ class NotifyNavbarController extends AdminControllerBase
             }
 
             \DB::commit();
+            // query()->update() and delete() skip the model events (ISS02824)
+            NotifyNavbar::navbarCacheForget(\Exment::getUserId());
 
             return getAjaxResponse([
                 'result'  => true,
@@ -261,78 +299,53 @@ class NotifyNavbarController extends AdminControllerBase
     {
         $model = NotifyNavbar::find($id);
 
-        if (!isset($model)) {
+        if (!$model instanceof NotifyNavbar) {
             abort(404);
         }
 
-        // update read_flg
-        // @phpstan-ignore-next-line
-        if ($model->read_flg == 0) {
-            // @phpstan-ignore-next-line
-            $model->update(['read_flg' => true]);
-        }
+        $this->markRead($model);
 
-        // @phpstan-ignore-next-line
-        $custom_table = getModelName($model->parent_type);
-
-        if (is_nullorempty($custom_table)) {
-            return back();
-        }
-
-        // @phpstan-ignore-next-line
-        $custom_value = $custom_table::find($model->parent_id);
-
+        // no record, or one the user may not see: the notification itself
+        $custom_value = $this->accessibleRecord($model);
         if (!isset($custom_value)) {
-            return back();
+            return redirect(admin_url("notify_navbar/{$model->id}") . '?content=1');
         }
 
-        // A plugin can own the screen for a table - the project portal does -
-        // and then the bell should open that screen instead of the raw data
-        // page. Falls through to the data page when no plugin claims the row.
-        $portal_url = $this->pluginRecordUrl($custom_value);
-        if (isset($portal_url)) {
-            return redirect($portal_url);
-        }
-
-        // redirect custom value page
-        return redirect($custom_value->getUrl());
+        // the screen of the plugin that shows the table, else the data page
+        return redirect(RecordUrl::url($custom_value));
     }
 
     /**
-     * Ask the installed page plugins whether one of them owns this record.
+     * The record of a notification, when it still exists and the login user
+     * may see it.
      *
-     * Plugin classes are autoloaded lazily, so each plugin is required before
-     * its definition class can be looked up. A plugin opts in by exposing
-     * {namespace}\PortalDefinition::portalRecordUrl().
-     *
-     * @param mixed $custom_value
-     * @return string|null
+     * The record is read without the permission scope and then asked, so a
+     * record the user may not see answers the same as one that is gone.
      */
-    protected function pluginRecordUrl($custom_value): ?string
+    protected function accessibleRecord(NotifyNavbar $model): ?CustomValue
     {
-        // The plugin records, not their page classes: requirePlugin() and
-        // getNameSpace() exist only on the record.
-        foreach (Plugin::getByPluginTypes(PluginType::PAGE) as $plugin) {
-            try {
-                $plugin->requirePlugin();
-
-                $class = $plugin->getNameSpace() . '\\PortalDefinition';
-                if (!method_exists($class, 'portalRecordUrl')) {
-                    continue;
-                }
-
-                $url = $class::portalRecordUrl($custom_value);
-            } catch (\Throwable $ex) {
-                // A broken plugin must not stop the bell from opening the record.
-                \Log::error($ex);
-                continue;
-            }
-            if (isset($url)) {
-                return $url;
-            }
+        $parent_type = $model->parent_type;
+        if (is_nullorempty($parent_type) || is_nullorempty($model->parent_id)) {
+            return null;
+        }
+        $custom_table = CustomTable::getEloquent($parent_type);
+        if (!isset($custom_table)) {
+            return null;
+        }
+        $custom_value = $custom_table->getValueModel()->newQueryWithoutScopes()
+            ->whereNull('deleted_at')->find($model->parent_id);
+        if (!$custom_value instanceof CustomValue) {
+            return null;
         }
 
-        return null;
+        return $custom_value->enableAccess() === true ? $custom_value : null;
+    }
+
+    protected function markRead(NotifyNavbar $model): void
+    {
+        if ($model->read_flg == 0) {
+            $model->update(['read_flg' => true]);
+        }
     }
 
     /**

@@ -16,7 +16,10 @@
  <link rel="stylesheet" href="{{ admin_asset('/vendor/open-admin/toastr/build/toastr.min.css') }}">
  <!-- iCheck (kept for now, but consider replacing with Bootstrap 5 native form controls) -->
  <link rel="stylesheet" href="{{ admin_asset('/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css') }}">
- <link rel="stylesheet" href="{{ asset('vendor/exment/css/install.css')}}">
+ <link rel="stylesheet" href="{{ admin_asset('vendor/exment/css/install.css')}}">
+ <link rel="icon" href="{{ asset('images/exment_favicon.png') }}" sizes="32x32">
+ <link rel="icon" href="{{ asset('images/exment_mark.svg') }}" type="image/svg+xml">
+ <link rel="apple-touch-icon" href="{{ asset('images/exment_apple_touch_icon.png') }}">
  
   <!-- custom css -->
   <link rel="stylesheet" href="{{ admin_asset('vendor/open-admin/open-admin/css/custom.css') }}">
@@ -25,7 +28,7 @@
 <body class="d-flex justify-content-center bg-light" style="padding-top: 130px;">
   <div class="d-flex flex-column justify-content-center">
     <div class="login-logo mb-3 text-center">
-      <img src="{{ asset('images/exment_logo_side.png') }}" />
+      <img src="{{ asset('images/exment_logo.svg') }}" alt="Exment" width="360" />
     </div>
     <div class="card shadow rounded p-4 {{ $login_box_classname ?? '' }}">
       @yield('content')

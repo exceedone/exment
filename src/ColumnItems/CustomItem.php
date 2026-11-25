@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumnMulti;
 use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\Traits\ColumnOptionQueryTrait;
 use Exceedone\Exment\Enums\FormLabelType;
 use Exceedone\Exment\Enums\ColumnType;
@@ -55,6 +56,13 @@ abstract class CustomItem implements ItemInterface
      */
     // @phpstan-ignore-next-line
     public static $availableFields = [];
+
+    /**
+     * Sanitized form help, scoped to the current PHP request.
+     *
+     * @var array<string, string|null>
+     */
+    protected static $cleanedHelpCache = [];
 
 
     // @phpstan-ignore-next-line
@@ -295,7 +303,8 @@ abstract class CustomItem implements ItemInterface
         $this->custom_value = $this->getTargetCustomValue($custom_value);
         $this->value = $this->getTargetValue($custom_value);
         if (isset($custom_value)) {
-            $this->id = array_get($custom_value, 'id');
+            // a record: its id straight (array_get walks the model as an array, once per cell of a list)
+            $this->id = $custom_value instanceof CustomValue ? $custom_value->id : array_get($custom_value, 'id');
         }
 
         $this->prepare();
@@ -324,7 +333,7 @@ abstract class CustomItem implements ItemInterface
     protected function getTargetValue($custom_value)
     {
         // if options has "summary" (for summary view)
-        if (boolval(array_get($this->options, 'summary'))) {
+        if (!empty($this->options['summary'])) {
             $v = array_get($custom_value, $this->sqlAsName());
             if (array_get($this->options, 'group_condition') == 'w') {
                 return $this->getWeekdayFormat($v);
@@ -332,15 +341,20 @@ abstract class CustomItem implements ItemInterface
             return $v;
         }
         // if options has "summary_child" (for not only summary view, but also default view)
-        if (isset($custom_value) && boolval(array_get($this->options, 'summary_child'))) {
+        if (isset($custom_value) && !empty($this->options['summary_child'])) {
             return $custom_value->getSum($this->custom_column);
         }
 
         // if options has "view_pivot_column", get select_table's custom_value first
-        if (isset($custom_value) && array_key_value_exists('view_pivot_column', $this->options)) {
+        if (isset($custom_value) && !is_nullorempty($this->options['view_pivot_column'] ?? null)) {
             return $this->getViewPivotValue($custom_value, $this->options);
         }
 
+        // a record: its value straight (the same as array_get, without walking the model as an array)
+        if ($custom_value instanceof CustomValue) {
+            $values = $custom_value->decodedValue();
+            return is_array($values) ? ($values[$this->custom_column->column_name] ?? null) : null;
+        }
         return array_get($custom_value, 'value.'.$this->custom_column->column_name);
     }
 
@@ -660,7 +674,10 @@ abstract class CustomItem implements ItemInterface
         // get help
         $help = $this->getHelp();
         if (isset($help)) {
-            $field->help(html_clean($help));
+            if (!array_key_exists($help, static::$cleanedHelpCache)) {
+                static::$cleanedHelpCache[$help] = html_clean($help);
+            }
+            $field->help(static::$cleanedHelpCache[$help]);
         }
         // append help
         $this->appendHelp($field);

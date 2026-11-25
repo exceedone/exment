@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use ExmentAdminCore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
+use Exceedone\Exment\Services\DemoMode;
 
 /**
  * Middleware as Bootstrap.
@@ -55,11 +56,19 @@ class Bootstrap
             $navbar->right(new \Exceedone\Exment\Form\Navbar\WorkflowTaskNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\HelpNav());
             $navbar->right(new \Exceedone\Exment\Form\Navbar\NotifyNav());
+            if (DemoMode::enabled()) {
+                $navbar->left(new \Exceedone\Exment\Form\Navbar\DemoModeNav());
+            }
+            // maintenance mode: in it, or planned
+            $maintenance = \Exceedone\Exment\Form\Navbar\MaintenanceNav::make();
+            if (isset($maintenance)) {
+                $navbar->left($maintenance);
+            }
         });
-        Ad::js(asset('lib/js/jquery-ui.min.js'));
-        Ad::css(asset('lib/css/jquery-ui.min.css'));
+        static::setCssJsList(['lib/js/jquery-ui.min.js'], false);
+        static::setCssJsList(['lib/css/jquery-ui.min.css'], true);
 
-        Ad::js(asset('lib/js/bignumber.min.js'));
+        static::setCssJsList(['lib/js/bignumber.min.js'], false);
 
         static::setCssJsList([
             // iCheck is not decoration here. Grid\Displayers\RowSelector
@@ -89,10 +98,21 @@ class Bootstrap
             'vendor/exment/css/grid_tools.css',
         ], true, true);
 
+        // The "modern" screen design (system setting "Screen design", or
+        // EXMENT_UI_DESIGN on the server). With "classic" the stylesheet is
+        // not even requested. It goes after grid_tools.css because it
+        // overrides that file's colors with the same selectors, and equal
+        // selectors are settled by order.
+        if (\Exment::isModernUi()) {
+            static::setCssJsList([
+                'vendor/exment/css/modern.css',
+            ], true, true);
+        }
+
         static::setCssJsList([
             // see the note on the stylesheet above
             'vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',
-            'vendor/exment/validation/jquery.validate.js',
+            'vendor/exment/validation/jquery.validate.min.js',
             'vendor/exment/chartjs/chart.min.js',
             'vendor/exment/codemirror/codemirror.js',
             'vendor/exment/codemirror/mode/htmlmixed/htmlmixed.js',
@@ -115,9 +135,10 @@ class Bootstrap
             'vendor/exment/js/dashboard.js',
             'vendor/exment/js/file-required.js',
             'vendor/exment/js/scroll-restore.js',
-            'vendor/exment/js/file-required.js',
             'vendor/exment/js/search.js',
             'vendor/exment/js/calc.js',
+            // one shared timer for the navbar polls (ISS02824): before the two that use it
+            'vendor/exment/js/navbar_poll.js',
             'vendor/exment/js/notify_navbar.js',
             'vendor/exment/js/workflow_task_navbar.js',
             'vendor/exment/js/modal.js',
@@ -134,6 +155,7 @@ class Bootstrap
             'vendor/exment/js/paste_attach.js',
             'vendor/exment/js/quickadd.js',
             'vendor/exment/js/mention.js',
+            'vendor/exment/js/comment_markdown.js',
             'vendor/exment/js/webapi.js',
             'vendor/exment/js/admin.webapi.js',
             'vendor/exment/js/getbox.js',
@@ -153,14 +175,19 @@ class Bootstrap
             $ver = date('YmdHis');
         }
         // @phpstan-ignore-next-line
-        Ad::jslast(asset('vendor/exment/js/customscript.js?ver='.$ver));
+        Ad::jslast(admin_asset('vendor/exment/js/customscript.js?ver='.$ver));
 
         // delete object
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
         $cancel = trans('admin.cancel');
+        // the label of the QR scanner's way back (zxing.js). It used to be set
+        // by the footer, which is gone; every admin page carries this script.
+        $back_button = json_encode(exmtrans('common.back_button'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT);
 
         $script = <<<EOT
+    window.backButton = $back_button;
+
     ///// delete click event
     $(document).off('click', '[data-exment-delete]').on('click', '[data-exment-delete]', {}, function(ev){
         ev.preventDefault();

@@ -66,6 +66,9 @@ class DefaultForm extends FormBase
         // for lock data
         $form->hidden('updated_at');
 
+        // an application adds its own to the form (ScreenExtensions data_form.form)
+        \Exceedone\Exment\Services\ScreenExtensions::call('data_form.form', $form, $this->custom_table, $this->id);
+
         // get select_parent
         $select_parent = $request->has('select_parent') ? intval($request->get('select_parent')) : null;
         // set one:many select
@@ -95,7 +98,7 @@ class DefaultForm extends FormBase
             // one_to_many or manytomany
             else {
                 list($relation, $relation_name, $block_label) = $custom_form_block->getRelationInfo($this->custom_table);
-                $target_table = $custom_form_block->target_table;
+                $target_table = $custom_form_block->target_table_cache;
                 // if user doesn't have edit permission, hide child block
                 if ($target_table->enableEdit() !== true) {
                     continue;
@@ -106,15 +109,10 @@ class DefaultForm extends FormBase
                     $form_block_options = array_get($custom_form_block, 'options', []);
                     // if form_block_options.hasmany_type is 1, hasmanytable
                     if (boolval(array_get($form_block_options, 'hasmany_type'))) {
-                        $hasmany = $form->hasManyTable(
-                            $relation_name,
-                            $block_label,
-                            function ($form) use ($custom_form_block, $relation_name) {
-                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($custom_form_block) {
-                                    $this->setCustomFormColumns($form, $custom_form_block);
-                                })->setRelationName($relation_name);
-                            }
-                        )->setTableWidth(12, 0);
+                        $lazyLoadUrl = isset($this->id) && is_null(old($relation_name)) && boolval(array_get($form_block_options, 'lazy_load_enabled'))
+                            ? admin_urls_query('data', $this->custom_table->table_name, $this->id, 'lazy-relation', $custom_form_block->id, ['formid' => $this->custom_form->suuid])
+                            : null;
+                        $this->addHasManyTable($form, $custom_form_block, $relation_name, $block_label, $lazyLoadUrl);
                     }
                     // default,hasmany
                     else {
@@ -142,7 +140,7 @@ class DefaultForm extends FormBase
 
                     $field = new $class(
                         CustomRelation::getRelationNameByTables($this->custom_table, $target_table),
-                        [$custom_form_block->target_table->table_view_name]
+                        [$target_table->table_view_name]
                     );
                     $custom_table = $this->custom_table;
                     $field->options(function ($select) use ($custom_table, $target_table, $isListbox) {
@@ -200,6 +198,9 @@ EOT;
             Admin::script($script);
         }
 
+        // the conditions items are shown on (Studio, ScreenCondition)
+        $this->setVisibleIfScript();
+
         // ignore select_parent
         $form->ignore('select_parent');
 
@@ -217,12 +218,135 @@ EOT;
     }
 
     /**
+     * Add a table-style one-to-many relation field.
+     *
+     * @param Form $form
+     * @param CustomFormBlock $customFormBlock
+     * @param string $relationName
+     * @param string $blockLabel
+     * @param string|null $lazyLoadUrl
+     * @return \Exceedone\Exment\Form\Field\HasManyTable
+     */
+    protected function addHasManyTable($form, $customFormBlock, $relationName, $blockLabel, $lazyLoadUrl = null)
+    {
+        $customFormColumns = $customFormBlock->custom_form_columns;
+        $hasmany = $form->hasManyTable(
+            $relationName,
+            $blockLabel,
+            function ($form) use ($customFormColumns, $relationName) {
+                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($customFormColumns) {
+                    $this->setCustomFormColumns($form, $customFormColumns);
+                })->setRelationName($relationName);
+            }
+        )->setTableWidth(12, 0);
+
+        if (isset($lazyLoadUrl)) {
+            $hasmany->lazyLoad($lazyLoadUrl);
+        }
+
+        return $hasmany;
+    }
+
+    /**
+     * Render a single configured relation block for the lazy-load endpoint.
+     *
+     * @param int|string $blockId
+     * @return array<string, mixed>
+     */
+    public function renderLazyRelationBlock($blockId)
+    {
+        $customFormBlock = $this->custom_form->custom_form_blocks->firstWhere('id', $blockId);
+        if (!isset($customFormBlock) || !$customFormBlock->available || $customFormBlock->form_block_type != FormBlockType::ONE_TO_MANY) {
+            abort(404);
+        }
+
+        $formBlockOptions = array_get($customFormBlock, 'options', []);
+        if (!boolval(array_get($formBlockOptions, 'hasmany_type')) || !boolval(array_get($formBlockOptions, 'lazy_load_enabled'))) {
+            abort(404);
+        }
+
+        list($relation, $relationName, $blockLabel) = $customFormBlock->getRelationInfo($this->custom_table);
+        $targetTable = $customFormBlock->target_table_cache;
+        if ($targetTable->enableEdit() !== true) {
+            abort(403);
+        }
+
+        $classname = getModelName($this->custom_table);
+        $form = new Form(new $classname());
+        $form->setHorizontal(boolval($this->custom_form->getOption('form_label_type') ?? true));
+
+        $scriptCount = count(\ExmentAdminCore\Admin\Admin::$script);
+        $hasmany = $this->addHasManyTable($form, $customFormBlock, $relationName, $blockLabel);
+        $form->edit($this->id);
+
+        return [
+            'html' => (string) $hasmany->render(),
+            'scripts' => array_values(array_slice(\ExmentAdminCore\Admin\Admin::$script, $scriptCount)),
+        ];
+    }
+
+    /**
+     * Hide an item of the default block while the condition it is shown on does
+     * not hold (Studio: "show the memo when the status is paused"). The value of
+     * a hidden item is kept as it is.
+     */
+    protected function setVisibleIfScript(): void
+    {
+        $rules = [];
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            if (intval($custom_form_block->form_block_type) !== FormBlockType::DEFAULT) {
+                continue;
+            }
+            $rules = array_merge($rules, \Exceedone\Exment\Services\Studio\ScreenCondition::rulesOf($custom_form_block));
+        }
+        if (count($rules) === 0) {
+            return;
+        }
+        $json = json_encode($rules, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        $script = <<<EOT
+(function (rules) {
+    function inputs(name) {
+        return $('[name="value[' + name + ']"], [name="value[' + name + '][]"]');
+    }
+    function valuesOf(name) {
+        var values = [];
+        inputs(name).each(function () {
+            if ((this.type === 'checkbox' || this.type === 'radio') && !this.checked) { return; }
+            var v = $(this).val();
+            (Array.isArray(v) ? v : [v]).forEach(function (x) { if (x !== null && x !== undefined && String(x) !== '') { values.push(String(x)); } });
+        });
+        return values;
+    }
+    function holds(c) {
+        var values = valuesOf(c.column);
+        switch (c.operator) {
+            case 'eq': return values.indexOf(String(c.value)) !== -1;
+            case 'ne': return values.indexOf(String(c.value)) === -1;
+            case 'empty': return values.length === 0;
+            case 'not_empty': return values.length > 0;
+        }
+        return true;
+    }
+    function apply() {
+        rules.forEach(function (rule) {
+            var show = rule.all.every(holds);
+            inputs(rule.name).first().closest('.form-group').toggle(show);
+        });
+    }
+    $(document).off('change.exmVisibleIf input.exmVisibleIf switchChange.bootstrapSwitch.exmVisibleIf')
+        .on('change.exmVisibleIf input.exmVisibleIf switchChange.bootstrapSwitch.exmVisibleIf', ':input', apply);
+    apply();
+})($json);
+EOT;
+        Admin::script($script);
+    }
+
+    /**
      * set custom form columns
      */
     // @phpstan-ignore-next-line
-    protected function setCustomFormColumns($form, $custom_form_block)
+    protected function setCustomFormColumns($form, $custom_form_columns)
     {
-        $custom_form_columns = $custom_form_block->custom_form_columns; // setting fields.
         // $target_id = $this->id;
         if (method_exists($form, 'getDataKey')) {
             // @phpstan-ignore-next-line
@@ -232,6 +356,9 @@ EOT;
             }
         }
         foreach ($custom_form_columns as $form_column) {
+            if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                continue;
+            }
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
@@ -241,6 +368,7 @@ EOT;
             if (isset($target_id)) {
                 $item->id($target_id);
             }
+
             $this->setColumnItemOption($item, $custom_form_columns);
 
             $form->pushField($item->getAdminField($form_column));
@@ -266,6 +394,9 @@ EOT;
             $custom_form_columns = $custom_form_block->custom_form_columns;
             // setting fields.
             foreach ($custom_form_columns as $form_column) {
+                if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                    continue;
+                }
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                     continue;
                 }
@@ -286,6 +417,12 @@ EOT;
                 }
 
                 $field->setWidth(8, 2);
+
+                // the options of the column, for the scripts of the field
+                if (method_exists($field, 'setCustomOptions')) {
+                    // @phpstan-ignore-next-line
+                    $field->setCustomOptions($form_column->custom_column->options ?? []);
+                }
                 // push field to form
                 $form->pushFieldAndOption($field, [
                     'row' => $form_column->row_no,
@@ -368,14 +505,13 @@ EOT;
                 $message = $message->merge($validateResult);
             }
 
-
             // validation relations ----------------------------------------------------
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // if available is false, continue
                 if (!$custom_form_block->available) {
                     continue;
                 }
-                // when not 1:n, set as normal form columns.
+                // Only one-to-many blocks submit nested rows for validation.
                 if (!isMatchString($custom_form_block->form_block_type, FormBlockType::ONE_TO_MANY)) {
                     continue;
                 }
@@ -386,13 +522,10 @@ EOT;
                 if (!method_exists($model, $relation_name)) {
                     continue;
                 }
-
                 // get relation value
                 $relation = $model->$relation_name();
-                $keyName = $relation->getRelated()->getKeyName();
                 $relationValues = array_get($input, $relation_name, []);
-
-                // ignore ids
+                $keyName = $relation->getRelated()->getKeyName();
                 $ignoreIds = collect($relationValues)->filter(function ($val, $key) {
                     return is_int($key);
                 })->map(function ($val) {
@@ -409,7 +542,9 @@ EOT;
 
                 // loop input's value
                 foreach ($relationValues as $relationK => $relationV) {
-                    $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    // get the relation again for every row: findOrNew() adds "where id = ?" to the
+                    // relation's query, so a reused relation finds only the first row.
+                    $instance = $model->$relation_name()->findOrNew(array_get($relationV, $keyName));
                     // remove self item
                     $uniqueCheckSiblings = array_filter($relationValues, function ($relationValue, $key) use ($relationK) {
                         return !isMatchString($relationK, $key);
@@ -579,12 +714,47 @@ EOT;
                 ]));
             }
 
+            // Start the new record from a record of another table (#1828): one
+            // button for each copy setting the admin put on this form.
+            if (!$disableToolsButton && !isset($id)) {
+                $copies = \Exceedone\Exment\Model\CustomCopy::getCreateSources($custom_table);
+                foreach ($copies as $copy) {
+                    $from_table = $copy->from_custom_table;
+                    $target_class = 'copy_from_target_' . $copy->suuid;
+                    $tools->append(view('exment::tools.copy-from-button', [
+                        // one source: just "Copy from"; several: say which table
+                        'label' => \Exceedone\Exment\Model\CustomCopy::getCreateLabel($copy, count($copies) > 1),
+                        'target_class' => $target_class,
+                        // the picked record id is put after this
+                        'url' => admin_urls_query('data', $custom_table->table_name, 'create', ['copy_from' => $copy->suuid]) . '&copy_from_id=',
+                        // the search dialog of the copy-from table
+                        'modal_url' => admin_urls_query('data', $from_table->table_name, ['modalframe' => 1]),
+                        'expand' => json_encode([
+                            'target_column_class' => $target_class,
+                            'target_column_multiple' => 0,
+                            'display_table_id' => $custom_table->id,
+                        ]),
+                    ])->render());
+                }
+                if (count($copies) > 0) {
+                    Admin::script(<<<'EOT'
+$(document).off('change.exment_copy_from').on('change.exment_copy_from', 'select[data-copy-from-url]', function () {
+    var value = $(this).val();
+    if (value) {
+        window.location.href = $(this).data('copy-from-url') + encodeURIComponent(value);
+    }
+});
+EOT);
+                }
+            }
+
             if (!$disableToolsButton) {
                 PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             }
 
             if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
+                \Exceedone\Exment\Services\ScreenExtensions::call('data_form.tools', $tools, $custom_table, $id);
             }
         });
     }
@@ -600,7 +770,7 @@ EOT;
     protected function setChangeDataArray(CustomColumn $column, CustomFormBlock $custom_form_block, array $form_column_options, $options, &$changedata_array)
     {
         // get this table
-        $column_table = $column->custom_table;
+        $column_table = $column->custom_table_cache;
 
         // get getting target model name
         $changedata_target_column_id = array_get($form_column_options, 'changedata_target_column_id');
@@ -609,7 +779,7 @@ EOT;
             return;
         }
 
-        $changedata_target_table = $changedata_target_column->custom_table;
+        $changedata_target_table = $changedata_target_column->custom_table_cache;
         if (is_nullorempty($changedata_target_table)) {
             return;
         }
@@ -621,7 +791,7 @@ EOT;
             return;
         }
 
-        $changedata_table = $changedata_column->custom_table;
+        $changedata_table = $changedata_column->custom_table_cache;
         if (is_nullorempty($changedata_table)) {
             return;
         }

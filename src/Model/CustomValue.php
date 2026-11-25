@@ -25,6 +25,9 @@ use Exceedone\Exment\Enums\PluginEventType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Enums\WorkflowGetAuthorityType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\RecordUrl;
+use Exceedone\Exment\Services\Dashboard\SummaryCache;
 
 /**
  * @property-read string $display_avatar
@@ -64,6 +67,50 @@ abstract class CustomValue extends ModelBase
     use \Exceedone\Exment\Revisionable\RevisionableTrait;
 
     protected $casts = ['value' => 'json'];
+
+    /** @var string|null the json of "value" last decoded (castAttribute) */
+    protected $valueJson;
+
+    /** @var mixed what it decoded to */
+    protected $valueDecoded;
+
+    /**
+     * "value" is read for every column of every row (the grid, the board, the label, the
+     * linked records), and Laravel decodes the json each time. Keep what it decoded to,
+     * with the json it came from: a write changes the json, so a stale copy is never given.
+     * The array is given as a copy, so whoever changes it changes only its own.
+     *
+     * @param string $key
+     * @param mixed $value
+     * @return mixed
+     */
+    protected function castAttribute($key, $value)
+    {
+        if ($key !== 'value' || !is_string($value)) {
+            return parent::castAttribute($key, $value);
+        }
+        if ($this->valueJson !== $value) {
+            $this->valueDecoded = parent::castAttribute($key, $value);
+            $this->valueJson = $value;
+        }
+        return $this->valueDecoded;
+    }
+
+    /**
+     * The same as $this->value, without the way through Eloquent's __get (the mutators and
+     * the casts are looked up on every read) while the json has not changed since it was
+     * decoded: a board reads it for every column of every card.
+     *
+     * @return mixed
+     */
+    public function decodedValue()
+    {
+        $json = $this->attributes['value'] ?? null;
+        if (is_string($json) && $json === $this->valueJson) {
+            return $this->valueDecoded;
+        }
+        return $this->value;
+    }
     // protected $appends = ['label'];
     protected $hidden = ['laravel_admin_escape'];
 
@@ -160,7 +207,11 @@ abstract class CustomValue extends ModelBase
             // treeview
             $this->titleColumn = 'label';
             $this->orderColumn = 'id';
-            $this->parentColumn = CustomColumn::getEloquent('parent_organization', $this->custom_table)->getIndexColumnName();
+            // the same for every organization: read once in a request (cleared with the other request sessions)
+            $custom_table = $this->custom_table;
+            $this->parentColumn = System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_INDEX, function () use ($custom_table) {
+                return CustomColumn::getEloquent('parent_organization', $custom_table)->getIndexColumnName();
+            });
         }
 
         parent::__construct($attributes);
@@ -597,6 +648,9 @@ abstract class CustomValue extends ModelBase
             $model->savedEvent(false);
         });
         static::saved(function ($model) {
+            // the kept dashboard aggregations of the table are aggregated again
+            SummaryCache::touch($model->custom_table);
+
             // The mention notifier is not always reached: savedEvent() bails out
             // when disable_saved_event is set, and a save with nothing dirty
             // never fires updated at all. A snapshot left behind would become
@@ -635,6 +689,9 @@ abstract class CustomValue extends ModelBase
         });
 
         static::deleted(function ($model) {
+            // a hard delete does not save the row first
+            SummaryCache::touch($model->custom_table);
+
             // call deleted event plugins
             Plugin::pluginExecuteEvent(PluginEventType::DELETED, $model->custom_table, [
                 'custom_table' => $model->custom_table,
@@ -757,6 +814,9 @@ abstract class CustomValue extends ModelBase
 
         // call plugin validator
         $errors = array_merge_recursive($errors, $this->custom_table->validatorPlugin($input, $this, ['called_type' => $options['calledType']]));
+
+        // demo mode: the login ID of a user who can log in stays
+        $errors = array_merge($errors, DemoMode::userLoginErrors($this->custom_table, $input, $this, $options));
 
         return count($errors) > 0 ? $errors : true;
     }
@@ -1360,15 +1420,16 @@ abstract class CustomValue extends ModelBase
 
     /**
      * Get vustom_value's label
+    * @param \Illuminate\Support\Collection<int, mixed>|string|null $label_columns
      * @return string
      */
-    public function getLabel()
+    public function getLabel($label_columns = null)
     {
         if (!is_null($this->_label)) {
             return $this->_label;
         }
 
-        $label_columns = $this->custom_table->getLabelColumns();
+        $label_columns = $label_columns ?? $this->custom_table->getLabelColumns();
 
         if (isset($label_columns) && is_string($label_columns)) {
             $this->_label = $this->getExpansionLabel($label_columns);
@@ -1389,6 +1450,8 @@ abstract class CustomValue extends ModelBase
 
         if (!isset($label_columns) || count($label_columns) == 0) {
             $columns = [$custom_table->custom_columns_cache->first()];
+        } elseif ($label_columns->first() instanceof CustomColumn) {
+            $columns = $label_columns;
         } else {
             $columns = $label_columns->map(function ($label_column) {
                 return CustomColumn::getEloquent($label_column->table_label_id);
@@ -1478,6 +1541,8 @@ abstract class CustomValue extends ModelBase
                 'only_avatar' => false,
                 'asApi' => false,
                 'blank' => false,
+                // the screen of the plugin that shows this table, when one does (RecordUrl)
+                'record_url' => false,
             ],
             $options
         );
@@ -1504,6 +1569,8 @@ abstract class CustomValue extends ModelBase
 
         if (isset($options['uri'])) {
             $url = url_join($url, $options['uri']);
+        } elseif (boolval($options['record_url']) && !boolval($options['list']) && !boolval($options['asApi'])) {
+            $url = RecordUrl::pluginUrl($this) ?? $url;
         }
         if (!$tag) {
             return $url;
@@ -1563,6 +1630,117 @@ abstract class CustomValue extends ModelBase
             return $query->paginate($options['count']);
         }
         return $query->get();
+    }
+
+    /**
+     * Whether the table of this data takes comments (the table setting "comment_flg").
+     *
+     * @return bool
+     */
+    public function isCommentEnabled(): bool
+    {
+        return boolval($this->custom_table->getOption('comment_flg') ?? true);
+    }
+
+    /**
+     * Get the comments of this data, oldest first.
+     *
+     * @param array<string, mixed> $options count: rows per page, paginate: whether to paginate
+     * @return \Illuminate\Database\Eloquent\Collection|AbstractPaginator
+     */
+    // @phpstan-ignore-next-line
+    public function getComments($options = [])
+    {
+        $options = array_merge(
+            [
+                'count' => 20,
+                'paginate' => false,
+            ],
+            $options
+        );
+        $query = getModelName(SystemTableName::COMMENT)::where('parent_id', $this->id)
+            ->where('parent_type', $this->custom_table_name)
+            ->orderBy('id')
+        ;
+
+        if ($options['paginate']) {
+            return $query->paginate($options['count']);
+        }
+        return $query->get();
+    }
+
+    /**
+     * Add a comment to this data and notify (NotifySavedType::COMMENT).
+     * The screen and the API both come here, so both save and notify the same way.
+     *
+     * @param string $comment
+     * @return CustomValue the saved comment
+     */
+    public function addComment($comment)
+    {
+        $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
+        $model->parent_id = $this->id;
+        $model->parent_type = $this->custom_table_name;
+        $model->setValue([
+            'comment_detail' => $comment,
+        ]);
+        $model->save();
+
+        // execute notify
+        foreach ($this->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($this, NotifySavedType::COMMENT, ['comment' => $comment]);
+        }
+
+        return $model;
+    }
+
+    /**
+     * A comment is changed and deleted only by the user who wrote it, or by an
+     * administrator (as deleteComment()). The comment table is editable by
+     * everyone who may edit the record, so the data API would let any of them
+     * rewrite or delete another user's comment without this.
+     */
+    protected function isCommentOfAnotherUser(): bool
+    {
+        if ($this->custom_table->table_name != SystemTableName::COMMENT || !$this->exists) {
+            return false;
+        }
+        $login_user = \Exment::user();
+        if (!isset($login_user) || $login_user->isAdministrator()) {
+            return false;
+        }
+        return !isMatchString($this->created_user_id, \Exment::getUserId());
+    }
+
+    /**
+     * Delete a comment of this data. Only the user who wrote it, or a system administrator, can.
+     * The screen and the API both come here.
+     *
+     * @param string $suuid suuid of the comment
+     * @return true|ErrorCode true: deleted, DATA_NOT_FOUND: this data has no such comment, PERMISSION_DENY: written by another user
+     */
+    public function deleteComment($suuid)
+    {
+        if (is_nullorempty($suuid)) {
+            return ErrorCode::DATA_NOT_FOUND();
+        }
+
+        $comment = getModelName(SystemTableName::COMMENT)::where('suuid', $suuid)
+            ->where('parent_id', $this->id)
+            ->where('parent_type', $this->custom_table_name)
+            ->first();
+        if (!isset($comment)) {
+            return ErrorCode::DATA_NOT_FOUND();
+        }
+
+        $login_user = \Exment::user();
+        $isAuthor = isset($login_user) && isMatchString($comment->created_user_id, \Exment::getUserId());
+        if (!$isAuthor && !(isset($login_user) && $login_user->isAdministrator())) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        $comment->delete();
+        return true;
     }
 
     /**
@@ -1977,7 +2155,47 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::PERMISSION_DENY();
         }
 
+        // a comment or a document is only for those who can access the record it hangs off
+        if (in_array($this->custom_table->table_name, CustomValueModelScope::PARENT_ATTACHED_TABLES, true)
+            && $this->isParentInaccessible()) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
         return true;
+    }
+
+    /**
+     * Whether this row hangs off a parent record (parent_type and parent_id)
+     * that exists but that the login user cannot access.
+     *
+     * getParentValue() answers null for such a parent, the same as for a row
+     * without a parent, so a check written as "if there is a parent, ask it"
+     * is skipped for exactly the rows it is meant to refuse.
+     *
+     * False for a row without a parent, for a parent_type that is not a table
+     * and for a parent record that no longer exists at all. A soft deleted
+     * parent counts as the record it was.
+     *
+     * @return bool
+     */
+    public function isParentInaccessible(): bool
+    {
+        if (is_nullorempty($this->parent_type) || is_nullorempty($this->parent_id)) {
+            return false;
+        }
+
+        $parent_table = CustomTable::getEloquent($this->parent_type);
+        if (!isset($parent_table)) {
+            return false;
+        }
+
+        // through the login user's scope of the parent table
+        if (!is_null($parent_table->getValueModel($this->parent_id, true))) {
+            return false;
+        }
+
+        // not there for this user: refused if it is there at all
+        return $parent_table->getValueModel()->withoutGlobalScopes()->where('id', $this->parent_id)->exists();
     }
 
     /**
@@ -2005,6 +2223,10 @@ abstract class CustomValue extends ModelBase
             return ErrorCode::PERMISSION_DENY();
         }
 
+        if ($this->isCommentOfAnotherUser()) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
         // if ($this->custom_table->isOneRecord()) {
         //     return ErrorCode::PERMISSION_DENY();
         // }
@@ -2025,6 +2247,8 @@ abstract class CustomValue extends ModelBase
                     return $code;
                 }
             }
+        } elseif ($this->isDeniedByInaccessibleParent()) {
+            return ErrorCode::PERMISSION_DENY();
         }
 
         if ($this->trashed()) {
@@ -2049,6 +2273,10 @@ abstract class CustomValue extends ModelBase
     public function enableDelete($checkFormAction = false)
     {
         if (!$this->custom_table->hasPermissionEditData($this)) {
+            return ErrorCode::PERMISSION_DENY();
+        }
+
+        if ($this->isCommentOfAnotherUser()) {
             return ErrorCode::PERMISSION_DENY();
         }
 
@@ -2080,9 +2308,32 @@ abstract class CustomValue extends ModelBase
                     return $code;
                 }
             }
+        } elseif ($this->isDeniedByInaccessibleParent()) {
+            return ErrorCode::PERMISSION_DENY();
         }
 
         return true;
+    }
+
+    /**
+     * Whether editing or deleting this row is refused because its parent
+     * record is one the login user cannot access (isParentInaccessible()).
+     *
+     * A comment or a document always follows its record. A child record of a
+     * relation needs its parent as long as the table asks for the parent's
+     * edit permission ("editable_with_parent", on unless switched off): a
+     * parent that cannot even be accessed cannot be edited either.
+     *
+     * @return bool
+     */
+    protected function isDeniedByInaccessibleParent(): bool
+    {
+        if (!in_array($this->custom_table->table_name, CustomValueModelScope::PARENT_ATTACHED_TABLES, true)
+            && !boolval($this->custom_table->getOption('editable_with_parent')??1)) {
+            return false;
+        }
+
+        return $this->isParentInaccessible();
     }
 
     /**

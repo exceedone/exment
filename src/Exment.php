@@ -27,6 +27,7 @@ use Illuminate\Contracts\Support\Htmlable;
 use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form\Field\UploadField;
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\ErrorCode;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Finder\Finder;
 use League\Flysystem\PathPrefixer;
@@ -76,7 +77,57 @@ class Exment
     // @phpstan-ignore-next-line
     public function menu()
     {
-        return (new Menu())->toTree();
+        // the menus the login user sees (Services\MenuVisibility)
+        $user = \Admin::user();
+        if (!isset($user)) {
+            return (new Menu())->toTree();
+        }
+        return \Exceedone\Exment\Services\MenuVisibility::forUser($user)->tree();
+    }
+
+    /**
+     * Render the left sidebar menu to HTML, cached per user.
+     *
+     * The rendered markup is identical for any request by the same user until the menu or the
+     * user's permissions change, so it is cached instead of re-rendering the recursive blade +
+     * per-node visible() permission check on every page load.
+     *
+     * Cache key is fail-safe (not flush-dependent): it embeds a hash of the menu tree (changes when
+     * any menu/table/plugin/view that feeds it changes — allNodes is rebuilt), the user id, the
+     * permission/organization/api availability flags, the locale, and the request host (admin_url is
+     * absolute). A coarse 30-minute time bucket bounds staleness if a rare role/membership change
+     * misses the model-save cache flush — page-level authority is enforced independently, so a stale
+     * menu can at worst show a link that then 403s, never grant access.
+     *
+     * @return string
+     */
+    public function sidebarMenuHtml()
+    {
+        $user = $this->user();
+        if (is_null($user)) {
+            return '';
+        }
+
+        $tree = $this->menu();
+
+        $key = 'exment_sidebar_menu_html_' . md5(strval(json_encode([
+            $tree,
+            $user instanceof \Exceedone\Exment\Model\LoginUser ? $user->getUserId() : array_get($user, 'id'),
+            System::permission_available(),
+            System::organization_available(),
+            System::api_available(),
+            app()->getLocale(),
+            request()->getSchemeAndHttpHost(),
+            floor(time() / 1800),
+        ])));
+
+        return System::cache($key, function () use ($tree) {
+            $html = '';
+            foreach ($tree as $item) {
+                $html .= view('admin::partials.menu', ['item' => $item])->render();
+            }
+            return $html;
+        });
     }
 
 
@@ -93,6 +144,11 @@ class Exment
      */
     public function error($request, $exception, $callback)
     {
+        // the answer of a feature not used, or not allowed (Services\Features::deny()), thrown: as it is
+        if ($exception instanceof \Illuminate\Http\Exceptions\HttpResponseException
+            && $exception->getResponse()->headers->has(\Exceedone\Exment\Services\Features::DENIED_HEADER)) {
+            return $exception->getResponse();
+        }
         try {
             // Api is default callback
             if ($this->isApiEndpoint()) {
@@ -130,9 +186,27 @@ class Exment
                         'errors' => ['import_error_message' => ['type' => 'input', 'message' => exmtrans('error.memory_leak', ['url' => $manualUrl]) ]],
                     ]);
                 }
+                if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+                    return getAjaxResponse([
+                        'result' => false,
+                        'toastr' => $exception->getMessage(),
+                        'errors' => [
+                            'import_error_message' => [
+                                'type' => 'input',
+                                'message' => $exception->getMessage(),
+                            ],
+                        ],
+                    ]);
+                }
 
                 // @phpstan-ignore-next-line
                 return $callback($request, $exception);
+            }
+
+            // a refusal for the user (ErrorCode::ERROR_CODE_VALIDATION_FAILED): its message, back
+            if ($exception->getCode() == ErrorCode::ERROR_CODE_VALIDATION_FAILED) {
+                admin_toastr($exception->getMessage(), 'error');
+                return redirect($request->header('referer', '/'))->withInput();
             }
 
             // whether has User
@@ -227,6 +301,38 @@ class Exment
 
 
     /**
+     * fn(): array{0: ?string, 1: ?string}|null — [latest, current], or null for Exment's own
+     * reading (composer and packagist).
+     *
+     * @var callable|null
+     */
+    protected static $versionResolver;
+
+    /** @var callable|null fn(): string — the page where the site is updated */
+    protected static $versionUpdateUrlResolver;
+
+    public static function resolveVersionUsing(?callable $resolver): void
+    {
+        static::$versionResolver = $resolver;
+    }
+
+    public static function versionUpdateUrlUsing(?callable $resolver): void
+    {
+        static::$versionUpdateUrlResolver = $resolver;
+    }
+
+    /**
+     * The page where the site is updated (the system settings, or the application's).
+     */
+    public function versionUpdateUrl(): string
+    {
+        if (!is_null(static::$versionUpdateUrlResolver)) {
+            return strval(call_user_func(static::$versionUpdateUrlResolver));
+        }
+        return admin_url('system');
+    }
+
+    /**
      * getExmentVersion using session and composer
      *
      * @return array $latest: new version in package, $current: this version in server
@@ -234,6 +340,14 @@ class Exment
     // @phpstan-ignore-next-line
     public function getExmentVersion($getFromComposer = true)
     {
+        // an application that knows its version itself (resolveVersionUsing())
+        if (!is_null(static::$versionResolver)) {
+            $resolved = call_user_func(static::$versionResolver);
+            if (is_array($resolved)) {
+                return $resolved;
+            }
+        }
+
         try {
             try {
                 $version_json = Cache::get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION);
@@ -252,27 +366,10 @@ class Exment
 
             if ((empty($latest) || empty($current))) {
                 // get current version from composer.lock
-                $composer_lock = base_path('composer.lock');
-                if (!\File::exists($composer_lock)) {
+                $current = $this->getVersionFromComposerLock();
+                if (is_null($current)) {
                     return [null, null];
                 }
-
-                $contents = \File::get($composer_lock);
-                $json = json_decode_ex($contents, true);
-                if (!$json) {
-                    return [null, null];
-                }
-
-                // get exment info
-                // @phpstan-ignore-next-line
-                $packages = array_get($json, 'packages');
-                $exment = collect($packages)->filter(function ($package) {
-                    return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
-                })->first();
-                if (!isset($exment)) {
-                    return [null, null];
-                }
-                $current = array_get($exment, 'version');
 
                 // if outside api is not permitted, return only current
                 if (!System::outside_api() || !$getFromComposer) {
@@ -326,6 +423,108 @@ class Exment
         return [$latest ?? null, $current ?? null];
     }
 
+
+    /**
+     * The screen design fixed by the server (config exment.ui_design,
+     * .env EXMENT_UI_DESIGN).
+     *
+     * @return string|null "modern" or "classic" when the server fixes it, null when it is not set (or not one of the two)
+     */
+    public function getUiDesignForced(): ?string
+    {
+        $config = config('exment.ui_design');
+        if (!is_string($config)) {
+            return null;
+        }
+
+        $config = strtolower(trim($config));
+        return in_array($config, Define::SYSTEM_UI_DESIGN, true) ? $config : null;
+    }
+
+    /**
+     * The screen design in effect: "modern" or "classic".
+     * The value fixed by the server wins; without it, the system setting decides.
+     *
+     * @return string
+     */
+    public function getUiDesign(): string
+    {
+        $forced = $this->getUiDesignForced();
+        if (!is_null($forced)) {
+            return $forced;
+        }
+
+        $default = Define::SYSTEM_UI_DESIGN[0];
+        try {
+            $value = System::ui_design();
+        } catch (\Exception $ex) {
+            // The system table cannot be read (e.g. before the install).
+            return $default;
+        }
+
+        return in_array($value, Define::SYSTEM_UI_DESIGN, true) ? $value : $default;
+    }
+
+    /**
+     * Whether the "modern" stylesheet is loaded.
+     * This is the one place that answers the question: the admin pages
+     * (Middleware\Bootstrap) and the login layout both ask here.
+     *
+     * @return bool
+     */
+    public function isModernUi(): bool
+    {
+        return $this->getUiDesign() === 'modern';
+    }
+
+    /** @var array<string, string|null> composer.lock path + mtime => the version of Exment in it */
+    protected static $composerLockVersions = [];
+
+    /**
+     * The version of Exment written in composer.lock.
+     * Read once per process, and kept in the cache while composer.lock is unchanged: the file is
+     * large, and a page asked for it several times on each request (ISS00413).
+     *
+     * @return string|null
+     */
+    public function getVersionFromComposerLock(): ?string
+    {
+        $composer_lock = base_path('composer.lock');
+        if (!\File::exists($composer_lock)) {
+            return null;
+        }
+        $key = $composer_lock . ':' . @filemtime($composer_lock);
+        if (array_key_exists($key, static::$composerLockVersions)) {
+            return static::$composerLockVersions[$key];
+        }
+
+        $cacheKey = 'exment_composer_lock_version_' . md5($key);
+        try {
+            $cached = Cache::get($cacheKey);
+            if (is_string($cached) && $cached !== '') {
+                return static::$composerLockVersions[$key] = $cached;
+            }
+        } catch (\Exception $e) {
+        }
+
+        $version = null;
+        $json = json_decode_ex(\File::get($composer_lock), true);
+        if (is_array($json)) {
+            // @phpstan-ignore-next-line
+            $exment = collect(array_get($json, 'packages'))->first(function ($package) {
+                return array_get($package, 'name') == Define::COMPOSER_PACKAGE_NAME;
+            });
+            $version = isset($exment) ? array_get($exment, 'version') : null;
+        }
+
+        if (is_string($version) && $version !== '') {
+            try {
+                Cache::forever($cacheKey, $version);
+            } catch (\Exception $e) {
+            }
+        }
+        return static::$composerLockVersions[$key] = $version;
+    }
 
     /**
      * getExmentCurrentVersion

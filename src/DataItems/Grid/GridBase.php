@@ -757,6 +757,8 @@ SCRIPT);
                 [
                     'custom_table' => $this->custom_table,
                     'grid' => $grid,
+                    // "All data with the comments" of the export dialog
+                    'add_comment' => boolval(app('request')->query('add_comment')),
                 ]
             ))->viewExportAction(new DataImportExport\Actions\Export\ViewAction(
                 [

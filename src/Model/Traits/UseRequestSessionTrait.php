@@ -70,9 +70,148 @@ trait UseRequestSessionTrait
      */
     public function hasManyCache($className, $keyName, $idName = 'id')
     {
-        return $className::allRecordsCache(function ($record) use ($keyName, $idName) {
-            return $record->{$keyName} == $this->{$idName};
-        }, false);
+        $id = $this->{$idName};
+        if (is_null($id)) {
+            return $className::allRecordsCache(function ($record) use ($keyName, $id) {
+                return $record->{$keyName} == $id;
+            }, false);
+        }
+        return $className::recordsCacheBy([$keyName], [$id]);
+    }
+
+    /**
+     * Index of the cached records, by the values of some fields.
+     * key: class name and field names. value: [the records collection the index was made from, [index key => [original key => record]]]
+     *
+     * @var array<string, array{0: mixed, 1: array<string, array<int|string, mixed>>}>
+     */
+    protected static $recordIndexes = [];
+
+    /**
+     * Get the records (from the cache) whose fields equal the values, like allRecordsCache() with a filter,
+     * but with an index instead of checking every record each time.
+     * The index is made again when the cached records are replaced.
+     *
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return \Illuminate\Support\Collection<int, static>
+     */
+    public static function recordsCacheBy(array $fields, array $values)
+    {
+        return static::_recordsBy('cache', $fields, $values);
+    }
+
+    /**
+     * Same as recordsCacheBy(), but from the request session, like allRecords().
+     *
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return \Illuminate\Support\Collection<int, static>
+     */
+    public static function recordsBy(array $fields, array $values)
+    {
+        return static::_recordsBy('requestSession', $fields, $values);
+    }
+
+    /**
+     * @param string $func 'cache' or 'requestSession'
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return \Illuminate\Support\Collection<int, static>
+     */
+    protected static function _recordsBy(string $func, array $fields, array $values)
+    {
+        $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
+        $getRecords = function () {
+            return self::with([])->get();
+        };
+        $records = $func === 'cache'
+            ? System::cache($key, $getRecords)
+            : System::requestSession($key, $getRecords);
+
+        $indexKey = static::class . '|' . implode('|', $fields);
+        if (!isset(static::$recordIndexes[$indexKey]) || static::$recordIndexes[$indexKey][0] !== $records) {
+            $index = [];
+            foreach ($records as $originalKey => $record) {
+                $index[static::recordIndexValue($record, $fields)][$originalKey] = $record;
+            }
+            static::$recordIndexes[$indexKey] = [$records, $index];
+        }
+
+        $valueKey = static::recordIndexValue(null, $fields, $values);
+        return collect(static::$recordIndexes[$indexKey][1][$valueKey] ?? []);
+    }
+
+    /**
+     * Get the first record (from the cache) whose fields equal the values.
+     * If not found, read all records from the database again, like firstRecordCache().
+     *
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return static|null
+     */
+    public static function firstRecordCacheBy(array $fields, array $values)
+    {
+        $record = static::recordsCacheBy($fields, $values)->first();
+        if (isset($record)) {
+            return $record;
+        }
+
+        // not found: same as firstRecordCache(), which reads all records again (e.g. a record made in this request)
+        return static::firstRecordCache(function ($record) use ($fields, $values) {
+            foreach ($fields as $i => $field) {
+                if (array_get($record, $field) != $values[$i]) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Same as firstRecordCacheBy(), but from the request session, like firstRecord().
+     *
+     * @param array<string> $fields
+     * @param array<mixed> $values
+     * @return static|null
+     */
+    public static function firstRecordBy(array $fields, array $values)
+    {
+        $record = static::recordsBy($fields, $values)->first();
+        if (isset($record)) {
+            return $record;
+        }
+
+        // @phpstan-ignore-next-line
+        return static::firstRecord(function ($record) use ($fields, $values) {
+            foreach ($fields as $i => $field) {
+                if (array_get($record, $field) != $values[$i]) {
+                    return false;
+                }
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Make the index key of a record or of the values.
+     *
+     * @param mixed $record
+     * @param array<string> $fields
+     * @param array<mixed>|null $values
+     * @return string
+     */
+    protected static function recordIndexValue($record, array $fields, ?array $values = null): string
+    {
+        $keys = [];
+        foreach ($fields as $i => $field) {
+            $value = isset($values) ? ($values[$i] ?? null) : array_get($record, $field);
+            if (is_bool($value)) {
+                $value = (int)$value;
+            }
+            $keys[] = is_scalar($value) ? (string)$value : '';
+        }
+        return implode("\0", $keys);
     }
 
     /**

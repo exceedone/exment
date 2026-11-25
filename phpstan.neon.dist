@@ -20,6 +20,12 @@ parameters:
         - Illuminate\Database\Eloquent\Model
         - Illuminate\Contracts\Auth\Authenticatable
     ignoreErrors:
+        # google/recaptcha is an optional (suggested) package and is not installed in CI.
+        -
+            identifier: class.notFound
+            message: "#ReCaptcha#"
+            path: vendor/exceedone/exment/src/Services/ReCaptchaService.php
+
         -
             message: "#^Call to an undefined method ExmentAdminCore\\\\Admin.#"
             path: vendor/exceedone/exment/src/*

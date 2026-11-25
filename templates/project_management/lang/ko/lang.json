@@ -1,0 +1,144 @@
+{
+    "template_view_name": "프로젝트/작업 관리",
+    "description": "프로젝트와 작업을 관리합니다.",
+    "custom_tables": [
+        {
+            "table_name": "project",
+            "table_view_name": "프로젝트 관리",
+            "description": "프로젝트를 관리합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "project_code",
+                    "column_view_name": "프로젝트 코드",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                },
+                {
+                    "column_name": "project_name",
+                    "column_view_name": "프로젝트명",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "task",
+            "table_view_name": "작업 관리",
+            "description": "일상 작업을 관리합니다.",
+            "custom_columns": [
+                {
+                    "column_name": "task_name",
+                    "column_view_name": "작업명",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "설명",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "상태",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요",
+                        "select_item_valtext": "1,신규\r\n2,대응 중\r\n90,완료\r\n91,보류\r\n97,대응 안 함"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "우선순위",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요",
+                        "select_item_valtext": "1,낮음\r\n2,보통\r\n3,높음\r\n4,급함\r\n5,긴급"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "시작일",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "종료일",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                },
+                {
+                    "column_name": "charge_user",
+                    "column_view_name": "담당자",
+                    "options": {
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                },
+                {
+                    "column_name": "complete_flg",
+                    "column_view_name": "완료 여부",
+                    "options": {
+                        "help": "작업이 완료된 경우 [예]를 선택하십시오.",
+                        "true_label": "예",
+                        "false_label": "아니요"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "a0ce41d5d7816f0aab70",
+            "form_view_name": "폼"
+        },
+        {
+            "suuid": "d31c7b1ade9a4574fcfb",
+            "form_view_name": "폼"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "7ef66a7fdef45f094079",
+            "view_view_name": "기본 뷰"
+        },
+        {
+            "suuid": "204a26c2f5f8061cd30f",
+            "view_view_name": "미완료 작업 목록"
+        },
+        {
+            "suuid": "356404ddc4d26620fa13",
+            "view_view_name": "전체 작업 목록"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "프로젝트 관리",
+            "menu_type": "parent_node",
+            "menu_name": "project_management"
+        },
+        {
+            "title": "프로젝트",
+            "menu_type": "table",
+            "menu_name": "project"
+        },
+        {
+            "title": "작업 관리",
+            "menu_type": "table",
+            "menu_name": "task"
+        }
+    ]
+}

@@ -418,6 +418,15 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::addGlobalScope(new OrderScope('order'));
 
         static::saving(function ($model) {
+            if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($model->custom_table?->table_name))) {
+                $policy->savingColumn($model);
+            }
+            // The name goes into SQL (JSON paths, generated index columns). The
+            // screens check it; a template or an import saves without them, so
+            // a new or changed name is checked here too.
+            if ($model->isDirty('column_name') && !preg_match('/\A[a-zA-Z0-9_-]+\z/', (string)$model->column_name)) {
+                throw new \InvalidArgumentException('Invalid column name: ' . json_encode((string)$model->column_name));
+            }
             $model->filterGridStyleOptions();
             $model->prepareJson('options');
         });
@@ -516,9 +525,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         }
 
         if (is_numeric($column_obj)) {
-            return static::allRecordsCache(function ($record) use ($column_obj) {
-                return $record->id == $column_obj;
-            })->first();
+            return static::firstRecordCacheBy(['id'], [$column_obj]);
         }
         // else,call $table_obj
         else {
@@ -529,9 +536,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
                 return null;
             }
 
-            return static::allRecordsCache(function ($record) use ($table_obj, $column_obj) {
-                return $record->column_name == $column_obj && $record->custom_table_id == $table_obj->id;
-            })->first();
+            return static::firstRecordCacheBy(['column_name', 'custom_table_id'], [$column_obj, $table_obj->id]);
         }
 
         // @phpstan-ignore-next-line
@@ -701,6 +706,9 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
      */
     public function createSelectOptions()
     {
+        if (!is_null($policy = \Exceedone\Exment\Services\TablePolicy::of($this->custom_table?->table_name)) && !is_null($options = $policy->selectOptions($this))) {
+            return $options;
+        }
         // get value
         $column_type = array_get($this, 'column_type');
         $column_options = array_get($this, 'options');
@@ -710,6 +718,30 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         $select_item = array_get($column_options, $array_get_key);
         $isValueText = ($column_type == 'select_valtext');
 
+        // the choices are read for every row of a list or a board: made once per
+        // column object, again only when its choices or its type change
+        $memoKey = $column_type . "
+" . (is_string($select_item) ? $select_item : json_encode($select_item));
+        if ($this->selectOptionsKey === $memoKey) {
+            return $this->selectOptionsMemo;
+        }
+        $this->selectOptionsKey = $memoKey;
+        $this->selectOptionsMemo = $this->makeSelectOptions($select_item, $isValueText);
+        return $this->selectOptionsMemo;
+    }
+
+    /** @var string|null the choices createSelectOptions() last made its list from */
+    protected $selectOptionsKey;
+
+    /** @var array<mixed> that list */
+    protected $selectOptionsMemo = [];
+
+    /**
+     * @param mixed $select_item
+     * @return array<mixed>
+     */
+    protected function makeSelectOptions($select_item, bool $isValueText): array
+    {
         $options = [];
         if (is_null($select_item)) {
             return $options;

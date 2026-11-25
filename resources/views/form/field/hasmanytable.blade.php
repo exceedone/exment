@@ -40,7 +40,14 @@
                 @endif
             </tr>
             </thead>
-            <tbody>
+            <tbody @if(isset($lazyLoadUrl)) data-lazy-relation-url="{{ $lazyLoadUrl }}" @endif>
+            @if(isset($lazyLoadUrl))
+            <tr class="lazy-relation-placeholder">
+                <td colspan="{{ count($tableitems) + 1 }}" class="text-center">
+                    <button type="button" class="btn btn-default btn-sm lazy-relation-load"><i class="fa fa-refresh"></i> {{ trans('admin.refresh') }}</button>
+                </td>
+            </tr>
+            @endif
             @foreach($forms as $pk => $form)
             <tr class="has-many-table-{{$column}}-row has-many-table-row">
                 @foreach($form['tableitems'] as $tableitem)
@@ -136,7 +143,7 @@
         width: 100%;
         white-space: nowrap;
     }
-    input {
+    .has-many-table input:not([type="checkbox"]):not([type="radio"]) {
         min-width: 90px !important;
     }
     .select2 {

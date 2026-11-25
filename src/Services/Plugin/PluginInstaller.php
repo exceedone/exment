@@ -328,10 +328,20 @@ class PluginInstaller
 
                 //If both name and uuid existed, update data for this plugin
                 if ($isPluginUpdate) {
-                    $pluginUpdated = $plugin->saveOrFail();
-                    //Rename folder with plugin name
-                    // @phpstan-ignore-next-line
-                    static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                    // Upload to S3 first — if it fails, do NOT save to DB
+                    try {
+                        // @phpstan-ignore-next-line
+                        static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                    } catch (\Throwable $e) {
+                        \Log::error('PluginInstaller: upload failed for plugin [' . ($plugin->plugin_name ?? '') . ']: ', [
+                            'e' => $e,
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                        return back()->with('errorMess', exmtrans('plugin.error.upload_storage_failed'));
+                    }
+                    $plugin->saveOrFail();
+                    // the files are there now (the row was saved after them)
+                    \Exceedone\Exment\Services\Features::forgetPluginsCache();
                     if (false === static::migrationInstall($plugin)) {
                         return back()->with('errorMess', exmtrans('plugin.error.migration_error'));
                     }
@@ -340,9 +350,20 @@ class PluginInstaller
                 }
                 //If both name and uuid does not existed, save new record to database, change name folder with plugin name then return success
                 elseif (is_null($plugineExistByName) && is_null($plugineExistByUUID)) {
+                    // Upload to S3 first — if it fails, do NOT save to DB
+                    try {
+                        // @phpstan-ignore-next-line
+                        static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                    } catch (\Throwable $e) {
+                        \Log::error('PluginInstaller: upload failed for plugin [' . ($plugin->plugin_name ?? '') . ']: ', [
+                            'e' => $e,
+                            'trace' => $e->getTraceAsString(),
+                        ]);
+                        return back()->with('errorMess', exmtrans('plugin.error.upload_storage_failed'));
+                    }
                     $plugin->save();
-                    // @phpstan-ignore-next-line
-                    static::copyPluginNameFolder($plugin, $json, $pluginFolder, $pluginFileBasePath, $diskService);
+                    // the files are there now (the row was saved after them)
+                    \Exceedone\Exment\Services\Features::forgetPluginsCache();
                     if (false === static::migrationInstall($plugin)) {
                         return back()->with('errorMess', exmtrans('plugin.error.migration_error'));
                     }
@@ -418,6 +439,8 @@ class PluginInstaller
             $plugin->{$key} = array_get($json, $key);
         }
         $plugin->active_flg = PluginType::getEnum($plugin_type) != PluginType::BATCH;
+        // an application sets its own (ScreenExtensions plugin.installing)
+        \Exceedone\Exment\Services\ScreenExtensions::call('plugin.installing', $plugin, $json);
 
         // set options
         $options = array_get($plugin, 'options', []);
@@ -429,7 +452,7 @@ class PluginInstaller
             }
         }
 
-        foreach (['all_user_enabled', 'label', 'icon', 'button_class', 'document_type', 'event_triggers', 'batch_hour', 'batch_cron', 'cdns', 'uri', 'export_description', 'command_only'] as $key) {
+        foreach (['all_user_enabled', 'label', 'icon', 'button_class', 'document_type', 'batch_hour', 'batch_cron', 'cdns', 'uri', 'export_description', 'command_only'] as $key) {
             if (array_key_value_exists($key, $json)) {
                 $options[$key] = array_get($json, $key);
             }

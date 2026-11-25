@@ -18,6 +18,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\MenuVisibility;
 
 trait HasPermissions
 {
@@ -191,6 +192,16 @@ trait HasPermissions
             return $this->getPermissions();
         });
 
+        // asked for each item of the menu and each check: the objects are made once for the roles (ISS00413)
+        $memoKey = Define::SYSTEM_KEY_SESSION_AUTHORITY . '_objects';
+        $memo = System::requestSession($memoKey);
+        if (is_array($memo) && $memo[0] === $roles) {
+            /** @var Collection $collection */
+            // @phpstan-ignore-next-line
+            $collection = collect($memo[1]);
+            return $collection;
+        }
+
         $permissions = [];
         foreach ($roles as $key => $role) {
             if (RoleType::SYSTEM == $key) {
@@ -219,6 +230,8 @@ trait HasPermissions
                 }
             }
         }
+
+        System::setRequestSession($memoKey, [$roles, $permissions]);
 
         /** @var Collection $collection */
         // @phpstan-ignore-next-line
@@ -251,8 +264,8 @@ trait HasPermissions
     }
 
     /**
-     * If visible for permission_details.
-     * called form menu
+     * Whether the user sees a menu (a node of the menu tree, with its
+     * children) or a page (its uri). Services\MenuVisibility decides.
      *
      * @param array|string $item
      * @param array $target_tables output target tables. for template export. default nothing item
@@ -262,49 +275,18 @@ trait HasPermissions
     // @phpstan-ignore-next-line
     public function visible($item, $target_tables = []): bool
     {
-        if (is_string($item)) {
-            $item = [
-                'uri' => $item
-            ];
-        } elseif (empty($item)) {
-            return false;
-        }
+        return MenuVisibility::forUser($this)->isVisible($item, (array) $target_tables);
+    }
 
-        // if organization and not use org setting, return false
-        if (array_get($item, 'menu_type') == MenuType::TABLE
-            && array_get($item, 'table_name') == SystemTableName::ORGANIZATION
-            && !System::organization_available()) {
-            return false;
-        }
-
-        // if $item has children, get children's visible result.
-        // if children have true result, return true;
-        if (array_key_exists('children', $item)) {
-            $first = collect($item['children'])->first(function ($child) use ($target_tables) {
-                return $this->visible($child, $target_tables);
-            });
-            return !is_null($first);
-        }
-
-        // if has target tables.
-        if (count($target_tables) > 0) {
-            // if $item->menu_name is not contains $target_tables, return false
-            if (!collect($target_tables)->first(function ($target_table) use ($item) {
-                return array_get($item, 'table_name') == $target_table;
-            })) {
-                return false;
-            }
-        }
-
-        // get permission for target endpoint
-        $permissons = $this->allPermissions();
-
-        if (!$permissons->first(function ($permission) use ($item) {
-            return $permission->shouldPassEndpoint(array_get($item, 'uri'), $item);
-        })) {
-            return false;
-        }
-        return true;
+    /**
+     * Whether the user may see a parent menu: it has no role groups, or the
+     * user is a system administrator or a member of one of them.
+     *
+     * @param array<string, mixed> $item
+     */
+    protected function canSeeMenuGroup(array $item): bool
+    {
+        return MenuVisibility::forUser($this)->canSeeGroup($item);
     }
 
     /**
@@ -355,10 +337,12 @@ trait HasPermissions
     protected function getPermissions()
     {
         $authority = System::requestSession(Define::SYSTEM_KEY_SESSION_AUTHORITY, function () {
+            // the role groups of the user, read and scanned once for the three kinds (ISS00413)
+            $roles = $this->getPermissionItems();
             return [
-                RoleType::SYSTEM => $this->getSystemPermissions(),
-                RoleType::TABLE => $this->getCustomTablePermissions(),
-                RoleType::PLUGIN => $this->getPluginPermissions(),
+                RoleType::SYSTEM => $this->getSystemPermissions($roles),
+                RoleType::TABLE => $this->getCustomTablePermissions($roles),
+                RoleType::PLUGIN => $this->getPluginPermissions($roles),
             ];
         });
         return $authority;
@@ -368,16 +352,17 @@ trait HasPermissions
      * get all permissons for all custom tables.
      */
     // @phpstan-ignore-next-line
-    protected function getCustomTablePermissions()
+    protected function getCustomTablePermissions($roles = null)
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems();
+        $roles = $roles ?? $this->getPermissionItems();
 
         // get permission_details for all tables. --------------------------------------------------
         $permission_details = [];
         $permissions = [];
 
         $tables = CustomTable::allRecords();
+        $tablesById = $tables->keyBy('id');
         foreach ($roles as $role) {
             /** @var RoleGroupPermission $role_group_permission */
             foreach ($role->role_group_permissions as $role_group_permission) {
@@ -388,9 +373,7 @@ trait HasPermissions
                     continue;
                 }
 
-                $custom_table = $tables->first(function($item) use ($role_group_permission) {
-                    return $item->id == $role_group_permission->role_group_target_id;
-                });
+                $custom_table = $tablesById->get($role_group_permission->role_group_target_id);
                 if (!isset($custom_table)) {
                     continue;
                 }
@@ -427,10 +410,10 @@ trait HasPermissions
      * get Plugin permissons.
      */
     // @phpstan-ignore-next-line
-    protected function getPluginPermissions()
+    protected function getPluginPermissions($roles = null)
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems();
+        $roles = $roles ?? $this->getPermissionItems();
 
         // get permission_details for all tables. --------------------------------------------------
         $permission_details = [];
@@ -473,10 +456,10 @@ trait HasPermissions
      * get all permissons for system.
      */
     // @phpstan-ignore-next-line
-    protected function getSystemPermissions()
+    protected function getSystemPermissions($roles = null)
     {
         // get all permissons for system. --------------------------------------------------
-        $roles = $this->getPermissionItems();
+        $roles = $roles ?? $this->getPermissionItems();
 
         // get roles records
         $permissions = [];

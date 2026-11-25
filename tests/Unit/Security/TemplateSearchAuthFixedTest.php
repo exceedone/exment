@@ -31,6 +31,10 @@ class TemplateSearchAuthFixedTest extends SecurityRegressionTestCase
 
     public function test_unauthenticated_search_is_forbidden(): void
     {
+        // searchTemplate() only guards on an installed system (the install wizard calls it
+        // anonymously), so the precondition has to hold for this assertion to mean anything.
+        $this->forceSystemInitialized();
+
         // The `api/...` path has no session and no CSRF -> matches the anonymous-attacker scenario.
         $prefix = $this->prefix();
 

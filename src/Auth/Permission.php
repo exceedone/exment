@@ -14,6 +14,33 @@ use ExmentAdminCore\Admin\Auth\Permission as AdminPermission;
 class Permission
 {
     /**
+     * The endpoints added by an application: endpoint => the endpoint whose rule it uses
+     * (string), or fn(Permission $permission, string $endpoint, bool $isMenu): bool.
+     *
+     * @var array<string, string|callable>
+     */
+    protected static $endpointRules = [];
+
+    /**
+     * Add an endpoint ("plugin-market" as "plugin", "ocr-setting" as "column", or a callback).
+     * An endpoint of a table ("name/{table}") is added with CoreExtensions::addTablePage().
+     *
+     * @param string|callable $rule
+     */
+    public static function extendEndpoint(string $endpoint, $rule): void
+    {
+        static::$endpointRules[$endpoint] = $rule;
+    }
+
+    /**
+     * Forget the added endpoints (tests).
+     */
+    public static function resetEndpoints(): void
+    {
+        static::$endpointRules = [];
+    }
+
+    /**
      * Summary of $role_type
      * @var string
      */
@@ -221,6 +248,15 @@ class Permission
         if (!isset($target)) {
             $target = $endpoint;
         }
+        // an endpoint added by an application (extendEndpoint()): the rule of another endpoint, or its own
+        if (array_key_exists($target, static::$endpointRules)) {
+            $rule = static::$endpointRules[$target];
+            if (is_string($rule)) {
+                $target = $rule;
+            } else {
+                return boolval(call_user_func($rule, $this, $endpoint, $isMenu));
+            }
+        }
         switch ($target) {
             case "":
             case "/":
@@ -234,6 +270,8 @@ class Permission
             case "saml/login":
             case "saml/logout":
             case "auth/setting":
+            // the API keys of the login user: the feature (its role groups) is checked by the page
+            case "auth/api_keys":
             case "auth/reset":
             case "auth/change":
             case "auth/forget":
@@ -250,6 +288,9 @@ class Permission
                 return true;
             case "assign-jan-code":
                 return true;
+            case "file_server":
+                // every user; the workspaces, folders and files have their own permissions (Services\FileServer\Access)
+                return true;
             case "notify_navbar":
             case "workflow_task":
             case "tmpfiles":
@@ -261,7 +302,12 @@ class Permission
             case "login_setting":
             case "database":
             case "auth/menu":
+            case "auth/menu_arrange":
             case "auth/logs":
+            case "tuning":
+            case "security_check":
+            case "api_keys":
+            case "maintenance":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }
@@ -295,12 +341,21 @@ class Permission
                     return array_keys_exists(PermissionEnum::WORKFLOW, $this->permission_details);
                 }
                 return false;
+            case "feature":
+                // Feature management: the system administrators only (they passed above)
+                return false;
             case "role":
             case "role_group":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists(PermissionEnum::AVAILABLE_ACCESS_ROLE_GROUP, $this->permission_details);
                 }
                 return false;
+            case "app":
+                // the phone app: every user; each screen and data checks its own permission
+                return true;
+            case "studio":
+                // the screens of the tables the user may set; the page lists only those tables
+                return array_keys_exists(\Exceedone\Exment\Services\Studio\ScreenList::TABLE_PERMISSIONS, $this->permission_details);
             case "table":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
@@ -366,7 +421,7 @@ class Permission
         }
 
         // if find endpoint "data/", check as data
-        $list = implode('|', array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['plugins']));
+        $list = implode('|', array_merge(\Exceedone\Exment\Services\CoreExtensions::customTableEndpoints(), ['plugins']));
         if (preg_match('/^(' . $list  . ')\/(.+)$/u', $endpoint, $matched)) {
             return $this->hasPermissionByEndpoint($matched[2], $isMenu, $matched[1], true);
         }
@@ -402,7 +457,7 @@ class Permission
             }
 
             // if $uri is "auth", get next uri.
-            if (in_array($uri, array_merge(Define::CUSTOM_TABLE_ENDPOINTS, ['auth', 'saml', 'plugins']))) {
+            if (in_array($uri, array_merge(\Exceedone\Exment\Services\CoreExtensions::customTableEndpoints(), ['auth', 'saml', 'plugins']))) {
                 // but url is last item, return $uri.
                 if (count($uris) <= $k+1) {
                     return $uri;

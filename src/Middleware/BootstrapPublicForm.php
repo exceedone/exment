@@ -42,9 +42,9 @@ class BootstrapPublicForm
             return;
         }
 
-        Ad::js(asset('lib/js/jquery-ui.min.js'));
-        Ad::css(asset('lib/css/jquery-ui.min.css'));
-        Ad::js(asset('lib/js/bignumber.min.js'));
+        static::setCssJsList(['lib/js/jquery-ui.min.js'], false);
+        static::setCssJsList(['lib/css/jquery-ui.min.css'], true);
+        static::setCssJsList(['lib/js/bignumber.min.js'], false);
 
         static::setCssJsList([
             'vendor/exment/css/common.css',
@@ -55,7 +55,7 @@ class BootstrapPublicForm
         ], true);
 
         static::setCssJsList([
-            'vendor/exment/validation/jquery.validate.js',
+            'vendor/exment/validation/jquery.validate.min.js',
             'vendor/exment/chartjs/chart.min.js',
             'vendor/exment/codemirror/codemirror.js',
             'vendor/exment/codemirror/mode/htmlmixed/htmlmixed.js',

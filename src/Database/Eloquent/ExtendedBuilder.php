@@ -53,20 +53,12 @@ class ExtendedBuilder extends Builder
         }
         $_query = clone $this;
         $table = $this->model->getTable();
-        $sql = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toSql();
-        // Use the bindings of the cloned query, not of $this.
-        // select() above drops the "select" bindings (withCount / selectRaw / selectSub ...) from the clone,
-        // so the bindings of $this would be shifted against the placeholders of $sql.
-        $bindings = $_query->getBindings();
-        if (count($bindings) > 0) {
-            // @phpstan-ignore-next-line
-            $query = preg_replace_callback('/\?/', function() use (&$bindings) {
-                $binding = array_shift($bindings);
-                return is_numeric($binding) ? $binding : "'" . addslashes($binding) . "'";
-            }, $sql);
-        } else {
-            $query = $sql;
-        }
+        // Inline the bindings of the cloned query (not of $this: select() above drops the "select" bindings
+        // such as withCount / selectRaw / selectSub from the clone, so the bindings of $this would be shifted).
+        // toRawSql() quotes every string with the connection's escaping and leaves only int/float unquoted,
+        // so a string value such as '01' stays a string. Inlining it as the number 01 made
+        // FIND_IN_SET(01, '01') fail and emptied the later pages (#1718).
+        $query = $_query->select($table . '.id as sid')->forPage($page, $perPage)->toBase()->toRawSql();
         return $this->join(\DB::raw('(' . $query . ') s'), function ($join) use ($table) {
             $join->whereRaw($table . '.id in (s.sid)');
         })->get($columns);

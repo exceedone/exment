@@ -38,7 +38,8 @@
     <div class="box-body" style="display: block;">
     <div class="box-body-inner">
         <div class="box-body-inner-header box-body-inneritem d-flex justify-content-end pt-3"></div>
-        <div class="box-body-inner-body box-body-inneritem"></div>
+        {{-- the max height set for the row on the dashboard setting page. Not set: the one of the stylesheet --}}
+        <div class="box-body-inner-body box-body-inneritem"@if(!empty($box_height)) style="max-height: {{ intval($box_height) }}px;"@endif></div>
         <div class="box-body-inner-footer box-body-inneritem mt-3"></div>
     </div>
 </div>

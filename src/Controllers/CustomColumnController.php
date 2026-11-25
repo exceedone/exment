@@ -141,6 +141,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('required', exmtrans("common.required"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
+        \Exceedone\Exment\Services\ScreenExtensions::call('custom_column.grid', $grid, $this->custom_table);
         $grid->column('index_enabled', exmtrans("custom_column.options.index_enabled"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
@@ -292,6 +293,7 @@ class CustomColumnController extends AdminControllerTableBase
         }
 
         $form->embeds('options', exmtrans("custom_column.options.header"), function ($form) use ($column_item, $id, $custom_column) {
+            \Exceedone\Exment\Services\ScreenExtensions::call('custom_column.options', $form, $this->custom_table, $id);
             $form->switchbool('required', exmtrans("common.required"));
             $form->switchbool('index_enabled', exmtrans("custom_column.options.index_enabled"))
                 ->rules([
@@ -432,6 +434,7 @@ class CustomColumnController extends AdminControllerTableBase
             // @phpstan-ignore-next-line
             $tools->add(new Tools\CustomTableMenuButton('column', $custom_table));
         });
+        \Exceedone\Exment\Services\ScreenExtensions::call('custom_column.form', $form, $this->custom_table, $id);
         return $form;
     }
 
@@ -607,5 +610,15 @@ class CustomColumnController extends AdminControllerTableBase
             'id' => $id,
             'column_type' => $column_type,
         ]));
+    }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): ?array
+    {
+        return [\Exceedone\Exment\Model\CustomColumn::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
     }
 }

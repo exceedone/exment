@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Form\Field;
 
 class Number extends \ExmentAdminCore\Admin\Form\Field\Number
 {
+    use HasCustomOptions;
+
     //protected $rules = [];
 
     // @phpstan-ignore-next-line

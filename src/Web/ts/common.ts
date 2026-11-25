@@ -20,6 +20,19 @@ namespace Exment {
                 CommonEvent.addSelect2();
                 CommonEvent.setFormFilter($(ev.target));
             });
+            // Lazy relations load sequentially after the initial page becomes idle; keep submits disabled until they hydrate.
+            CommonEvent.bindLazyRelationLoad();
+            CommonEvent.bindLazyRelationAddGuard();
+            CommonEvent.startLazyRelationAutoload();
+
+            // Rows inserted by the Core lazy grid exist only after AddEvent ran, so bind row navigation and
+            // row actions (data-add-swal, e.g. restore / hard delete) to them. Both skip already-bound elements.
+            $(document).off('admin:lazy-grid:loaded.exmentRowLink').on('admin:lazy-grid:loaded.exmentRowLink', () => {
+                CommonEvent.initGridRowLink();
+                CommonEvent.addShowModalEvent();
+            });
+
+            CommonEvent.syncLazyRelationSubmitState();
             $(document).on('switchChange.bootstrapSwitch', '[data-filter],[data-filtertrigger]', {}, (ev: JQueryEventObject) => {
                 CommonEvent.setFormFilter($(ev.target));
             });
@@ -57,6 +70,9 @@ namespace Exment {
 
             $(document).on('pjax:complete', function (event) {
                 CommonEvent.AddEvent();
+                // PJAX replaces the form DOM, so recalculate whether a deferred relation still blocks submit.
+                CommonEvent.syncLazyRelationSubmitState();
+                $(document).trigger('exment:lazy-relation:complete');
             });
                         
             $(document).on('pjax:error', function(xhr, textStatus, error, options) {
@@ -75,14 +91,186 @@ namespace Exment {
             CommonEvent.addShowModalEvent();
             CommonEvent.addFieldEvent();
             CommonEvent.setFormFilter($('[data-filter]'));
+            CommonEvent.initGridRowLink();
 
+            $.numberformat('[number_format]:not(".disableNumberFormat")');
+        }
+
+        /** Bind grid row navigation unless the table disables it. Already-bound rows are skipped. */
+        private static initGridRowLink() {
             let gridrow_select_transition = $('#gridrow_select_transition').val() || "default";
             if (gridrow_select_transition !== 'none' &&
                (gridrow_select_transition !== 'default' || !$('#gridrow_select_disabled').val())) {
                 CommonEvent.tableHoverLink();
             }
+        }
 
-            $.numberformat('[number_format]:not(".disableNumberFormat")');
+        /** Bind manual lazy-relation load clicks once for the document. */
+        private static bindLazyRelationLoad() {
+            $(document).on('click', '.lazy-relation-load', {}, (ev: JQueryEventObject) => {
+                CommonEvent.loadLazyRelation($(ev.target).closest('.lazy-relation-load'));
+            });
+        }
+
+        /**
+         * Block the "New" action of a relation block whose rows are not loaded yet. A capture listener runs before the
+         * delegated add handler registered by the field script (which is re-registered on every hydration), so no row is created.
+         */
+        private static bindLazyRelationAddGuard() {
+            if ((<any>window).__exmentLazyRelationAddGuardBound) {
+                return;
+            }
+
+            (<any>window).__exmentLazyRelationAddGuardBound = true;
+            document.addEventListener('click', (ev: MouseEvent) => {
+                const target = <Element>ev.target;
+                const add = target && target.closest ? target.closest('.add') : null;
+                if (!add) {
+                    return;
+                }
+
+                const $add = $(add);
+                const $block = $add.closest('.has-many-table-div');
+                if ($add.data('lazy-relation-add-locked') || $block.find('tbody[data-lazy-relation-url]').length > 0) {
+                    ev.preventDefault();
+                    ev.stopImmediatePropagation();
+                }
+            }, true);
+        }
+
+        /** Lock the add action of every block that still has a lazy placeholder. Unlocking happens only after a successful load. */
+        private static lockPendingLazyRelationAdd($root = $(document)) {
+            $root.find('.has-many-table-div').each(function() {
+                const $block = $(this);
+                if ($block.find('tbody[data-lazy-relation-url]').length === 0) {
+                    return;
+                }
+
+                const $add = $block.find('.add');
+                if ($add.length === 0 || $add.data('lazy-relation-add-locked')) {
+                    return;
+                }
+
+                $add.data('lazy-relation-add-locked', true)
+                    .data('lazy-relation-add-original-disabled', $add.hasClass('disabled'))
+                    .data('lazy-relation-add-original-aria', $add.attr('aria-disabled'))
+                    .addClass('disabled').attr('aria-disabled', 'true');
+            });
+        }
+
+        /** Restore the add action to the state it had before it was locked. */
+        private static unlockLazyRelationAdd($block) {
+            const $add = $block.find('.add');
+            if (!$add.data('lazy-relation-add-locked')) {
+                return;
+            }
+
+            if (!$add.data('lazy-relation-add-original-disabled')) {
+                $add.removeClass('disabled');
+            }
+            const originalAria = $add.data('lazy-relation-add-original-aria');
+            if (typeof originalAria === 'undefined') {
+                $add.removeAttr('aria-disabled');
+            }
+            else {
+                $add.attr('aria-disabled', originalAria);
+            }
+            $add.removeData('lazy-relation-add-locked')
+                .removeData('lazy-relation-add-original-disabled')
+                .removeData('lazy-relation-add-original-aria');
+        }
+
+        /** Fetch one relation fragment, then allow the next queued relation to load. */
+        private static async loadLazyRelation($button) {
+            const $tbody = $button.closest('tbody[data-lazy-relation-url]');
+            const $form = $tbody.closest('form');
+            const $block = $tbody.closest('.has-many-table-div');
+            const url = $tbody.data('lazy-relation-url');
+            if (!hasValue(url) || $button.data('lazy-relation-loading')) {
+                return;
+            }
+
+            $button.data('lazy-relation-loading', true).prop('disabled', true);
+            try {
+                const response = await $.get(url);
+                CommonEvent.hydrateLazyRelation($tbody, response);
+                CommonEvent.unlockLazyRelationAdd($block);
+            }
+            catch (_error) {
+                $button.data('lazy-relation-loading', false).prop('disabled', false);
+                toastr.error($('#exment_lazy_relation_load_failed').val());
+            }
+            finally {
+                CommonEvent.syncLazyRelationSubmitState($form);
+                $(document).trigger('exment:lazy-relation:complete');
+            }
+        }
+
+        /** Replace a placeholder with its relation rows and initialize fragment scripts. */
+        private static hydrateLazyRelation($tbody, response) {
+            const $fragment = $('<div>').html(response.html);
+            const $sourceTable = $fragment.find('table.has-many-table').first();
+            const $targetTable = $tbody.closest('table.has-many-table');
+
+            $targetTable.find('tbody').replaceWith($sourceTable.find('tbody'));
+            $targetTable.closest('.has-many-table-div').find('template').replaceWith($fragment.find('template'));
+            $.each(response.scripts || [], function(_index, script) {
+                const formClasses = script.match(/\.form-[a-z0-9]+/g) || [];
+                const $form = $targetTable.closest('form');
+                $.each(formClasses, function(_classIndex, formClass) {
+                    $form.addClass(formClass.substring(1));
+                });
+                $.globalEval(script);
+            });
+            CommonEvent.AddEvent();
+        }
+
+        /** Start the single sequential auto-loader after the browser becomes idle. */
+        private static startLazyRelationAutoload() {
+            if ((<any>window).__exmentLazyRelationAutoloadStarted) {
+                return;
+            }
+
+            (<any>window).__exmentLazyRelationAutoloadStarted = true;
+            const loadNext = () => {
+                const $button = $('.lazy-relation-load').filter(function() {
+                    return !$(this).data('lazy-relation-autoload-attempted');
+                }).first();
+                if ($button.length === 0) {
+                    return;
+                }
+                $button.data('lazy-relation-autoload-attempted', true).trigger('click');
+            };
+            $(document).on('exment:lazy-relation:complete', loadNext);
+            if ('requestIdleCallback' in window) {
+                (<any>window).requestIdleCallback(loadNext, { timeout: 1000 });
+            }
+            else {
+                setTimeout(loadNext, 500);
+            }
+        }
+
+        /** Disable submits while relation inputs are absent, then restore their prior state. */
+        private static syncLazyRelationSubmitState($forms = $('form')) {
+            CommonEvent.lockPendingLazyRelationAdd();
+            $forms.each(function() {
+                const $form = $(this);
+                const hasPendingLazyRelations = $form.find('tbody[data-lazy-relation-url]').length > 0;
+
+                $form.find(':submit').each(function() {
+                    const $submit = $(this);
+                    const originalDisabled = $submit.data('lazy-relation-original-disabled');
+                    if (hasPendingLazyRelations) {
+                        if (typeof originalDisabled === 'undefined') {
+                            $submit.data('lazy-relation-original-disabled', $submit.prop('disabled'));
+                        }
+                        $submit.prop('disabled', true);
+                    }
+                    else if (typeof originalDisabled !== 'undefined') {
+                        $submit.prop('disabled', originalDisabled).removeData('lazy-relation-original-disabled');
+                    }
+                });
+            });
         }
 
         /**
@@ -119,7 +307,8 @@ namespace Exment {
                 }
                 if(isMatch){
                     // set new url
-                    var help_url = URLJoin(manual_base_uri, help.help_uri);
+                    // a full URL (the manual of a plugin) as it is, a page of the manual after its base
+                    var help_url = /^https?:\/\//i.test(help.help_uri) ? help.help_uri : URLJoin(manual_base_uri, help.help_uri);
                     $manual.prop('href', help_url);
                     // chenge color
                     //$manual.children('i').addClass('help_personal');
@@ -467,6 +656,17 @@ namespace Exment {
                 if (rowClickTimer) {
                     clearTimeout(rowClickTimer);
                     rowClickTimer = null;
+                }
+
+                // Excel-like keyboard mode (the toolbar switch, grid_tools.js):
+                // there a click selects a cell and does not leave the page.
+                // The row is opened by a double click on a cell that cannot
+                // be edited - on an editable one that gesture edits.
+                if ($(ev.target).closest('table.exm-kbd-on').length > 0) {
+                    let kbdClicks = ev.detail || (ev.originalEvent ? ev.originalEvent.detail : 0) || 1;
+                    if (kbdClicks < 2 || $(ev.target).closest('td.exm-editable').length > 0) {
+                        return;
+                    }
                 }
                 // The click that puts the editor away is spent doing exactly
                 // that. The editor commits itself on blur, and navigating now
@@ -1124,10 +1324,7 @@ namespace Exment {
             }).addClass('added-select2');
         }
 
-
-        
         /**
-         * Get form block erea. (hasmany or default form)
          * @param block_name block name
          */
         public static getBlockElement(block_name) : JQuery<HTMLElement>{
@@ -1598,3 +1795,25 @@ const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
     const blob = new Blob(byteArrays, {type: contentType});
     return blob;
 }
+
+/**
+ * A switch field (YES/NO, boolean column) is a checkbox that bootstrapSwitch turns into a switch, and a hidden
+ * input next to it holds the value that is posted. When the switch is not made (e.g. a script stopped before it,
+ * #1716), the checkbox stays a plain checkbox and changing it did not change the hidden input, so the first value
+ * was saved. Keep the hidden input in step with the plain checkbox. (bootstrapSwitch triggers only
+ * "change.bootstrapSwitch", so this does not run for a working switch.)
+ */
+$(document).on('change', 'input[type="checkbox"].la_checkbox[data-onvalue]', function () {
+    const $checkbox = $(this);
+    if ($checkbox.closest('.bootstrap-switch').length > 0) {
+        return;
+    }
+    const $hidden = $checkbox.nextAll('input[type="hidden"]').first();
+    if ($hidden.length == 0) {
+        return;
+    }
+    const value = String($checkbox.prop('checked') ? $checkbox.data('onvalue') : $checkbox.data('offvalue'));
+    if ($hidden.val() !== value) {
+        $hidden.val(value).trigger('change');
+    }
+});

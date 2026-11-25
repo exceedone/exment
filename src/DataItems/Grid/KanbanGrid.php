@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\ViewKindType;
 use Exceedone\Exment\Enums\ViewType;
+use Exceedone\Exment\Services\UserTimezone;
 
 /**
  * Kanban view.
@@ -185,11 +186,16 @@ class KanbanGrid extends GridBase
             // leaves whole lanes empty when the data is lopsided - and the
             // lane that holds 2,000 finished records would eat the budget of
             // the lanes that hold the work.
-            $records = collect();
-            foreach ($this->getBoardKeys($group_column, $workflow, $hide_keys) as $key) {
-                $records = $records->merge(
-                    $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key)->take($col_count)->get()
-                );
+            $keys = $this->keysWithRecords($group_column, $workflow, $hide_keys, $this->getBoardKeys($group_column, $workflow, $hide_keys));
+            // the first rows of every column in one query, where the database can
+            $records = $this->windowedColumnRecords($group_column, $workflow, $hide_keys, $keys, $col_count);
+            if (!isset($records)) {
+                $records = collect();
+                foreach ($keys as $key) {
+                    $records = $records->merge(
+                        $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key)->take($col_count)->get()
+                    );
+                }
             }
             $over_limit = false;
         } else {
@@ -304,7 +310,8 @@ class KanbanGrid extends GridBase
                 'hook' => $this->getEditorHook(),
             ],
             'embed' => $this->isEmbed() ? ['type' => $this->embed_parent_type, 'id' => $this->embed_parent_id] : null,
-            'now' => \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
+            // the date and times of the cards are in the time zone of the user, and so is now (ISS02835)
+            'now' => UserTimezone::nowString(),
 
             'source' => $is_workflow ? static::SOURCE_WORKFLOW : static::SOURCE_COLUMN,
             'workflow_key' => static::WORKFLOW_KEY,
@@ -532,6 +539,90 @@ class KanbanGrid extends GridBase
     }
 
 
+    /** @var array<string, bool> the columns whose text the card does not carry (textlessColumns) */
+    protected $textlessColumns = [];
+
+    /**
+     * The columns whose text a card need not carry: their choices are on the board
+     * (the group and filter lists), so the browser puts the label back from the value
+     * (labelOfValue) for the search, and the card does not draw them. A text read for
+     * every card and every such column was most of the weight of a board.
+     *
+     * @param array<string, mixed> $context
+     * @param CustomColumn|null $group_column
+     * @return array<string, bool>
+     */
+    protected function textlessColumns(array $context, $group_column): array
+    {
+        $drawn = [];
+        foreach ([$context['title_column'] ?? null, $context['assignee_column'] ?? null, $context['badge_column'] ?? null,
+            $context['limit_column'] ?? null, $context['ai_column'] ?? null, $group_column, $this->getSwimlaneColumn()] as $column) {
+            if ($column instanceof CustomColumn) {
+                $drawn[$column->column_name] = true;
+            }
+        }
+        $textless = [];
+        foreach (array_merge(array_values($context['groupables'] ?? []), array_values($context['filter_columns'] ?? [])) as $column) {
+            // a long list carries only the choices of the cards read so far: the cards
+            // of "load more" keep their texts there
+            if ($column instanceof CustomColumn && !isset($drawn[$column->column_name]) && static::isValueListedColumn($column)
+                && ($this->isWholeListColumn($column) || !static::isLongList($column))) {
+                $textless[$column->column_name] = true;
+            }
+        }
+        return $textless;
+    }
+
+    /**
+     * The records the cards point to (a status, a parent issue, a user...), read at
+     * once for each table they are in. Each card asked for its own, one query per
+     * value not read yet: 174 queries on a board of 1,300 issues.
+     *
+     * @param \Illuminate\Support\Collection<int, mixed> $records
+     * @param array<string, CustomColumn> $value_columns
+     * @param array<int, array<string, mixed>> $card_fields
+     */
+    protected function prefetchLinkedRecords($records, array $value_columns, array $card_fields): void
+    {
+        $columns = $value_columns;
+        foreach ($card_fields as $card_field) {
+            $column = $card_field['custom_column'] ?? null;
+            if ($column instanceof CustomColumn && intval($column->custom_table_id) === intval($this->custom_table->id)) {
+                $columns[$column->column_name] = $column;
+            }
+        }
+        $ids = [];
+        $tables = [];
+        foreach ($columns as $column) {
+            if (!ColumnType::isSelectTable($column->column_type)) {
+                continue;
+            }
+            $target = $column->select_target_table;
+            if (!isset($target)) {
+                continue;
+            }
+            $tables[$target->id] = $target;
+            foreach ($records as $record) {
+                $value = array_get($record, 'value.' . $column->column_name);
+                if (is_nullorempty($value)) {
+                    continue;
+                }
+                foreach ((array) toArray($value) as $id) {
+                    if (is_numeric($id)) {
+                        $ids[$target->id][] = $id;
+                    }
+                }
+            }
+        }
+        foreach ($ids as $tableId => $list) {
+            try {
+                $tables[$tableId]->setCustomValueModels(array_values(array_unique($list)));
+            } catch (\Throwable $e) {
+                // the cards read them one by one, as before
+            }
+        }
+    }
+
     /**
      * Build every card shown on the board.
      *
@@ -580,6 +671,7 @@ class KanbanGrid extends GridBase
         // but the filter panel and "only mine" have to see all of them, or
         // the second person on a card is invisible to both.
         $multiple_columns = [];
+        $datetime_columns = [];
         foreach ($value_columns as $column_name => $custom_column) {
             $item = CustomItem::getItem($custom_column);
             if (isset($item)) {
@@ -588,7 +680,18 @@ class KanbanGrid extends GridBase
             if ($custom_column->isMultipleEnabled()) {
                 $multiple_columns[$column_name] = true;
             }
+            if (array_get($custom_column, 'column_type') == ColumnType::DATETIME) {
+                $datetime_columns[$column_name] = true;
+            }
         }
+
+        $this->prefetchLinkedRecords($records, $value_columns, $card_fields);
+
+        // the address of a record is the address of its table and its id (CustomValue::getUrl
+        // without options): the address of the table is worked out once, not for each card.
+        // A document has an address of its own.
+        $url_base = $this->custom_table->table_name == SystemTableName::DOCUMENT
+            ? null : admin_urls('data', $this->custom_table->table_name);
 
         $cards = [];
         foreach ($records as $record) {
@@ -605,7 +708,19 @@ class KanbanGrid extends GridBase
                 $item->setCustomValue($record);
                 $raw = $item->value();
                 $values[$column_name] = static::normalizeKey($raw);
-                $texts[$column_name] = strval($item->text());
+                // a date and time in the time zone of the user, as its text and the edit of the deadline (ISS02835)
+                if (isset($datetime_columns[$column_name])) {
+                    $values[$column_name] = UserTimezone::formatToUser($values[$column_name]);
+                }
+                // the text only where the browser cannot tell it (textOf in the board
+                // script): not for a column whose label it puts back from its lists,
+                // not where it is the value itself (a subject, a date, a number)
+                if (!isset($this->textlessColumns[$column_name])) {
+                    $text = strval($item->text());
+                    if ($text !== $values[$column_name]) {
+                        $texts[$column_name] = $text;
+                    }
+                }
                 if (isset($multiple_columns[$column_name])) {
                     $keys = static::normalizeKeys($raw);
                     // one value is already in $values; sending it twice would
@@ -676,7 +791,7 @@ class KanbanGrid extends GridBase
             $card = [
                 'id' => $record->id,
                 'label' => strval($record->getLabel()),
-                'entered' => isset($entered) ? \Carbon\Carbon::parse($entered)->format('Y-m-d H:i:s') : '',
+                'entered' => isset($entered) ? UserTimezone::display($entered, UserTimezone::DB_FORMAT) : '',
                 // the edit lock: a write from the board sends it back, so a
                 // record somebody else saved since this card was read is
                 // refused instead of overwritten (CustomTable::validatorLock)
@@ -685,12 +800,13 @@ class KanbanGrid extends GridBase
                 // has already been read once for this record
                 'title' => isset($title_column)
                     ? strval(array_get($texts, $title_column->column_name, '')) : '',
-                'url' => $record->getUrl(),
+                'url' => isset($url_base) ? url_join($url_base, $record->id) : $record->getUrl(),
                 'values' => $values,
                 // only the columns that carry more than one value, so a board
                 // of single-value columns pays nothing for this
                 'multi' => (object) $multi,
-                'texts' => $texts,
+                // an object even when empty, as the browser writes into it
+                'texts' => (object) $texts,
                 'fields' => $fields,
                 'cover' => isset($cover_column) ? $this->buildCoverUrl($record, $cover_column) : '',
                 'labels' => isset($labels_column)
@@ -1136,6 +1252,7 @@ class KanbanGrid extends GridBase
         }
         $context['value_columns'] = $value_columns;
         $context['writable_columns'] = $this->getWritableColumns($context);
+        $this->textlessColumns = $this->textlessColumns($context, $group_column);
 
         return $context;
     }
@@ -1241,10 +1358,224 @@ class KanbanGrid extends GridBase
         if (!empty($hide_keys)) {
             $this->applyBoardKeys($query, $group_column, $workflow, $hide_keys, true);
         }
+        $this->selectStoredColumns($query);
 
         return $query;
     }
 
+
+    /** @var array<string, array<int, string>> table => its columns that are not index columns */
+    protected static $stored_columns = [];
+
+    /**
+     * Read the record's own columns, not the index columns (column_<hash>).
+     *
+     * Those are generated from value - MySQL / MariaDB compute each one from
+     * the JSON of every row read - and a card never reads them: the model
+     * takes its values from value. On a table of 2,400 issues with long
+     * texts and twenty index columns, a board column query took 1.5s with
+     * `table.*` and 0.08s without them. The columns stay usable in where and
+     * order by, which is all the board asks of them.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
+     * @return void
+     */
+    protected function selectStoredColumns($query)
+    {
+        $base = $query->getQuery();
+        $table = getDBTableName($this->custom_table);
+        $all = $table . '.*';
+        // something else chose the columns: leave it alone
+        if (!is_null($base->columns) && !in_array($all, $base->columns, true)) {
+            return;
+        }
+        if (!array_key_exists($table, static::$stored_columns)) {
+            try {
+                $columns = \Schema::connection($query->getModel()->getConnectionName())->getColumnListing($table);
+            } catch (\Throwable $e) {
+                $columns = [];
+            }
+            static::$stored_columns[$table] = array_values(array_filter($columns, function ($column) {
+                return strpos($column, 'column_') !== 0;
+            }));
+        }
+        $stored = static::$stored_columns[$table];
+        if (empty($stored) || !in_array('id', $stored, true) || !in_array('value', $stored, true)) {
+            return;
+        }
+        $qualified = array_map(function ($column) use ($table) {
+            return $table . '.' . $column;
+        }, $stored);
+        if (is_null($base->columns)) {
+            $base->columns = $qualified;
+            return;
+        }
+        $at = array_search($all, $base->columns, true);
+        if ($at === false || !is_int($at)) {
+            $base->columns = array_merge($base->columns, $qualified);
+            return;
+        }
+        array_splice($base->columns, $at, 1, $qualified);
+    }
+
+
+    /**
+     * The board columns that can hold a record, for the query of each column: a board
+     * grouped by a column with many choices (the statuses of every project) has many
+     * columns that hold nothing, and each was a query of its own. One query reads the
+     * values in use. Only for a column of one value; a workflow, or a column of several
+     * values, keeps every board column (its records are found otherwise).
+     *
+     * @param CustomColumn|null $group_column
+     * @param Workflow|null $workflow
+     * @param array<int, string> $hide_keys
+     * @param array<int, string> $keys
+     * @return array<int, string>
+     */
+    protected function keysWithRecords($group_column, $workflow, array $hide_keys, array $keys)
+    {
+        if (isset($workflow) || !isset($group_column) || boolval($group_column->isMultipleEnabled())) {
+            return $keys;
+        }
+        try {
+            $query = $this->custom_table->getValueQuery();
+            $this->custom_view->resetSearchService();
+            $this->custom_view->filterSortModel($query, ['sort' => false]);
+            $this->applyEmbedFilter($query);
+            if (!empty($hide_keys)) {
+                $this->applyBoardKeys($query, $group_column, $workflow, $hide_keys, true);
+            }
+            $base = $query->toBase();
+            $base->orders = null;
+            $base->limit = null;
+            $base->offset = null;
+            $expr = \DB::connection()->getQueryGrammar()->wrap($this->columnKey($group_column));
+            $base->columns = [\DB::raw('distinct ' . $expr . ' as kb_key')];
+            $present = array_map(function ($value) {
+                return is_null($value) ? '' : strval($value);
+            }, $base->pluck('kb_key')->all());
+        } catch (\Throwable $e) {
+            // the board as before: every column asked
+            return $keys;
+        }
+
+        $real = $this->getRealBoardKeys($group_column);
+        // the empty column: no value, or a value that is not one of the choices
+        $hasEmpty = count(array_filter($present, function ($value) use ($real) {
+            return $value === '' || !in_array($value, $real, true);
+        })) > 0;
+
+        return array_values(array_filter($keys, function ($key) use ($present, $hasEmpty) {
+            return $key === static::EMPTY_KEY ? $hasEmpty : in_array(strval($key), $present, true);
+        }));
+    }
+
+
+    /** @var bool|null whether the database numbers rows per group (window functions) */
+    protected static $windowFunctions;
+
+    /**
+     * Whether the database has window functions: MySQL 8.0, MariaDB 10.2, SQL Server.
+     * MySQL 5.7, which Exment still takes, has not.
+     */
+    public static function supportsWindowFunctions(): bool
+    {
+        if (isset(static::$windowFunctions)) {
+            return static::$windowFunctions;
+        }
+        try {
+            $connection = \DB::connection();
+            $driver = $connection->getDriverName();
+            if ($driver === 'sqlsrv') {
+                return static::$windowFunctions = true;
+            }
+            if (!in_array($driver, ['mysql', 'mariadb'], true)) {
+                return static::$windowFunctions = false;
+            }
+            $version = strval($connection->getPdo()->getAttribute(\PDO::ATTR_SERVER_VERSION));
+            if (stripos($version, 'mariadb') !== false || $driver === 'mariadb') {
+                preg_match('/(\d+\.\d+\.\d+)-mariadb/i', $version, $m);
+                return static::$windowFunctions = version_compare($m[1] ?? $version, '10.2.0', '>=');
+            }
+            return static::$windowFunctions = version_compare($version, '8.0.0', '>=');
+        } catch (\Throwable $e) {
+            return static::$windowFunctions = false;
+        }
+    }
+
+    /**
+     * The first $count records of each board column in one query, each column in its
+     * own order (the view's sort, then the id): the rows of the board query numbered
+     * per column - ROW_NUMBER() OVER (PARTITION BY the column ORDER BY the sort) - and
+     * the first $count of each kept. The same records as a query per column, without a
+     * round trip each. Null (ask column by column) on a database without window
+     * functions, for a workflow or a column of several values, or a sort it cannot copy.
+     *
+     * @param CustomColumn|null $group_column
+     * @param Workflow|null $workflow
+     * @param array<int, string> $hide_keys
+     * @param array<int, string> $keys
+     * @return \Illuminate\Support\Collection<int, mixed>|null
+     */
+    protected function windowedColumnRecords($group_column, $workflow, array $hide_keys, array $keys, int $count)
+    {
+        if (count($keys) < 2 || isset($workflow) || !isset($group_column) || boolval($group_column->isMultipleEnabled())
+            || !static::supportsWindowFunctions()) {
+            return null;
+        }
+        try {
+            $query = $this->newBoardQuery($group_column, $workflow, $hide_keys);
+            $this->applyBoardKeys($query, $group_column, $workflow, $keys, false);
+            $base = $query->toBase();
+            if (!empty($base->bindings['order']) || !empty($base->unions) || isset($base->limit) || isset($base->offset)) {
+                return null;
+            }
+            $grammar = \DB::connection()->getQueryGrammar();
+            $orders = [];
+            foreach ($base->orders ?? [] as $order) {
+                if (isset($order['column'])) {
+                    $orders[] = $grammar->wrap($order['column']) . ' ' . (strtolower(strval($order['direction'] ?? 'asc')) === 'desc' ? 'desc' : 'asc');
+                } elseif (($order['type'] ?? null) === 'Raw' && isset($order['sql'])) {
+                    $orders[] = strval($order['sql']);
+                } else {
+                    return null;
+                }
+            }
+            if (empty($orders)) {
+                return null;
+            }
+
+            // the board column of a row, the way the board names it: a choice, or
+            // the empty column (no value, or a value that is not a choice)
+            $expr = $grammar->wrap($this->columnKey($group_column));
+            $real = $this->getRealBoardKeys($group_column);
+            $partition = empty($real)
+                ? "''"
+                : 'case when ' . $expr . ' in (' . implode(', ', array_fill(0, count($real), '?')) . ') then ' . $expr . " else '' end";
+
+            $db_table = getDBTableName($this->custom_table);
+            if (empty($base->columns)) {
+                $base->columns = [$db_table . '.*'];
+            }
+            $base->selectRaw('row_number() over (partition by ' . $partition . ' order by ' . implode(', ', $orders) . ') as kb_rn', $real);
+            // the order is the one of each column now (SQL Server takes no order in a derived table)
+            $base->orders = null;
+
+            $model = $this->custom_table->getValueModel();
+            $records = $model->newModelQuery()
+                ->fromSub($base, $db_table)
+                ->where('kb_rn', '<=', $count)
+                ->orderBy('kb_rn')
+                ->get();
+            foreach ($records as $record) {
+                unset($record->kb_rn);
+            }
+            return $records;
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] kanban: one query for the columns: ' . $e->getMessage());
+            return null;
+        }
+    }
 
     /**
      * The board query narrowed to one board column.
@@ -1520,6 +1851,74 @@ class KanbanGrid extends GridBase
         return \Exment::isSqlServer() ? "try_convert(float, $expr)" : $expr;
     }
 
+    /** How long the column figures are kept, at most (seconds). */
+    protected const STATS_CACHE_SECONDS = 300;
+
+    /**
+     * The rows of the column figures, kept for a few minutes.
+     *
+     * The aggregate groups on columns MySQL / MariaDB compute from each row's
+     * JSON, over every record of the board - 0.8s on ex1task for a project of
+     * 2,400 issues - while the figures only move when a record does. They are
+     * kept until the table changes (its count and newest update, and the
+     * newest workflow step), for the same reader, view and query (filters,
+     * the embedding record), and never longer than STATS_CACHE_SECONDS.
+     *
+     * The ages are exact all the same: a kept row's age sums grow by its
+     * count times the seconds since it was read. Only the count of overdue
+     * cards (kb_breach) can lag, by those few minutes at most.
+     *
+     * @param \Illuminate\Database\Query\Builder $query the grouped aggregate
+     * @param Workflow|null $workflow
+     * @return array<int, \stdClass>
+     */
+    protected function statsRows($query, $workflow): array
+    {
+        $read = function () use ($query) {
+            return $query->get()->map(function ($row) {
+                return (array) $row;
+            })->all();
+        };
+        try {
+            $db_table = getDBTableName($this->custom_table);
+            $stamp = \DB::table($db_table)->selectRaw('count(*) as n, max(updated_at) as at')->whereNull('deleted_at')->first();
+            $wf = isset($workflow)
+                ? \DB::table('workflow_values')->where('morph_type', $this->custom_table->table_name)->max('updated_at')
+                : null;
+            $key = 'exment:kanban_stats:' . md5(strval(json_encode([
+                \Exment::getUserId(),
+                $this->custom_view->id,
+                strval($this->custom_view->updated_at),
+                // the SQL carries this second (sqlNow()); the kept ages are moved on by the
+                // seconds since instead, so the clock must not make every key a new one
+                preg_replace("/cast\('\d{4}-\d\d-\d\d \d\d:\d\d:\d\d' as datetime\)|convert\(datetime2, '\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d', 126\)/", 'now', $query->toSql()),
+                $query->getBindings(),
+                intval($stamp->n ?? 0),
+                strval($stamp->at ?? ''),
+                strval($wf),
+            ])));
+            $kept = \Cache::get($key);
+            if (!is_array($kept) || !isset($kept['at'], $kept['rows'])) {
+                $kept = ['at' => time(), 'rows' => $read()];
+                \Cache::put($key, $kept, static::STATS_CACHE_SECONDS);
+            }
+        } catch (\Throwable $e) {
+            $kept = ['at' => time(), 'rows' => $read()];
+        }
+
+        $elapsed = max(0, time() - intval($kept['at']));
+        return array_map(function (array $row) use ($elapsed) {
+            if ($elapsed > 0) {
+                $row['kb_seconds'] = floatval($row['kb_seconds'] ?? 0) + intval($row['kb_count'] ?? 0) * $elapsed;
+                if (array_key_exists('kb_agesum', $row)) {
+                    $row['kb_agesum'] = floatval($row['kb_agesum']) + intval($row['kb_agen'] ?? 0) * $elapsed;
+                }
+            }
+            return (object) $row;
+        }, $kept['rows']);
+    }
+
+
     /**
      * Count, total and average age of every board column, straight from the
      * database.
@@ -1637,7 +2036,7 @@ class KanbanGrid extends GridBase
 
         $real_keys = $this->getRealBoardKeys($group_column);
         $stats = [];
-        foreach ($base->select($selects)->groupBy($groups)->get() as $row) {
+        foreach ($this->statsRows($base->select($selects)->groupBy($groups), $workflow) as $row) {
             $raw = $row->kb_key;
             $key = (is_null($raw) || $raw === '') ? null : strval($raw);
             if (isset($workflow)) {

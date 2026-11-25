@@ -199,6 +199,26 @@ class CustomCopyController extends AdminControllerTableBase
             $form->text('label', exmtrans("plugin.options.label"))->default(exmtrans("common.copy"))->rules("max:40");
             $form->icon('icon', exmtrans("plugin.options.icon"))->help(exmtrans("plugin.help.icon"))->default('fa-copy');
             $form->text('button_class', exmtrans("plugin.options.button_class"))->help(exmtrans("plugin.help.button_class"));
+            $form->switchbool('use_on_create', exmtrans("custom_copy.options.use_on_create"))
+                ->help(exmtrans("custom_copy.help.use_on_create"))
+                ->default(0);
+            $form->select('create_label_type', exmtrans("custom_copy.options.create_label_type"))
+                ->help(exmtrans("custom_copy.help.create_label_type"))
+                ->options([
+                    CustomCopy::CREATE_LABEL_AUTO => exmtrans("custom_copy.create_label_type_options.auto"),
+                    CustomCopy::CREATE_LABEL_TABLE => exmtrans("custom_copy.create_label_type_options.table"),
+                    CustomCopy::CREATE_LABEL_LABEL => exmtrans("custom_copy.create_label_type_options.label"),
+                ])
+                ->disableClear()
+                ->default(CustomCopy::CREATE_LABEL_AUTO)
+                ->attribute(['data-filter' => json_encode(['key' => 'options_use_on_create', 'value' => '1'])]);
+            $form->text('create_label', exmtrans("custom_copy.options.create_label"))
+                ->help(exmtrans("custom_copy.help.create_label"))
+                ->rules("max:40")
+                ->attribute(['data-filter' => json_encode([
+                    ['key' => 'options_use_on_create', 'value' => '1'],
+                    ['key' => 'options_create_label_type', 'value' => CustomCopy::CREATE_LABEL_LABEL],
+                ])]);
             if (!empty($child_options)) {
                 $form->select('child_copy', exmtrans("custom_copy.options.child_copy"))
                     ->help(exmtrans("custom_copy.help.child_copy"))->options($child_options);
@@ -217,7 +237,7 @@ class CustomCopyController extends AdminControllerTableBase
             'include_system' => false,
             'ignore_attachment' => true,
         ]) : [];
-        $form->hasManyTable('custom_copy_columns', exmtrans("custom_copy.custom_copy_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
+        $copy_columns_field = $form->hasManyTable('custom_copy_columns', exmtrans("custom_copy.custom_copy_columns"), function ($form) use ($from_custom_column_options, $to_custom_column_options) {
             $form->select('from_column_target', exmtrans("custom_copy.from_custom_column"))
                 ->options($from_custom_column_options)->required();
             $form->descriptionHtml('▶');
@@ -227,6 +247,17 @@ class CustomCopyController extends AdminControllerTableBase
         })->setTableWidth(10, 1)
         ->descriptionHtml(exmtrans("custom_copy.column_description"));
 
+        // a new setting may start with the columns of the same name already paired (#1828)
+        if (!isset($id) && isset($to_table) && boolval($request->get('match_columns'))) {
+            $pairs = static::getSameNameColumnPairs($from_custom_column_options, $to_custom_column_options);
+            if (count($pairs) > 0) {
+                $copy_columns_field->setRelatedValue($pairs);
+                admin_info(exmtrans('custom_copy.match_columns.button'), exmtrans('custom_copy.match_columns.message', count($pairs)));
+            } else {
+                admin_warning(exmtrans('custom_copy.match_columns.button'), exmtrans('custom_copy.match_columns.message_none'));
+            }
+        }
+
         ///// get input columns
         $form->hasManyTable('custom_copy_input_columns', exmtrans("custom_copy.custom_copy_input_columns"), function ($form) use ($to_custom_column_options) {
             $form->select('to_column_target', exmtrans("custom_copy.input_custom_column"))
@@ -235,9 +266,25 @@ class CustomCopyController extends AdminControllerTableBase
         })->setTableWidth(10, 1)
         ->descriptionHtml(exmtrans("custom_copy.input_column_description"));
 
-        $form->tools(function (Form\Tools $tools) use ($custom_table) {
+        $form->tools(function (Form\Tools $tools) use ($custom_table, $id, $to_table) {
             // @phpstan-ignore-next-line
             $tools->add(new Tools\CustomTableMenuButton('copy', $custom_table));
+
+            // open the new setting again with the columns of the same name paired
+            if (!isset($id) && isset($to_table)) {
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls_query('copy', $custom_table->table_name, 'create', [
+                        'to_custom_table' => $to_table->suuid,
+                        'match_columns' => 1,
+                    ]),
+                    'label' => exmtrans('custom_copy.match_columns.button'),
+                    'icon' => 'fa-exchange',
+                    'btn_class' => 'btn-default',
+                    'attributes' => [
+                        'onclick' => 'return confirm(' . json_encode(exmtrans('custom_copy.match_columns.confirm')) . ');',
+                    ],
+                ]));
+            }
         });
 
         // validate before saving
@@ -274,6 +321,63 @@ class CustomCopyController extends AdminControllerTableBase
     }
 
     /**
+     * The copy columns that pair each column of the copy-from table with the column
+     * of the same name in the copy-to table.
+     *
+     * Made from the options the selects of the form offer, so a pair is always one
+     * the user could have picked. Auto numbers are left out: the copy-to table
+     * numbers its own records.
+     *
+     * @param array<mixed> $from_options
+     * @param array<mixed> $to_options
+     * @return array<int, array<string, mixed>>
+     */
+    public static function getSameNameColumnPairs(array $from_options, array $to_options): array
+    {
+        $to_keys = [];
+        foreach (array_keys($to_options) as $key) {
+            $column = static::getOptionColumn($key);
+            if (isset($column) && !isset($to_keys[$column->column_name])) {
+                $to_keys[$column->column_name] = $key;
+            }
+        }
+
+        $pairs = [];
+        foreach (array_keys($from_options) as $key) {
+            $column = static::getOptionColumn($key);
+            if (!isset($column) || !isset($to_keys[$column->column_name])) {
+                continue;
+            }
+            $pairs[] = [
+                'from_column_target' => $key,
+                'to_column_target' => $to_keys[$column->column_name],
+                'copy_column_type' => CopyColumnType::DEFAULT,
+            ];
+        }
+        return $pairs;
+    }
+
+    /**
+     * The custom column of a column option ("(column id)?table_id=..."), or null for
+     * anything else and for auto numbers.
+     *
+     * @param int|string $key
+     * @return CustomColumn|null
+     */
+    protected static function getOptionColumn($key): ?CustomColumn
+    {
+        $id = explode('?', (string)$key)[0];
+        if (!is_numeric($id)) {
+            return null;
+        }
+        $column = CustomColumn::getEloquent($id);
+        if (!$column instanceof CustomColumn || $column->column_type == \Exceedone\Exment\Enums\ColumnType::AUTO_NUMBER) {
+            return null;
+        }
+        return $column;
+    }
+
+    /**
      * Create new button for modal.
      */
     // @phpstan-ignore-next-line
@@ -295,6 +399,11 @@ class CustomCopyController extends AdminControllerTableBase
             ->required()
             ->help(exmtrans('custom_copy.help.to_custom_table_view_name'));
 
+        $form->switchbool('match_columns', exmtrans('custom_copy.match_columns.button'))
+            ->setWidth(8, 3)
+            ->default(1)
+            ->help(exmtrans('custom_copy.match_columns.help'));
+
         return getAjaxResponse([
             'body'  => $form->render(),
             'script' => $form->getScript(),
@@ -303,5 +412,15 @@ class CustomCopyController extends AdminControllerTableBase
 
         // add button unreachable statement
 //        return $form->render()->render();
+    }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): ?array
+    {
+        return [\Exceedone\Exment\Model\CustomCopy::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
     }
 }

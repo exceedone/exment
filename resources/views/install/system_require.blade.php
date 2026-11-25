@@ -12,6 +12,32 @@
     </div>
 
     @include('exment::widgets.system-require')
+
+    @isset($tuningResult)
+    @include('exment::widgets.tuning-advice')
+    @endisset
+
+    {{-- the security check (ISS02833): the server's items to fix; the fixes are on its page after the install --}}
+    @if(!empty($securityProblems))
+    <div class="container-fluid security_advice">
+        <h4 style="margin-top:1.5em;">{{ exmtrans('security_check.install_header') }}</h4>
+        <p class="small">{{ exmtrans('security_check.install_explain') }}</p>
+        <div class="row row-eq-height">
+            @foreach($securityProblems as $item)
+            <div class="col-xs-12 col-sm-6 require_item">
+                <h5 class="bold">
+                    <i class="fa fa-shield" aria-hidden="true" style="color: #d9534f"></i>
+                    {{ $item->getLabel() }} : {{ $item->getResultText() }}
+                </h5>
+                <p class="small">{{ $item->getMessage() }}</p>
+                @if(!is_null($fixText = $item->getFixText()))
+                <pre class="small" style="white-space: pre-wrap;">{{ $fixText }}</pre>
+                @endif
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endif
     
     <div class="container-fluid">
         <div class="row" style="margin-top:2em;">

@@ -1,0 +1,1927 @@
+/* =====================================================================
+   modern.css - the "modern" screen design of Exment.
+   ---------------------------------------------------------------------
+   Loaded only when the screen design is "modern" (the default). The
+   design is chosen on the system setting page ("Screen design"), or
+   fixed by the server with EXMENT_UI_DESIGN=modern|classic in .env.
+   With "classic" this file is never sent and the screens look exactly
+   as they did before.
+
+   What it covers:
+     1. design tokens (CSS variables on :root), and the accent color
+        of each site skin
+     2. the login screen family   (scope: body.login-page)
+     3. the admin pages           (scope: body[class*="skin-"])
+          - page frame: header bar, sidebar menu, footer
+          - boxes, buttons, forms, select2, tabs, child tables
+          - dashboard
+          - data list (table.exm-grid and the box that holds it)
+
+   Every rule starts from one of those scopes. Pages without them - the
+   public form, the installer - are not touched.
+
+   Design notes and the HTML samples: document/design/modern-ui/
+   ===================================================================== */
+
+
+/* ------------------------------------------------------------ tokens --- */
+/* Only variables here: defining them changes nothing by itself.
+   One accent, everything else is white and gray. The accent here is the
+   blue family of the Exment logo; a site whose skin is not blue gets its
+   own accent from the "skin accents" block below. */
+:root {
+  /* accent - logo gradient is #3b82f6 -> #1d4ed8 */
+  --exm-ui-accent: #2563eb;
+  --exm-ui-accent-strong: #1d4ed8;
+  --exm-ui-accent-soft: #eff4ff;
+  --exm-ui-accent-ring: rgba(37, 99, 235, .22);
+
+  /* text */
+  --exm-ui-text: #1c2024;
+  --exm-ui-text-sub: #5f6b7a;
+  --exm-ui-text-faint: #8b95a1;
+
+  /* surfaces and lines */
+  --exm-ui-bg: #ffffff;
+  --exm-ui-bg-sub: #f7f8f9;
+  --exm-ui-bg-hover: #f3f5f7;
+  --exm-ui-line: #e6e8eb;
+  --exm-ui-line-soft: #eff1f3;
+
+  /* state colors - used for meaning only, never for decoration */
+  --exm-ui-danger: #d1242f;
+
+  /* type */
+  --exm-ui-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans",
+    "Hiragino Kaku Gothic ProN", "Yu Gothic UI", "Meiryo", sans-serif;
+  --exm-ui-fs-xs: 12px;
+  --exm-ui-fs-sm: 13px;
+  --exm-ui-fs-md: 14px;
+  --exm-ui-fs-lg: 18px;
+  --exm-ui-fs-xl: 24px;
+
+  /* spacing - a 4px scale */
+  --exm-ui-space-1: 4px;
+  --exm-ui-space-2: 8px;
+  --exm-ui-space-3: 12px;
+  --exm-ui-space-4: 16px;
+  --exm-ui-space-5: 24px;
+  --exm-ui-space-6: 32px;
+  --exm-ui-space-7: 48px;
+
+  /* shape */
+  --exm-ui-radius-sm: 6px;
+  --exm-ui-radius-md: 10px;
+}
+
+
+/* ------------------------------------------------------ skin accents --- */
+/* The site skin (system setting "Site Skin") chooses the accent. The
+   page stays white and gray in every skin; only the one accent color
+   changes - main buttons, links, the current menu item, the focus ring,
+   the open tab, selected rows.
+
+   Only variables again. The admin pages carry the skin as a class on
+   <body> (skin-red, skin-red-light, ...), the login pages as
+   `data-exm-skin` (they must not get the skin class: it would switch on
+   the admin rules). A skin and its "-light" twin share one accent, so
+   one prefix match covers both.
+
+   skin-blue and skin-blue-light are not listed: they use the :root
+   values above.
+
+   Each accent is a darkened shade of the AdminLTE skin color, dark
+   enough for white text on it (contrast 4.5 or more) and for a white
+   header logo on the logo plate. -strong is for text on white and on
+   -soft (6.5 or more). So "yellow" is a dark amber, not the bright
+   #f39c12 of the classic header: white text is unreadable on that. */
+
+/* Links follow the accent. These two are set on <body>, not on :root: a
+   variable that refers to another one is worked out where it is written,
+   so on :root it would keep the blue whatever the skin. */
+body {
+  --exm-ui-link: var(--exm-ui-accent-strong);
+  --exm-ui-link-hover: var(--exm-ui-accent);
+}
+
+body[class*="skin-yellow"],
+body[data-exm-skin^="skin-yellow"] {
+  --exm-ui-accent: #b45309;
+  --exm-ui-accent-strong: #92400e;
+  --exm-ui-accent-soft: #fff7e8;
+  --exm-ui-accent-ring: rgba(180, 83, 9, .22);
+}
+
+body[class*="skin-green"],
+body[data-exm-skin^="skin-green"] {
+  --exm-ui-accent: #008548;
+  --exm-ui-accent-strong: #006b3a;
+  --exm-ui-accent-soft: #ebf8f1;
+  --exm-ui-accent-ring: rgba(0, 133, 72, .22);
+}
+
+body[class*="skin-purple"],
+body[data-exm-skin^="skin-purple"] {
+  --exm-ui-accent: #605ca8;
+  --exm-ui-accent-strong: #4b478d;
+  --exm-ui-accent-soft: #f3f2fb;
+  --exm-ui-accent-ring: rgba(96, 92, 168, .22);
+}
+
+body[class*="skin-red"],
+body[data-exm-skin^="skin-red"] {
+  --exm-ui-accent: #d03b2b;
+  --exm-ui-accent-strong: #ab2c1f;
+  --exm-ui-accent-soft: #fdf1ef;
+  --exm-ui-accent-ring: rgba(208, 59, 43, .22);
+}
+
+/* Black: a dark slate. Links stay blue - in a dark gray they could not
+   be told from ordinary text (the classic black skin has blue links
+   too). */
+body[class*="skin-black"],
+body[data-exm-skin^="skin-black"] {
+  --exm-ui-accent: #334155;
+  --exm-ui-accent-strong: #1e293b;
+  --exm-ui-accent-soft: #eef1f5;
+  --exm-ui-accent-ring: rgba(51, 65, 85, .22);
+  --exm-ui-link: #1d4ed8;
+  --exm-ui-link-hover: #2563eb;
+}
+
+
+/* ====================================================== login screen === */
+/* auth/layout.blade.php is shared by login, password reset, password
+   change and the two-factor pages, so all of them get the same look. */
+
+/* The page color. A color or an image chosen on the "login setting"
+   page still wins: the layout prints it after this file. */
+.login-page {
+  background-color: var(--exm-ui-bg-sub);
+  font-family: var(--exm-ui-font);
+  color: var(--exm-ui-text);
+}
+
+body.login-page .login-box {
+  width: 380px;
+  max-width: calc(100vw - 32px);
+}
+
+/* Site name: told apart by size and weight, not by color. */
+body.login-page .login-logo {
+  margin-bottom: var(--exm-ui-space-5);
+  font-size: var(--exm-ui-fs-xl);
+  line-height: 1.3;
+}
+
+body.login-page .login-logo a {
+  color: var(--exm-ui-text);
+  text-decoration: none;
+}
+
+body.login-page .login-logo a b {
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+
+/* One hairline instead of a shadow. The card stays white so the form is
+   still readable when a background image is set. */
+body.login-page .login-box-body {
+  padding: var(--exm-ui-space-6) !important; /* beats the `p-3` utility */
+  background-color: var(--exm-ui-bg);
+  border: 1px solid var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-md);
+  box-shadow: none;
+}
+
+body.login-page .login-box-msg {
+  margin: 0 0 var(--exm-ui-space-5);
+  padding: 0;
+  font-size: var(--exm-ui-fs-lg);
+  font-weight: 600;
+  color: var(--exm-ui-text);
+  text-align: left;
+}
+
+body.login-page .login-box-body .mb-3 {
+  margin-bottom: var(--exm-ui-space-4) !important;
+}
+
+body.login-page .form-control {
+  padding: 10px var(--exm-ui-space-3);
+  font-size: var(--exm-ui-fs-md);
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg);
+  border: 1px solid var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+  box-shadow: none;
+  transition: border-color .12s ease-out, box-shadow .12s ease-out;
+}
+
+/* Single-line fields only: a fixed height would crush a textarea (the
+   safety-check answer page shares this layout). The right padding keeps
+   the text clear of the icon inside the field. */
+body.login-page input.form-control {
+  height: 42px;
+  padding: 0 40px 0 var(--exm-ui-space-3);
+}
+
+body.login-page .form-control::placeholder {
+  color: var(--exm-ui-text-faint);
+}
+
+body.login-page .form-control:hover {
+  border-color: #cfd4da;
+}
+
+body.login-page .form-control:focus {
+  border-color: var(--exm-ui-accent);
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+  outline: 0;
+}
+
+body.login-page .form-control.is-invalid {
+  border-color: var(--exm-ui-danger);
+}
+
+/* The icon inside the field is a hint, so it stays faint. */
+body.login-page .position-relative > span > .fa {
+  color: var(--exm-ui-text-faint);
+}
+
+body.login-page .control-label {
+  font-size: var(--exm-ui-fs-sm);
+  font-weight: 500;
+}
+
+body.login-page .control-label > .fa {
+  margin-right: var(--exm-ui-space-1);
+}
+
+body.login-page .form-check {
+  font-size: var(--exm-ui-fs-sm);
+  color: var(--exm-ui-text-sub);
+  justify-content: flex-start;
+}
+
+body.login-page .form-check-input {
+  width: 16px;
+  height: 16px;
+  border: 1px solid #c3c9d0;
+}
+
+body.login-page .form-check-input[type="checkbox"] {
+  border-radius: 4px;
+}
+
+body.login-page .form-check-input:checked {
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+}
+
+body.login-page .form-check-input:focus {
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+}
+
+/* The submit button takes the full width of the form. */
+body.login-page .login-box-body form .col-sm-8.offset-sm-2 {
+  flex: 0 0 100%;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+}
+
+body.login-page .btn {
+  min-height: 42px;
+  font-size: var(--exm-ui-fs-md);
+  font-weight: 600;
+  border-radius: var(--exm-ui-radius-sm);
+  box-shadow: none;
+}
+
+/* Only the standard login button is recolored. SSO / LDAP buttons keep
+   the colors set on the "login setting" page (inline styles). */
+body.login-page .btn-primary {
+  color: #fff;
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+}
+
+body.login-page .btn-primary:hover,
+body.login-page .btn-primary:focus,
+body.login-page .btn-primary:active {
+  color: #fff;
+  background-color: var(--exm-ui-accent-strong);
+  border-color: var(--exm-ui-accent-strong);
+}
+
+body.login-page .btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+  outline: 0;
+}
+
+/* `!important` only because the views write `style="color:#3c8dbc"` on
+   these links, and an inline style outranks every selector. */
+body.login-page .login-box-body a.text-decoration-none {
+  color: var(--exm-ui-link) !important;
+  font-size: var(--exm-ui-fs-sm);
+}
+
+body.login-page .login-box-body a.text-decoration-none:hover {
+  text-decoration: underline !important;
+}
+
+body.login-page .social-auth-links > p {
+  color: var(--exm-ui-text-faint);
+  font-size: var(--exm-ui-fs-xs);
+}
+
+
+/* ======================================================= admin pages === */
+/* Everything from here to the end of the file is for the admin pages.
+
+   Scope: `body[class*="skin-"]`. The admin layout prints the skin class
+   (skin-blue, skin-black-light, ...) on <body>; the login page and the
+   public form do not have one. The attribute selector also does a second
+   job: it counts like a class, so each rule here is one notch more
+   specific than the `.skin-xxx ...` rule it replaces - whichever of the
+   twelve skins is chosen on the system setting page.
+
+   Rule of thumb for the page frame (header, sidebar): colors only. No
+   width, height, margin or position is changed, because the fixed layout,
+   the collapsed sidebar and the mobile menu all depend on the theme's
+   numbers. */
+
+body[class*="skin-"],
+body[class*="skin-"] h1,
+body[class*="skin-"] h2,
+body[class*="skin-"] h3,
+body[class*="skin-"] h4,
+body[class*="skin-"] h5,
+body[class*="skin-"] h6 {
+  font-family: var(--exm-ui-font);
+}
+
+body[class*="skin-"] {
+  color: var(--exm-ui-text);
+}
+
+/* Base values that more specific theme rules must be able to override
+   (joined corners in button groups and input groups, colored links in
+   calendars and badges). `:where()` keeps the scope but adds no
+   specificity, so these weigh exactly like the theme's own `a` / `.btn`
+   / `.form-control` and win only because this file comes last. */
+:where(body[class*="skin-"]) a {
+  color: var(--exm-ui-link);
+}
+
+:where(body[class*="skin-"]) a:hover,
+:where(body[class*="skin-"]) a:focus {
+  color: var(--exm-ui-link-hover);
+}
+
+:where(body[class*="skin-"]) .btn,
+:where(body[class*="skin-"]) .form-control,
+:where(body[class*="skin-"]) .form-select {
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+
+/* ------------------------------------------------------------ header --- */
+/* White bar, gray icons. The line under it is an inset shadow, not a
+   border, so the bar keeps its exact height. */
+body[class*="skin-"] .main-header .logo,
+body[class*="skin-"] .main-header .logo:hover {
+  background-color: var(--exm-ui-bg-sub);
+  color: var(--exm-ui-text);
+  font-weight: 700;
+}
+
+/* An uploaded header logo was made for the colored bar of the classic
+   design - very often it is white, and would vanish on this light bar.
+   So an image logo sits on a small plate in the accent color. The plate is
+   the image's own background and padding (`box-sizing: border-box`), so
+   it stays inside the size limits common.css sets (200x40 and 50x40)
+   and the bar keeps its height. The text logo (no <img>) is not
+   affected. */
+body[class*="skin-"] .main-header .logo .logo-lg img,
+body[class*="skin-"] .main-header .logo .logo-mini img {
+  box-sizing: border-box;
+  background-color: var(--exm-ui-accent);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .main-header .logo .logo-lg img {
+  padding: 5px 10px;
+}
+
+body[class*="skin-"] .main-header .logo .logo-mini img {
+  padding: 4px;
+}
+
+/* The Exment logo of a site without its own (Initialize::DEFAULT_LOGO) has
+   its colors made for this bar: no plate. */
+body[class*="skin-"] .main-header .logo .logo-lg img.exment-default-logo,
+body[class*="skin-"] .main-header .logo .logo-mini img.exment-default-logo {
+  background-color: transparent;
+  border-radius: 0;
+  padding: 0;
+}
+
+body[class*="skin-"] .main-header .logo .logo-lg img.exment-default-logo {
+  height: 34px;
+  width: auto;
+}
+
+body[class*="skin-"] .main-header .logo .logo-mini img.exment-default-logo {
+  height: 30px;
+  width: auto;
+}
+
+/* !important: skin-blue-light sets the navbar color with !important. */
+body[class*="skin-"] .main-header .navbar {
+  background-color: var(--exm-ui-bg) !important;
+  box-shadow: inset 0 -1px 0 var(--exm-ui-line);
+}
+
+/* A skin other than blue: a thin line in the skin's accent along the top
+   edge, so the site color shows on every page while the bar stays
+   white. Inset shadows again - nothing changes size. On a narrow screen
+   the logo sits above the bar, so there only the logo carries the line. */
+body[class*="skin-"]:not([class*="skin-blue"]) .main-header .logo,
+body[class*="skin-"]:not([class*="skin-blue"]) .main-header .logo:hover {
+  box-shadow: inset 0 2px 0 var(--exm-ui-accent);
+}
+
+@media (min-width: 768px) {
+  body[class*="skin-"]:not([class*="skin-blue"]) .main-header .navbar {
+    box-shadow: inset 0 2px 0 var(--exm-ui-accent), inset 0 -1px 0 var(--exm-ui-line);
+  }
+}
+
+body[class*="skin-"] .main-header .navbar .nav > li > a,
+body[class*="skin-"] .main-header .navbar .sidebar-toggle {
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] .main-header .navbar .nav > li > a:hover,
+body[class*="skin-"] .main-header .navbar .nav > li > a:active,
+body[class*="skin-"] .main-header .navbar .nav > li > a:focus,
+body[class*="skin-"] .main-header .navbar .nav > li > a.show,
+body[class*="skin-"] .main-header .navbar .nav .open > a,
+body[class*="skin-"] .main-header .navbar .nav .open > a:hover,
+body[class*="skin-"] .main-header .navbar .nav .open > a:focus,
+body[class*="skin-"] .main-header .navbar .nav > .active > a,
+body[class*="skin-"] .main-header .navbar .sidebar-toggle:hover {
+  background: var(--exm-ui-bg-hover);
+  color: var(--exm-ui-text);
+}
+
+/* The help icon is a bare <li><a> outside the .nav list. */
+body[class*="skin-"] .main-header .navbar > li > a,
+body[class*="skin-"] .main-header #manual_link {
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] .main-header .navbar > li > a:hover,
+body[class*="skin-"] .main-header #manual_link:hover {
+  color: var(--exm-ui-text);
+}
+
+/* "This page has its own help" turns the help icon yellow in the classic
+   design; on white that is hard to see, so it is the accent here. */
+body[class*="skin-"] .main-header .help_personal {
+  color: var(--exm-ui-accent);
+}
+
+/* The red skins turn the unread badges yellow so they show on a red
+   bar. The bar is white now, so they go back to red. */
+body[class*="skin-"] .navbar-notify .label-danger,
+body[class*="skin-"] .navbar-workflow-task .label-danger {
+  background-color: #dd4b39 !important;
+  color: #fff !important;
+}
+
+/* The search box was a white field on a colored bar; on a white bar it
+   needs its own quiet fill to be seen. */
+body[class*="skin-"] .main-header .search-form input[type="text"],
+body[class*="skin-"] .main-header .search-form .btn {
+  background-color: var(--exm-ui-bg-sub);
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .main-header .search-form .btn {
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .main-header .search-form input[type="text"]::placeholder {
+  color: var(--exm-ui-text-faint);
+}
+
+/* The panel at the top of the user menu. */
+body[class*="skin-"] .main-header li.user-header {
+  background-color: var(--exm-ui-bg-sub);
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .main-header li.user-header > p,
+body[class*="skin-"] .main-header li.user-header > p > small {
+  color: var(--exm-ui-text);
+}
+
+/* The lower part of the user menu (LINE, setting, logout): gray, so the
+   white buttons stand out from it. */
+body[class*="skin-"] .main-header li.user-body,
+body[class*="skin-"] .main-header li.user-footer {
+  background-color: var(--exm-ui-bg-sub);
+  border-top: 1px solid var(--exm-ui-line);
+}
+
+/* On a phone the skins paint the navbar dropdowns in the skin color with
+   white text. Bring the text back so it is readable on white. */
+@media (max-width: 767px) {
+  body[class*="skin-"] .main-header .navbar .dropdown-menu li.divider {
+    background-color: var(--exm-ui-line);
+  }
+
+  body[class*="skin-"] .main-header .navbar .dropdown-menu li a {
+    color: var(--exm-ui-text);
+  }
+
+  body[class*="skin-"] .main-header .navbar .dropdown-menu li a:hover {
+    background: var(--exm-ui-bg-hover);
+  }
+}
+
+
+/* ----------------------------------------------------------- sidebar --- */
+/* Gray column, gray text, and the current page in soft blue. `.wrapper`
+   is painted too: the theme uses it to continue the sidebar color below
+   the last menu item. */
+body[class*="skin-"] .wrapper,
+body[class*="skin-"] .main-sidebar,
+body[class*="skin-"] .left-side {
+  background-color: var(--exm-ui-bg-sub);
+}
+
+body[class*="skin-"] .user-panel > .info,
+body[class*="skin-"] .user-panel > .info > a,
+body[class*="skin-"] .user-panel > .info > p {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .user-panel > .info > p.gray {
+  color: var(--exm-ui-text-faint);
+}
+
+/* The "custom" site menu layout (.custom-menu): the skins set its active and hover
+   colors with !important, so the same is needed here to show the modern colors. */
+body[class*="skin-"] .custom-menu > ul > li.active,
+body[class*="skin-"] .custom-menu > ul > li.active > a {
+  background: var(--exm-ui-accent-soft) !important;
+  border-left: none !important;
+  color: var(--exm-ui-accent-strong) !important;
+}
+
+body[class*="skin-"] .custom-menu a:active,
+body[class*="skin-"] .custom-menu a:focus,
+body[class*="skin-"] .custom-menu li > ul > li.active a,
+body[class*="skin-"] .custom-menu li > ul > li.active a span {
+  color: var(--exm-ui-accent-strong) !important;
+}
+
+body[class*="skin-"] .custom-menu ul a:hover {
+  color: var(--exm-ui-text) !important;
+}
+
+body[class*="skin-"] .sidebar-menu > li.header {
+  color: var(--exm-ui-text-faint);
+  background: transparent;
+}
+
+body[class*="skin-"] .sidebar a {
+  color: var(--exm-ui-text-sub);
+}
+
+/* The 3px left border stays (transparent) so the text does not move. */
+body[class*="skin-"] .sidebar-menu > li > a {
+  border-left-color: transparent;
+  font-weight: 500;
+}
+
+body[class*="skin-"] .sidebar-menu > li.active {
+  border-left-color: transparent;
+}
+
+body[class*="skin-"] .sidebar-menu > li:hover > a,
+body[class*="skin-"] .sidebar-menu > li.active > a {
+  color: var(--exm-ui-text);
+  background: #eceef1;
+  border-left-color: transparent;
+}
+
+/* An open parent is not "the current page" - only its child is. It gets
+   dark text and no fill. */
+body[class*="skin-"] .sidebar-menu > li.treeview.active > a {
+  background: transparent;
+  font-weight: 600;
+}
+
+body[class*="skin-"] .sidebar-menu > li.treeview.active:hover > a {
+  background: #eceef1;
+}
+
+/* Same gray as the column, but not transparent: with the sidebar
+   collapsed this list pops out over the page and must cover it. */
+body[class*="skin-"] .sidebar-menu > li > .treeview-menu {
+  background: var(--exm-ui-bg-sub);
+}
+
+body[class*="skin-"] .treeview-menu > li > a {
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] .treeview-menu > li > a:hover,
+body[class*="skin-"] .treeview-menu > li.active > a {
+  color: var(--exm-ui-text);
+}
+
+/* The current page: soft accent fill, accent text. Works at any depth. */
+body[class*="skin-"] .sidebar-menu li.active:not(.treeview) > a,
+body[class*="skin-"] .sidebar-menu li.active:not(.treeview):hover > a {
+  color: var(--exm-ui-accent-strong);
+  background: var(--exm-ui-accent-soft);
+  font-weight: 600;
+}
+
+/* Collapsed sidebar: a hairline around the pop-out so it reads as a
+   layer above the white page. */
+@media (min-width: 768px) {
+  body[class*="skin-"].sidebar-mini.sidebar-collapse .sidebar-menu > li:hover > a > span:not(.pull-right),
+  body[class*="skin-"].sidebar-mini.sidebar-collapse .sidebar-menu > li:hover > .treeview-menu {
+    box-shadow: 0 0 0 1px var(--exm-ui-line);
+  }
+
+  body[class*="skin-"].sidebar-mini.sidebar-collapse .sidebar-menu > li > .treeview-menu {
+    border-left: 0;
+  }
+}
+
+
+/* ------------------------------------------------- page body, footer --- */
+/* `#main` is in the selector because the theme sets the gray page color
+   through that id. */
+body[class*="skin-"] #main.content-wrapper,
+body[class*="skin-"] .content-wrapper {
+  background-color: var(--exm-ui-bg);
+  border-left: 0;
+}
+
+body[class*="skin-"] .main-footer {
+  background: var(--exm-ui-bg);
+  color: var(--exm-ui-text-faint);
+  border-top-color: var(--exm-ui-line-soft);
+  border-left: 0;
+}
+
+body[class*="skin-"] .main-footer a {
+  color: var(--exm-ui-text-sub);
+}
+
+/* Page title: told apart by size and weight. */
+body[class*="skin-"] .content-header > h1 {
+  font-size: var(--exm-ui-fs-xl);
+  font-weight: 700;
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .content-header > h1 > small {
+  font-size: var(--exm-ui-fs-sm);
+  font-weight: 400;
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] .content-header > .breadcrumb,
+body[class*="skin-"] .content-header > .breadcrumb > li > a,
+body[class*="skin-"] .content-header > .breadcrumb > .active {
+  color: var(--exm-ui-text-faint);
+}
+
+
+/* --------------------------------------------------------------- box --- */
+/* One hairline all around instead of a colored top bar and a shadow.
+   `!important` appears only where the theme itself uses it:
+     .card                { border: none !important;
+                            border-radius: 2px !important }
+     .custom-border-info  { border-top: ... !important }
+     .box.box-info        { border-top: ... !important }
+     .box.box-success     { border-top: ... !important } */
+body[class*="skin-"] .box {
+  background: var(--exm-ui-bg);
+  border: 1px solid var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-md);
+  box-shadow: none;
+}
+
+body[class*="skin-"] .box.card {
+  border: 1px solid var(--exm-ui-line) !important;
+  border-radius: var(--exm-ui-radius-md) !important;
+}
+
+body[class*="skin-"] .box.custom-border-info,
+body[class*="skin-"] .box.box-info,
+body[class*="skin-"] .card.box-info,
+body[class*="skin-"] .box.box-success,
+body[class*="skin-"] .card.box-success {
+  border-top: 1px solid var(--exm-ui-line) !important;
+}
+
+body[class*="skin-"] .box-header.with-border {
+  border-bottom: 1px solid var(--exm-ui-line-soft) !important;
+}
+
+body[class*="skin-"] .box-header .box-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .box-footer {
+  background-color: transparent;
+  border-top-color: var(--exm-ui-line-soft) !important;
+}
+
+body[class*="skin-"] .box .overlay,
+body[class*="skin-"] .overlay-wrapper .overlay {
+  border-radius: var(--exm-ui-radius-md);
+}
+
+
+/* Tables inside a box (the setting lists: custom tables, workflows,
+   users ...). Same header as the data list: no gray fill, small gray
+   semi-bold text, one hairline under it, soft row lines.
+   The fill is white, not transparent, because the data list's locked
+   header relies on an opaque header cell. */
+body[class*="skin-"] .box .table > thead > tr > th {
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 600;
+  color: var(--exm-ui-text-sub);
+  background: var(--exm-ui-bg);
+  border-bottom: 1px solid var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box .table > tbody > tr > td {
+  border-color: var(--exm-ui-line-soft);
+}
+
+/* Bootstrap draws a 2px line in the text color between header and body */
+body[class*="skin-"] .box .table > :not(:first-child) {
+  border-top: 1px solid var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box .table.table-hover > tbody > tr:hover > td {
+  background-color: var(--exm-ui-bg-hover);
+}
+
+/* In the tool row of a list, "New" is the one accent button. Any other
+   primary button there (e.g. "usage setting" on the workflow list) is a
+   tool and turns gray. Detail and edit pages keep their primary button:
+   their tools sit in `.box-tools`, not in `.pull-right`. */
+body[class*="skin-"] .box-header > .pull-right .btn.btn-primary:not(.btn-dropbox) {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub) !important; /* some carry `text-white` */
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header > .pull-right .btn.btn-primary:not(.btn-dropbox):hover,
+body[class*="skin-"] .box-header > .pull-right .btn.btn-primary:not(.btn-dropbox):focus {
+  color: var(--exm-ui-text) !important;
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+/* Page numbers under any list: gray, with the current page in soft
+   blue. */
+body[class*="skin-"] .pagination .page-link {
+  color: var(--exm-ui-text-sub);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .pagination .page-link:hover {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+}
+
+body[class*="skin-"] .pagination .page-item.active .page-link {
+  color: var(--exm-ui-accent-strong);
+  background-color: var(--exm-ui-accent-soft);
+  border-color: var(--exm-ui-line);
+}
+
+
+/* ----------------------------------------------------------- buttons --- */
+/* Gray for ordinary buttons, the accent for the main action of a
+   screen:
+     - "Save" at the bottom of a form is .btn-primary, and so is every
+       other primary button;
+     - "New" above a list is a green .btn-success in this theme. Green
+       also means "approve / OK" elsewhere, so .btn-success as a class is
+       left green. Only the link that opens a create page takes the
+       accent - it is recognized by its address (".../create").
+   Success, warning, danger and info keep their own colors - there the
+   color is the message.
+
+   `!important` on .btn-default only because open-admin's custom.css sets
+   its three colors with `!important`. */
+body[class*="skin-"] .btn-default {
+  color: var(--exm-ui-text-sub) !important;
+  background-color: var(--exm-ui-bg) !important;
+  border-color: var(--exm-ui-line) !important;
+}
+
+body[class*="skin-"] .btn-default:hover,
+body[class*="skin-"] .btn-default:focus,
+body[class*="skin-"] .btn-default.active,
+body[class*="skin-"] .btn-default.show {
+  color: var(--exm-ui-text) !important;
+  background-color: var(--exm-ui-bg-hover) !important;
+}
+
+body[class*="skin-"] .btn-primary,
+body[class*="skin-"] a.btn-success[href$="/create"],
+body[class*="skin-"] a.btn-success[href*="/create?"] {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: var(--exm-ui-accent);
+  --bs-btn-border-color: var(--exm-ui-accent);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: var(--exm-ui-accent-strong);
+  --bs-btn-hover-border-color: var(--exm-ui-accent-strong);
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: var(--exm-ui-accent-strong);
+  --bs-btn-active-border-color: var(--exm-ui-accent-strong);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: var(--exm-ui-accent);
+  --bs-btn-disabled-border-color: var(--exm-ui-accent);
+  color: #fff;
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .btn-primary:hover,
+body[class*="skin-"] .btn-primary:focus,
+body[class*="skin-"] .btn-primary:active,
+body[class*="skin-"] .btn-primary.active,
+body[class*="skin-"] a.btn-success[href$="/create"]:hover,
+body[class*="skin-"] a.btn-success[href$="/create"]:focus,
+body[class*="skin-"] a.btn-success[href$="/create"]:active,
+body[class*="skin-"] a.btn-success[href*="/create?"]:hover,
+body[class*="skin-"] a.btn-success[href*="/create?"]:focus,
+body[class*="skin-"] a.btn-success[href*="/create?"]:active {
+  color: #fff;
+  background-color: var(--exm-ui-accent-strong);
+  border-color: var(--exm-ui-accent-strong);
+}
+
+body[class*="skin-"] .btn:focus-visible {
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+  outline: 0;
+}
+
+/* Dropdown menus: a hairline and a soft-gray hover. */
+body[class*="skin-"] .dropdown-menu {
+  border-color: var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .dropdown-menu > li > a {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .dropdown-menu > li > a:hover,
+body[class*="skin-"] .dropdown-menu > li > .dropdown-item:hover {
+  background-color: var(--exm-ui-bg-hover);
+  color: var(--exm-ui-text);
+}
+
+/* The "back to top" button. */
+body[class*="skin-"] #totop {
+  background-color: var(--exm-ui-text);
+  border: 0;
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+
+/* =========================================================== forms === */
+/* Create / edit / setting forms. Only color, line and corner are set on
+   the fields - never `background`, so a read-only or disabled field
+   keeps the gray fill the theme gives it. The corner radius comes from
+   the `:where()` base rule near the top of this part, so joined corners
+   inside input groups stay joined. */
+
+body[class*="skin-"] .content-wrapper .control-label,
+body[class*="skin-"] .modal .control-label {
+  font-size: var(--exm-ui-fs-sm);
+  font-weight: 600;
+  color: var(--exm-ui-text-sub);
+}
+
+/* the theme: `.col-form-label { font-weight: 700 !important }` */
+body[class*="skin-"] .content-wrapper .col-form-label,
+body[class*="skin-"] .modal .col-form-label {
+  font-weight: 600 !important;
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] .content-wrapper .help-block,
+body[class*="skin-"] .modal .help-block {
+  font-size: var(--exm-ui-fs-xs);
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .content-wrapper .form-control,
+body[class*="skin-"] .content-wrapper .form-select,
+body[class*="skin-"] .modal .form-control,
+body[class*="skin-"] .modal .form-select {
+  color: var(--exm-ui-text);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .content-wrapper .form-control::placeholder,
+body[class*="skin-"] .modal .form-control::placeholder {
+  color: var(--exm-ui-text-faint);
+}
+
+/* the theme: `.form-control { box-shadow: none !important }` */
+body[class*="skin-"] .content-wrapper .form-control:focus,
+body[class*="skin-"] .content-wrapper .form-select:focus,
+body[class*="skin-"] .modal .form-control:focus,
+body[class*="skin-"] .modal .form-select:focus {
+  border-color: var(--exm-ui-accent);
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring) !important;
+}
+
+body[class*="skin-"] .content-wrapper .input-group-addon,
+body[class*="skin-"] .content-wrapper .input-group-text,
+body[class*="skin-"] .modal .input-group-addon,
+body[class*="skin-"] .modal .input-group-text {
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg-sub);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .content-wrapper .has-error .form-control,
+body[class*="skin-"] .modal .has-error .form-control {
+  border-color: var(--exm-ui-danger);
+}
+
+/* YES / NO switch (bootstrap-switch): the "on" side in the accent. */
+body[class*="skin-"] .bootstrap-switch {
+  border-color: var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .bootstrap-switch .bootstrap-switch-handle-on.bootstrap-switch-primary,
+body[class*="skin-"] .bootstrap-switch .bootstrap-switch-handle-off.bootstrap-switch-primary {
+  color: #fff;
+  background: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .bootstrap-switch.bootstrap-switch-focused {
+  border-color: var(--exm-ui-accent);
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+}
+
+/* Step bar on the system setting pages (progresstracker.css): filled
+   arrows become plain steps with an underline on the current one. */
+body[class*="skin-"] .track-progress li {
+  background-color: transparent;
+}
+
+body[class*="skin-"] .track-progress li > a {
+  color: var(--exm-ui-text-sub);
+  font-weight: 600;
+  background-color: transparent;
+  box-shadow: inset 0 -1px 0 var(--exm-ui-line);
+}
+
+body[class*="skin-"] .track-progress li > a:hover {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .track-progress li.complete > a {
+  color: var(--exm-ui-text);
+  background-color: transparent;
+}
+
+body[class*="skin-"] .track-progress li.active > a {
+  color: var(--exm-ui-accent-strong);
+  background-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--exm-ui-accent);
+}
+
+/* the arrow heads */
+body[class*="skin-"] .track-progress li > a::before,
+body[class*="skin-"] .track-progress li > a::after {
+  display: none;
+}
+
+/* Helper buttons inside a field (the "Search" button under a select
+   field) are tools: gray, like the toolbar buttons. */
+body[class*="skin-"] .form-group .btn.btn-sm.btn-info {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .form-group .btn.btn-sm.btn-info:hover,
+body[class*="skin-"] .form-group .btn.btn-sm.btn-info:focus {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .form-check-input:checked {
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+}
+
+/* --------------------------------------------------------- select2 --- */
+/* In this theme the visible frame of a select2 is its container span
+   (custom.css), so that is the element to restyle. */
+body[class*="skin-"] span.select2.select2-container.select2-container--default {
+  color: var(--exm-ui-text);
+  border-color: var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] span.select2.select2-container.select2-container--default.select2-container--focus,
+body[class*="skin-"] span.select2.select2-container.select2-container--default.select2-container--open {
+  border-color: var(--exm-ui-accent);
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+}
+
+/* A read-only select must stay locked and look locked. Written out here
+   so that nothing above can ever undo it: no pointer, gray fill, and no
+   focus ring. */
+body[class*="skin-"] select[readonly] + span.select2.select2-container.select2-container--default {
+  pointer-events: none;
+  background-color: #eee;
+  border-color: var(--exm-ui-line);
+  box-shadow: none;
+}
+
+body[class*="skin-"] .has-error span.select2.select2-container.select2-container--default {
+  border-color: var(--exm-ui-danger);
+}
+
+/* The list that opens under the field (select2 appends it to <body>). */
+body[class*="skin-"] .select2-dropdown {
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .select2-container--default .select2-results__option--highlighted[aria-selected] {
+  background-color: var(--exm-ui-accent-soft);
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .select2-container--default .select2-results__option[aria-selected="true"] {
+  background-color: var(--exm-ui-bg-hover);
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .select2-container--default .select2-search--dropdown .select2-search__field {
+  border-color: var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+/* Chosen items of a multiple select: gray chips with dark text. */
+body[class*="skin-"] .select2-container--default .select2-selection--multiple .select2-selection__choice {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-sub);
+  border: 1px solid var(--exm-ui-line);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+  color: var(--exm-ui-danger);
+}
+
+/* ------------------------------------------------------------ tabs --- */
+/* A blue underline for the open tab instead of a filled tab with a
+   thick top bar. The underline is an inset shadow: the tab keeps the
+   size the theme gives it. Two markups exist - the form tabs
+   (.nav-item > .nav-link) and the older widget tabs (li.active > a). */
+body[class*="skin-"] .nav-tabs-custom {
+  background: transparent;
+  box-shadow: none;
+}
+
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs {
+  border-bottom-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > .nav-item > .nav-link,
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > li > a {
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > .nav-item > .nav-link:hover,
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > li > a:hover {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > .nav-item > .nav-link.active,
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > .nav-item > .nav-link.active:hover,
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > .nav-item > .nav-link.active:focus {
+  color: var(--exm-ui-accent-strong);
+  font-weight: 600;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > li.active {
+  border-top-color: transparent;
+}
+
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > li.active > a,
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > li.active:hover > a {
+  color: var(--exm-ui-accent-strong);
+  font-weight: 600;
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: inset 0 -2px 0 var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .nav-tabs-custom > .nav-tabs > li.header {
+  color: var(--exm-ui-text);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ------------------------------------------- has-many (child rows) --- */
+/* Section title of a child block, and the table form of it. */
+body[class*="skin-"] .content-wrapper h4.field-header,
+body[class*="skin-"] .content-wrapper .row > div > h4 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .content-wrapper form hr {
+  border-top-color: var(--exm-ui-line);
+  opacity: 1;
+}
+
+/* `.table.table` on purpose: the theme's cell-border rule has a
+   specificity of (0,3,0) - see the note in grid_tools.css. */
+body[class*="skin-"] .table.table-has-many > thead > tr > th {
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 600;
+  color: var(--exm-ui-text-sub);
+  background-color: transparent;
+  border-bottom: 1px solid var(--exm-ui-line);
+}
+
+body[class*="skin-"] .table.table-has-many > tbody > tr > td {
+  border-color: var(--exm-ui-line-soft);
+}
+
+/* Bootstrap draws a 2px line in the text color between the header and
+   the body of a table; one hairline is enough. */
+body[class*="skin-"] .table.table-has-many > :not(:first-child),
+body[class*="skin-"] .box-dashboard .table > :not(:first-child) {
+  border-top: 1px solid var(--exm-ui-line);
+}
+
+
+/* ======================================================= dashboard === */
+/* Dashboard items are `.box.box-dashboard`; the general box rules above
+   already remove the green top bar and the shadow. */
+
+/* The bar with the dashboard switcher is not a card: no frame. */
+body[class*="skin-"] .box:has(> .box-header #dashboard-menu):not(.box-dashboard) {
+  background: transparent;
+  border: 0 !important;
+}
+
+body[class*="skin-"] .box:has(> .box-header #dashboard-menu):not(.box-dashboard) > .box-header.with-border {
+  border-bottom: 0 !important;
+}
+
+/* Item title. `!important` because the markup carries Bootstrap's
+   `fs-4` utility, which is itself `!important`. */
+body[class*="skin-"] .box-dashboard > .box-header > .box-title {
+  font-size: 16px !important;
+  font-weight: 600;
+  color: var(--exm-ui-text);
+}
+
+/* The small tool buttons of an item (reload, list, new, edit). The
+   theme draws them white-on-white with `!important`; here they are
+   gray icons that get a gray fill on hover. */
+body[class*="skin-"] .box-dashboard .box-tools .btn-outline-secondary {
+  color: var(--exm-ui-text-sub);
+  background-color: transparent !important;
+  border-color: transparent !important;
+}
+
+body[class*="skin-"] .box-dashboard .box-tools .btn-outline-secondary:hover,
+body[class*="skin-"] .box-dashboard .box-tools .btn-outline-secondary:focus {
+  background-color: var(--exm-ui-bg-hover) !important;
+}
+
+body[class*="skin-"] .box-dashboard .box-tools .btn-outline-secondary > .fa {
+  color: var(--exm-ui-text-sub) !important; /* beats `text-secondary` */
+}
+
+/* Empty slot ("not registered"): a dashed outline and a faint title, so
+   it reads as a place to put something rather than as content. Only a
+   registered item has `.box-success`. */
+body[class*="skin-"] .box.box-dashboard:not(.box-success) {
+  background: transparent;
+  border: 1px dashed #d5d9de !important;
+}
+
+body[class*="skin-"] .box-dashboard:not(.box-success) > .box-header.with-border {
+  border-bottom-color: transparent !important;
+}
+
+body[class*="skin-"] .box-dashboard:not(.box-success) > .box-header > .box-title {
+  font-weight: 400;
+  color: var(--exm-ui-text-faint);
+}
+
+/* "No data" and error messages inside an item. */
+body[class*="skin-"] .box-dashboard .exment-chart-error {
+  color: var(--exm-ui-text-faint);
+}
+
+/* Lists inside an item: same header and row lines as the data list. */
+body[class*="skin-"] .box-dashboard .table.table > thead > tr > th {
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 600;
+  color: var(--exm-ui-text-sub);
+  background-color: transparent;
+  border-bottom: 1px solid var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-dashboard .table.table > tbody > tr > td {
+  border-color: var(--exm-ui-line-soft);
+}
+
+body[class*="skin-"] .box-dashboard .table.table-hover > tbody > tr:hover > td {
+  background-color: var(--exm-ui-bg-hover);
+}
+
+/* Filter bar and chart toolbar (dashboard.css) used a violet of their
+   own. They take the one accent instead. */
+body[class*="skin-"] .exment-df-bar,
+body[class*="skin-"] .exment-chart-toolbar {
+  background: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .exment-df-bar .df-title,
+body[class*="skin-"] .exment-chart-toolbar .ct-pfoot a,
+body[class*="skin-"] .exment-chart-toolbar .ct-ico.open,
+body[class*="skin-"] .exment-chart-toolbar .cs-row .fa-check,
+body[class*="skin-"] .ct-active .fa {
+  color: var(--exm-ui-accent-strong);
+}
+
+body[class*="skin-"] .ct-active b {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .exment-df-bar .df-reset,
+body[class*="skin-"] .exment-chart-toolbar .ct-btn,
+body[class*="skin-"] .exment-chart-toolbar .ct-sel {
+  color: var(--exm-ui-text);
+  background: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .exment-df-bar .df-reset:hover {
+  color: var(--exm-ui-text);
+  background: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .exment-chart-toolbar .ct-btn:hover,
+body[class*="skin-"] .exment-chart-toolbar .ct-btn.open {
+  border-color: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .exment-chart-toolbar .ct-btn.open {
+  box-shadow: 0 0 0 3px var(--exm-ui-accent-ring);
+}
+
+body[class*="skin-"] .exment-chart-toolbar .ct-cnt,
+body[class*="skin-"] .exment-chart-toolbar .ct-fsel {
+  background: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .exment-df-bar .select2-container--default .select2-selection--multiple,
+body[class*="skin-"] .exment-df-bar .df-range-input,
+body[class*="skin-"] .exment-chart-toolbar .exment-bf-range,
+body[class*="skin-"] .exment-chart-toolbar .exment-bf-list {
+  background: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .exment-df-bar .df-range-input.active,
+body[class*="skin-"] .exment-chart-toolbar .exment-bf-range.active,
+body[class*="skin-"] .exment-chart-toolbar .exment-bf-list.active {
+  background: var(--exm-ui-accent-soft);
+  border-color: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .exment-df-bar .irs-diapason {
+  background: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .exment-df-bar .irs-slider {
+  border-color: var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .exment-chart-toolbar .exment-bf-list label:hover,
+body[class*="skin-"] .exment-chart-toolbar .cs-row:hover {
+  background: var(--exm-ui-bg-hover);
+}
+
+
+/* ==================================================== detail pages === */
+/* The page that shows one record (/admin/data/{table}/{id}) and the
+   boxes under it: attachments, revisions, comments. Selectors here were
+   read from the real pages, not guessed. */
+
+/* ------------------------------------------------- nested card box --- */
+/* The boxes under the record are `.box.box-info > .card.p-1`. The outer
+   box already draws the hairline; the card inside must not add a second
+   frame or a shadow. */
+body[class*="skin-"] .box > .card {
+  margin-bottom: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* ------------------------------------------------- header tool row --- */
+/* A calm row: every secondary action is a white button with a hairline
+   and gray text, whatever color the theme gave it (share = orange,
+   notify = cyan, related search = purple, export = "twitter" blue,
+   plugin and operation buttons = green). The icon and the label say
+   what the button does; the color said nothing.
+
+   What keeps a color:
+     - "Edit" (.btn-primary)            - the accent, from the general rule
+     - workflow actions (.btn-success inside a .btn-group) - green, they
+       are the approve / OK kind
+     - "Delete" (.btn-danger)           - red text on white, see below
+
+   `!important` on the text color only because these buttons carry
+   Bootstrap's `text-white` utility, which is itself `!important`. */
+body[class*="skin-"] .box-header .btn.btn-info,
+body[class*="skin-"] .box-header .btn.btn-warning,
+body[class*="skin-"] .box-header .btn.btn-purple,
+body[class*="skin-"] .box-header .btn.btn-twitter,
+body[class*="skin-"] .box-header a.btn[id^="menu_button_"] {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub) !important;
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header .btn.btn-info:hover,
+body[class*="skin-"] .box-header .btn.btn-info:focus,
+body[class*="skin-"] .box-header .btn.btn-warning:hover,
+body[class*="skin-"] .box-header .btn.btn-warning:focus,
+body[class*="skin-"] .box-header .btn.btn-purple:hover,
+body[class*="skin-"] .box-header .btn.btn-purple:focus,
+body[class*="skin-"] .box-header .btn.btn-twitter:hover,
+body[class*="skin-"] .box-header .btn.btn-twitter:focus,
+body[class*="skin-"] .box-header a.btn[id^="menu_button_"]:hover,
+body[class*="skin-"] .box-header a.btn[id^="menu_button_"]:focus {
+  color: var(--exm-ui-text) !important;
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+/* "Delete": still clearly the dangerous one, but not a red block. */
+body[class*="skin-"] .box-header .btn.btn-danger {
+  --bs-btn-color: var(--exm-ui-danger);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-danger) !important;
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header .btn.btn-danger:hover,
+body[class*="skin-"] .box-header .btn.btn-danger:focus {
+  color: var(--exm-ui-danger) !important;
+  background-color: #fdf1f1;
+  border-color: #f0c4c6;
+}
+
+/* ------------------------------------------------- system values --- */
+/* ID / created by / updated by / created at / updated at, and the
+   workflow status above them. They are facts about the record, not its
+   content, so they become one quiet line: small gray labels, normal
+   values, no colored bars. The block is left-aligned with the fields
+   instead of centered in a fixed 830px. */
+body[class*="skin-"] .system-values {
+  width: auto;
+  margin: 0;
+}
+
+body[class*="skin-"] .system-values .system-values-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--exm-ui-space-2) var(--exm-ui-space-6);
+  font-size: var(--exm-ui-fs-sm);
+}
+
+/* `.system-values li` is also where the skins put their color. */
+body[class*="skin-"] .system-values .system-values-list li {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border-left: 0;
+}
+
+body[class*="skin-"] .system-values .system-values-label {
+  margin: 0 0 2px;
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 500;
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .system-values .system-values-item {
+  color: var(--exm-ui-text);
+}
+
+body[class*="skin-"] .system-values .system-values-flows {
+  margin-bottom: var(--exm-ui-space-3);
+  font-size: var(--exm-ui-fs-sm);
+}
+
+body[class*="skin-"] .system-values .system-values-flows .system-values-label {
+  margin-bottom: 0;
+}
+
+body[class*="skin-"] .system-values .system-values-flows .system-values-flow {
+  margin-right: var(--exm-ui-space-6);
+}
+
+@media (max-width: 1040px) {
+  body[class*="skin-"] .system-values .system-values-list {
+    display: flex;
+  }
+
+  body[class*="skin-"] .system-values .system-values-flows .system-values-flow {
+    margin: 0 var(--exm-ui-space-6) var(--exm-ui-space-1) 0;
+    padding: 0;
+  }
+}
+
+/* the theme: `.hr.border-bottom { border-bottom: 1px solid #ced4da !important }` */
+body[class*="skin-"] .hr.border-bottom {
+  border-bottom: 1px solid var(--exm-ui-line-soft) !important;
+  opacity: 1;
+}
+
+/* ---------------------------------------------------- field rows --- */
+/* On a detail page the form is a <div class="form-horizontal">, not a
+   <form> - that is how these rules tell a detail page from an edit
+   page. Labels: small, gray, not bold. Values: normal text. */
+body[class*="skin-"] div.form-horizontal .col-form-label {
+  text-align: left; /* in line with the system values above */
+  font-size: var(--exm-ui-fs-sm);
+  font-weight: 500 !important;
+  color: var(--exm-ui-text-sub);
+}
+
+body[class*="skin-"] div.form-horizontal .box-show > .box-body {
+  color: var(--exm-ui-text);
+}
+
+/* ----------------------------------------------------- attachments --- */
+/* bootstrap-fileinput. A compact drop area: no outer frame, one dashed
+   hairline, small gray text. */
+body[class*="skin-"] .file-preview {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+
+body[class*="skin-"] .file-drop-zone {
+  margin: 0 0 var(--exm-ui-space-2);
+  border: 1px dashed #c9ced4;
+  border-radius: var(--exm-ui-radius-sm);
+  background-color: var(--exm-ui-bg-sub);
+}
+
+/* the library makes the dashed line 2px on hover, which shifts the box */
+body[class*="skin-"] .file-drop-zone.clickable:hover,
+body[class*="skin-"] .file-drop-zone.clickable:focus {
+  border: 1px dashed var(--exm-ui-accent);
+}
+
+body[class*="skin-"] .file-drop-zone .file-drop-zone-title {
+  padding: 18px 10px;
+  font-size: var(--exm-ui-fs-sm);
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .file-caption .form-control,
+body[class*="skin-"] .file-caption-name {
+  color: var(--exm-ui-text);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .file-caption-name::placeholder {
+  color: var(--exm-ui-text-faint);
+}
+
+/* "Browse" is a tool, not the action of the page: gray like the others. */
+body[class*="skin-"] .btn.btn-primary.btn-file {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .btn.btn-primary.btn-file:hover,
+body[class*="skin-"] .btn.btn-primary.btn-file:focus {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+/* the help line under the upload field */
+body[class*="skin-"] .box .form-group > div > span.text-secondary {
+  font-size: var(--exm-ui-fs-xs);
+  color: var(--exm-ui-text-faint) !important; /* beats `text-secondary` */
+}
+
+/* --------------------------------------------- revisions, comments --- */
+body[class*="skin-"] .form-revision .control-label {
+  font-weight: 500;
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .form-revision small,
+body[class*="skin-"] .commentline .commentline_header {
+  font-size: var(--exm-ui-fs-xs);
+  color: var(--exm-ui-text-faint);
+}
+
+body[class*="skin-"] .commentline {
+  color: var(--exm-ui-text);
+}
+
+
+/* =================================================== data list screen === */
+/* `table.exm-grid` is the class grid_tools.js puts on the data grid only
+   (see grid_tools.css). Modal grids, dashboard list boxes and the system
+   tables never get it, so they are not touched.
+
+   The rules that reach the surrounding box use `:has()`. A browser
+   without `:has()` simply skips them and shows the modern table inside
+   the general box of this file - still a consistent screen.
+
+   This part stays last: it overrides the general box rules above with
+   selectors of the same weight. */
+
+.exm-grid {
+  /* grid_tools.css reads this for sort arrows and the dropdown tick */
+  --exm-grid-accent: var(--exm-ui-accent);
+  --exm-grid-line: var(--exm-ui-line);
+}
+
+/* ------------------------------------------------------- page + box --- */
+/* A box with no frame and no shadow: the table's own row lines are
+   enough to hold the list together. */
+body[class*="skin-"] .box:has(table.exm-grid) {
+  background-color: var(--exm-ui-bg);
+  border: 0 !important; /* the general box rules are !important */
+  border-radius: 0 !important;
+  box-shadow: none;
+}
+
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header {
+  padding: var(--exm-ui-space-2) 0 var(--exm-ui-space-3);
+  border-bottom: 0 !important; /* the general box rule is !important */
+}
+
+body[class*="skin-"] .box:has(table.exm-grid) > .box-footer {
+  padding: var(--exm-ui-space-4) 0;
+  background-color: transparent;
+  border-top: 0;
+  color: var(--exm-ui-text-sub);
+  font-size: var(--exm-ui-fs-sm);
+}
+
+/* ---------------------------------------------------------- toolbar --- */
+/* Button colors come from the general button rules above (gray for
+   tools, the accent for the "New" link to the create page). */
+/* Keep the toolbar on one line on a normal laptop screen: a long view
+   name is cut with "...", and the search box is a little narrower (the
+   width is an inline style, hence !important). */
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-grid-tool > a.dropdown-toggle > span.d-lg-block {
+  max-width: 15em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header > .pull-left form .form-control {
+  width: 150px !important;
+}
+
+/* On a narrower screen the "table settings" button shows its cog only;
+   that is what lets the row fit at about 1400px. */
+@media (max-width: 1500px) {
+  body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-grid-tool > a:not(.dropdown-toggle):has(> .fa-cog) > span.d-lg-block {
+    display: none !important; /* `d-lg-block` is !important */
+  }
+}
+
+/* "Filter" is a .btn-primary pair (label + caret). It is a tool like its
+   neighbours, and "New" is the one accent button of the list, so it
+   turns gray. */
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox {
+  --bs-btn-color: var(--exm-ui-text-sub);
+  --bs-btn-bg: var(--exm-ui-bg);
+  --bs-btn-border-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+  background-color: var(--exm-ui-bg);
+  border-color: var(--exm-ui-line);
+}
+
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox:hover,
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox:focus {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+/* the filter panel is open */
+body[class*="skin-"] .box-header .btn.btn-primary.btn-dropbox.active {
+  color: var(--exm-ui-accent-strong);
+  background-color: var(--exm-ui-accent-soft);
+  border-color: var(--exm-ui-line);
+}
+
+/* "This tool is on" - soft accent instead of a solid block. */
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-refresh-btn.active,
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-pin-btn.active,
+body[class*="skin-"] .box:has(table.exm-grid) > .box-header .exm-group-btn.active {
+  /* !important: these are .btn-default, whose colors are !important */
+  color: var(--exm-ui-accent-strong) !important;
+  background: var(--exm-ui-accent-soft) !important;
+  border-color: transparent !important;
+}
+
+/* ------------------------------------------------------ filter chips --- */
+.exm-filter-chip {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-sub);
+  border-color: var(--exm-ui-line);
+}
+
+.exm-filter-chip:hover {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+  border-color: var(--exm-ui-line);
+}
+
+.exm-filter-chips-title {
+  font-weight: 600;
+  color: var(--exm-ui-text-sub);
+}
+
+.exm-filter-chip-clear {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--exm-ui-text-sub);
+}
+
+/* ------------------------------------------------------------ table --- */
+/* The class is repeated for the same reason as in grid_tools.css: the
+   theme's border rule has a specificity of (0,3,0). This file is loaded
+   after grid_tools.css, so equal selectors here win by order. */
+.table.exm-grid.exm-grid {
+  font-family: var(--exm-ui-font);
+  color: var(--exm-ui-text);
+}
+
+/* Header: no fill. Small, gray and semi-bold is enough to read as a
+   header; one line under it separates it from the rows. */
+.table.exm-grid.exm-grid > thead > tr > th {
+  background-color: var(--exm-ui-bg);
+  color: var(--exm-ui-text-sub);
+  font-size: var(--exm-ui-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0;
+  padding: 10px 12px;
+  border-top: 0;
+  border-bottom: 1px solid var(--exm-ui-line);
+}
+
+.table.exm-grid.exm-grid > tbody > tr > td {
+  border-top-color: var(--exm-ui-line-soft);
+  border-bottom-color: var(--exm-ui-line-soft);
+}
+
+/* A little more air in the default density. Compact and spacious keep
+   the values of grid_tools.css. */
+.table.exm-grid.table-density-comfortable > tbody > tr > td {
+  padding: 11px 12px;
+}
+
+/* Numbers: right-aligned, with digits of equal width, so the ones, tens
+   and hundreds line up down the column. The header goes with them.
+   `exm-coltype-*` is the column type; the server puts it on the cells
+   and grid_tools.js copies it to the header. A text alignment set on
+   the custom column is an inline style and still wins. The ID column is
+   left as it is: it is a name for the row, not a quantity. */
+.table.exm-grid > thead > tr > th.exm-coltype-integer,
+.table.exm-grid > thead > tr > th.exm-coltype-decimal,
+.table.exm-grid > thead > tr > th.exm-coltype-currency,
+.table.exm-grid > tbody > tr > td.exm-coltype-integer,
+.table.exm-grid > tbody > tr > td.exm-coltype-decimal,
+.table.exm-grid > tbody > tr > td.exm-coltype-currency {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sort arrows: gray while the column is not sorted, the accent only on
+   the column the list is sorted by. (grid_tools.css paints all of them
+   in the accent.) */
+/* Keep the icon font's own weight: Font Awesome draws the sort arrow only
+   in its solid (900) style, so another weight shows a missing-glyph box. */
+.table.exm-grid.exm-grid > thead > tr > th a.fa-sort {
+  color: #b6bdc6;
+}
+
+.table.exm-grid.exm-grid > thead > tr > th a.fa-sort:hover {
+  color: var(--exm-ui-text-sub);
+}
+
+/* No zebra: with wider rows the hover color does the same job with
+   less ink. */
+.table.exm-grid > tbody > tr:nth-of-type(even) > td {
+  background-color: var(--exm-ui-bg);
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td {
+  background-color: var(--exm-ui-bg-hover);
+}
+
+.table.exm-grid > tbody > tr.selected > td,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td {
+  background-color: var(--exm-ui-accent-soft);
+}
+
+.table.exm-grid > tbody > tr > td a:not(.btn) {
+  color: var(--exm-ui-accent-strong);
+}
+
+/* Pinned cells are opaque so the scrolling columns pass under them.
+   They must repeat every row color above, or a pinned cell would show a
+   different color from the rest of its row. */
+.table.exm-grid.exm-grid > thead > tr > th.exm-pin,
+.exm-headlock > .table.exm-grid > thead > tr > th,
+.exm-headlock > .table.exm-grid.exm-grid > thead > tr > th.exm-pin {
+  background-color: var(--exm-ui-bg);
+}
+
+.table.exm-grid > tbody > tr > td.exm-pin,
+.table.exm-grid > tbody > tr:nth-of-type(even) > td.exm-pin {
+  background-color: var(--exm-ui-bg);
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td.exm-pin {
+  background-color: var(--exm-ui-bg-hover);
+}
+
+.table.exm-grid > tbody > tr.selected > td.exm-pin,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td.exm-pin {
+  background-color: var(--exm-ui-accent-soft);
+}
+
+/* The row actions (view / edit / delete) are not a column of their own:
+   `.__actions__div` is laid over the right end of the row. The theme
+   makes it transparent, so the icons sat on top of whatever value was
+   under them and that value looked cut off ("2022-"). Here it is filled
+   with the color of its row and gets a hairline on its left, so it
+   reads as a small panel in front of the row; the value under it
+   continues behind. */
+.table.exm-grid > tbody > tr > td .__actions__div {
+  padding-left: var(--exm-ui-space-2);
+  background: var(--exm-ui-bg);
+  border-left: 1px solid var(--exm-ui-line-soft);
+}
+
+.table.exm-grid.table-hover > tbody > tr:hover > td .__actions__div {
+  background: var(--exm-ui-bg-hover);
+}
+
+.table.exm-grid > tbody > tr.selected > td .__actions__div,
+.table.exm-grid.table-hover > tbody > tr.selected:hover > td .__actions__div {
+  background: var(--exm-ui-accent-soft);
+}
+
+/* Softer edge shadows for pinned columns and the locked header. These
+   shadows carry meaning ("something is scrolled under here"), so they
+   stay - only lighter. */
+.exm-pin-scrolled .table.exm-grid > thead > tr > th.exm-pin-last,
+.exm-pin-scrolled .table.exm-grid > tbody > tr > td.exm-pin-last {
+  box-shadow: 6px 0 6px -5px rgba(15, 23, 42, .12);
+}
+
+/* The action column pinned on the right covers the columns scrolled
+   under it. A hairline plus the shadow make that edge visible, so a
+   half-covered value reads as "more to the right", not as cut off. */
+.table.exm-grid > thead > tr > th.exm-pin-right-first,
+.table.exm-grid > tbody > tr > td.exm-pin-right-first {
+  border-left: 1px solid var(--exm-ui-line);
+}
+
+.exm-pin-scrolled-end .table.exm-grid > thead > tr > th.exm-pin-right-first,
+.exm-pin-scrolled-end .table.exm-grid > tbody > tr > td.exm-pin-right-first {
+  box-shadow: -8px 0 8px -6px rgba(15, 23, 42, .18);
+}
+
+.exm-headlock-scrolled > .table.exm-grid > thead > tr > th {
+  box-shadow: 0 3px 4px -3px rgba(15, 23, 42, .14);
+}
+
+/* Group rows: a gray band, no heavy top line. */
+.table.exm-grid > tbody > tr.exm-group-row > td {
+  background-color: var(--exm-ui-bg-sub);
+  border-top: 1px solid var(--exm-ui-line);
+  color: var(--exm-ui-text);
+}
+
+.table.exm-grid > tbody > tr.exm-group-row .exm-group-count {
+  background-color: var(--exm-ui-line);
+  color: var(--exm-ui-text-sub);
+}
+
+/* -------------------------------------------------------- pagination --- */
+body[class*="skin-"] .box:has(table.exm-grid) > .box-footer .pagination .page-link {
+  margin: 0 2px;
+  color: var(--exm-ui-text-sub);
+  background-color: transparent;
+  border: 0;
+  border-radius: var(--exm-ui-radius-sm);
+  box-shadow: none;
+}
+
+body[class*="skin-"] .box:has(table.exm-grid) > .box-footer .pagination .page-link:hover {
+  color: var(--exm-ui-text);
+  background-color: var(--exm-ui-bg-hover);
+}
+
+body[class*="skin-"] .box:has(table.exm-grid) > .box-footer .pagination .page-item.active .page-link {
+  color: var(--exm-ui-accent-strong);
+  background-color: var(--exm-ui-accent-soft);
+  font-weight: 600;
+}
+
+body[class*="skin-"] .box:has(table.exm-grid) > .box-footer .pagination .page-item.disabled .page-link {
+  color: var(--exm-ui-text-faint);
+  background-color: transparent;
+}
+
+/* "Back to the list" at the left of the page title: the accent color. */
+body[class*="skin-"] .content-header > h1 .exm-back-to-list {
+  color: #fff;
+  background-color: var(--exm-ui-accent);
+  border-color: var(--exm-ui-accent);
+  border-radius: var(--exm-ui-radius-sm);
+}
+
+body[class*="skin-"] .content-header > h1 .exm-back-to-list:hover,
+body[class*="skin-"] .content-header > h1 .exm-back-to-list:focus {
+  color: #fff;
+  background-color: var(--exm-ui-accent-strong);
+  border-color: var(--exm-ui-accent-strong);
+}

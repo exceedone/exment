@@ -7,6 +7,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\ColumnItems\GridCellStyle;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Services\UserTimezone;
 
 /**
  * Gantt view.
@@ -199,7 +200,8 @@ class GanttGrid extends GridBase
         return [
             'table' => $this->custom_table->table_name,
             'data_url' => admin_url('data', [$this->custom_table->table_name]),
-            'today' => \Carbon\Carbon::today()->format('Y-m-d'),
+            // the days of the user (ISS02835)
+            'today' => UserTimezone::today()->format('Y-m-d'),
             'rows' => $rows,
             'groups' => $this->buildGroups($group_column, $rows),
             'group_label' => isset($group_column) ? $group_column->column_view_name : null,
@@ -225,12 +227,12 @@ class GanttGrid extends GridBase
     protected function rawDate($record, $custom_column)
     {
         $raw = array_get($record->value, $custom_column->column_name);
-        if (is_nullorempty($raw)) {
+        if (is_nullorempty($raw) || !is_scalar($raw)) {
             return null;
         }
-        $raw = substr(strval($raw), 0, 10);
 
-        return preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw) ? $raw : null;
+        // a date and time is the day of the user; a date as it is (ISS02835)
+        return UserTimezone::displayDate(strval($raw), array_get($custom_column, 'column_type') == ColumnType::DATETIME);
     }
 
     /**
@@ -265,7 +267,7 @@ class GanttGrid extends GridBase
                     'key' => strval($key),
                     'label' => isset($target) ? strval($target->getLabel()) : strval($key),
                     'due' => (isset($target) && isset($due_column))
-                        ? substr(strval(array_get($target->value, $due_column->column_name, '')), 0, 10) ?: null
+                        ? $this->rawDate($target, $due_column)
                         : null,
                 ];
             }

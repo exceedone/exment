@@ -23,6 +23,7 @@ use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\WorkflowType;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Notifications;
+use Exceedone\Exment\Services\UserLocale;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
@@ -248,6 +249,17 @@ class NotifyService
         $errors = [];
 
         if (isset($title) && isset($message)) {
+            // The subject and the body are typed by the user and are filled with
+            // values when they are sent. Only the ${...} words of the mail template
+            // are filled; a word the user adds (${system:...}, ${notify:...}, ...)
+            // stays as it was typed.
+            $mail_template = $this->notify->getMailTemplate();
+            $allowed = static::getReplaceWords(isset($mail_template)
+                ? (array_get($mail_template->value, 'mail_subject') . "\n" . $mail_template->getJoinedBody())
+                : '');
+            $title = static::keepOnlyReplaceWords(str_replace("\x00", '', (string)$title), $allowed);
+            $message = static::keepOnlyReplaceWords(str_replace("\x00", '', (string)$message), $allowed);
+
             try {
                 $this->notify->notifyButtonClick($this->custom_value, $target_user_keys, $title, $message, $attachments);
             } catch (TransportExceptionInterface $ex) {
@@ -567,7 +579,7 @@ class NotifyService
                     ];
                 }
 
-                $detailUrl = $custom_value->getUrl(['tag' => false, 'modal' => false]);
+                $detailUrl = $custom_value->getUrl(['tag' => false, 'modal' => false, 'record_url' => true]);
                 if (is_string($detailUrl) && preg_match('#^https://#i', $detailUrl)) {
                     $buttons[] = [
                         'label' => exmtrans('notify.line_show_detail'),
@@ -703,17 +715,19 @@ class NotifyService
             array_set($prms, 'system.site_name', $custom_value->label);
         }
 
-        // replace value
-        $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
-        $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
+        // replace value, in the language and the time zone of the user who receives it (ISS02835)
+        return UserLocale::runAs($user ?? '', function () use ($notify, $subject, $body, $custom_value, $custom_table, $prms, $replaceOptions, $user, $params) {
+            $mail_subject = static::replaceWord($subject, $custom_value, $prms, $replaceOptions);
+            $mail_body = static::replaceWord($body, $custom_value, $prms, $replaceOptions);
 
-        $sender = Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params);
-        $sender->custom_value($custom_value)
-            ->custom_table($custom_table)
-            ->user($user)
-            ->send();
+            $sender = Notifications\NavbarSender::make(array_get($notify, 'id', -1), $mail_subject, $mail_body, $params);
+            $sender->custom_value($custom_value)
+                ->custom_table($custom_table)
+                ->user($user)
+                ->send();
 
-        return $sender;
+            return $sender;
+        });
     }
 
 
@@ -782,6 +796,12 @@ class NotifyService
         // send message
         $options = ['webhook_name' => $params['webhook_name'], 'webhook_icon' => $params['webhook_icon'], 'mention_here' => $params['mention_here'], 'mention_users' => $params['mention_users']];
         $sender = $className::make($webhook_url, $slack_subject, $slack_body, $options);
+        // the URL is checked when it is posted to, too (its name may point elsewhere by now)
+        if (!WebhookUrlGuard::isAllowed($webhook_url)) {
+            \Log::warning('Exment notify: the webhook URL is not allowed and nothing was sent: ' . parse_url((string)$webhook_url, PHP_URL_HOST)
+                . ' (the server itself and internal addresses are refused; to post to this host, add it to EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS in .env)');
+            return $sender;
+        }
         $sender->send();
 
         return $sender;
@@ -867,6 +887,40 @@ class NotifyService
     /**
      * replace subject or body words.
      */
+    /**
+     * The ${...} words in a text.
+     *
+     * @return array<string>
+     */
+    protected static function getReplaceWords(?string $text): array
+    {
+        if (is_nullorempty($text)) {
+            return [];
+        }
+        preg_match_all('/\$\{([^{}]*?)\}/', $text, $matches);
+        return array_values(array_unique($matches[0]));
+    }
+
+    /**
+     * Break the ${...} words of the text that are not in $allowed, so they are
+     * sent as typed and not filled with values.
+     *
+     * @param array<string> $allowed
+     */
+    protected static function keepOnlyReplaceWords(string $text, array $allowed): string
+    {
+        // The allowed words are put aside, every other "${" is broken (also one
+        // inside another, as "${${system:...}"), then the allowed words come back.
+        $marks = [];
+        foreach (array_values($allowed) as $index => $word) {
+            $mark = "\x00EXMWORD{$index}\x00";
+            $marks[$mark] = $word;
+            $text = str_replace($word, $mark, $text);
+        }
+        $text = str_replace('${', '$ {', $text);
+        return strtr($text, $marks);
+    }
+
     // @phpstan-ignore-next-line
     public static function replaceWord($target, $custom_value = null, $prms = null, $replaceOptions = [])
     {

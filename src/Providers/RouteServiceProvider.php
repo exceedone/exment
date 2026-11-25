@@ -30,6 +30,16 @@ class RouteServiceProvider extends ServiceProvider
         /** @var int $rate_limit */
         $rate_limit = config('exment.api_max_rate_limit', 60);
         RateLimiter::for('api', function (Request $request) use ($rate_limit) {
+            // an API key of a user: not through the OAuth guard (Passport empties the Authorization
+            // header of a bearer that is not its token, and the key would never sign in after it)
+            $bearer = $request->bearerToken();
+            if (\Exceedone\Exment\Services\UserApiKeys::looksLikeKey($bearer)) {
+                // by the IP (a new random key each time, or many keys, do not get more) and by the key
+                return [
+                    Limit::perMinute($rate_limit)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
+                    Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
+                ];
+            }
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
             return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
         });
@@ -50,6 +60,25 @@ class RouteServiceProvider extends ServiceProvider
         $this->mapExmentInstallWebRotes();
         $this->mapExmentApiRotes();
         $this->mapExmentAnonymousApiRotes();
+        $this->mapLegacyAdminRedirect();
+    }
+
+    /**
+     * A site without the admin prefix: the old "/admin/..." links go to the
+     * same page without "/admin" (GET only). Registered last, so every route
+     * of the site comes first.
+     *
+     * @return void
+     */
+    public function mapLegacyAdminRedirect()
+    {
+        if (!\Exceedone\Exment\Services\LegacyAdminRedirect::enabled()) {
+            return;
+        }
+        Route::get(\Exceedone\Exment\Services\LegacyAdminRedirect::SEGMENT . '/{legacy_admin_path?}', \Exceedone\Exment\Controllers\LegacyAdminRedirectController::class)
+            ->where('legacy_admin_path', '.*')
+            ->middleware('web')
+            ->name('exment.legacy_admin_redirect');
     }
 
     /**
@@ -60,6 +89,8 @@ class RouteServiceProvider extends ServiceProvider
         Route::group([
             'prefix'    => config('admin.route.prefix'),
             'namespace' => $this->namespace,
+            // maintenance mode: from outside, as the public forms
+            'middleware' => ['exment.maintenance:public'],
         ], function (Router $router) {
             $router->post('line/webhook', 'LineWebhookController@handle')->name('exment.line_webhook');
         });
@@ -108,6 +139,8 @@ class RouteServiceProvider extends ServiceProvider
             'namespace'  => $this->namespace,
             'middleware' => [
                 'adminweb',
+                // maintenance mode: from outside (a link in a mail), as the public forms
+                'exment.maintenance:public',
                 'admin.browser',
                 'admin.initialize',
                 'admin.login',
@@ -136,6 +169,22 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'admin'],
         ], function (Router $router) {
             $router->get('/', 'DashboardController@home');
+
+            // When prefix is empty the admin lives at "/", which conflicts with
+            // routes/web.php's default welcome route. That file is loaded via
+            // Application::booting() — before service providers boot — so its
+            // Route::get('/') is registered first. We re-register this route
+            // inside app()->booted() (after ALL providers boot) so it is the
+            // last write to the route collection's associative-array slot for
+            // GET "/", guaranteeing the admin dashboard wins the match.
+            if (empty(config('admin.route.prefix'))) {
+                $namespace = $this->namespace;
+                app()->booted(function () use ($namespace) {
+                    Route::middleware(['adminweb', 'admin'])
+                        ->namespace($namespace)
+                        ->get('/', 'Exceedone\Exment\Controllers\DashboardController@home');
+                });
+            }
             $router->get('dashboardbox/html/{suuid}', 'DashboardBoxController@getHtml');
             $router->post('dashboardbox/chart_state/{suuid}', 'DashboardBoxController@chartState');
             $router->post('dashboardbox/chart_color/{suuid}', 'DashboardBoxController@chartColor');
@@ -153,10 +202,23 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->resource('auth/logs', 'LogController', ['except' => ['create', 'edit']]);
             $router->post('auth/logs/setting', 'LogController@postSetting');
+            // a path of its own: exment-admin-core registers "auth/menu/{menu}" first, which would take "arrange" for an id
+            $router->get('auth/menu_arrange', 'MenuController@arrange');
+            $router->post('auth/menu_arrange', 'MenuController@arrangeRun');
+            $router->post('auth/menu_arrange/restore', 'MenuController@arrangeRestore');
             $router->resource('auth/menu', 'MenuController', ['except' => ['create']]);
             $router->put('auth/setting/filedelete', 'AuthController@filedelete');
             $router->get('auth/setting', 'AuthController@getSetting');
             $router->put('auth/setting', 'AuthController@putSetting');
+            // the language from the user menu (ISS02835)
+            $router->post('auth/setting/locale', 'AuthController@postLocale');
+            // the API keys of the users (ISS00437): of the login user, and of the site
+            $router->get('auth/api_keys', 'UserApiKeyController@index');
+            $router->post('auth/api_keys', 'UserApiKeyController@store');
+            $router->post('auth/api_keys/{id}/revoke', 'UserApiKeyController@revoke')->where('id', '[0-9]+');
+            $router->get('api_keys', 'UserApiKeyController@adminIndex');
+            $router->post('api_keys/{id}/revoke', 'UserApiKeyController@adminRevoke')->where('id', '[0-9]+');
+            $router->post('api_keys/user/{userId}/revoke', 'UserApiKeyController@adminRevokeUser')->where('userId', '[0-9]+');
 
             $router->get('system', 'SystemController@index');
             $router->post('system', 'SystemController@post');
@@ -165,19 +227,112 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('system/call_update', 'SystemController@callUpdate');
 
+            // Tuning: what would make the site faster (ISS00414)
+            $router->get('tuning', 'TuningController@index');
+            $router->post('tuning/action', 'TuningController@action');
+            // the security check (ISS02833)
+            $router->get('security_check', 'SecurityCheckController@index');
+            $router->post('security_check/fix', 'SecurityCheckController@fix');
+            $router->get('maintenance', 'MaintenanceController@index');
+            $router->post('maintenance', 'MaintenanceController@store');
+            $router->post('maintenance/start', 'MaintenanceController@start');
+            $router->post('maintenance/end', 'MaintenanceController@end');
+
             // The preset library: what the pickers on the column and view
             // screens offer, managed as one list.
             $this->setResouce($router, 'cell_style_preset', 'CellStylePresetSettingController');
 
+            // Studio: the screens of the site on one page (ISS00231 phase 1)
+            $router->get('feature', 'FeatureController@index');
+            $router->post('feature', 'FeatureController@store');
+            $router->post('feature/notices_known', 'FeatureController@noticesKnown');
+            $router->post('feature/bundled/{uuid}/{action}', 'FeatureController@bundled')->where('action', 'install|rollback');
+            $router->post('feature/bundled_upload', 'FeatureController@bundledUpload');
+            $router->get('studio', 'StudioController@index');
+            $router->get('studio/create', 'StudioController@create');
+            $router->post('studio', 'StudioController@store');
+            $router->post('studio/sheet', 'StudioController@readSheet');
+            $router->get('studio/screens/{id}/edit', 'StudioController@edit');
+            $router->post('studio/screens/{id}', 'StudioController@update');
+            // the phone app of the Studio (PWA)
+            $router->get('app', 'StudioAppController@index');
+            $router->get('app/manifest.webmanifest', 'StudioAppController@manifest');
+            $router->get('app/sw.js', 'StudioAppController@serviceWorker');
+            $router->get('app/code', 'StudioAppController@code');
+            // File server: workspaces, folders and files (ISS00293)
+            $router->get('file_server', 'FileServerController@index');
+            $router->get('file_server/create', 'FileServerController@create');
+            $router->post('file_server', 'FileServerController@store');
+            $router->get('file_server/search', 'FileServerMetaController@search');
+            $router->get('file_server/data_lookup', 'FileServerMetaController@dataLookup');
+            $router->get('file_server/picker', 'FileServerController@picker')->middleware('throttle:120,1');
+            $router->group(['prefix' => 'file_server/{workspace}', 'where' => ['workspace' => '[0-9]+']], function (Router $router) {
+                $router->get('/', 'FileServerController@folder');
+                $router->get('folder/{node}', 'FileServerController@folder')->where('node', '[0-9]+');
+                $router->get('settings', 'FileServerController@settings');
+                $router->post('settings', 'FileServerController@updateSettings');
+                $router->delete('/', 'FileServerController@destroyWorkspace');
+                $router->get('trash', 'FileServerController@trash');
+                $router->post('folders', 'FileServerController@createFolder');
+                $router->post('text_files', 'FileServerController@createTextFile');
+                $router->post('upload', 'FileServerController@upload');
+                $router->post('upload/init', 'FileServerController@uploadInit');
+                $router->get('upload/{session}', 'FileServerController@uploadStatus');
+                $router->post('upload/{session}/chunk', 'FileServerController@uploadChunk');
+                $router->post('upload/{session}/complete', 'FileServerController@uploadComplete');
+                $router->delete('upload/{session}', 'FileServerController@uploadCancel');
+                $router->post('download', 'FileServerController@downloadZip');
+                $router->get('folders.json', 'FileServerController@folderTree');
+                $router->post('metadata_fields', 'FileServerMetaController@saveFields');
+                $router->get('audit', 'FileServerGovernanceController@audit');
+                $router->get('approvals', 'FileServerGovernanceController@approvals');
+                $router->post('follow', 'FileServerGovernanceController@follow');
+                $router->group(['prefix' => 'nodes/{node}', 'where' => ['node' => '[0-9]+']], function (Router $router) {
+                    $router->get('/', 'FileServerController@showNode');
+                    $router->get('info', 'FileServerController@info');
+                    $router->get('download', 'FileServerController@download');
+                    $router->get('content', 'FileServerController@content');
+                    $router->get('thumbnail', 'FileServerController@thumbnail');
+                    $router->post('rendition', 'FileServerController@previewNow');
+                    $router->post('rename', 'FileServerController@rename');
+                    $router->post('move', 'FileServerController@move');
+                    $router->post('copy', 'FileServerController@copy');
+                    $router->post('trash', 'FileServerController@trashNode');
+                    $router->post('restore', 'FileServerController@restore');
+                    $router->post('purge', 'FileServerController@purge');
+                    $router->post('favorite', 'FileServerController@favorite');
+                    $router->post('version', 'FileServerController@uploadVersion');
+                    $router->get('edit', 'FileServerController@editText');
+                    $router->post('text', 'FileServerController@saveText');
+                    // the preview is asked while typing: limited for each user
+                    $router->post('markdown', 'FileServerController@markdownPreview')->middleware(\Illuminate\Routing\Middleware\ThrottleRequests::class . ':120,1');
+                    $router->post('versions/{version}/restore', 'FileServerController@restoreVersion')->where('version', '[0-9]+');
+                    $router->post('preview', 'FileServerController@makePreview');
+                    $router->post('checkout', 'FileServerController@checkout');
+                    $router->post('checkin', 'FileServerController@checkin');
+                    $router->post('discard_checkout', 'FileServerController@discardCheckout');
+                    $router->post('permissions', 'FileServerController@updatePermissions');
+                    $router->post('links', 'FileServerController@createLink');
+                    $router->post('links/{link}/revoke', 'FileServerController@revokeLink')->where('link', '[0-9]+');
+                    $router->post('metadata', 'FileServerMetaController@saveValues');
+                    $router->post('data_links', 'FileServerMetaController@addDataLink');
+                    $router->post('data_links/{link}/remove', 'FileServerMetaController@removeDataLink')->where('link', '[0-9]+');
+                    $router->post('approve', 'FileServerGovernanceController@approve');
+                    $router->post('reject', 'FileServerGovernanceController@reject');
+                    $router->post('rules', 'FileServerGovernanceController@rules');
+                    $router->post('follow', 'FileServerGovernanceController@follow');
+                    $router->post('comments', 'FileServerGovernanceController@addComment');
+                    $router->post('comments/{comment}/delete', 'FileServerGovernanceController@deleteComment')->where('comment', '[0-9]+');
+                });
+            });
+            // the pages of the folders and files at their paths (ISS02815): after all the others
+            $router->get('file_server/{path}', 'FileServerController@path')->where('path', '.+');
+
             $router->get('template', 'TemplateController@index');
             $router->post('template/import', 'TemplateController@import');
             $router->post('template/export', 'TemplateController@export');
-            $router->get('template/import', function () {
-                return redirect(admin_url('template'));
-            });
-            $router->get('template/export', function () {
-                return redirect(admin_url('template'));
-            });
+            $router->get('template/import', 'TemplateController@redirectIndex');
+            $router->get('template/export', 'TemplateController@redirectIndex');
 
             $router->get("workflow/beginning", 'WorkflowController@beginningForm');
             $router->post("workflow/beginning", 'WorkflowController@beginningPost');
@@ -261,9 +416,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("role_group/import", 'RoleGroupController@import');
             $this->setResouce($router, 'role_group', 'RoleGroupController');
 
-            $router->get('role', function () {
-                return redirect(admin_urls('role_group'));
-            });
+            $router->get('role', 'RoleGroupController@redirectRole');
 
             $router->get('qr-code/{tableName}/{id}', 'QrCodeController@scanRedirect');
             $router->get('jan-code/{id}', 'JanCodeController@scanRedirect');
@@ -305,6 +458,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/import", 'CustomValueController@import');
             $router->post("data/{tableKey}/pluginClick", 'CustomValueController@pluginClick');
             $router->post("data/{tableKey}/operationClick", 'CustomValueController@operationClick');
+            $router->get("data/{tableKey}/workflowBulkModal", 'CustomValueController@workflowBulkModal');
+            $router->post("data/{tableKey}/workflowBulkClick", 'CustomValueController@workflowBulkClick');
             $router->get("data/{tableKey}/{id}/compare", 'CustomValueController@compare');
             $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
@@ -329,7 +484,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post("data/{tableKey}/rowRestore", 'CustomValueController@rowRestore');
             $router->put("data/{tableKey}/{id}/filedelete", 'CustomValueController@filedelete');
             $router->post("data/{tableKey}/{id}/fileupload", 'CustomValueController@fileupload');
+            $router->post("data/{tableKey}/{id}/documents/{documentId}/replace", 'CustomValueController@documentReplace');
+            $router->get("data/{tableKey}/{id}/documents/{documentId}/versions", 'CustomValueController@documentVersions');
             $router->post("data/{tableKey}/{id}/addcomment", 'CustomValueController@addComment');
+            $router->post("data/{tableKey}/{id}/previewcomment", 'CustomValueController@previewComment');
+            $router->post("data/{tableKey}/{id}/commentimage", 'CustomValueController@uploadCommentImage');
             $router->delete("data/{tableKey}/{id}/deletecomment/{suuid}", 'CustomValueController@deleteComment');
             $router->post("data/{tableKey}/qrcode_download", 'CustomValueController@qrcodeDownload')->name('exment.qrcode_download');
             $router->get("data/{tableKey}/form_create_qrcode", 'CustomValueController@formCreateQrcode')->name('exment.form_create_qrcode');
@@ -385,6 +544,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('data/{tableKey}/preview', 'CustomValueController@preview')->name('exment.data.preview');
             $router->post('data/{tableKey}/{id}/preview', 'CustomValueController@preview');
 
+            $router->get('data/{tableKey}/{id}/lazy-relation/{blockId}', 'CustomValueController@lazyRelation')->name('exment.data.lazy-relation');
             $this->setTableResouce($router, 'data', 'CustomValueController', true);
             $this->setTableResouce($router, 'column', 'CustomColumnController');
             $this->setTableResouce($router, 'form', 'CustomFormController');
@@ -433,6 +593,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('auth/login', 'AuthController@getLoginExment')->name('exment.login');
             $router->get('auth/logout', 'AuthController@getLogout')->name('exment.logout');
             $router->post('auth/login', 'AuthController@postLogin');
+            // the language of the login page (ISS02835)
+            $router->post('auth/login_locale', 'AuthController@postLoginLocale');
             $router->get('auth/forget', 'ForgetPasswordController@showLinkRequestForm');
             $router->post('auth/forget', 'ForgetPasswordController@sendResetLinkEmail')->name('password.email');
             $router->get('auth/reset/{token}', 'ResetPasswordController@showResetForm');
@@ -564,6 +726,18 @@ class RouteServiceProvider extends ServiceProvider
                     $router->put("data/{tableKey}/{id}", 'ApiDataController@dataUpdate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
                     $router->delete("data/{tableKey}/{id}", 'ApiDataController@dataDelete')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
 
+                    // comment -------------------------------------------------
+                    // The same shape and scopes as document/{tableKey}/{id}. A public form has
+                    // no comments, so these are private only. Registered after
+                    // data/{tableKey}/column/{column_name}, which a column named "comments" has to reach.
+                    $router->get("data/{tableKey}/{id}/comments", 'ApiDataController@getComments')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    $router->post("data/{tableKey}/{id}/comments", 'ApiDataController@createComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+                    $router->delete("data/{tableKey}/{id}/comments/{suuid}", 'ApiDataController@deleteComment')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_WRITE));
+
+                    // studio: the screens as JSON for the phone app (ISS00231) ------
+                    $router->get("studio/screens", 'ApiStudioController@screens')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    $router->get("studio/screens/{id}", 'ApiStudioController@screen')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+
                     // viewdata ----------------------------------------------------
                     $router->get("viewdata/{tableKey}/{viewid}", 'ApiDataController@viewDataList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                     $router->get("viewdata/{tableKey}/{viewid}/{id}", 'ApiDataController@viewDataFind')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
@@ -597,9 +771,21 @@ class RouteServiceProvider extends ServiceProvider
                     // System --------------------------------------------------
                     $router->get("version", 'ApiController@version');
 
-                    $router->get("notifyPage", 'ApiController@notifyPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ));
+                    // MCP (ISS00439): the tools check their scopes, the API only (not webapi)
+                    if ($route['type'] === 'api') {
+                        $router->post('mcp', 'McpController@handle');
+                        $router->get('mcp', 'McpController@notAllowed');
+                        $router->delete('mcp', 'McpController@notAllowed');
+                    }
+
+                    // the navbar polls (ISS02824): an ETag, so that an unchanged answer is a bodiless 304
+                    // (one middleware() call: with no scope, middleware(null) is a getter)
+                    $navbarCache = \Illuminate\Http\Middleware\SetCacheHeaders::class . ':private;no_cache;etag';
+                    $router->get("notifyPage", 'ApiController@notifyPage')
+                        ->middleware(array_values(array_filter([ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ), $navbarCache])));
                     // workflow data - tables, record labels, statuses - so the scopes of the wf/ read endpoints
-                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));
+                    $router->get("workflowTaskPage", 'ApiController@workflowTaskPage')
+                        ->middleware(array_values(array_filter([ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE), $navbarCache])));
                     $router->get("notify", 'ApiController@notifyList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE));
                     $router->post("notify", 'ApiController@notifyCreate')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::NOTIFY_WRITE));
 

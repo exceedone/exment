@@ -1333,19 +1333,37 @@
             "order": "1",
             "menu_type": "system",
             "menu_name": "home",
-            "title": "HOME",
+            "title": "Dashboard",
             "parent_name": null,
             "menu_target_name": "home"
         },
         {
             "order": "2",
-            "icon": "fa-database",
-            "uri": null,
+            "menu_type": "parent_node",
+            "menu_name": "groupware",
+            "title": "Groupware",
+            "parent_name": null,
+            "menu_target_name": null,
+            "icon": "fa-comments",
+            "uri": null
+        },
+        {
+            "order": "1",
+            "menu_type": "system",
+            "menu_name": "file_server",
+            "title": "File sharing",
+            "parent_name": "groupware",
+            "menu_target_name": "file_server"
+        },
+        {
+            "order": "90",
             "menu_type": "parent_node",
             "menu_name": "master",
-            "title": "Manage Master",
+            "title": "Master",
             "parent_name": null,
-            "menu_target_name": null
+            "menu_target_name": null,
+            "icon": "fa-database",
+            "uri": null
         },
         {
             "order": "1",
@@ -1382,11 +1400,136 @@
         {
             "order": "91",
             "menu_type": "parent_node",
-            "menu_name": "admin",
+            "menu_name": "admin_data",
+            "title": "Settings: Data & Screens",
             "parent_name": null,
-            "title": "Admin Setting",
-            "menu_target_name": "admin",
-            "icon": "fa-user-circle-o" 
+            "menu_target_name": null,
+            "icon": "fa-th-large",
+            "uri": null
+        },
+        {
+            "order": "1",
+            "menu_type": "system",
+            "menu_name": "custom_table",
+            "title": "Custom Table",
+            "parent_name": "admin_data",
+            "menu_target_name": "custom_table"
+        },
+        {
+            "order": "2",
+            "menu_type": "system",
+            "menu_name": "studio",
+            "title": "Studio",
+            "parent_name": "admin_data",
+            "menu_target_name": "studio"
+        },
+        {
+            "order": "3",
+            "menu_type": "system",
+            "menu_name": "menu",
+            "title": "Menu",
+            "parent_name": "admin_data",
+            "menu_target_name": "menu"
+        },
+        {
+            "order": "4",
+            "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "Workflow",
+            "parent_name": "admin_data",
+            "menu_target_name": "workflow"
+        },
+        {
+            "order": "5",
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "Mail Template",
+            "parent_name": "admin_data",
+            "menu_target_name": "mail_template"
+        },
+        {
+            "order": "6",
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "Notify",
+            "parent_name": "admin_data",
+            "menu_target_name": "notify"
+        },
+        {
+            "order": "7",
+            "menu_type": "system",
+            "menu_name": "cell_style_preset",
+            "title": "Cell Style Preset",
+            "parent_name": "admin_data",
+            "menu_target_name": "cell_style_preset"
+        },
+        {
+            "order": "8",
+            "menu_type": "system",
+            "menu_name": "template",
+            "title": "Template",
+            "parent_name": "admin_data",
+            "menu_target_name": "template"
+        },
+        {
+            "order": "92",
+            "menu_type": "parent_node",
+            "menu_name": "admin_user",
+            "title": "Settings: Users & Permissions",
+            "parent_name": null,
+            "menu_target_name": null,
+            "icon": "fa-users",
+            "uri": null
+        },
+        {
+            "order": "1",
+            "menu_type": "system",
+            "menu_name": "loginuser",
+            "title": "LoginUser",
+            "parent_name": "admin_user",
+            "menu_target_name": "loginuser"
+        },
+        {
+            "order": "2",
+            "menu_type": "system",
+            "menu_name": "role_group",
+            "title": "Role Group",
+            "parent_name": "admin_user",
+            "menu_target_name": "role_group"
+        },
+        {
+            "order": "3",
+            "menu_type": "system",
+            "menu_name": "login_setting",
+            "title": "Login Setting",
+            "parent_name": "admin_user",
+            "menu_target_name": "login_setting"
+        },
+        {
+            "order": "4",
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "API Setting",
+            "parent_name": "admin_user",
+            "menu_target_name": "api_setting"
+        },
+        {
+            "order": "5",
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "Operation Log",
+            "parent_name": "admin_user",
+            "menu_target_name": "operation_log"
+        },
+        {
+            "order": "93",
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "Settings: System",
+            "parent_name": null,
+            "menu_target_name": null,
+            "icon": "fa-cogs",
+            "uri": null
         },
         {
             "order": "1",
@@ -1399,61 +1542,13 @@
         {
             "order": "2",
             "menu_type": "system",
-            "menu_name": "custom_table",
-            "title": "Custom Table",
+            "menu_name": "feature",
+            "title": "Feature Management",
             "parent_name": "admin",
-            "menu_target_name": "custom_table"
+            "menu_target_name": "feature"
         },
         {
             "order": "3",
-            "menu_type": "system",
-            "menu_name": "menu",
-            "title": "Menu",
-            "parent_name": "admin",
-            "menu_target_name": "menu"
-        },
-        {
-            "order": "4",
-            "menu_type": "system",
-            "menu_name": "template",
-            "title": "Template",
-            "parent_name": "admin",
-            "menu_target_name": "template"
-        },
-        {
-            "order": "5",
-            "menu_type": "system",
-            "menu_name": "backup",
-            "title": "Backup",
-            "parent_name": "admin",
-            "menu_target_name": "backup"
-        },
-        {
-            "order": "6",
-            "menu_type": "system",
-            "menu_name": "loginuser",
-            "title": "LoginUser",
-            "parent_name": "admin",
-            "menu_target_name": "loginuser"
-        },
-        {
-            "order": "7",
-            "menu_type": "system",
-            "menu_name": "role_group",
-            "title": "Role Group",
-            "parent_name": "admin",
-            "menu_target_name": "role_group"
-        },
-        {
-            "order": "8",
-            "menu_type": "system",
-            "menu_name": "workflow",
-            "title": "Workflow",
-            "parent_name": "admin",
-            "menu_target_name": "workflow"
-        },
-        {
-            "order": "9",
             "menu_type": "system",
             "menu_name": "plugin",
             "title": "Plugin",
@@ -1461,12 +1556,36 @@
             "menu_target_name": "plugin"
         },
         {
-            "order": "11",
-            "menu_type": "table",
-            "menu_name": "mail_template",
-            "title": "Mail Template",
+            "order": "4",
+            "menu_type": "system",
+            "menu_name": "backup",
+            "title": "Backup",
             "parent_name": "admin",
-            "menu_target_name": "mail_template"
+            "menu_target_name": "backup"
+        },
+        {
+            "order": "5",
+            "menu_type": "system",
+            "menu_name": "tuning",
+            "title": "Tuning",
+            "parent_name": "admin",
+            "menu_target_name": "tuning"
+        },
+        {
+            "order": "6",
+            "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "Security Check",
+            "parent_name": "admin",
+            "menu_target_name": "security_check"
+        },
+        {
+            "order": "7",
+            "menu_type": "system",
+            "menu_name": "maintenance",
+            "title": "Maintenance Mode",
+            "parent_name": "admin",
+            "menu_target_name": "maintenance"
         }
     ],
     "thumbnail": "thumbnail.png"

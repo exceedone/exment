@@ -182,10 +182,43 @@ class SelectTable extends CustomItem
             return $model;
         // get text column
         } elseif ($html && !$this->isPublicForm()) {
-            return $model->getUrl(true);
+            return static::linkOf($model);
+        } elseif ($html) {
+            // a public form shows the label without a link; it is still text
+            return esc_html($model->getLabel());
         } else {
             return $model->getLabel();
         }
+    }
+
+    /**
+     * The link of a record pointed at, made once per record: a list shows the
+     * same few records (a status, a user) on many rows, and the record is the
+     * one kept for the request (CustomTable::getValueModel). Made again when
+     * the record changed (saved since, or changed and not saved).
+     *
+     * @var \WeakMap<\Exceedone\Exment\Model\CustomValue, array{0: string, 1: mixed}>|null
+     */
+    protected static ?\WeakMap $links = null;
+
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue $model
+     * @return mixed
+     */
+    protected static function linkOf($model)
+    {
+        if ($model->isDirty()) {
+            return $model->getUrl(true);
+        }
+        static::$links ??= new \WeakMap();
+        $stamp = strval($model->updated_at);
+        $kept = static::$links[$model] ?? null;
+        if (isset($kept) && $kept[0] === $stamp) {
+            return $kept[1];
+        }
+        $link = $model->getUrl(true);
+        static::$links[$model] = [$stamp, $link];
+        return $link;
     }
 
     // @phpstan-ignore-next-line
@@ -641,7 +674,7 @@ class SelectTable extends CustomItem
         }
         // only single search column, search
         elseif (!$use_table_label_id && count($labelColumns) == 1) {
-            if ($this->setSelectTableQuery($query, array_get($labelColumns[0], 'table_label_id'), $label)) {
+            if ($this->setSelectTableQuery($query, array_get($labelColumns->first(), 'table_label_id'), $label)) {
                 $executeSearch = true;
             }
         } else {

@@ -14,7 +14,7 @@ class DayThisMonth extends DayMonthBase
     // @phpstan-ignore-next-line
     protected function getTargetDay($query_value)
     {
-        return new \Carbon\Carbon('first day of this month');
+        return \Exceedone\Exment\Services\UserTimezone::relative('first day of this month');
     }
 
 

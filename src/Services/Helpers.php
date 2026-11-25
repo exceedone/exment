@@ -1412,12 +1412,16 @@ if (!function_exists('getModelName')) {
             $suuid = CustomTable::getEloquent($obj)->suuid;
         } elseif (is_numeric($obj) || is_string($obj)) {
             // get all table info
-            $table = CustomTable::allRecordsCache(function ($table) use ($obj) {
-                if (is_numeric($obj)) {
-                    return array_get($table, 'id') == $obj;
-                }
-                return array_get($table, 'table_name') == $obj;
-            })->first();
+            $table = CustomTable::recordsCacheBy([is_numeric($obj) ? 'id' : 'table_name'], [$obj])->first();
+            if (is_null($table)) {
+                // not found by the index: check all the records, and read them again if not found (as before)
+                $table = CustomTable::allRecordsCache(function ($table) use ($obj) {
+                    if (is_numeric($obj)) {
+                        return array_get($table, 'id') == $obj;
+                    }
+                    return array_get($table, 'table_name') == $obj;
+                })->first();
+            }
 
             // $table = collect($tables)->first(function ($table) use ($obj) {
             //     if (is_numeric($obj)) {
@@ -1479,12 +1483,26 @@ if (!function_exists('hasTable')) {
             try {
                 // Through the connection's own schema builder, so it follows
                 // whichever driver is configured (MySQL, MariaDB, SQL Server)
-                // and its socket / SSL / read-write settings. A separate DBAL
-                // connection built from host and port only would fail on any of
-                // those, and the empty list below would then read as "no tables".
-                return \Schema::getTableListing();
+                // and its socket / SSL / read-write settings (e.g. the TLS CA
+                // AWS RDS needs with require_secure_transport=ON). A separate
+                // DBAL connection built from host and port only would fail on
+                // any of those, and the empty list below would then read as
+                // "no tables".
+                // Scoped to the connection's own schema and unqualified: with no
+                // arguments Laravel 12 lists every schema on the server as
+                // "schema.table", which never matches $table_name below and, on a
+                // shared multi-tenant server, would read other tenants' databases.
+                return \Schema::getTableListing(\Schema::getCurrentSchemaName(), false);
             } catch (\Throwable $e) {
-                \Log::error('Error fetching table names: ' . $e->getMessage());
+                // before the install the database of .env is not the site's yet (the defaults
+                // of the zip, before the database step): not an error of the site
+                // a cached config is an installed site; else .env tells (as the Initialize middleware)
+                // @phpstan-ignore larastan.noEnvCallsOutsideOfConfig
+                if (app()->configurationIsCached() || boolval(env('EXMENT_INITIALIZE', false))) {
+                    \Log::error('Error fetching table names: ' . $e->getMessage());
+                } else {
+                    \Log::debug('Error fetching table names (not installed yet): ' . $e->getMessage());
+                }
                 return [];
             }
         }, true);

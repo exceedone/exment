@@ -89,25 +89,81 @@ class ExmentAdapterS3 extends AwsS3V3Adapter implements ExmentAdapterInterface
     {
         $mergeConfig = static::getConfig($config);
 
-        // create client config
+        $clientConfig = static::getClientConfig($mergeConfig);
+        if (!is_null(static::$clientConfigResolver)) {
+            $clientConfig = call_user_func(static::$clientConfigResolver, $clientConfig, $mergeConfig, strval($driverKey));
+        }
+        $prefix = is_null(static::$prefixResolver) ? '' : strval(call_user_func(static::$prefixResolver, strval($driverKey), $mergeConfig));
+
+        $client = new S3Client($clientConfig);
+        return new self($client, array_get($mergeConfig, 'bucket'), $prefix);
+    }
+
+    /**
+     * fn(array $clientConfig, array $mergeConfig, string $driverKey): array — changes the config
+     * of the S3 client (other credentials, an assumed role ...).
+     *
+     * @var callable|null
+     */
+    protected static $clientConfigResolver;
+
+    /**
+     * fn(string $driverKey, array $mergeConfig): string — the key prefix of a disk ('' none).
+     *
+     * @var callable|null
+     */
+    protected static $prefixResolver;
+
+    public static function resolveClientConfigUsing(?callable $resolver): void
+    {
+        static::$clientConfigResolver = $resolver;
+    }
+
+    public static function resolvePrefixUsing(?callable $resolver): void
+    {
+        static::$prefixResolver = $resolver;
+    }
+
+    /**
+     * Get the config of the S3 client.
+     *
+     * The access key and the secret are passed only when both are set. When one of them is
+     * empty, "credentials" is left out and the AWS SDK looks for the credentials by itself
+     * (environment variables, the shared credentials file, the IAM role of the ECS task or of
+     * the EC2 instance, ...), so an IAM role can be used without saving any key.
+     *
+     * @param array<string, mixed> $mergeConfig
+     * @return array<string, mixed>
+     */
+    public static function getClientConfig(array $mergeConfig): array
+    {
         $clientConfig = [
-            'credentials' => [
-                'key'    => array_get($mergeConfig, 'key'),
-                'secret' => array_get($mergeConfig, 'secret'),
-            ],
             'region' => array_get($mergeConfig, 'region'),
             'version' => 'latest',
             'bucket' => array_get($mergeConfig, 'bucket'),
         ];
 
-        foreach (['endpoint', 'url'] as $key) {
-            if (array_key_value_exists($key, $mergeConfig)) {
-                $clientConfig[$key] = $mergeConfig[$key];
+        $key = array_get($mergeConfig, 'key');
+        $secret = array_get($mergeConfig, 'secret');
+        if (!is_nullorempty($key) && !is_nullorempty($secret)) {
+            $clientConfig['credentials'] = [
+                'key'    => $key,
+                'secret' => $secret,
+            ];
+            // the session token of temporary credentials (AWS_SESSION_TOKEN)
+            $token = array_get($mergeConfig, 'token');
+            if (!is_nullorempty($token)) {
+                $clientConfig['credentials']['token'] = $token;
             }
         }
 
-        $client = new S3Client($clientConfig);
-        return new self($client, array_get($mergeConfig, 'bucket'));
+        foreach (['endpoint', 'url'] as $optionKey) {
+            if (array_key_value_exists($optionKey, $mergeConfig)) {
+                $clientConfig[$optionKey] = $mergeConfig[$optionKey];
+            }
+        }
+
+        return $clientConfig;
     }
 
     // @phpstan-ignore-next-line

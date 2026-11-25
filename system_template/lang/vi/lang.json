@@ -1,0 +1,588 @@
+{
+    "template_view_name": "Mẫu hệ thống",
+    "description": "Đây là mẫu dành cho hệ thống. Bắt buộc phải cài đặt.",
+    "custom_tables": [
+        {
+            "table_name": "document",
+            "table_view_name": "Tài liệu",
+            "custom_columns": [
+                {
+                    "column_name": "document_name",
+                    "column_view_name": "Tên tài liệu"
+                },
+                {
+                    "column_name": "file_uuid",
+                    "column_view_name": "UUID tệp"
+                }
+            ]
+        },
+        {
+            "table_name": "comment",
+            "table_view_name": "Bình luận",
+            "custom_columns": [
+                {
+                    "column_name": "comment_detail",
+                    "column_view_name": "Nội dung bình luận"
+                }
+            ]
+        },
+        {
+            "table_name": "base_info",
+            "table_view_name": "Thông tin cơ bản",
+            "custom_columns": [
+                {
+                    "column_name": "company_name",
+                    "column_view_name": "Tên công ty"
+                },
+                {
+                    "column_name": "company_kana",
+                    "column_view_name": "Tên công ty (Kana)"
+                },
+                {
+                    "column_name": "zip01",
+                    "column_view_name": "Mã bưu chính 1"
+                },
+                {
+                    "column_name": "zip02",
+                    "column_view_name": "Mã bưu chính 2"
+                },
+                {
+                    "column_name": "tel01",
+                    "column_view_name": "Điện thoại 1",
+                    "options": {
+                        "placeholder": "VD: 03"
+                    }
+                },
+                {
+                    "column_name": "tel02",
+                    "column_view_name": "Điện thoại 2",
+                    "options": {
+                        "placeholder": "VD: 1234"
+                    }
+                },
+                {
+                    "column_name": "tel03",
+                    "column_view_name": "Điện thoại 3",
+                    "options": {
+                        "placeholder": "VD: 5678"
+                    }
+                },
+                {
+                    "column_name": "fax01",
+                    "column_view_name": "FAX1",
+                    "options": {
+                        "placeholder": "VD: 03"
+                    }
+                },
+                {
+                    "column_name": "fax02",
+                    "column_view_name": "FAX2",
+                    "options": {
+                        "placeholder": "VD: 1234"
+                    }
+                },
+                {
+                    "column_name": "fax03",
+                    "column_view_name": "FAX3",
+                    "options": {
+                        "placeholder": "VD: 5678"
+                    }
+                },
+                {
+                    "column_name": "pref",
+                    "column_view_name": "Tỉnh/Thành phố",
+                    "options": {
+                        "select_item_valtext": "01,Hokkaido\n02,Aomori\n03,Iwate\n04,Miyagi\n05,Akita\n06,Yamagata\n07,Fukushima\n08,Ibaraki\n09,Tochigi\n10,Gunma\n11,Saitama\n12,Chiba\n13,Tokyo\n14,Kanagawa\n15,Niigata\n16,Toyama\n17,Ishikawa\n18,Fukui\n19,Yamanashi\n20,Nagano\n21,Gifu\n22,Shizuoka\n23,Aichi\n24,Mie\n25,Shiga\n26,Kyoto\n27,Osaka\n28,Hyogo\n29,Nara\n30,Wakayama\n31,Tottori\n32,Shimane\n33,Hiroshima\n34,Yamaguchi\n36,Tokushima\n37,Kagawa\n38,Ehime\n39,Kochi\n40,Fukuoka\n41,Saga\n42,Nagasaki\n43,Kumamoto\n44,Oita\n45,Miyazaki\n46,Kagoshima\n47,Okinawa"
+                    }
+                },
+                {
+                    "column_name": "addr01",
+                    "column_view_name": "Địa chỉ"
+                },
+                {
+                    "column_name": "addr02",
+                    "column_view_name": "Địa chỉ (tòa nhà trở đi)"
+                },
+                {
+                    "column_name": "company_logo",
+                    "column_view_name": "Logo công ty",
+                    "options": {
+                        "help": "Kích thước ảnh tối ưu là 200 x 70."
+                    }
+                },
+                {
+                    "column_name": "company_stamp",
+                    "column_view_name": "Con dấu công ty",
+                    "options": {
+                        "help": "Kích thước ảnh tối ưu là 200 x 200."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_name",
+                    "column_view_name": "Tài khoản ngân hàng - Tên ngân hàng"
+                },
+                {
+                    "column_name": "transfer_bank_office_name",
+                    "column_view_name": "Tài khoản ngân hàng - Tên chi nhánh"
+                },
+                {
+                    "column_name": "transfer_bank_office_no",
+                    "column_view_name": "Tài khoản ngân hàng - Mã chi nhánh"
+                },
+                {
+                    "column_name": "transfer_bank_account_type",
+                    "column_view_name": "Tài khoản ngân hàng - Loại tài khoản",
+                    "options": {
+                        "help": "Vui lòng nhập loại tài khoản, ví dụ [Thông thường] hoặc [Vãng lai]."
+                    }
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "Tài khoản ngân hàng - Tên tài khoản"
+                },
+                {
+                    "column_name": "transfer_bank_account_no",
+                    "column_view_name": "Tài khoản ngân hàng - Số tài khoản"
+                },
+                {
+                    "column_name": "transfer_bank_account_name",
+                    "column_view_name": "Tài khoản ngân hàng - Tên tài khoản"
+                }
+            ]
+        },
+        {
+            "table_name": "user",
+            "table_view_name": "Người dùng",
+            "custom_columns": [
+                {
+                    "column_name": "user_code",
+                    "column_view_name": "Mã người dùng"
+                },
+                {
+                    "column_name": "user_name",
+                    "column_view_name": "Tên người dùng"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Email"
+                }
+            ]
+        },
+        {
+            "table_name": "organization",
+            "table_view_name": "Tổ chức",
+            "custom_columns": [
+                {
+                    "column_name": "organization_code",
+                    "column_view_name": "Mã tổ chức"
+                },
+                {
+                    "column_name": "organization_name",
+                    "column_view_name": "Tên tổ chức"
+                },
+                {
+                    "column_name": "parent_organization",
+                    "column_view_name": "Tổ chức cấp trên"
+                }
+            ]
+        },
+        {
+            "table_name": "mail_template",
+            "table_view_name": "Mẫu thông báo",
+            "description": "Quản lý nội dung tin nhắn, v.v. khi gửi thông báo.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_key_name",
+                    "column_view_name": "Tên khóa thông báo",
+                    "options": {
+                        "help": "Tên khóa dùng để xác định duy nhất mẫu thông báo trên hệ thống."
+                    }
+                },
+                {
+                    "column_name": "mail_view_name",
+                    "column_view_name": "Tên hiển thị thông báo",
+                    "options": {
+                        "help": "Tên mẫu được hiển thị trên màn hình danh sách."
+                    }
+                },
+                {
+                    "column_name": "mail_template_type",
+                    "column_view_name": "Loại mẫu",
+                    "options": {
+                        "select_item_valtext": "header,Phần đầu\nbody,Nội dung\nfooter,Phần cuối"
+                    }
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "Tiêu đề thông báo",
+                    "options": {
+                        "help": "Nhập tiêu đề của thông báo sẽ gửi. Có thể sử dụng biến."
+                    }
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "Nội dung thông báo",
+                    "options": {
+                        "help": "Nhập nội dung của thông báo sẽ gửi. Có thể sử dụng biến."
+                    }
+                },
+                {
+                    "column_name": "mail_from_view_name",
+                    "column_view_name": "Tên hiển thị người gửi email",
+                    "options": {
+                        "help": "Vui lòng nhập tên hiển thị của người gửi."
+                    }
+                },
+                {
+                    "column_name": "attachments",
+                    "column_view_name": "Tệp đính kèm",
+                    "options": {
+                        "help": "Thêm tệp muốn đính kèm vào email."
+                    }
+                },
+                {
+                    "column_name": "custom_attachments",
+                    "column_view_name": "Tệp đính kèm tùy chỉnh",
+                    "options": {
+                        "help": "Thêm cột tệp hoặc tài liệu muốn đính kèm vào email."
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "mail_send_log",
+            "table_view_name": "Lịch sử gửi email",
+            "description": "Quản lý lịch sử gửi email.",
+            "custom_columns": [
+                {
+                    "column_name": "mail_from",
+                    "column_view_name": "Người gửi email"
+                },
+                {
+                    "column_name": "mail_to",
+                    "column_view_name": "Người nhận email"
+                },
+                {
+                    "column_name": "mail_cc",
+                    "column_view_name": "Người nhận email (CC)"
+                },
+                {
+                    "column_name": "mail_bcc",
+                    "column_view_name": "Người nhận email (BCC)"
+                },
+                {
+                    "column_name": "mail_subject",
+                    "column_view_name": "Tiêu đề email"
+                },
+                {
+                    "column_name": "mail_body",
+                    "column_view_name": "Nội dung email"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Người dùng nhận"
+                },
+                {
+                    "column_name": "mail_template",
+                    "column_view_name": "Mẫu thông báo đã gửi"
+                },
+                {
+                    "column_name": "send_datetime",
+                    "column_view_name": "Ngày giờ gửi"
+                }
+            ]
+        },
+        {
+            "table_name": "information",
+            "table_view_name": "Tin tức",
+            "description": "Tin tức để thông báo đến người dùng. Có thể hiển thị trên bảng điều khiển, v.v.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Tiêu đề"
+                },
+                {
+                    "column_name": "body",
+                    "column_view_name": "Nội dung"
+                },
+                {
+                    "column_name": "view_flg",
+                    "column_view_name": "Cờ hiển thị",
+                    "options": {
+                        "help": "Nếu muốn hiển thị trong danh sách, vui lòng đặt thành YES."
+                    }
+                },
+                {
+                    "column_name": "order",
+                    "column_view_name": "Thứ tự hiển thị",
+                    "options": {
+                        "help": "Hiển thị trong danh sách theo thứ tự giá trị số giảm dần. (Nếu cùng giá trị, bản ghi có ngày giờ cập nhật mới nhất sẽ hiển thị trước)"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "Mức độ quan trọng",
+                    "options": {
+                        "select_item_valtext": "1,Rất thấp\n2,Thấp\n3,Bình thường\n4,Cao\n5,Rất cao"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "e6b833089cee9ad107e6",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "c38977fc14800c624894",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "cd614f0abb054f5f9adb",
+            "form_view_name": "Biểu mẫu"
+        },
+        {
+            "suuid": "eaaae44f42d1895e43b9",
+            "form_view_name": "Biểu mẫu",
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": "Bảng con - Người dùng",
+                    "form_block_target_table_name": "user"
+                }
+            ]
+        },
+        {
+            "suuid": "96c4e4f7d8a86a4ba17e",
+            "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "s6j3csfuc4kagb82zna3",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "s6j3csauc4kagb82zna3",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "3471e23fbff8dc65437b",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "24e34126c023857a092e",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "b6d5afcda4ce26091f36",
+            "view_view_name": "Chế độ xem mặc định"
+        },
+        {
+            "suuid": "99120fd4b360e15993d2",
+            "view_view_name": "Danh sách tin tức"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "system_default_dashboard",
+            "dashboard_view_name": "Bảng điều khiển mặc định",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Danh sách tin tức"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Hướng dẫn"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Tin mới từ Exment"
+                }
+            ]
+        }
+    ],
+    "role_groups": [
+        {
+            "role_group_name": "data_admin_group",
+            "role_group_view_name": "Nhóm quản lý tất cả dữ liệu",
+            "description": "Nhóm vai trò cho phép chỉnh sửa và xem tất cả dữ liệu."
+        },
+        {
+            "role_group_name": "user_organization_admin_group",
+            "role_group_view_name": "Nhóm quản lý người dùng và tổ chức",
+            "description": "Nhóm vai trò quản lý người dùng và tổ chức."
+        },
+        {
+            "role_group_name": "information_manage_group",
+            "role_group_view_name": "Nhóm quản lý tin tức",
+            "description": "Nhóm vai trò quản lý tin tức."
+        },
+        {
+            "role_group_name": "user_group",
+            "role_group_view_name": "Nhóm người dùng",
+            "description": "Nhóm vai trò mặc định dành cho người dùng thông thường."
+        }
+    ],
+    "admin_menu": [
+        {
+            "menu_type": "system",
+            "menu_name": "home",
+            "title": "Bảng điều khiển"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "groupware",
+            "title": "Groupware"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "file_server",
+            "title": "Chia sẻ tệp"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "master",
+            "title": "Danh mục"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "base_info",
+            "title": "Thông tin cơ bản"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "organization",
+            "title": "Tổ chức"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "user",
+            "title": "Người dùng"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "information",
+            "title": "Tin tức"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_data",
+            "title": "Cài đặt: Dữ liệu & màn hình"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "custom_table",
+            "title": "Bảng tùy chỉnh"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "studio",
+            "title": "Studio"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "menu",
+            "title": "Menu"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "workflow",
+            "title": "Quy trình làm việc"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "mail_template",
+            "title": "Mẫu thông báo"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "notify",
+            "title": "Thông báo"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "cell_style_preset",
+            "title": "Mẫu định dạng ô"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "template",
+            "title": "Mẫu"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin_user",
+            "title": "Cài đặt: Người dùng & quyền"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "loginuser",
+            "title": "Người dùng đăng nhập"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "role_group",
+            "title": "Nhóm vai trò"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "login_setting",
+            "title": "Cài đặt đăng nhập"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "api_setting",
+            "title": "Cài đặt API"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "operation_log",
+            "title": "Nhật ký thao tác"
+        },
+        {
+            "menu_type": "parent_node",
+            "menu_name": "admin",
+            "title": "Cài đặt: Hệ thống"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "system",
+            "title": "Cài đặt hệ thống"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "feature",
+            "title": "Quản lý tính năng"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "plugin",
+            "title": "Plugin"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "backup",
+            "title": "Sao lưu"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "tuning",
+            "title": "Tinh chỉnh hiệu năng"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "security_check",
+            "title": "Kiểm tra bảo mật"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "maintenance",
+            "title": "Chế độ bảo trì"
+        }
+    ]
+}

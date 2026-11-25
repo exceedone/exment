@@ -201,6 +201,9 @@ class AjaxButton extends Field
                     title: "{$confirm['title']}",
                     text: "{$confirm['text']}",
                     input: 'text',
+                    // ShowSwal builds its own POST payload; without this the values
+                    // collected via send_params never reach the server in confirm mode.
+                    data: send_data,
                     preConfirmValidate: function(input){
                         if (input != "yes") {
                             return "{$confirm['error']}";

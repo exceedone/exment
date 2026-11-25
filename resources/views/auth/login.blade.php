@@ -1,6 +1,7 @@
 @extends('exment::auth.layout')
 @section('content')
     <p class="login-box-msg">{{ trans('admin.login') }}</p>
+    @include('exment::maintenance.login_notice')
 
     @if($show_default_form)
         <form style="margin-bottom:0px;" action="{{ admin_url('auth/login') }}" method="post">
@@ -70,6 +71,30 @@
                 </div>
             @endif
         </div>
+    @endif
+
+    {{-- the language of the login page (ISS02835) --}}
+    @php($exmentLocales = \Exceedone\Exment\Services\UserLocale::allowedOptions())
+    @if(count($exmentLocales) > 1)
+        <form method="POST" action="{{ admin_url('auth/login_locale') }}" class="exment-login-locale text-center mt-3 mb-0">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <label for="exment-login-locale" class="visually-hidden">{{ exmtrans('user.locale') }}</label>
+            <i class="fa fa-language" aria-hidden="true"></i>
+            <select id="exment-login-locale" name="locale" class="form-select form-select-sm d-inline-block w-auto">
+                @foreach($exmentLocales as $exmentLocale => $exmentLocaleLabel)
+                    <option value="{{ $exmentLocale }}" @if($exmentLocale === \App::getLocale()) selected @endif>{{ $exmentLocaleLabel }}</option>
+                @endforeach
+            </select>
+            <noscript><button type="submit" class="btn btn-sm btn-default">OK</button></noscript>
+        </form>
+        <script>
+            (function () {
+                var select = document.getElementById('exment-login-locale');
+                if (select) {
+                    select.addEventListener('change', function () { select.form.submit(); });
+                }
+            })();
+        </script>
     @endif
 @endsection
 

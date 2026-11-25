@@ -22,6 +22,7 @@ use Exceedone\Exment\Enums\ErrorCode;
 use Exceedone\Exment\Enums\ValidateCalledType;
 use Exceedone\Exment\Grid\Tools\GridInlineEditor;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
+use Exceedone\Exment\Services\UserTimezone;
 use Carbon\Carbon;
 use Validator;
 
@@ -404,6 +405,9 @@ class ApiDataController extends AdminControllerTableBase
         if ($screenWrite && ($response = $this->validateScreenWrite($request, null)) instanceof Response) {
             return $response;
         }
+        if ($screenWrite) {
+            $this->screenWriteFromUser($request);
+        }
 
         return $this->saveData($request);
     }
@@ -438,8 +442,45 @@ class ApiDataController extends AdminControllerTableBase
         if ($screenWrite && ($response = $this->validateScreenWrite($request, $custom_value)) instanceof Response) {
             return $response;
         }
+        if ($screenWrite) {
+            $this->screenWriteFromUser($request);
+        }
 
         return $this->saveData($request, $custom_value);
+    }
+
+    /**
+     * A write from a list screen (the inline edit of the grid, the kanban board) types a date and time
+     * in the time zone of the user, as the edit page: saved in the time zone of the site (ISS02835).
+     * A plain API call stays in the time zone of the site.
+     *
+     * @param Request $request
+     * @return void
+     */
+    protected function screenWriteFromUser(Request $request): void
+    {
+        $values = $request->get('value');
+        if (!UserTimezone::differs() || !is_array($values)) {
+            return;
+        }
+
+        $changed = false;
+        foreach ($this->custom_table->custom_columns_cache as $custom_column) {
+            $column_name = $custom_column->column_name;
+            if ($custom_column->column_type != ColumnType::DATETIME || !array_key_exists($column_name, $values)) {
+                continue;
+            }
+            $value = $values[$column_name];
+            if (!is_string($value) || is_nullorempty($value)) {
+                continue;
+            }
+            $values[$column_name] = UserTimezone::formatFromUser($value);
+            $changed = true;
+        }
+
+        if ($changed) {
+            $request->merge(['value' => $values]);
+        }
     }
 
     /**
@@ -791,6 +832,125 @@ class ApiDataController extends AdminControllerTableBase
     }
 
     /**
+     * Get the comments of a data
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function getComments(Request $request, $tableKey, $id)
+    {
+        if (($custom_value = $this->getCommentTargetValue($id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        // get and check query parameter
+        if (($count = $this->getCount($request)) instanceof Response) {
+            return $count;
+        }
+
+        $comments = $custom_value->getComments([
+            'count' => $count,
+            'paginate' => true,
+        ]);
+
+        // @phpstan-ignore-next-line
+        $comments->appends([
+            'count' => $count
+        ]);
+
+        // @phpstan-ignore-next-line
+        $comments->getCollection()->transform(function ($comment) {
+            return $this->getCommentArray($comment);
+        });
+
+        return $comments;
+    }
+
+    /**
+     * Add a comment to a data
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @return mixed
+     */
+    public function createComment(Request $request, $tableKey, $id)
+    {
+        if (($custom_value = $this->getCommentTargetValue($id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        $validator = Validator::make($request->all(), [
+            'comment' => ['required', 'string', 'max:' . config('exment.char_length_limit', 63999)],
+        ]);
+        if ($validator->fails()) {
+            return abortJson(400, [
+                'errors' => $this->getErrorMessages($validator)
+            ], ErrorCode::VALIDATION_ERROR());
+        }
+
+        // saves and notifies the same way as the comment box of the data screen
+        $comment = $custom_value->addComment($request->get('comment'));
+
+        return response($this->getCommentArray($comment), 201);
+    }
+
+    /**
+     * Delete a comment of a data. Only the user who wrote it, or a system administrator, can.
+     *
+     * @param Request $request
+     * @param mixed $tableKey
+     * @param mixed $id
+     * @param mixed $suuid
+     * @return mixed
+     */
+    public function deleteComment(Request $request, $tableKey, $id, $suuid)
+    {
+        if (($custom_value = $this->getCommentTargetValue($id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        $result = $custom_value->deleteComment($suuid);
+        if ($result instanceof ErrorCode) {
+            return abortJson($result == ErrorCode::PERMISSION_DENY ? 403 : 404, $result);
+        }
+
+        return response(null, 204);
+    }
+
+    /**
+     * Get the data whose comments are read or written. Checks, in this order: the user can
+     * access the table, the user can view the data, and the table is set to use comments.
+     *
+     * @param mixed $id
+     * @return \Exceedone\Exment\Model\CustomValue|Response
+     */
+    protected function getCommentTargetValue($id)
+    {
+        if (($code = $this->custom_table->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        if (($custom_value = $this->getCustomValue($this->custom_table, $id)) instanceof Response) {
+            return $custom_value;
+        }
+
+        if (($code = $custom_value->enableAccess()) !== true) {
+            // @phpstan-ignore-next-line
+            return abortJson(403, trans('admin.deny'), $code);
+        }
+
+        if (!$custom_value->isCommentEnabled()) {
+            return abortJson(403, ErrorCode::FORM_ACTION_DISABLED());
+        }
+
+        return $custom_value;
+    }
+
+    /**
      * get selected id's children values
      * *parent_select_table_id(required) : The select_table of the parent column(Changed by user) that executed Linkage. .
      * *child_select_table_id(required) : The select_table of the child column(Linkage target column) that executed Linkage.
@@ -903,6 +1063,23 @@ class ApiDataController extends AdminControllerTableBase
                     ];
                 }
             }
+
+            // Validate the requested parent linkage. parent_id / parent_type are taken
+            // straight from the request and assigned to the model below; without this
+            // check a caller could attach the record to a parent row they have no
+            // permission on (IDOR). Errors are collected per-item so the existing
+            // all-or-nothing batch response (early return below) handles them.
+            $parentError = $this->validateParentPermission($rootValue, $custom_value);
+            if ($parentError !== null) {
+                if ($is_single) {
+                    $validates[] = $parentError;
+                } else {
+                    $validates[] = [
+                        'line_no' => $index,
+                        'error' => $parentError,
+                    ];
+                }
+            }
         }
 
         if (count($validates) > 0) {
@@ -944,6 +1121,55 @@ class ApiDataController extends AdminControllerTableBase
         } else {
             return $response;
         }
+    }
+
+    /**
+     * Validate the parent linkage (parent_id / parent_type) supplied in an API payload.
+     * Prevents an IDOR where a caller attaches a record to a parent row they cannot access.
+     *
+     * Returns null when the linkage is valid or absent; otherwise an associative array of
+     * field => message describing the rejection (to be merged into the validation errors).
+     *
+     * @param array<string, mixed> $rootValue
+     * @param \Exceedone\Exment\Model\CustomValue|null $custom_value existing record on update
+     * @return array<string, string>|null
+     */
+    protected function validateParentPermission($rootValue, $custom_value = null)
+    {
+        $hasParentId = array_key_exists('parent_id', $rootValue);
+        $hasParentType = array_key_exists('parent_type', $rootValue);
+
+        // No parent fields supplied -> the request does not touch the parent linkage.
+        if (!$hasParentId && !$hasParentType) {
+            return null;
+        }
+
+        // Resolve the effective linkage. A request may set only one of the pair (e.g. an
+        // update that changes parent_id while keeping the record's existing parent_type),
+        // so fall back to the existing record's value for the field that was omitted.
+        $parent_id = $hasParentId ? array_get($rootValue, 'parent_id') : (isset($custom_value) ? $custom_value->parent_id : null);
+        $parent_type = $hasParentType ? array_get($rootValue, 'parent_type') : (isset($custom_value) ? $custom_value->parent_type : null);
+
+        // No effective parent at all -> standalone record, nothing to authorize.
+        if (is_nullorempty($parent_id) && is_nullorempty($parent_type)) {
+            return null;
+        }
+        // Linkage that cannot be fully resolved -> cannot safely attach.
+        if (is_nullorempty($parent_id) || is_nullorempty($parent_type)) {
+            return ['parent' => 'Both parent_id and parent_type are required to set a parent.'];
+        }
+
+        $parent_table = CustomTable::getEloquent($parent_type);
+        if (!isset($parent_table)) {
+            return ['parent_type' => 'Invalid parent_type.'];
+        }
+
+        // Require access to the specific parent row (same check FileController uses).
+        if (!$parent_table->hasPermissionData($parent_id)) {
+            return ['parent_id' => 'No permission for the specified parent data.'];
+        }
+
+        return null;
     }
 
     /**
@@ -1055,6 +1281,11 @@ class ApiDataController extends AdminControllerTableBase
 
         $start = Carbon::parse($start);
         $end = Carbon::parse($end);
+        // the days of the calendar are the days of the user: a day more on each side for the date and times (ISS02835)
+        if (UserTimezone::differs()) {
+            $start->subDay();
+            $end->addDay();
+        }
 
         $table_name = $this->custom_table->table_name;
         // get paginate
@@ -1204,9 +1435,10 @@ class ApiDataController extends AdminControllerTableBase
         // set
         $allDayBetween = $dtType == ColumnType::DATE && $dtEndType == ColumnType::DATE;
 
-        $task['start'] = $dt;
+        // a date and time in the time zone of the user; a date as it is (ISS02835)
+        $task['start'] = $dtType == ColumnType::DATETIME ? UserTimezone::formatToUser($dt) : $dt;
         if (isset($dtEnd)) {
-            $task['end'] = $dtEnd;
+            $task['end'] = $dtEndType == ColumnType::DATETIME ? UserTimezone::formatToUser($dtEnd) : $dtEnd;
         }
         $task['allDayBetween'] = $allDayBetween;
     }
@@ -1334,6 +1566,23 @@ class ApiDataController extends AdminControllerTableBase
             'api_url' => $document->api_url,
             'created_at' => $document->created_at->__toString(),
             'created_user_id' => $document->created_user_id,
+        ];
+    }
+
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue $comment
+     * @return array<string, mixed>
+     */
+    protected function getCommentArray($comment)
+    {
+        return [
+            'id' => $comment->id,
+            'suuid' => $comment->suuid,
+            'comment' => $comment->getValue('comment_detail'),
+            'created_at' => $comment->created_at->__toString(),
+            // a model just saved holds the id as the string it was given: answer the number the list answers
+            'created_user_id' => is_numeric($comment->created_user_id) ? intval($comment->created_user_id) : $comment->created_user_id,
+            'created_user' => $comment->created_user,
         ];
     }
 

@@ -113,7 +113,7 @@ class CustomRelationController extends AdminControllerTableBase
             $filter->disableIdFilter();
 
             // Add a column filter
-            $filter->equal('child_custom_table', exmtrans("custom_relation.child_custom_table"))->select(function ($val) {
+            $filter->equal('child_custom_table_id', exmtrans("custom_relation.child_custom_table"))->select(function ($val) {
                 return CustomTable::filterList()->pluck('table_view_name', 'id')->toArray();
             });
             $filter->equal('relation_type', exmtrans("custom_relation.relation_type"))->select(function ($val) {
@@ -205,5 +205,15 @@ class CustomRelationController extends AdminControllerTableBase
             $tools->add(new Tools\CustomTableMenuButton('relation', $custom_table));
         });
         return $form;
+    }
+
+    /**
+     * The rows update() and destroy() check to be of this table.
+     *
+     * @return array<mixed>
+     */
+    protected function resourceRowRule(): ?array
+    {
+        return [\Exceedone\Exment\Model\CustomRelation::class, \Exceedone\Exment\Enums\Permission::CUSTOM_TABLE];
     }
 }
