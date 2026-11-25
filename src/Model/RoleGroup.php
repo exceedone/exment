@@ -90,34 +90,31 @@ class RoleGroup extends ModelBase
         // get all permissons for system. --------------------------------------------------
 
         // @phpstan-ignore-next-line
-        return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids, $checkContainJointdOrgs) {
+        return static::allRecordsCache(function ($role_group) use ($user_id, $organization_ids) {
             $user_orgs = array_get($role_group, SystemTableName::ROLE_GROUP_USER_ORGANIZATION);
             if (is_nullorempty($user_orgs)) {
                 return false;
             }
 
-            if ($user_orgs->contains(function ($user_org) use ($user_id, $organization_ids, $checkContainJointdOrgs) {
+            if ($user_orgs->contains(function ($user_org) use ($user_id, $organization_ids) {
                 if (!is_nullorempty($user_id)) {
                     if ($user_org->role_group_user_org_type == SystemTableName::USER && in_array($user_org->role_group_target_id, (array)$user_id)) {
                         return true;
                     }
                 }
 
+                // (here $checkContainJointdOrgs is true: without it, roleGroupsOfMembers above)
                 if (!is_nullorempty($organization_ids) && $user_org->role_group_user_org_type == SystemTableName::ORGANIZATION) {
-                    if (!$checkContainJointdOrgs && in_array($user_org->role_group_target_id, (array)$organization_ids)) {
-                        return true;
-                    } elseif ($checkContainJointdOrgs) {
-                        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
-                        foreach ((array)$organization_ids as $organization_id) {
-                            // ge check contains parent and child organizaions.
-                            $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
+                    $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
+                    foreach ((array)$organization_ids as $organization_id) {
+                        // ge check contains parent and child organizaions.
+                        $org = CustomTable::getEloquent(SystemTableName::ORGANIZATION)->getValueModel($organization_id);
 
 
-                            // @phpstan-ignore-next-line
-                            $targetOrgIds = $org->getOrganizationIdsForQuery($enum);
-                            if (in_array($organization_id, $targetOrgIds)) {
-                                return true;
-                            }
+                        // @phpstan-ignore-next-line
+                        $targetOrgIds = $org->getOrganizationIdsForQuery($enum);
+                        if (in_array($organization_id, $targetOrgIds)) {
+                            return true;
                         }
                     }
                 }
