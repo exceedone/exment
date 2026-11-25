@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Model;
 
 use Exceedone\Exment\Database\Eloquent\ExtendedBuilder;
 use Exceedone\Exment\Enums\CopyColumnType;
+use Exceedone\Exment\Services\Calc\CalcEvaluator;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
@@ -156,6 +157,11 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
                         true
                     );
                 }
+
+                // the sums and counts of the children copied (ISS02870)
+                if (count(CalcEvaluator::recalculate($to_custom_value)) > 0) {
+                    $to_custom_value->saveOrFail();
+                }
             }
 
             return true;
@@ -226,11 +232,14 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
      */
     public function makeNewModel($from_custom_value)
     {
-        return static::makeCopyModel(
+        $to_custom_value = static::makeCopyModel(
             $this->custom_copy_columns,
             $this->to_custom_table,
             $from_custom_value
         );
+        // the calc columns from the values copied, as the form would show them (ISS02870)
+        CalcEvaluator::recalculate($to_custom_value);
+        return $to_custom_value;
     }
 
     // @phpstan-ignore-next-line
@@ -258,6 +267,9 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
                 }
             }
         }
+        // the calc columns from the values copied and typed in the dialog: the dialog has no
+        // calc of the form (ISS02870)
+        CalcEvaluator::recalculate($to_custom_value);
         // save
         $to_custom_value->saveOrFail();
         return $to_custom_value;
