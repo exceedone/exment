@@ -556,6 +556,16 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "安否確認設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "全文検索設定"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "feature",
             "title": "機能の管理"
         },

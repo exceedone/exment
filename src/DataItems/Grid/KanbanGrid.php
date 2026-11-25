@@ -57,6 +57,19 @@ class KanbanGrid extends GridBase
     public const WORKFLOW_KEY = '__workflow_status__';
 
     /**
+     * Stored in kanban_mine_column_id when "mine" follows the user who created
+     * the record. A custom column is stored as its numeric id, so this cannot
+     * collide with one.
+     */
+    public const MINE_CREATED_USER = 'created_user';
+
+    /** Key of the creator in a card's values; a custom column name never starts with two underscores. */
+    public const MINE_CREATED_USER_KEY = '__created_user__';
+
+    /** @var bool whether "mine" reads the creator of the record (buildCardContext) */
+    protected $mineCreatedUser = false;
+
+    /**
      * Prefix of a stored WIP / done setting value.
      *   "12::open"  -> value "open" of custom column 12
      *   "wf::3"     -> workflow status 3
@@ -315,7 +328,8 @@ class KanbanGrid extends GridBase
             // "only mine" is read against this one. The assignee column unless
             // the view says otherwise, so a board of requests can follow the
             // person who raised the work rather than the one doing it.
-            'mine_column' => isset($mine_column) ? $mine_column->column_name : '',
+            'mine_column' => $this->mineCreatedUser ? static::MINE_CREATED_USER_KEY
+                : (isset($mine_column) ? $mine_column->column_name : ''),
             'limit_column' => isset($limit_column) ? $limit_column->column_name : '',
             // What a card may be edited with without leaving the board: the
             // two fields a stand-up changes most often. Both carry the label
@@ -398,12 +412,15 @@ class KanbanGrid extends GridBase
                 ? '' : admin_url('data', [$this->custom_table->table_name, 'kanbanSaveView']),
             'assignees' => isset($assignee_column) ? $this->buildOptions($assignee_column) : [],
             // values of the "mine" column that stand for whoever is looking
-            'me' => $this->getMyKeys($mine_column),
+            'me' => $this->getMyKeys($this->mineCreatedUser ? static::MINE_CREATED_USER : $mine_column),
             'colors' => $colors,
             // how each card column is painted, in the data list's own terms.
             // Empty for a board that never picked a preset and whose columns
             // carry no appearance either - then the chips below take over.
             'card_styles' => (object) $this->buildCardStyles($card_fields),
+            // the word between the values of a multi-value field drawn as
+            // shapes: kept in the card for its text, hidden by css (#2159)
+            'separate_word' => strval(exmtrans('common.separate_word')),
 
             'wip' => $this->getWipLimits($group_column, $workflow),
             'wip_enforce' => $this->getWipEnforce(),
@@ -723,6 +740,10 @@ class KanbanGrid extends GridBase
                 }
             }
 
+            if ($this->mineCreatedUser) {
+                $values[static::MINE_CREATED_USER_KEY] = static::normalizeKey($record->created_user_id);
+            }
+
             $wf = null;
             if (isset($workflow)) {
                 $wf = $this->buildWorkflowCard($record, $statuses, $with_actions);
@@ -753,7 +774,7 @@ class KanbanGrid extends GridBase
                     ? array_get($values, $card_field['custom_column']->column_name, '')
                     : static::normalizeKey($item->value());
 
-                $fields[] = [
+                $field = [
                     'label' => $card_field['label'],
                     'html' => strval($html),
                     'text' => $text,
@@ -765,6 +786,16 @@ class KanbanGrid extends GridBase
                     'pos' => $card_field['pos'],
                     'icon' => static::resolveIcon($card_field['icon'], $value),
                 ];
+
+                // A multi-value column drawn as shapes: one shape per value,
+                // each in the color of its own value, as the data list draws
+                // it (#2159). Only sent where there is more than one value.
+                $parts = $this->buildFieldParts($card_field, $item);
+                if (!empty($parts)) {
+                    $field['parts'] = $parts;
+                }
+
+                $fields[] = $field;
             }
 
             // when this record arrived in the column it now sits in: the last
@@ -877,6 +908,42 @@ class KanbanGrid extends GridBase
         }
 
         return $labels;
+    }
+
+
+    /**
+     * The values of a card field one by one, for a multi-value column whose
+     * card style draws every value as a shape of its own (#2159).
+     *
+     * Empty where the field is drawn as one piece: no cell style, a style
+     * that is not a shape, a column that holds one value, or a record with
+     * fewer than two values. A value the cell style may not paint (a
+     * reference the viewer cannot open) is sent without its value, so its
+     * shape cannot wear the color of what it points at.
+     *
+     * @param array<string, mixed> $card_field
+     * @param mixed $item the field's column item, already set to the record
+     * @return array<int, array{value: string, text: string}>
+     */
+    protected function buildFieldParts(array $card_field, $item): array
+    {
+        $cell = array_get($card_field, 'cell');
+        if (!is_array($cell) || !GridCellStyle::isBlockStyleName(array_get($cell, 'grid_style'))) {
+            return [];
+        }
+        if (!($item instanceof CustomItem) || !$item->isMultipleEnabled()) {
+            return [];
+        }
+
+        $parts = [];
+        foreach ($item->textParts() as $part) {
+            $parts[] = [
+                'value' => $part['styled'] ? static::normalizeKey($part['value']) : '',
+                'text' => $part['text'],
+            ];
+        }
+
+        return count($parts) > 1 ? $parts : [];
     }
 
 
@@ -1218,7 +1285,8 @@ class KanbanGrid extends GridBase
             'card_fields' => $this->getCardFields(),
         ];
 
-        $context['mine_column'] = $this->getMineColumn($context['assignee_column']);
+        $this->mineCreatedUser = strval($this->custom_view->kanban_mine_column_id) === static::MINE_CREATED_USER;
+        $context['mine_column'] = $this->mineCreatedUser ? null : $this->getMineColumn($context['assignee_column']);
         $context['filter_columns'] = $this->getFilterColumns(
             $context['groupables'],
             $context['assignee_column'],
@@ -3795,6 +3863,12 @@ class KanbanGrid extends GridBase
             return [];
         }
 
+        // the creator of the record is always a user
+        if ($mine_column === static::MINE_CREATED_USER) {
+            $user_id = \Exment::getUserId();
+            return is_nullorempty($user_id) ? [] : [strval($user_id)];
+        }
+
         // a select_table only holds people when the table it points at does
         $column_type = static::normalizedColumnType($mine_column);
 
@@ -5001,7 +5075,7 @@ class KanbanGrid extends GridBase
             // "mine" is not always "assigned to me": on a board of requests the
             // person who raised the work follows it, not the one carrying it out
             $form->select('kanban_mine_column_id', exmtrans("custom_view.kanban_mine_column"))
-                ->options($people_options)
+                ->options($people_options + [static::MINE_CREATED_USER => exmtrans('common.created_user')])
                 ->help(exmtrans("custom_view.help.kanban_mine_column"));
         }
 

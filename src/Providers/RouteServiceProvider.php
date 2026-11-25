@@ -233,6 +233,12 @@ class RouteServiceProvider extends ServiceProvider
 
             $router->post('system/call_update', 'SystemController@callUpdate');
 
+            // the settings once on the detail page of the system settings (#2157)
+            $router->get('safety_check_setting', 'SafetyCheckSettingController@index');
+            $router->post('safety_check_setting', 'SafetyCheckSettingController@post');
+            $router->get('meili_setting', 'MeiliSettingController@index');
+            $router->post('meili_setting', 'MeiliSettingController@post');
+
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');
             $router->post('tuning/action', 'TuningController@action');

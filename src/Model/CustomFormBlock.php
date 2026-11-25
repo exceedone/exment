@@ -137,6 +137,44 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
 
 
     /**
+     * The number column of the child table that keeps the rows of this 1:n block
+     * in order (#1595), or null when none is set.
+     *
+     * When it is set the rows can be moved up and down in the form, saving
+     * writes 1, 2, 3... into it, and the rows are read back in its order.
+     */
+    public function getSortColumn(): ?CustomColumn
+    {
+        if ($this->form_block_type != FormBlockType::ONE_TO_MANY) {
+            return null;
+        }
+        $name = $this->getOption('sort_column');
+        if (is_nullorempty($name)) {
+            return null;
+        }
+        $target_table = CustomTable::getEloquent($this->form_block_target_table_id);
+        if (!isset($target_table)) {
+            return null;
+        }
+        $custom_column = CustomColumn::getEloquent(strval($name), $target_table);
+        if (!isset($custom_column) || !in_array($custom_column->column_type, static::sortColumnTypes(), true)) {
+            return null;
+        }
+
+        return $custom_column;
+    }
+
+    /**
+     * The column types a 1:n block can keep its rows in order by.
+     *
+     * @return array<int, string>
+     */
+    public static function sortColumnTypes(): array
+    {
+        return [\Exceedone\Exment\Enums\ColumnType::INTEGER, \Exceedone\Exment\Enums\ColumnType::DECIMAL];
+    }
+
+    /**
      * @return \Illuminate\Support\Collection<int, CustomFormColumn>
      */
     public function getCustomFormColumnsCacheAttribute()

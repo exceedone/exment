@@ -120,12 +120,17 @@ class DefaultForm extends FormBase
                             $relation_name,
                             $block_label,
                             function ($form, $model = null) use ($custom_form_block, $relation, $relation_name) {
-                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, $this->getCustomFormColumns($form, $custom_form_block, $model, $relation))
+                                $columns = $this->getCustomFormColumns($form, $custom_form_block, $model, $relation);
+                                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function ($form) use ($columns, $custom_form_block) {
+                                    $columns($form);
+                                    $this->addSortColumnField($form, $custom_form_block);
+                                })
                                     ->disableHeader()
                                     ->setRelationName($relation_name)
                                     ->gridEmbeds();
                             }
-                        );
+                        )->rowCopy();
+                        $this->setRowOrder($hasmany, $custom_form_block);
                     }
                 }
                 // n:n
@@ -233,18 +238,61 @@ EOT;
         $hasmany = $form->hasManyTable(
             $relationName,
             $blockLabel,
-            function ($form) use ($customFormColumns, $relationName) {
-                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($customFormColumns) {
+            function ($form) use ($customFormColumns, $relationName, $customFormBlock) {
+                $form->nestedEmbeds('value', $form->getKey(), $this->custom_form->form_view_name, function (Form\EmbeddedForm $form) use ($customFormColumns, $customFormBlock) {
                     $this->setCustomFormColumns($form, $customFormColumns);
+                    $this->addSortColumnField($form, $customFormBlock);
                 })->setRelationName($relationName);
             }
-        )->setTableWidth(12, 0);
+        )->setTableWidth(12, 0)->rowCopy();
+        $this->setRowOrder($hasmany, $customFormBlock);
 
         if (isset($lazyLoadUrl)) {
             $hasmany->lazyLoad($lazyLoadUrl);
         }
 
         return $hasmany;
+    }
+
+    /**
+     * The rows of a 1:n block in the order of its sort column (#1595): the up
+     * and down buttons, and 1, 2, 3... written into the column on saving.
+     *
+     * @param \Exceedone\Exment\Form\Field\HasMany|\Exceedone\Exment\Form\Field\HasManyTable $hasmany
+     * @param CustomFormBlock $customFormBlock
+     * @return void
+     */
+    protected function setRowOrder($hasmany, $customFormBlock): void
+    {
+        $sortColumn = $customFormBlock->getSortColumn();
+        if (!isset($sortColumn)) {
+            return;
+        }
+        $hasmany->rowUpDown('value.' . $sortColumn->column_name, 1, true);
+    }
+
+    /**
+     * The sort column of a 1:n block as a hidden input of each row, when the
+     * block does not show it: what saving writes into it has to be part of
+     * the row, or it is dropped with every other value the row does not hold.
+     *
+     * @param \ExmentAdminCore\Admin\Form\EmbeddedForm $form
+     * @param CustomFormBlock $customFormBlock
+     * @return void
+     */
+    protected function addSortColumnField($form, $customFormBlock): void
+    {
+        $sortColumn = $customFormBlock->getSortColumn();
+        if (!isset($sortColumn)) {
+            return;
+        }
+        foreach ($customFormBlock->custom_form_columns as $formColumn) {
+            if ($formColumn->form_column_type == FormColumnType::COLUMN
+                && strval($formColumn->form_column_target_id) === strval($sortColumn->id)) {
+                return;
+            }
+        }
+        $form->hidden($sortColumn->column_name);
     }
 
     /**

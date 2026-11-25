@@ -155,6 +155,13 @@ class DefaultGrid extends GridBase
         // config can never disagree. It covers the edit permission, the
         // "cannot change from display" form action, and the trashed scope.
         $inlineEditAllowed = GridTools\GridInlineEditor::isEditableGrid($this->custom_table);
+        // The system setting and the view setting turn inline edit off
+        // (#2163). Only the cells lose `.exm-editable` - no pen, no double
+        // click, no keyboard edit. Bulk edit is another operation and keeps
+        // the config GridInlineEditor renders, and the rows keep their edit
+        // lock for it.
+        $cellEditAllowed = $inlineEditAllowed
+            && GridTools\GridInlineEditor::isInlineEditEnabled($this->custom_view);
         foreach ($custom_view_columns as $custom_view_column) {
             $item = $custom_view_column->column_item;
             if (!isset($item)) {
@@ -195,7 +202,7 @@ class DefaultGrid extends GridBase
             // here but missing from the config would open nothing on double
             // click. That includes refusing a column of a related table or a
             // pivot column: the editor PUTs to this table's endpoint only.
-            $inlineEditable = $inlineEditAllowed
+            $inlineEditable = $cellEditAllowed
                 && GridTools\GridInlineEditor::isEditableColumn($custom_view_column, $this->custom_table);
             if ($inlineEditable) {
                 $classes[] = 'exm-editable';
@@ -983,6 +990,12 @@ class DefaultGrid extends GridBase
             $form->select('header_align', exmtrans("custom_view.header_align"))
                 ->options(Enums\TextAlignExType::transArray('custom_view.align_type_options'))
             ;
+
+            // #2163. Can only turn inline edit off further: the system
+            // setting off wins over this.
+            $form->switchbool('inline_edit_enabled', exmtrans("custom_view.inline_edit_enabled"))
+                ->default(true)
+                ->help(exmtrans("custom_view.help.inline_edit_enabled"));
         }
 
         // the view this form shows the values of: the one being edited, or

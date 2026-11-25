@@ -95,6 +95,21 @@ class SystemChangePageMenu extends ModalTileMenuButton
                 'description' => exmtrans('login.description'),
                 'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
             ],
+            // once on the detail page of the system settings (#2157)
+            [
+                'href' => admin_url('safety_check_setting'),
+                'icon' => 'fa-heartbeat',
+                'header' => exmtrans('system.safety_check'),
+                'description' => exmtrans('system.safety_check_description'),
+                'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
+            ],
+            [
+                'href' => admin_url('meili_setting'),
+                'icon' => 'fa-search',
+                'header' => exmtrans('system.meili'),
+                'description' => exmtrans('system.meili_description'),
+                'permission' => \Exment::user()->hasPermission(Permission::SYSTEM),
+            ],
         ])->filter(function ($item) {
             return $item['permission'];
         })->toArray();

@@ -216,7 +216,54 @@ abstract class CustomItem implements ItemInterface
             return $cell_style->wrap($inner, $v, $this->_text($v));
         });
 
-        return is_list($html) ? collect($html)->implode($this->getSeparateWord()) : $html;
+        if (!is_list($html)) {
+            return $html;
+        }
+
+        // Values drawn as shapes are told apart by the shapes: the separator
+        // is kept for the text of the cell, but hidden on the screen (#2159).
+        $separator = $this->getSeparateWord();
+        if (isset($cell_style) && $cell_style->isBlockStyle() && !is_nullorempty($separator)) {
+            $separator = GridCellStyle::separatorHtml($separator);
+        }
+
+        return collect($html)->implode($separator);
+    }
+
+    /**
+     * Every value with its own text, not joined, for a screen that draws
+     * each value of a multi-value column by itself (the kanban card, #2159).
+     *
+     * `value` is the value as value() answers it, `text` what text() prints
+     * for it, and `styled` whether the cell style may paint it - see
+     * isStyledValue(). Empty texts are left out, as text() leaves them out.
+     *
+     * @return array<int, array{value: mixed, text: string, styled: bool}>
+     */
+    public function textParts(): array
+    {
+        $values = $this->value;
+        if ($values instanceof \Illuminate\Support\Collection) {
+            $values = $values->all();
+        }
+        if (!is_array($values)) {
+            $values = [$values];
+        }
+
+        $parts = [];
+        foreach ($values as $v) {
+            $text = $this->_text($v);
+            if (is_nullorempty($text)) {
+                continue;
+            }
+            $parts[] = [
+                'value' => $this->_value($v),
+                'text' => strval($text),
+                'styled' => $this->isStyledValue($v),
+            ];
+        }
+
+        return $parts;
     }
 
     /**
