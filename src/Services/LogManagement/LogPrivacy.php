@@ -102,7 +102,8 @@ class LogPrivacy
 
     /**
      * The keys of secrets masked anywhere outside the values of a record ("value"): *_token,
-     * *_secret, *_key, api_key, private_key, token.
+     * *_secret, *_key, secret, apikey. A plain "token" or "key" is not: a table of the users may
+     * have a column of that name (it is masked on the screens that post one, mask_columns_by_uri).
      *
      * @param array<mixed> $data
      * @return array<mixed>
@@ -110,7 +111,7 @@ class LogPrivacy
     public static function maskSecrets(array $data, bool $inRecord = false): array
     {
         foreach ($data as $key => $value) {
-            if (!$inRecord && is_string($key) && preg_match('/(^|_)(token|secret|api_?key|private_?key|key)$/i', $key) === 1) {
+            if (!$inRecord && is_string($key) && preg_match('/(_(token|secret|key)|^secret|^apikey)$/i', $key) === 1) {
                 $data[$key] = static::MASK;
             } elseif (is_array($value)) {
                 $data[$key] = static::maskSecrets($value, $inRecord || $key === 'value');

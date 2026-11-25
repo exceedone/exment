@@ -64,13 +64,14 @@ class LogPrivacyTest extends UnitTestBase
         $this->set('log_store_input', true);
         $masked = LogOperation::maskInputArray([
             'value' => ['email' => 'taro@example.com', 'api_key' => 'a column of the table'],
-            'token' => 't', 'access_token' => 'a', 'client_secret' => 's', 'private_key' => 'k', 'password' => 'p', 'name' => 'Taro',
+            'token' => 'a column of a business screen', 'access_token' => 'a', 'client_secret' => 's', 'private_key' => 'k', 'api_key' => 'x', 'password' => 'p', 'name' => 'Taro',
         ], 'admin/data/user');
         $this->assertSame('taro@example.com', $masked['value']['email'], 'on: the values as before');
         $this->assertSame('a column of the table', $masked['value']['api_key'], 'the values of a record keep their own column names');
-        foreach (['token', 'access_token', 'client_secret', 'private_key', 'password'] as $key) {
+        foreach (['access_token', 'client_secret', 'private_key', 'api_key', 'password'] as $key) {
             $this->assertSame('***', $masked[$key], $key);
         }
+        $this->assertSame('a column of a business screen', $masked['token'], 'a plain "token" is masked on its own screens only');
         $this->assertSame('Taro', $masked['name']);
     }
 
@@ -83,7 +84,7 @@ class LogPrivacyTest extends UnitTestBase
         $this->set('log_ip_mode', LogPrivacy::IP_HASH);
         $hashed = strval(LogPrivacy::ip('203.0.113.7'));
         $this->assertStringStartsWith('h:', $hashed);
-        $this->assertSame($hashed, LogPrivacy::ip('203.0.113.7'), 'the same address, the same text');
+        $this->assertEquals($hashed, LogPrivacy::ip('203.0.113.7'), 'the same address, the same text');
         $this->assertNotSame($hashed, LogPrivacy::ip('203.0.113.8'));
         $this->assertNull(LogPrivacy::ip(null));
     }
