@@ -258,6 +258,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('api_rate_raises', 'ApiRateRaiseController@index');
             $router->post('api_rate_raises', 'ApiRateRaiseController@store');
             $router->post('api_rate_raises/{id}/delete', 'ApiRateRaiseController@delete');
+            // the trash: the deleted rows of all the tables (ISS00334)
+            $router->get('trash', 'TrashController@index');
+            $router->post('trash/restore', 'TrashController@restore');
+            $router->post('trash/delete', 'TrashController@delete');
             $router->get('maintenance', 'MaintenanceController@index');
             $router->post('maintenance', 'MaintenanceController@store');
             $router->post('maintenance/start', 'MaintenanceController@start');

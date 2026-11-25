@@ -706,6 +706,8 @@ abstract class CustomValue extends ModelBase
                     $model->notify(NotifySavedType::DELETE);
                 }
                 $model->postForceDelete();
+                // for the plugins and the applications (ISS00334): every way a row is deleted for good
+                event(new \Exceedone\Exment\Events\CustomValueForceDeleted($model));
                 return;
             }
 
@@ -728,6 +730,9 @@ abstract class CustomValue extends ModelBase
             $model->saved_notify = $saved_notify;
 
             $model->postRestore();
+
+            // for the plugins and the applications (ISS00334): every way a row comes back from the trash
+            event(new \Exceedone\Exment\Events\CustomValueRestored($model));
         });
 
         static::addGlobalScope(new CustomValueModelScope());
