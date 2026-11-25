@@ -625,7 +625,11 @@ class Define
         ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
         ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'system', 'help_uri'=> 'system_setting'],
+        // the flow designer, before "workflow" (a "*" is one part of the path, as the id)
+        ['uri'=> 'workflow/design/create', 'help_uri'=> 'workflow_design'],
+        ['uri'=> 'workflow/*/design', 'help_uri'=> 'workflow_design'],
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
+        ['uri'=> 'line/link', 'help_uri'=> 'line'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
