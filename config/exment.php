@@ -83,6 +83,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Security check: the APP_KEY of the download zip
+    |--------------------------------------------------------------------------
+    |
+    | The zip of Exment writes here the SHA-256 of the APP_KEY in its .env. While APP_KEY is still
+    | that one (php artisan key:generate was not run), the security check says so.
+    */
+    'shipped_app_key_sha256' => env('EXMENT_SHIPPED_APP_KEY_SHA256'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Chart of a list view: max rows
     |--------------------------------------------------------------------------
     |
@@ -365,6 +375,10 @@ return [
     |
     */
     'login_2factor_valid_period' =>  env('EXMENT_LOGIN_2FACTOR_VALID_PERIOD', 10),
+
+    // the mails of the 2-step verification: the country and the region from the headers of the CDN in
+    // front of the site (CloudFront, Cloudflare). Only with a CDN that sets them: anyone could send them.
+    'login_location_headers' => env('EXMENT_LOGIN_LOCATION_HEADERS', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -1597,6 +1611,9 @@ return [
             // LINE Messaging API channel credentials (admin/system?advanced=1)
             'system_line_channel_token',
             'system_line_channel_secret',
+            // the address of the Teams workflow (ISS02863)
+            'system_teams_workflow_url',
+            'system_teams_workflow_url_new',
             // Plugin DB connection password
             'custom_password',
             // Plugin CRUD page auth (key / id+password)
