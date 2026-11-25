@@ -21,5 +21,11 @@
                 <button type="submit" class="btn btn-primary">{{ exmtrans('safety.button_send') }}</button>
             </div>
         </form>
+        @isset($targetSummary)
+        <p class="safety-target-summary mt-3 mb-0 text-muted">
+            {{ exmtrans('safety.target_summary', ['count' => $targetSummary['count'], 'settings' => $targetSummary['settings']]) }}
+            <a href="{{ admin_url('safety_check_setting') }}">{{ exmtrans('safety.target_settings_link') }}</a>
+        </p>
+        @endisset
     </div>
 </div>

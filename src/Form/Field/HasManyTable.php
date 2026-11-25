@@ -46,6 +46,13 @@ class HasManyTable extends HasMany
     protected $hideDeleteButtonRow = null;
 
     /**
+     * Whether a row can be copied while the form is filled in (#1595).
+     *
+     * @var bool
+     */
+    protected $rowCopy = false;
+
+    /**
      * Options for template.
      *
      * @var array
@@ -124,10 +131,24 @@ class HasManyTable extends HasMany
      * @param integer $power
      * @return $this
      */
-    public function rowUpDown($rowUpDown, $power = 1)
+    public function rowUpDown($rowUpDown, $power = 1, bool $sortValue = false)
     {
         $this->rowUpDown = $rowUpDown;
         $this->power = $power;
+        $this->rowUpDownSort = $sortValue;
+        return $this;
+    }
+
+
+    /**
+     * Show a button on every row that adds a copy of it (#1595).
+     *
+     * @param bool $rowCopy
+     * @return $this
+     */
+    public function rowCopy(bool $rowCopy = true)
+    {
+        $this->rowCopy = $rowCopy;
         return $this;
     }
 
@@ -262,6 +283,8 @@ class HasManyTable extends HasMany
         $indexName = "index_{$this->column}";
 
         $rowUpDownClassName = $this->rowUpDown;
+        // the column of a HasMany is the relation name (a string)
+        $columnJson = json_encode(is_array($this->column) ? '' : $this->column, $jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -326,6 +349,18 @@ $('#has-many-table-{$this->column}').off('click.admin_row_remove', '.row-move').
 
 });
 
+$('#has-many-table-{$this->column}').off('click.admin_row_copy', '.row-copy').on('click.admin_row_copy', '.row-copy', function () {
+    if (!window.ExmentHasManyCopy) {
+        return;
+    }
+    window.ExmentHasManyCopy.copyRow(
+        $('#has-many-table-{$this->column}'),
+        $(this).closest('.has-many-table-{$this->column}-row'),
+        {$columnJson},
+        '.has-many-table-{$this->column}-row'
+    );
+});
+
 $("button[type='submit']").click(function(){
     if ($('#has-many-table-{$this->column}-table').attr('required') === undefined) {
         return true;
@@ -360,31 +395,6 @@ EOT;
     }
 
     /**
-     * Prepare for a field value before update or insert.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    public function prepare($value)
-    {
-        // if enable rowUpDown, remove row
-        if (isset($this->rowUpDown) && (!is_null($value) && is_array($value))) {
-            $order = 1 * $this->power;
-            foreach ($value as &$v) {
-                if ($v[Form::REMOVE_FLAG_NAME] == 1) {
-                    continue;
-                }
-                array_set($v, $this->rowUpDown, $order);
-                $order = $order + $this->power;
-            }
-        }
-
-        // call parent prepare
-        return parent::prepare($value);
-    }
-
-    /**
      * Render the `HasMany` field.
      *
      * @throws \Exception
@@ -402,6 +412,8 @@ EOT;
 
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
         list($tableitems, $hiddens, $requires, $helps) = $this->getTableItem($form);
+
+        $this->sortValueByRowUpDown();
 
         // set related forms
         $relatedforms = [];
@@ -428,6 +440,7 @@ EOT;
             'template'     => $template,
             'relationName' => $this->relationName,
             'hasRowUpDown' => isset($this->rowUpDown),
+            'rowCopy' => $this->rowCopy,
             'tableitems' => $tableitems,
             'hiddens' => $hiddens,
             'helps' => $helps,

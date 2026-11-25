@@ -16,7 +16,7 @@
     @endforeach
   @endif
 
-  <!-- Bootstrap 3.3.5 -->
+  <!-- Bootstrap 5 editable -->
   <link rel="stylesheet" href="{{ admin_asset("vendor/open-admin/bootstrap5-editable/css/bootstrap-editable.css") }}">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/all.min.css") }}">
@@ -174,16 +174,6 @@
     })();
 </script>
 @endif
-
-<script>
-  // $(function () {
-  //   $('input').iCheck({
-  //     checkboxClass: 'icheckbox_square-blue',
-  //     radioClass: 'iradio_square-blue',
-  //     increaseArea: '20%' // optional
-  //   });
-  // });
-</script>
 
 @if (session('status'))
 <script>

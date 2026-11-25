@@ -69,6 +69,12 @@
                     </a>
                     @endif
 
+                    @if(!empty($rowCopy) && $options['allowCreate'])
+                        <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-default row-copy enable-tooltip" data-bs-toggle="tooltip" title="{{exmtrans('common.row_copy')}}" style="margin-right:2px;">
+                            <i class="fa fa-copy" style=""></i>
+                        </a>
+                    @endif
+
                     @if($options['allowDelete'] && ($hideDeleteButtonRow === null || $hideDeleteButtonRow <= $loop->index))
                     <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-warning remove enable-tooltip" data-bs-toggle="tooltip" title="{{trans('admin.delete')}}">
                         <i class="fa fa-trash" style=""></i>
@@ -112,6 +118,12 @@
                 </a>
                 <a href="javascript:void(0);" class="btn btn-xs btn-success row-move row-move-up enable-tooltip" data-bs-toggle="tooltip" title="{{exmtrans('common.row_up')}}" style="margin-right:2px;">
                     <i class="fa fa-arrow-up" style=""></i>
+                </a>
+                @endif
+
+                @if(!empty($rowCopy))
+                <a href="javascript:void(0);" class="btn {{$hasRowUpDown ? 'btn-xs' : ''}} btn-default row-copy enable-tooltip" data-bs-toggle="tooltip" title="{{exmtrans('common.row_copy')}}" style="margin-right:2px;">
+                    <i class="fa fa-copy" style=""></i>
                 </a>
                 @endif
 

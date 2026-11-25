@@ -423,6 +423,11 @@ class DefaultShow extends ShowBase
                     if ($trashed) {
                         $grid->model()->withTrashed();
                     }
+                    // in the order of the rows in the form, when the block keeps one (#1595)
+                    $sortColumn = $custom_form_block->getSortColumn();
+                    if (isset($sortColumn)) {
+                        $grid->model()->orderBy("$table_name." . $sortColumn->getQueryKey());
+                    }
                 }
                 // many to many
                 elseif ($custom_form_block->form_block_type == FormBlockType::MANY_TO_MANY) {

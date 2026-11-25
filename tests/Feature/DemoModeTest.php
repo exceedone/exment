@@ -175,7 +175,6 @@ class DemoModeTest extends FeatureTestBase
         }
         $input['advanced'] = '1';
         $input['filter_search_type'] = $input['filter_search_type'] ?? 'forward';
-        $input['safety_check_answer_url_expire_days'] = $input['safety_check_answer_url_expire_days'] ?? 7;
 
         return array_merge($input, $changes);
     }

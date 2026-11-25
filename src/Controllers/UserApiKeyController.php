@@ -356,7 +356,9 @@ class UserApiKeyController extends AdminControllerBase
         $rows = [];
         foreach ($keys as $key) {
             $status = isset($key->revoked_at) ? 'revoked' : ($key->expires_at->isFuture() ? 'active' : 'expired');
-            $refusedShown = isset($key->last_refused_at) && (!isset($key->last_used_at) || $key->last_refused_at->greaterThan($key->last_used_at));
+            // the uses not written yet are in the cache (UserApiKeys::touch)
+            $usage = UserApiKeys::usageOf($key);
+            $refusedShown = isset($key->last_refused_at) && (!isset($usage['last_used_at']) || $key->last_refused_at->greaterThan($usage['last_used_at']));
             $rows[] = [
                 'id' => $key->id,
                 'user_id' => $key->user_id,
@@ -368,9 +370,9 @@ class UserApiKeyController extends AdminControllerBase
                 'ips' => implode(', ', $key->ipList()),
                 'cert' => isset($key->client_cert_fingerprint),
                 'expires_at' => $key->expires_at->format('Y-m-d H:i'),
-                'last_used_at' => $key->last_used_at?->format('Y-m-d H:i'),
-                'last_used_ip' => $key->last_used_ip,
-                'use_count' => $key->use_count,
+                'last_used_at' => $usage['last_used_at']?->format('Y-m-d H:i'),
+                'last_used_ip' => $usage['last_used_ip'],
+                'use_count' => $usage['use_count'],
                 'created_at' => $key->created_at?->format('Y-m-d H:i'),
                 'status' => $status,
                 // the last refusal and why (the log is not for every administrator), when it came
