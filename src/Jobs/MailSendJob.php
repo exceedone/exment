@@ -227,7 +227,8 @@ class MailSendJob extends Notification implements ShouldQueue
             (new Jobs\NavbarJob(
                 $subject,
                 $body,
-                -1,
+                // a notice of the system, not of a notify setting (notify_id is unsigned)
+                0,
                 $target_user_id,
                 $this->userId,
                 $mailHistory ? $mailHistory->getParentId() : null,

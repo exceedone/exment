@@ -84,7 +84,7 @@ class MailSendQueueTest extends UnitTestBase
     {
         return NotifyNavbar::withoutGlobalScopes()
             ->where('target_user_id', $target_user_id)
-            ->where('notify_id', -1)
+            ->where('notify_id', 0)
             ->count();
     }
 
