@@ -64,4 +64,18 @@ class ChartJs4Test extends UnitTestBase
         $this->assertStringContainsString('<div style="position: relative; height: {{ (int) $chart_height }}px;">', $script);
         $this->assertStringContainsString('maintainAspectRatio: false', $script);
     }
+
+    public function testTheLineLegendBoxIsFilledWithTheLineColor(): void
+    {
+        // Chart.js 4 fills the legend box of a dataset with its backgroundColor (2.x used the line
+        // color): without it the box of a line chart is a hollow grey square. fill: false keeps
+        // the area under the line empty.
+        $script = $this->script();
+        // the line dataset: from its tension to the end of its branch
+        $line = substr($script, (int) strpos($script, 'tension: 0'));
+        $line = substr($line, 0, (int) strpos($line, '@endif'));
+        $this->assertStringContainsString('borderColor: base,', $line);
+        $this->assertStringContainsString('backgroundColor: base,', $line);
+        $this->assertStringContainsString('fill: false,', $line);
+    }
 }
