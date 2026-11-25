@@ -165,7 +165,9 @@ class Auth2factorService
         $sender = MailSender::make($mail_template, $loginuser->email)
             ->prms(array_merge(LoginContext::prms(), $mail_prms))
             ->user($loginuser)
-            ->disableHistoryBody();
+            ->disableHistoryBody()
+            // the user is waiting for the code: not through the queue (ISS00161)
+            ->sendNow();
         $sender->send();
         return $sender;
     }

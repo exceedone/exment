@@ -13,6 +13,12 @@ use Carbon\Carbon;
 class MailChannel
 {
     /**
+     * The values of the column send_result of the mail send log (ISS00161).
+     */
+    public const RESULT_SENT = 'sent';
+    public const RESULT_FAILED = 'failed';
+
+    /**
      * Send the given notification.
      *
      * @param  mixed  $notifiable
@@ -122,9 +128,11 @@ class MailChannel
      * Save mail template history
      *
      * @param MailMessage $mailMessage
+     * @param string $result RESULT_SENT or RESULT_FAILED (ISS00161)
+     * @param string|null $error the short reason of a failure
      * @return void
      */
-    protected function saveHistory(MailMessage $mailMessage)
+    public function saveHistory(MailMessage $mailMessage, string $result = self::RESULT_SENT, ?string $error = null)
     {
         if (!$mailMessage->isSetHistory()) {
             return;
@@ -164,6 +172,12 @@ class MailChannel
             'parent_type' => $mailMessage->getParentType(),
             'mail_template' => $mailMessage->getMailTemplateId(),
         ]);
+
+        // the result, and why it failed (ISS00161)
+        $model->setValue('send_result', $result);
+        if (!is_nullorempty($error)) {
+            $model->setValue('send_error', $error);
+        }
 
         $model->save();
     }
