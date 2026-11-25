@@ -123,7 +123,8 @@ class LogManagementTest extends UnitTestBase
         $this->assertCount(4, $rows);
         $this->assertSame([LoginLog::RESULT_FAILURE, LoginLog::RESULT_FAILURE, LoginLog::RESULT_LOCKOUT, LoginLog::RESULT_SUCCESS], $rows->pluck('result')->all());
         $this->assertSame(LoginLog::REASON_UNKNOWN_USER, $rows[0]->failure_reason);
-        $this->assertSame('nobody', $rows[0]->login_name);
+        // what was typed is not kept (part 4): it may be a password in the wrong field
+        $this->assertNull($rows[0]->login_name);
         $this->assertNull($rows[0]->base_user_id);
         $this->assertSame(LoginLog::REASON_WRONG_PASSWORD, $rows[1]->failure_reason);
         $this->assertEquals($user->base_user_id, $rows[3]->base_user_id);

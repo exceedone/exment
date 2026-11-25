@@ -28,7 +28,7 @@ class LogOperation extends BaseLogOperation
                 'user_id' => ($login_user ? $login_user->id : 0),
                 'path'    => substr(static::hidePathParams($request->path()), 0, 255),
                 'method'  => $request->method(),
-                'ip'      => $request->getClientIp(),
+                'ip'      => \Exceedone\Exment\Services\LogManagement\LogPrivacy::ip($request->getClientIp()),
                 'input'   => json_encode(static::maskInputArray((array)$request->input(), $request->path())),
             ];
 
@@ -101,6 +101,11 @@ class LogOperation extends BaseLogOperation
      */
     public static function maskInputArray(array $data, string $path): array
     {
+        // the logs keep no values unless "keep the input in the logs" is on (ISS02839)
+        if (!\Exceedone\Exment\Services\LogManagement\LogPrivacy::storeInput()) {
+            return \Exceedone\Exment\Services\LogManagement\LogPrivacy::keysOnly($data);
+        }
+        $data = \Exceedone\Exment\Services\LogManagement\LogPrivacy::maskSecrets($data);
         $data = static::maskArrayRecursive($data, static::getHideColumnsByPath($path));
 
         // laravel-admin posts the previous page url as "_previous_"; it can contain

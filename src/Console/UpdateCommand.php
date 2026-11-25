@@ -96,6 +96,16 @@ class UpdateCommand extends Command
             // not told
         }
 
+        // the logs keep no input from 7.3.0 (ISS02839): said once
+        try {
+            if (!boolval(\Exceedone\Exment\Model\System::log_privacy_notice_shown())) {
+                $this->warn(strval(exmtrans('log_management.privacy.update_notice')));
+                \Exceedone\Exment\Model\System::log_privacy_notice_shown(true);
+            }
+        } catch (\Throwable $e) {
+            // not told
+        }
+
         $this->restoreConfigCache($configCached);
 
         return 0;

@@ -760,6 +760,15 @@ return [
                 'warning' => 'Hay una versión más reciente.',
                 'fix' => 'Actualice Exment desde "Versión" en la configuración del sistema, y los plugins oficiales desde la gestión de funciones.',
             ],
+            'logs' => [
+                'label' => 'Registros y datos personales',
+                'explain' => 'Los registros pueden ser robados: deben conservar solo los datos personales necesarios, y solo el propietario debe leer sus archivos.',
+                'store_input' => 'Los registros conservan los valores enviados (Gestión de registros).',
+                'debug' => 'Un modo de depuración escribe cada solicitud o cada SQL con sus valores (.env EXMENT_DEBUG_MODE_*).',
+                'readable' => 'Cualquiera en el servidor puede leer los archivos de los registros o de su archivo.',
+                'fix' => "Desactive \"Conservar los valores enviados en los registros\" y los modos de depuración. Para los archivos:\nchmod -R o-rwx :storage/logs :storage/app/log_archive",
+                'warning' => 'Los registros conservan los valores enviados (Gestión de registros).',
+            ],
             'session_cookie' => [
                 'label' => 'Cookie de sesión',
                 'explain' => 'La cookie de inicio de sesión: no legible desde JavaScript, no enviada en solicitudes de otros sitios y, con https, enviada solo por https.',
@@ -5004,6 +5013,21 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'privacy' => [
+            'header' => 'Datos personales en los registros',
+            'store_input' => 'Conservar los valores enviados en los registros',
+            'store_input_help' => 'Desactivado (recomendado): el registro de operaciones conserva las claves de lo enviado (páginas, API, MCP) con los valores como ***, y el registro de la aplicación oculta las direcciones de correo y los valores en SQL. Activado: los valores se conservan como antes (contraseñas, tokens y claves secretas siguen ocultos).',
+            'ip_mode' => 'Dirección IP en los registros',
+            'ip_keep' => 'Tal cual',
+            'ip_truncate' => 'Acortada (IPv4 /24, IPv6 /48)',
+            'ip_hash' => 'Con hash (la misma dirección da el mismo texto)',
+            'ip_help' => 'Los inicios de sesión y el registro de operaciones. Las auditorías suelen necesitar la dirección tal cual.',
+            'archive_encrypt' => 'Cifrar el archivo con APP_KEY',
+            'archive_encrypt_help' => 'Los meses escritos a partir de ahora se cifran. Si se pierde APP_KEY, el archivo no se puede leer. Desactivado: archivos gzip (en S3 los cifra S3).',
+            'mail_body' => 'No conservar el cuerpo en el registro de envío de correo',
+            'mail_body_help' => 'Activado: el registro de envío de correo conserva solo las direcciones y el asunto. Desactivado: también el cuerpo, como antes (lo muestra el historial de envíos).',
+            'update_notice' => 'Desde Exment 7.3.0, el registro de operaciones no conserva los valores de lo enviado (solo las claves, como ***), y el registro de la aplicación oculta las direcciones de correo y los valores en SQL. Para conservar los valores como antes, active "Conservar los valores enviados en los registros" en Configuración de administrador > Gestión de registros. Los nuevos archivos de registro se crean con 0640 (EXMENT_LOG_FILE_PERMISSION).',
+        ],
         'archive' => [
             'header' => 'Archivo',
             'enabled' => 'Guardar los registros antiguos en un archivo gzip por mes antes de eliminarlos',

@@ -29,6 +29,8 @@ class SecurityCheck
         TwoFactorSecurity::class,
         WebhookSecurity::class,
         VersionSecurity::class,
+        // the logs and personal data (ISS02839)
+        LogSecurity::class,
         SessionCookieSecurity::class,
     ];
 

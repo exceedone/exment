@@ -760,6 +760,15 @@ return [
                 'warning' => 'Đã có phiên bản mới hơn.',
                 'fix' => 'Vui lòng cập nhật Exment từ mục "Phiên bản" trong cài đặt hệ thống, và cập nhật các plugin chính thức từ quản lý tính năng.',
             ],
+            'logs' => [
+                'label' => 'Log và thông tin cá nhân',
+                'explain' => 'Log có thể bị đánh cắp: chỉ nên giữ thông tin cá nhân cần thiết, và chỉ chủ sở hữu được đọc tệp.',
+                'store_input' => 'Log đang giữ giá trị đã nhập (Quản lý log).',
+                'debug' => 'Chế độ debug đang ghi mọi yêu cầu hoặc mọi SQL kèm giá trị (.env EXMENT_DEBUG_MODE_*).',
+                'readable' => 'Mọi người trên máy chủ đều đọc được tệp log hoặc tệp lưu trữ.',
+                'fix' => "Hãy tắt \"Giữ giá trị đã nhập trong log\" và các chế độ debug. Với tệp:\nchmod -R o-rwx :storage/logs :storage/app/log_archive",
+                'warning' => 'Log đang giữ giá trị đã nhập (Quản lý log).',
+            ],
             'session_cookie' => [
                 'label' => 'Cookie phiên',
                 'explain' => 'Cookie đăng nhập: JavaScript không đọc được, không gửi kèm yêu cầu từ trang khác, và khi dùng https thì chỉ gửi qua https.',
@@ -5004,6 +5013,21 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'privacy' => [
+            'header' => 'Thông tin cá nhân trong log',
+            'store_input' => 'Giữ giá trị đã nhập trong log',
+            'store_input_help' => 'Tắt (khuyến nghị): nhật ký thao tác chỉ giữ các khóa của nội dung đã gửi (màn hình, API, MCP), giá trị là ***, và log ứng dụng che địa chỉ email và giá trị trong SQL. Bật: giữ giá trị như trước (mật khẩu, token và khóa bí mật vẫn bị che).',
+            'ip_mode' => 'Địa chỉ IP trong log',
+            'ip_keep' => 'Giữ nguyên',
+            'ip_truncate' => 'Rút gọn (IPv4 /24, IPv6 /48)',
+            'ip_hash' => 'Băm (cùng địa chỉ cho cùng chuỗi)',
+            'ip_help' => 'Nhật ký đăng nhập và nhật ký thao tác. Kiểm toán thường cần địa chỉ nguyên vẹn.',
+            'archive_encrypt' => 'Mã hóa lưu trữ bằng APP_KEY',
+            'archive_encrypt_help' => 'Các tháng ghi từ bây giờ được mã hóa. Mất APP_KEY thì không đọc được. Tắt: tệp gzip (trên S3 do S3 mã hóa).',
+            'mail_body' => 'Không giữ nội dung trong nhật ký gửi mail',
+            'mail_body_help' => 'Bật: nhật ký gửi mail chỉ giữ địa chỉ và tiêu đề. Tắt: giữ cả nội dung như trước (hiển thị trong lịch sử gửi).',
+            'update_notice' => 'Từ Exment 7.3.0, nhật ký thao tác không giữ giá trị của nội dung đã gửi (chỉ khóa, giá trị là ***), và log ứng dụng che địa chỉ email và giá trị trong SQL. Để giữ giá trị như trước, hãy bật "Giữ giá trị đã nhập trong log" trong Cài đặt quản trị > Quản lý log. Tệp log mới được tạo với 0640 (EXMENT_LOG_FILE_PERMISSION).',
+        ],
         'archive' => [
             'header' => 'Lưu trữ',
             'enabled' => 'Gom log cũ vào một tệp gzip mỗi tháng trước khi xóa',

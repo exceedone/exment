@@ -28,6 +28,39 @@ class LogArchiver
 
     public const ROOT = 'log_archive';
 
+    /** The start of a line of an encrypted member. */
+    public const ENCRYPTED_LINE = 'EXMENT-ENC:';
+
+    /** Whether new members are encrypted with APP_KEY (log_archive_encrypt). */
+    public static function encrypted(): bool
+    {
+        try {
+            return boolval(System::log_archive_encrypt());
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * The gzip of a file: an encrypted line is decrypted (APP_KEY), the rest is as it is.
+     */
+    public static function decode(string $content): string
+    {
+        if (strpos($content, static::ENCRYPTED_LINE) === false) {
+            return $content;
+        }
+        $out = '';
+        $offset = 0;
+        while (($start = strpos($content, static::ENCRYPTED_LINE, $offset)) !== false) {
+            $out .= substr($content, $offset, $start - $offset);
+            $end = strpos($content, "\n", $start);
+            $end = $end === false ? strlen($content) : $end;
+            $out .= strval(decrypt(substr($content, $start + strlen(static::ENCRYPTED_LINE), $end - $start - strlen(static::ENCRYPTED_LINE)), false));
+            $offset = $end + 1;
+        }
+        return $out . substr($content, min($offset, strlen($content)));
+    }
+
     public static function enabled(): bool
     {
         try {
@@ -147,10 +180,10 @@ class LogArchiver
     {
         if (static::driver() === static::DRIVER_LOCAL) {
             $full = storage_path('app/' . $path);
-            return is_file($full) ? strval(file_get_contents($full)) : null;
+            return is_file($full) ? static::decode(strval(file_get_contents($full))) : null;
         }
         $disk = static::disk();
-        return $disk->exists($path) ? strval($disk->get($path)) : null;
+        return $disk->exists($path) ? static::decode(strval($disk->get($path))) : null;
     }
 
     public static function totalSize(): int
@@ -205,6 +238,10 @@ class LogArchiver
 
     protected static function append(string $path, string $bytes): void
     {
+        // encrypted with APP_KEY, when it is chosen: one line a member (part 4)
+        if (static::encrypted()) {
+            $bytes = static::ENCRYPTED_LINE . encrypt($bytes, false) . "\n";
+        }
         if (static::driver() === static::DRIVER_LOCAL) {
             $full = storage_path('app/' . $path);
             foreach ([dirname(dirname($full)), dirname($full)] as $dir) {
@@ -219,10 +256,11 @@ class LogArchiver
             @chmod($full, 0600);
             return;
         }
-        // a disk such as S3 has no append: the month is written again with the new member
+        // a disk such as S3 has no append: the month is written again with the new member;
+        // encrypted by S3 (SSE, AES256)
         $disk = static::disk();
         $before = $disk->exists($path) ? strval($disk->get($path)) : '';
-        if (!$disk->put($path, $before . $bytes)) {
+        if (!$disk->put($path, $before . $bytes, ['ServerSideEncryption' => 'AES256'])) {
             throw new \RuntimeException('The archive could not be written: ' . $path);
         }
     }

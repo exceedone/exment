@@ -1547,6 +1547,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The files of the application log (ISS02839)
+    |--------------------------------------------------------------------------
+    | The mode of a new file of the application log (octal): 0640, the owner writes, its group
+    | reads, nobody else. A server whose cron runs as another user than the web server and
+    | writes the same file needs 0660.
+    */
+    'log_file_permission' => env('EXMENT_LOG_FILE_PERMISSION', '0640'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mask targets for the operation log
     |--------------------------------------------------------------------------
     |

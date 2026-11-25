@@ -148,7 +148,8 @@ class MailChannel
         );
 
         // if security mail, set body
-        if ($mailMessage->isSetHistoryBody()) {
+        // the body: unless the log management says the send log keeps no body (ISS02839)
+        if ($mailMessage->isSetHistoryBody() && \Exceedone\Exment\Services\LogManagement\LogPrivacy::mailBody()) {
             $model->setValue('mail_body', replaceBrTag($mailMessage->getBody()));
         } else {
             $model->setValue('mail_body', exmtrans('mail_template.disable_body'));

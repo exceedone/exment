@@ -780,6 +780,15 @@ return [
                 'warning' => 'There is a newer version.',
                 'fix' => 'Update Exment from "Version" in the system setting, and the official plugins from Feature management.',
             ],
+            'logs' => [
+                'label' => 'Logs and personal data',
+                'explain' => 'Logs can be stolen: they should keep as little personal data as they need, and only the owner should read their files.',
+                'store_input' => 'The logs keep the input (Log Management).',
+                'debug' => 'A debug mode writes every request or every SQL with its values (.env EXMENT_DEBUG_MODE_*).',
+                'readable' => 'The files of the logs or of their archive can be read by everyone on the server.',
+                'fix' => "Turn off \"Keep the input in the logs\" and the debug modes. For the files:\nchmod -R o-rwx :storage/logs :storage/app/log_archive",
+                'warning' => 'The logs keep the input (Log Management).',
+            ],
             'session_cookie' => [
                 'label' => 'The session cookie',
                 'explain' => 'The sign-in cookie: not readable by JavaScript, not sent with requests from other sites, and on https sent only over https.',
@@ -5032,6 +5041,21 @@ return [
 
     // ISS02839
     'log_management' => [
+        'privacy' => [
+            'header' => 'Personal data in the logs',
+            'store_input' => 'Keep the input in the logs',
+            'store_input_help' => 'Off (recommended): the operation log keeps the keys of what was sent (pages, API, MCP) with the values as ***, and the application log masks mail addresses and the values in SQL. On: the values are kept as before (passwords, tokens and secret keys are still masked).',
+            'ip_mode' => 'IP address in the logs',
+            'ip_keep' => 'As it is',
+            'ip_truncate' => 'Shortened (IPv4 /24, IPv6 /48)',
+            'ip_hash' => 'Hashed (the same address gives the same text)',
+            'ip_help' => 'The login records and the operation log. Audits usually need the address as it is.',
+            'archive_encrypt' => 'Encrypt the archive with APP_KEY',
+            'archive_encrypt_help' => 'A month written from now is encrypted. If APP_KEY is lost, the archive cannot be read. Off: gzip files (on S3 they are encrypted by S3).',
+            'mail_body' => 'Do not keep the body in the mail send log',
+            'mail_body_help' => 'On: the mail send log keeps the addresses and the subject only. Off: the body too, as before (the send history shows it).',
+            'update_notice' => 'From Exment 7.3.0 the operation log keeps no values of what was sent (only the keys, as ***), and the application log masks mail addresses and the values in SQL. To keep the values as before, turn on "Keep the input in the logs" in Admin Setting > Log Management. New log files are made 0640 (EXMENT_LOG_FILE_PERMISSION).',
+        ],
         'archive' => [
             'header' => 'Archive',
             'enabled' => 'Put the old logs in a gzip file a month before they are deleted',
