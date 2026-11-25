@@ -710,6 +710,7 @@ class CustomFormController extends AdminControllerTableBase
             'custom_form_blocks.*.options' => ['sometimes', 'array'],
             'custom_form_blocks.*.options.hasmany_type' => ['nullable', 'boolean'],
             'custom_form_blocks.*.options.lazy_load_enabled' => ['sometimes', 'boolean'],
+            'custom_form_blocks.*.options.sort_column' => ['nullable', 'string', 'max:255'],
         ];
         if ($validateImages) {
             $rules['custom_form_blocks.*.custom_form_columns.*.options.image'] = ['nullable', new \Exceedone\Exment\Validator\ImageRule()];
@@ -718,6 +719,7 @@ class CustomFormController extends AdminControllerTableBase
         return \Validator::make($request->all(), $rules, [], [
             'custom_form_blocks.*.options.hasmany_type' => exmtrans('custom_form.hasmany_type'),
             'custom_form_blocks.*.options.lazy_load_enabled' => exmtrans('custom_form.lazy_load_enabled'),
+            'custom_form_blocks.*.options.sort_column' => exmtrans('custom_form.sort_column'),
         ]);
     }
 
@@ -841,6 +843,17 @@ class CustomFormController extends AdminControllerTableBase
                 && boolval(array_get($blockOptions, 'hasmany_type'))
                     ? intval(boolval(array_get($blockOptions, 'lazy_load_enabled', 0)))
                     : 0;
+            // the number column of the child table the rows are kept in order by (#1595):
+            // anything that is not one is not kept
+            $sortColumn = null;
+            if ($block->form_block_type == FormBlockType::ONE_TO_MANY && !is_nullorempty(array_get($submittedOptions, 'sort_column'))) {
+                $sortTable = CustomTable::getEloquent($block->form_block_target_table_id);
+                $sortCustomColumn = isset($sortTable) ? CustomColumn::getEloquent(strval(array_get($submittedOptions, 'sort_column')), $sortTable) : null;
+                if (isset($sortCustomColumn) && in_array($sortCustomColumn->column_type, CustomFormBlock::sortColumnTypes(), true)) {
+                    $sortColumn = strval($sortCustomColumn->column_name);
+                }
+            }
+            $blockOptions['sort_column'] = $sortColumn;
             $block->options = $blockOptions;
 
             // create columns --------------------------------------------------

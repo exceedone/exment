@@ -70,6 +70,7 @@ return [
         'column' => 'Cột',
         'row_up' => 'Lên một hàng',
         'row_down' => 'Xuống một hàng',
+        'row_copy' => 'Sao chép hàng',
         'open' => 'Mở',
         'open_blank' => 'Mở trong cửa sổ mới',
         'open_all' => 'Mở tất cả',
@@ -2356,6 +2357,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'available' => 'Sử dụng',
         'hasmany_type' => 'Hiển thị biểu mẫu dạng bảng',
         'lazy_load_enabled' => 'Tối ưu việc tải dữ liệu bảng con',
+        'sort_column' => 'Cột thứ tự',
         'header_basic_setting' => 'Cài đặt cơ bản của biểu mẫu',
         'changedata' => 'Cài đặt liên kết dữ liệu',
         'relation_filter' => 'Lọc theo quan hệ',
@@ -2426,6 +2428,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'append_hr' => 'Nếu chọn YES, một đường phân cách sẽ được kẻ dưới tiêu đề.',
             'hasmany_type_table' => 'Khi đánh dấu, dữ liệu phía bảng con sẽ hiển thị dạng bảng. * Nên dùng khi số lượng mục ít. Ngoài ra, với dạng bảng, cài đặt nhiều cột sẽ bị vô hiệu và chỉ cài đặt của từng mục được xét đến.',
             'lazy_load_enabled' => 'Tự động tải bảng con này sau khi trang chỉnh sửa mở ra. Có thể dùng cho khối 1:N hiển thị dạng bảng khi chỉnh sửa dữ liệu đã có. Không thể lưu cho đến khi tải xong. Nếu bỏ dạng bảng và lưu biểu mẫu, cài đặt này cũng sẽ bị tắt.',
+            'sort_column' => 'Cột số của bảng con dùng để lưu thứ tự các hàng. Khi chọn, có thể di chuyển hàng lên xuống trong biểu mẫu nhập, và khi lưu sẽ ghi 1, 2, 3... từ trên xuống. Danh sách bảng con ở màn hình chi tiết cũng theo thứ tự này.',
         ],
         'message' => [
             'missing_required_empty' => 'Chưa lưu: các cột bắt buộc :names không có trong form này và chưa có giá trị. Hãy thêm vào form, hoặc tắt "Kiểm tra cả cột bắt buộc không có trong form này".',

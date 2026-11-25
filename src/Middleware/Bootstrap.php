@@ -168,6 +168,7 @@ class Bootstrap
             'vendor/exment/js/customformitem.js',
             'vendor/exment/js/customform.js',
             'vendor/exment/js/hasmanytable-validation.js',
+            'vendor/exment/js/hasmany-copy.js',
             'vendor/exment/js/preview.js',
             'vendor/exment/js/assign_me.js',
             'vendor/exment/js/paste_attach.js',

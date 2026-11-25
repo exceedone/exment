@@ -13,6 +13,123 @@ use Illuminate\Support\Arr;
 class HasMany extends AdminHasMany
 {
     /**
+     * Whether a row can be copied while the form is filled in (#1595).
+     *
+     * @var bool
+     */
+    protected $rowCopy = false;
+
+    /**
+     * Show a button on every row that adds a copy of it (#1595).
+     *
+     * @param bool $rowCopy
+     * @return $this
+     */
+    public function rowCopy(bool $rowCopy = true)
+    {
+        $this->rowCopy = $rowCopy;
+        return $this;
+    }
+
+    /**
+     * The column the order of the rows is written into, e.g. "value.order",
+     * or null for rows that cannot be moved.
+     *
+     * @var string|null
+     */
+    protected $rowUpDown = null;
+
+    /**
+     * What the order goes up by from one row to the next.
+     *
+     * @var int
+     */
+    protected $power = 1;
+
+    /**
+     * Show the up and down buttons on every row, and write the order of the
+     * rows into the column on saving (#1595).
+     *
+     * @param string $rowUpDown
+     * @param int $power
+     * @param bool $sortValue put the rows read from the record in that order first
+     * @return $this
+     */
+    public function rowUpDown($rowUpDown, $power = 1, bool $sortValue = false)
+    {
+        $this->rowUpDown = $rowUpDown;
+        $this->power = $power;
+        $this->rowUpDownSort = $sortValue;
+        return $this;
+    }
+
+    /**
+     * The order of the rows as they stand in the form, written into the
+     * up/down column of each row that is not being deleted.
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    public function prepare($value)
+    {
+        if (isset($this->rowUpDown) && is_array($value)) {
+            $order = 1 * $this->power;
+            foreach ($value as &$v) {
+                if (!is_array($v) || boolval(array_get($v, NestedForm::REMOVE_FLAG_NAME))) {
+                    continue;
+                }
+                array_set($v, $this->rowUpDown, $order);
+                $order = $order + $this->power;
+            }
+            unset($v);
+        }
+
+        return parent::prepare($value);
+    }
+
+    /**
+     * Whether the rows read from the record are put in the order of the
+     * up/down column before they are drawn (#1595).
+     *
+     * @var bool
+     */
+    protected $rowUpDownSort = false;
+
+    /**
+     * Put the rows read from the record in the order of the up/down column, a
+     * row without a number last, a tie in the order the rows came (#1595).
+     *
+     * @return void
+     */
+    protected function sortValueByRowUpDown()
+    {
+        if (!$this->rowUpDownSort || !isset($this->rowUpDown) || !is_array($this->value)) {
+            return;
+        }
+        $key = $this->rowUpDown;
+        $rows = array_values($this->value);
+        $positions = array_keys($rows);
+        usort($positions, function ($a, $b) use ($rows, $key) {
+            $va = array_get($rows[$a], $key);
+            $vb = array_get($rows[$b], $key);
+            $na = is_numeric($va);
+            $nb = is_numeric($vb);
+            if ($na && $nb && floatval($va) != floatval($vb)) {
+                return floatval($va) < floatval($vb) ? -1 : 1;
+            }
+            if ($na !== $nb) {
+                return $na ? -1 : 1;
+            }
+            return $a - $b;
+        });
+        $sorted = [];
+        foreach ($positions as $position) {
+            $sorted[] = $rows[$position];
+        }
+        $this->value = $sorted;
+    }
+
+    /**
      * Render the `HasMany` field.
      *
      * @throws \Exception
@@ -36,6 +153,7 @@ class HasMany extends AdminHasMany
         list($template, $script) = $this->getTemplateHtmlAndScript($form);
 
         $this->setupScript($script);
+        $this->sortValueByRowUpDown();
 
         $grandParent = $this->getParentRenderClass();
         return $grandParent::render()->with([
@@ -89,6 +207,7 @@ class HasMany extends AdminHasMany
         $jsonFlags = JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE;
         $errortitle = json_encode(exmtrans("common.error"), $jsonFlags);
         $requiremessage = json_encode(sprintf(exmtrans("common.message.exists_row"), esc_html($this->label)), $jsonFlags);
+        $copyScript = $this->rowCopyScript($jsonFlags) . $this->rowMoveScript($jsonFlags);
 
         /**
          * When add a new sub form, replace all element key in new sub form.
@@ -119,6 +238,7 @@ $('#has-many-{$this->column}').off('click.admin_remove').on('click.admin_remove'
     $(this).trigger('admin_hasmany_row_change');
 });
 
+{$copyScript}
 $("button[type='submit']").click(function(){
     if ($('#has-many-{$this->column}').attr('required') === undefined) {
         return true;
@@ -136,6 +256,119 @@ EOT;
         Admin::script($script);
 
         return $script;
+    }
+
+    /**
+     * The copy button of every row, and what it does (#1595).
+     *
+     * The rows are drawn by the view of admin-core, so the button is put next
+     * to the delete button of each row here - the rows on the page, and every
+     * row added later.
+     *
+     * @param int $jsonFlags
+     * @return string
+     */
+    protected function rowCopyScript(int $jsonFlags): string
+    {
+        if (!$this->rowCopy || !boolval(array_get($this->options, 'allowCreate', true))) {
+            return '';
+        }
+        // the column of a HasMany is the relation name (a string)
+        $column = json_encode(is_array($this->column) ? '' : $this->column, $jsonFlags);
+        $label = json_encode(strval(exmtrans('common.row_copy')), $jsonFlags);
+        $buttons = "rowcopy_{$this->column}";
+
+        return <<<EOT
+var $buttons = function () {
+    $('#has-many-{$this->column} .has-many-{$this->column}-form').each(function () {
+        var form = $(this);
+        if (form.find('.row-copy').length) {
+            return;
+        }
+        var button = $('<div class="row-copy btn btn-default btn-sm float-end me-2"><i class="fa fa-copy"></i>&nbsp;</div>');
+        button.append(document.createTextNode($label));
+        var remove = form.find('.remove').last();
+        if (remove.length) {
+            button.insertAfter(remove);
+        } else {
+            form.append($('<div class="form-group"><div class="pb-5"></div></div>').find('div').append(button).end());
+        }
+    });
+};
+$buttons();
+$('#has-many-{$this->column}').off('admin_hasmany_row_change.row_copy').on('admin_hasmany_row_change.row_copy', $buttons);
+$('#has-many-{$this->column}').off('click.admin_row_copy').on('click.admin_row_copy', '.row-copy', function () {
+    if (!window.ExmentHasManyCopy) {
+        return;
+    }
+    window.ExmentHasManyCopy.copyRow(
+        $('#has-many-{$this->column}'),
+        $(this).closest('.has-many-{$this->column}-form'),
+        $column,
+        '.has-many-{$this->column}-form'
+    );
+});
+
+EOT;
+    }
+
+    /**
+     * The up and down buttons of every row, and what they do (#1595).
+     *
+     * Only the place of the row in the form changes; the order is written
+     * when the form is saved, see prepare().
+     *
+     * @param int $jsonFlags
+     * @return string
+     */
+    protected function rowMoveScript(int $jsonFlags): string
+    {
+        if (!isset($this->rowUpDown)) {
+            return '';
+        }
+        $up = json_encode(strval(exmtrans('common.row_up')), $jsonFlags);
+        $down = json_encode(strval(exmtrans('common.row_down')), $jsonFlags);
+        $buttons = "rowmove_{$this->column}";
+
+        return <<<EOT
+var $buttons = function () {
+    $('#has-many-{$this->column} .has-many-{$this->column}-form').each(function () {
+        var form = $(this);
+        if (form.find('.row-move').length) {
+            return;
+        }
+        var up = $('<div class="row-move row-move-up btn btn-success btn-sm float-end me-2"><i class="fa fa-arrow-up"></i></div>').attr('title', $up);
+        var down = $('<div class="row-move row-move-down btn btn-primary btn-sm float-end me-2"><i class="fa fa-arrow-down"></i></div>').attr('title', $down);
+        var remove = form.find('.remove').last();
+        if (remove.length) {
+            up.insertAfter(remove);
+            down.insertAfter(up);
+        } else {
+            form.append($('<div class="form-group"><div class="pb-5"></div></div>').find('div').append(up).append(down).end());
+        }
+    });
+};
+$buttons();
+$('#has-many-{$this->column}').off('admin_hasmany_row_change.row_move').on('admin_hasmany_row_change.row_move', $buttons);
+$('#has-many-{$this->column}').off('click.admin_row_move').on('click.admin_row_move', '.row-move', function () {
+    var form = $(this).closest('.has-many-{$this->column}-form');
+    var isup = $(this).hasClass('row-move-up');
+    var target = form;
+    do {
+        target = isup ? target.prev('.has-many-{$this->column}-form') : target.next('.has-many-{$this->column}-form');
+    } while (target.length && !target.is(':visible'));
+    if (!target.length) {
+        return;
+    }
+    if (isup) {
+        form.insertBefore(target);
+    } else {
+        form.insertAfter(target);
+    }
+    form.stop().css('background-color', '#FFFFCC').animate({backgroundColor: 'rgba(0,0,0,0.0)'}, 1000);
+});
+
+EOT;
     }
 
     public function getScript(): string
