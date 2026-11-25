@@ -586,6 +586,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "log_management",
+            "title": "로그 관리"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "유지보수 모드"
         }

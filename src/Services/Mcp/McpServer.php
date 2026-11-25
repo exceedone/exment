@@ -121,7 +121,7 @@ class McpServer
                 'user_id' => $this->user->id,
                 'path' => 'mcp/' . $tool,
                 'method' => 'MCP',
-                'ip' => $this->ip,
+                'ip' => \Exceedone\Exment\Services\LogManagement\LogPrivacy::ip($this->ip),
                 'input' => $input,
             ]);
         } catch (\Exception $e) {

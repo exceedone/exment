@@ -83,16 +83,27 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Security check: the APP_KEY of the download zip
+    |--------------------------------------------------------------------------
+    |
+    | The zip of Exment writes here the SHA-256 of the APP_KEY in its .env. While APP_KEY is still
+    | that one (php artisan key:generate was not run), the security check says so.
+    */
+    'shipped_app_key_sha256' => env('EXMENT_SHIPPED_APP_KEY_SHA256'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Chart of a list view: max rows
     |--------------------------------------------------------------------------
     |
     | A chart of a list view draws one point per row. It reads at most this many
-    | rows (0 = no limit, the default: an update does not change what a chart
-    | draws). A site with large tables may set it, as 1000; a chart of a large
-    | table is better made with a summary view.
+    | rows and says so when there are more (ISS00169: 5000 by default, more points
+    | than a chart can show; before 7.2.6 every row was read and a large table ran
+    | out of memory or time). 0 = no limit. A chart of a large table is better made
+    | with a summary view.
     |
     */
-    'chart_list_max_rows' => env('EXMENT_CHART_LIST_MAX_ROWS', 0),
+    'chart_list_max_rows' => env('EXMENT_CHART_LIST_MAX_ROWS', 5000),
 
     /*
     |--------------------------------------------------------------------------
@@ -365,6 +376,10 @@ return [
     |
     */
     'login_2factor_valid_period' =>  env('EXMENT_LOGIN_2FACTOR_VALID_PERIOD', 10),
+
+    // the mails of the 2-step verification: the country and the region from the headers of the CDN in
+    // front of the site (CloudFront, Cloudflare). Only with a CDN that sets them: anyone could send them.
+    'login_location_headers' => env('EXMENT_LOGIN_LOCATION_HEADERS', false),
 
     /*
     |--------------------------------------------------------------------------
@@ -1547,6 +1562,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The files of the application log (ISS02839)
+    |--------------------------------------------------------------------------
+    | The mode of a new file of the application log (octal): 0640, the owner writes, its group
+    | reads, nobody else. A server whose cron runs as another user than the web server and
+    | writes the same file needs 0660.
+    */
+    'log_file_permission' => env('EXMENT_LOG_FILE_PERMISSION', '0640'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mask targets for the operation log
     |--------------------------------------------------------------------------
     |
@@ -1597,6 +1622,9 @@ return [
             // LINE Messaging API channel credentials (admin/system?advanced=1)
             'system_line_channel_token',
             'system_line_channel_secret',
+            // the address of the Teams workflow (ISS02863)
+            'system_teams_workflow_url',
+            'system_teams_workflow_url_new',
             // Plugin DB connection password
             'custom_password',
             // Plugin CRUD page auth (key / id+password)

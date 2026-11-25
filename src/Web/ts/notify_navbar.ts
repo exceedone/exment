@@ -4,8 +4,7 @@ namespace Exment {
         private static poller: any = null;
         private static reget_flg;
         private static before_count;
-        private static notify_navbar_ids = [];
-
+        
         /**
          * Call only once. It's $(document).on event.
          */
@@ -19,6 +18,17 @@ namespace Exment {
             // click item after notify list
             $(document).on('click', '.notifications-menu-dropdown li', {}, function (event) {
                 NotifyNavbarEvent.reget_flg = true;
+            });
+            // read all: the notifications stay in the list, greyed (ISS00360)
+            $(document).on('click', '.notify-navbar-read-all', {}, function (event) {
+                event.preventDefault();
+                $.ajax({
+                    url: $(this).data('url'),
+                    type: 'POST',
+                    data: { _token: LA.token },
+                }).always(function () {
+                    NotifyNavbarEvent.notifyNavbar();
+                });
             });
             $(document).on('pjax:complete', function (event) {
                 if(NotifyNavbarEvent.reget_flg){
@@ -51,54 +61,54 @@ namespace Exment {
         private static render(data){
             $('.navbar-notify ul.menu').empty();
             $('.container-notify .label-danger').remove();
-            if(data.count > 0){
-
+            const items = data.items || [];
+            if (data.count > 0) {
                 // if up data.count, append ring move class
-                if(NotifyNavbarEvent.before_count === null || NotifyNavbarEvent.before_count === undefined || NotifyNavbarEvent.before_count < data.count){
-                    NotifyNavbarEvent.before_count = data.count;
-                    $('.navbar-notify .fa-bell').addClass('ring').delay(2500).queue(function(){
+                if (NotifyNavbarEvent.before_count === null || NotifyNavbarEvent.before_count === undefined || NotifyNavbarEvent.before_count < data.count) {
+                    $('.navbar-notify .fa-bell').addClass('ring').delay(2500).queue(function () {
                         $('.navbar-notify .fa-bell').removeClass('ring');
                     });
                 }
-
                 $('.container-notify').append('<span class="label label-danger fw-bold">' + data.count + '</span>');
-
-                for(let i = 0; i < data.items.length; i++){
-                    let d = data.items[i];
-                    const isNew = $.inArray(d.id, NotifyNavbarEvent.notify_navbar_ids) === -1;
-                    let li = $('<li/>', {
-                        html: $('<a/>', {
-                            href: hasValue(d.href) ? d.href : 'javascript:void(0);',
-                            html: [
-                                $('<p/>', {
-                                    html:[
-                                        $('<i/>', {
-                                            'class': 'fa ' + d.icon,
-                                        }),
-                                        $('<span></span>', {
-                                            'text': d.table_view_name,
-                                        }),
-                                    ],
-                                    'class': 'search-item-icon',
-                                    'style': hasValue(d.color) ? 'background-color:' + d.color : null
-                                }),
-                                $('<span/>', {
-                                    'text': d.label,
-                                }),
-                            ],
-                        }),
-                    });
-
-                    $('.navbar-notify ul.menu').append(li);
-                }
             }
-            else{
+            // the badge counts the unread ones only; after "read all" the next one rings again
+            NotifyNavbarEvent.before_count = data.count;
+            if (data.count == 0) {
                 let li = $('<li/>', {
                     text: $('#notify_navbar_noitem').val(),
                     'class': 'text-center',
                     style: 'padding:7px;'
                 });
-
+                $('.navbar-notify ul.menu').append(li);
+            }
+            // the unread ones, then the ones read lately, greyed: they stay to be looked at again (ISS00360)
+            for (let i = 0; i < items.length; i++) {
+                let d = items[i];
+                let li = $('<li/>', {
+                    'class': d.read ? 'notify-navbar-read' : null,
+                    style: d.read ? 'opacity:0.55;' : null,
+                    html: $('<a/>', {
+                        href: hasValue(d.href) ? d.href : 'javascript:void(0);',
+                        html: [
+                            $('<p/>', {
+                                html: [
+                                    $('<i/>', {
+                                        'class': 'fa ' + d.icon,
+                                    }),
+                                    $('<span></span>', {
+                                        'text': d.table_view_name,
+                                    }),
+                                ],
+                                'class': 'search-item-icon',
+                                'style': hasValue(d.color) && !d.read ? 'background-color:' + d.color : null
+                            }),
+                            $('<span/>', {
+                                'text': d.label,
+                                'style': d.read ? 'color:#777;' : null,
+                            }),
+                        ],
+                    }),
+                });
                 $('.navbar-notify ul.menu').append(li);
             }
         }

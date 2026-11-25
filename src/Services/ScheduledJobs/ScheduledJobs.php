@@ -35,6 +35,7 @@ class ScheduledJobs
         'exment:file-server-purge' => 'file_server_purge',
         'exment:meili-reconcile' => 'meili_reconcile',
         'exment:maintenance tick' => 'maintenance_tick',
+        'exment:log-maintenance' => 'log_maintenance',
     ];
 
     /** The feature a job is for: when it is not used, the job does nothing. */

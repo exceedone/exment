@@ -586,6 +586,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "log_management",
+            "title": "Quản lý log"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Chế độ bảo trì"
         }

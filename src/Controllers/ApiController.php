@@ -532,19 +532,35 @@ class ApiController extends AdminControllerBase
         return \Exceedone\Exment\Services\ScreenExtensions::filter('notify.poll', $page);
     }
 
+    /** The most notifications the bell lists (ISS00360). */
+    public const NOTIFY_PAGE_MAX_ITEMS = 20;
+
+    /** How long a read notification stays in the bell, greyed, in days (ISS00360). */
+    public const NOTIFY_PAGE_READ_DAYS = 7;
+
     /**
-     * The payload notifyPage() serves and caches: the unread count and the newest five.
+     * The payload notifyPage() serves and caches: the unread count (the badge) and the list of the
+     * bell: the unread notifications, newest first, then the ones read that came in the last
+     * NOTIFY_PAGE_READ_DAYS days (greyed), NOTIFY_PAGE_MAX_ITEMS at most. A read notification
+     * stays in the list instead of going away (ISS00360); nothing is deleted.
      *
      * @return array<string, mixed>
      */
     protected function buildNotifyPage(): array
     {
-        // get notify NotifyNavbar list
-        $query = NotifyNavbar::where('target_user_id', \Exment::getUserId())
-            ->where('read_flg', false);
+        $count = NotifyNavbar::where('target_user_id', \Exment::getUserId())
+            ->where('read_flg', false)
+            ->count();
 
-        $count = $query->count();
-        $list = $query->take(5)->get();
+        // the scope of the model orders unread first, then newest first
+        $since = \Carbon\Carbon::now()->subDays(static::NOTIFY_PAGE_READ_DAYS);
+        $list = NotifyNavbar::where('target_user_id', \Exment::getUserId())
+            ->where(function ($query) use ($since) {
+                $query->where('read_flg', false)
+                    ->orWhere('created_at', '>=', $since);
+            })
+            ->take(static::NOTIFY_PAGE_MAX_ITEMS)
+            ->get();
 
         return [
             'count' => $count,
@@ -562,7 +578,9 @@ class ApiController extends AdminControllerBase
                     'color' => $color ?? null,
                     'table_view_name' => $table_view_name ?? null,
                     'label' => array_get($l, 'notify_subject'),
-                    'href' => admin_urls('notify_navbar', $l->id)
+                    // the record, on the screen of the plugin that shows it when one does (show() / RecordUrl)
+                    'href' => admin_urls('notify_navbar', $l->id),
+                    'read' => boolval(array_get($l, 'read_flg')),
                 ];
             })->values()->all(),
             'noItemMessage' => exmtrans('notify_navbar.message.no_newitem')

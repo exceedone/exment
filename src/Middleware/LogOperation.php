@@ -28,7 +28,7 @@ class LogOperation extends BaseLogOperation
                 'user_id' => ($login_user ? $login_user->id : 0),
                 'path'    => substr(static::hidePathParams($request->path()), 0, 255),
                 'method'  => $request->method(),
-                'ip'      => $request->getClientIp(),
+                'ip'      => \Exceedone\Exment\Services\LogManagement\LogPrivacy::ip($request->getClientIp()),
                 'input'   => json_encode(static::maskInputArray((array)$request->input(), $request->path())),
             ];
 
@@ -53,6 +53,18 @@ class LogOperation extends BaseLogOperation
             && hasTable(SystemTableName::LOGIN_USER)
             && !$this->inExceptArray($request)
             && $this->inAllowedMethods($request->method());
+    }
+
+    /**
+     * The methods kept: as the config says, and as the log management says (ISS02839: only the
+     * requests that change something, when it is chosen).
+     *
+     * @param string $method
+     * @return bool
+     */
+    protected function inAllowedMethods($method)
+    {
+        return \Exceedone\Exment\Services\LogManagement\LogSettings::logsMethod(strval($method)) && parent::inAllowedMethods($method);
     }
 
     /**
@@ -89,6 +101,11 @@ class LogOperation extends BaseLogOperation
      */
     public static function maskInputArray(array $data, string $path): array
     {
+        // the logs keep no values unless "keep the input in the logs" is on (ISS02839)
+        if (!\Exceedone\Exment\Services\LogManagement\LogPrivacy::storeInput()) {
+            return \Exceedone\Exment\Services\LogManagement\LogPrivacy::keysOnly($data);
+        }
+        $data = \Exceedone\Exment\Services\LogManagement\LogPrivacy::maskSecrets($data);
         $data = static::maskArrayRecursive($data, static::getHideColumnsByPath($path));
 
         // laravel-admin posts the previous page url as "_previous_"; it can contain
@@ -171,6 +188,9 @@ class LogOperation extends BaseLogOperation
             // follower, the secret authenticates the webhook.
             'system_line_channel_token',
             'system_line_channel_secret',
+            // the address of the Teams workflow: whoever has it can post to the chats
+            'system_teams_workflow_url',
+            'system_teams_workflow_url_new',
         ];
     }
 

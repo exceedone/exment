@@ -122,6 +122,8 @@ class SetupDirCommand extends AdminInstallCommand
 
             static::addPermission('storage', $user, $group);
             static::addPermission('bootstrap/cache', $user, $group);
+            // the logs and their archive: not readable by everyone (ISS02839)
+            static::restrictLogs();
 
             // If easy install, set permission to dir
             if ($easy) {
@@ -130,6 +132,28 @@ class SetupDirCommand extends AdminInstallCommand
                 static::addPermission('public', $user, $group);
                 static::addPermission('resources', $user, $group);
                 static::addPermission('.env', $user, $group);
+            }
+        }
+    }
+
+    /**
+     * storage/logs: folders 02770, files 0640; storage/app/log_archive: folders 02700, files 0600.
+     *
+     * @return void
+     */
+    public static function restrictLogs()
+    {
+        foreach ([['storage/logs', 02770, 0640], ['storage/app/log_archive', 02700, 0600]] as [$path, $dirMode, $fileMode]) {
+            $full = base_path($path);
+            if (!\File::isDirectory($full)) {
+                continue;
+            }
+            @chmod($full, $dirMode);
+            foreach (\Exment::allDirectories($full) as $dir) {
+                @chmod($dir, $dirMode);
+            }
+            foreach (\File::allFiles($full, true) as $file) {
+                @chmod(strval($file), $fileMode);
             }
         }
     }

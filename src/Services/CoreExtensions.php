@@ -30,6 +30,9 @@ class CoreExtensions
     /** @var array<string, string> command => name (scheduled_jobs.jobs.<name>) */
     protected static $scheduledJobNames = [];
 
+    /** @var array<int, string> the files of the operator an application adds (OperatorConfig) */
+    protected static $operatorConfigPaths = [];
+
     /** @var array<string, array<int, \Closure>> kind (env, file, before, after) => rules */
     protected static $restoreRules = [];
 
@@ -198,6 +201,25 @@ class CoreExtensions
     }
 
     /**
+     * A file of the settings the operator decides (Services\OperatorConfig), read after the ones of
+     * Exment. A path fixed in the code of the application: not one the site can change.
+     */
+    public static function addOperatorConfigPath(string $path): void
+    {
+        if (!in_array($path, static::$operatorConfigPaths, true)) {
+            static::$operatorConfigPaths[] = $path;
+        }
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    public static function operatorConfigPaths(): array
+    {
+        return static::$operatorConfigPaths;
+    }
+
+    /**
      * Forget the additions (tests).
      */
     public static function reset(): void
@@ -209,5 +231,6 @@ class CoreExtensions
         static::$schedules = [];
         static::$scheduledJobNames = [];
         static::$restoreRules = [];
+        static::$operatorConfigPaths = [];
     }
 }
