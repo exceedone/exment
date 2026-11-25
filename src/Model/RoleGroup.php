@@ -81,6 +81,12 @@ class RoleGroup extends ModelBase
     // @phpstan-ignore-next-line
     public static function getHasPermissionRoleGroup($user_id, $organization_ids, $checkContainJointdOrgs = false)
     {
+        // the user and the organizations themselves (the permissions of a request, ISS02880): the
+        // ids of the groups from the table of the members, not every group with every member
+        if (!$checkContainJointdOrgs) {
+            return static::roleGroupsOfMembers($user_id, $organization_ids);
+        }
+
         // get all permissons for system. --------------------------------------------------
 
         // @phpstan-ignore-next-line
@@ -123,6 +129,46 @@ class RoleGroup extends ModelBase
 
             return false;
         }, false, [SystemTableName::ROLE_GROUP_PERMISSION, SystemTableName::ROLE_GROUP_USER_ORGANIZATION]);
+    }
+
+    /**
+     * The role groups of a user or of organizations (as getHasPermissionRoleGroup without
+     * $checkContainJointdOrgs), with their permissions. Once for a request.
+     *
+     * @param mixed $user_id
+     * @param mixed $organization_ids
+     * @return \Illuminate\Support\Collection<int, RoleGroup>
+     */
+    protected static function roleGroupsOfMembers($user_id, $organization_ids): \Illuminate\Support\Collection
+    {
+        $userIds = is_nullorempty($user_id) ? [] : array_values((array)$user_id);
+        $orgIds = is_nullorempty($organization_ids) ? [] : array_values((array)$organization_ids);
+        if (count($userIds) === 0 && count($orgIds) === 0) {
+            return collect();
+        }
+        $key = 'role_groups_of_members_' . md5(json_encode([$userIds, $orgIds]) ?: '');
+        return System::requestSession($key, function () use ($userIds, $orgIds) {
+            $ids = RoleGroupUserOrganization::query()
+                ->where(function ($query) use ($userIds, $orgIds) {
+                    if (count($userIds) > 0) {
+                        $query->orWhere(function ($q) use ($userIds) {
+                            $q->where('role_group_user_org_type', SystemTableName::USER)->whereIn('role_group_target_id', $userIds);
+                        });
+                    }
+                    if (count($orgIds) > 0) {
+                        $query->orWhere(function ($q) use ($orgIds) {
+                            $q->where('role_group_user_org_type', SystemTableName::ORGANIZATION)->whereIn('role_group_target_id', $orgIds);
+                        });
+                    }
+                })
+                ->distinct()
+                ->pluck('role_group_id')
+                ->all();
+            if (count($ids) === 0) {
+                return collect();
+            }
+            return static::query()->with(SystemTableName::ROLE_GROUP_PERMISSION)->whereIn('id', $ids)->get();
+        });
     }
 
     protected static function boot()
