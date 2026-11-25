@@ -17,6 +17,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
+use ExmentAdminCore\Admin\Admin;
 use ExmentAdminCore\Admin\Form;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\ViewErrorBag;
@@ -48,6 +49,7 @@ class ChildRowOrderTest extends UnitTestBase
         $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
         System::clearRequestSession();
         System::clearCache();
+        $this->clearPageScripts();
 
         \Admin::bootstrap();
         Initialize::registeredLaravelAdmin();
@@ -58,7 +60,22 @@ class ChildRowOrderTest extends UnitTestBase
     {
         System::clearRequestSession();
         System::clearCache();
+        $this->clearPageScripts();
         parent::tearDown();
+    }
+
+    /**
+     * A field puts its script into the static script list of admin-core when it
+     * is rendered. In a real request the list starts empty, but in a test run it
+     * is kept from one request to the next, so a page would carry the scripts of
+     * the fields drawn before it (even by an earlier request of the same test).
+     *
+     * @return void
+     */
+    private function clearPageScripts(): void
+    {
+        Admin::$script = [];
+        Admin::$deferredScript = [];
     }
 
     // ----------------------------------------------------------- the sort column of a block
@@ -291,13 +308,15 @@ class ChildRowOrderTest extends UnitTestBase
         $this->prepareChildBlock(1, self::SORT_COLUMN);
         $content = $this->getCreatePage();
         $this->assertStringContainsString('has-many-table-', $content, 'precondition: the table style is drawn');
-        $this->assertStringContainsString('row-move-up', $content);
-        $this->assertStringContainsString('row-move-down', $content);
+        $this->assertStringContainsString('row-move row-move-up', $content);
+        $this->assertStringContainsString('row-move row-move-down', $content);
 
         $this->prepareChildBlock(1, null);
         $content = $this->getCreatePage();
         $this->assertStringContainsString('has-many-table-', $content, 'precondition: the table style is drawn');
-        $this->assertStringNotContainsString('row-move', $content);
+        // the click handler of the table style is always there (it was before #1595), the buttons are not
+        $this->assertStringNotContainsString('row-move row-move-up', $content);
+        $this->assertStringNotContainsString('row-move row-move-down', $content);
     }
 
     /**
@@ -337,12 +356,16 @@ class ChildRowOrderTest extends UnitTestBase
     }
 
     /**
-     * The same for the block style.
+     * The block style draws its rows with gridEmbeds, which draws only the
+     * columns placed in the grid of the block, so the hidden input is not on the
+     * page. It is not needed there: prepare() writes the order into each posted
+     * row, and the saving test of the block style checks that the numbers are
+     * saved without it.
      */
-    public function testHiddenSortInputInTheBlockStyle(): void
+    public function testNoHiddenSortInputInTheBlockStyle(): void
     {
         $this->prepareChildBlock(0, self::SORT_COLUMN, false);
-        $this->assertGreaterThanOrEqual(1, $this->countHiddenInputs($this->getCreatePage(), self::SORT_COLUMN));
+        $this->assertSame(0, $this->countHiddenInputs($this->getCreatePage(), self::SORT_COLUMN));
 
         $this->prepareChildBlock(0, null, false);
         $this->assertSame(0, $this->countHiddenInputs($this->getCreatePage(), self::SORT_COLUMN));
@@ -696,6 +719,7 @@ class ChildRowOrderTest extends UnitTestBase
         $login = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         $this->assertInstanceOf(LoginUser::class, $login);
 
+        $this->clearPageScripts();
         $response = $this->actingAs($login, 'admin')->get(admin_urls('data', self::PARENT_TABLE, 'create'));
         $response->assertOk();
 
@@ -745,6 +769,8 @@ class ChildRowOrderTest extends UnitTestBase
 
         $marker = 'issue1595_parent_' . $hasmanyType;
         $response = $this->actingAs($login, 'admin')->post(admin_urls('data', self::PARENT_TABLE), [
+            // the data form always sends it (DefaultForm); without it the "value" of the parent is not saved
+            'laravel_admin_escape' => '',
             'value' => ['text' => $marker],
             $relation->getRelationName() => [
                 'new_1' => ['value' => ['index_text' => 'beta'], '_remove_' => 0],
