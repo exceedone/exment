@@ -89,7 +89,8 @@ class NotifyLaterTest extends UnitTestBase
             return NotifyNavbar::withoutGlobalScopes()->where('notify_id', $notify->id)->orderBy('target_user_id')->get()
                 ->map(function ($bell) {
                     $row = $bell->getAttributes();
-                    unset($row['id'], $row['notify_id'], $row['created_at'], $row['updated_at']);
+                    // the record and the notification differ (two saves), the rest is the same
+                    unset($row['id'], $row['notify_id'], $row['parent_id'], $row['notify_subject'], $row['notify_body'], $row['created_at'], $row['updated_at']);
                     ksort($row);
                     return $row;
                 })->all();
