@@ -105,6 +105,45 @@ class IpAddress
     }
 
     /**
+     * The address as the rate limits and the lockouts count it (ISS02909).
+     *
+     * One IPv6 client has a whole network (a /64 for a home or an office) and can take a new
+     * address in it for every try, so an IPv6 address counts as its network:
+     * 2001:db8:1:2:aaaa::1 → 2001:db8:1:2::/64. An IPv4 address (an IPv4-mapped one too) counts
+     * as itself. The prefix is config exment.ipv6_limit_prefix (64; 128 counts each address).
+     */
+    public static function limiterKey(?string $ip): string
+    {
+        $ip = static::normalize(strval($ip));
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false) {
+            return $ip;
+        }
+        $prefix = intval(config('exment.ipv6_limit_prefix', 64));
+        $prefix = $prefix >= 1 && $prefix <= 128 ? $prefix : 64;
+        if ($prefix === 128) {
+            return $ip;
+        }
+        return static::network($ip, $prefix) . '/' . $prefix;
+    }
+
+    /**
+     * The network of an IPv6 address: the address with the bits after the prefix cleared.
+     */
+    public static function network(string $ipv6, int $prefix): string
+    {
+        $packed = @inet_pton($ipv6);
+        if ($packed === false || strlen($packed) !== 16) {
+            return $ipv6;
+        }
+        $mask = str_repeat("\xff", intdiv($prefix, 8));
+        if ($prefix % 8 !== 0) {
+            $mask .= chr((0xff << (8 - $prefix % 8)) & 0xff);
+        }
+        $mask = str_pad($mask, 16, "\0");
+        return strval(inet_ntop($packed & $mask));
+    }
+
+    /**
      * Whether the address is in one of the rules.
      *
      * @param array<int, string>|string $rules the rules, or a text of rules

@@ -334,7 +334,7 @@ class UserApiKeys
         $key = UserApiKey::where('key_hash', static::hash($plain))->first();
         if (!isset($key)) {
             // logged, but at most once a minute an address (random keys are not a line each)
-            RateLimiter::attempt('apikey-log:' . static::siteHash() . ':' . $request->ip(), 1, function () use ($request) {
+            RateLimiter::attempt('apikey-log:' . static::siteHash() . ':' . IpAddress::limiterKey($request->ip()), 1, function () use ($request) {
                 \Log::info('[Exment] an unknown API key was refused (from ' . $request->ip() . ')');
             }, 60);
             return $refuse('unknown');

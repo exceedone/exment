@@ -718,6 +718,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | IPv6 prefix of the rate limits
+    |--------------------------------------------------------------------------
+    |
+    | The rate limits and the login lockouts count an IPv6 address as its network of this
+    | prefix (a client has a /64 and can take a new address in it for every try). 128 counts
+    | each address.
+    |
+    */
+    'ipv6_limit_prefix' => env('EXMENT_IPV6_LIMIT_PREFIX', 64),
+
+    /*
+    |--------------------------------------------------------------------------
     | session Expire On Close
     |--------------------------------------------------------------------------
     |

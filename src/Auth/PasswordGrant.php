@@ -41,7 +41,7 @@ class PasswordGrant extends PasswordGrantBase
         // page (exment.throttle, max_attempts, decay_minutes), for the user name
         // and the address that try.
         $throttle = boolval(config('exment.throttle', true));
-        $key = 'oauth-password|' . mb_strtolower(trim((string)$this->getRequestParameter('username', $request))) . '|' . (string)request()->ip();
+        $key = 'oauth-password|' . mb_strtolower(trim((string)$this->getRequestParameter('username', $request))) . '|' . \Exceedone\Exment\Services\IpAddress::limiterKey(request()->ip());
         $limiter = app(\Illuminate\Cache\RateLimiter::class);
         $maxAttempts = (int)config('exment.max_attempts', 5);
         if ($throttle && $limiter->tooManyAttempts($key, $maxAttempts)) {
