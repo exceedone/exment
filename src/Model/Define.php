@@ -143,15 +143,16 @@ class Define
         'filter_multi_user' => ['type' => 'int', 'default' => '-1', 'group' => 'advanced'],
 
         // Meilisearch (full-text search) — 'config' maps let get_system_value fall back to .env.
-        'meili_host' => ['config' => 'meilisearch.host', 'group' => 'advanced'],
-        'meili_key' => ['type' => 'password', 'config' => 'meilisearch.key', 'group' => 'advanced'],
-        'meili_index' => ['config' => 'meilisearch.index', 'group' => 'advanced'],
-        'meili_global_search' => ['type' => 'boolean', 'config' => 'meilisearch.global_search', 'group' => 'advanced'],
-        'meili_realtime_sync' => ['type' => 'boolean', 'config' => 'meilisearch.realtime_sync', 'group' => 'advanced'],
-        'meili_batch_size' => ['type' => 'int', 'config' => 'meilisearch.batch_size', 'group' => 'advanced'],
-        'meili_repair_enabled' => ['type' => 'boolean', 'config' => 'meilisearch.repair_enabled', 'group' => 'advanced'],
-        'meili_repair_at' => ['config' => 'meilisearch.repair_at', 'group' => 'advanced'],
-        'meili_filter_mode' => ['config' => 'meilisearch.filter.mode', 'group' => 'advanced'],
+        // Group "meili": the page of its own (MeiliSettingController, #2157), not the detail page.
+        'meili_host' => ['config' => 'meilisearch.host', 'group' => 'meili'],
+        'meili_key' => ['type' => 'password', 'config' => 'meilisearch.key', 'group' => 'meili'],
+        'meili_index' => ['config' => 'meilisearch.index', 'group' => 'meili'],
+        'meili_global_search' => ['type' => 'boolean', 'config' => 'meilisearch.global_search', 'group' => 'meili'],
+        'meili_realtime_sync' => ['type' => 'boolean', 'config' => 'meilisearch.realtime_sync', 'group' => 'meili'],
+        'meili_batch_size' => ['type' => 'int', 'config' => 'meilisearch.batch_size', 'group' => 'meili'],
+        'meili_repair_enabled' => ['type' => 'boolean', 'config' => 'meilisearch.repair_enabled', 'group' => 'meili'],
+        'meili_repair_at' => ['config' => 'meilisearch.repair_at', 'group' => 'meili'],
+        'meili_filter_mode' => ['config' => 'meilisearch.filter.mode', 'group' => 'meili'],
         'meili_indexed_at' => ['type' => 'json', 'group' => 'meili_state'],
 
 
@@ -173,17 +174,18 @@ class Define
         'system_teams_workflow_url' => ['type' => 'password', 'group' => 'notify'],
         'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
 
-        'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
-        'safety_check_min_scale' => ['type' => 'int', 'default' => '45', 'group' => 'notify'],
-        'safety_check_cooldown_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
-        'safety_check_comment_window_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'notify'],
-        'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'notify'],
-        'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
-        'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'notify'],
+        // Group "safety_check": the page of its own (SafetyCheckSettingController, #2157)
+        'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'safety_check'],
+        'safety_check_min_scale' => ['type' => 'int', 'default' => '45', 'group' => 'safety_check'],
+        'safety_check_cooldown_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'safety_check'],
+        'safety_check_comment_window_minutes' => ['type' => 'int', 'default' => '60', 'group' => 'safety_check'],
+        'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'safety_check'],
+        'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'safety_check'],
+        'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'safety_check'],
         // 送信対象 (GitHub #2180): empty is every user
-        'safety_check_target_organizations' => ['type' => 'array', 'default' => null, 'group' => 'notify'],
-        'safety_check_target_view' => ['type' => 'int', 'default' => null, 'group' => 'notify'],
-        'safety_check_excluded_users' => ['type' => 'array', 'default' => null, 'group' => 'notify'],
+        'safety_check_target_organizations' => ['type' => 'array', 'default' => null, 'group' => 'safety_check'],
+        'safety_check_target_view' => ['type' => 'int', 'default' => null, 'group' => 'safety_check'],
+        'safety_check_excluded_users' => ['type' => 'array', 'default' => null, 'group' => 'safety_check'],
         'safety_check_last_feed_time' => ['type' => 'datetime'],
         // Comments written before this time ('Y-m-d H:i:s') are shown as the plain text they were
         // written as; later ones are shown as Markdown. Set once, by the migration that brings
@@ -364,6 +366,15 @@ class Define
         'system' => [
             'uri' => 'system',
             'icon' => 'fa-cogs',
+        ],
+        // the settings once on the detail page of the system settings (#2157)
+        'safety_check_setting' => [
+            'uri' => 'safety_check_setting',
+            'icon' => 'fa-heartbeat',
+        ],
+        'meili_setting' => [
+            'uri' => 'meili_setting',
+            'icon' => 'fa-search',
         ],
         'meili_filter' => [
             'uri' => 'meili-filter',
@@ -654,6 +665,8 @@ class Define
         ['uri'=> 'dashboard', 'help_uri'=> 'dashboard'],
         ['uri'=> 'dashboardbox', 'help_uri'=> 'dashboard'],
         ['uri'=> 'system', 'help_uri'=> 'system_setting'],
+        ['uri'=> 'safety_check_setting', 'help_uri'=> 'safety_check'],
+        ['uri'=> 'meili_setting', 'help_uri'=> 'additional_meilisearch'],
         // the flow designer, before "workflow" (a "*" is one part of the path, as the id)
         ['uri'=> 'workflow/design/create', 'help_uri'=> 'workflow_design'],
         ['uri'=> 'workflow/*/design', 'help_uri'=> 'workflow_design'],

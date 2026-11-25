@@ -556,6 +556,16 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "안부 확인 설정"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "전문 검색 설정"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "feature",
             "title": "기능 관리"
         },

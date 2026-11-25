@@ -556,6 +556,16 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "安全确认设置"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "全文搜索设置"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "feature",
             "title": "功能管理"
         },

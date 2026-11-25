@@ -24,7 +24,7 @@
         @isset($targetSummary)
         <p class="safety-target-summary mt-3 mb-0 text-muted">
             {{ exmtrans('safety.target_summary', ['count' => $targetSummary['count'], 'settings' => $targetSummary['settings']]) }}
-            <a href="{{ admin_url('system?advanced=1') }}">{{ exmtrans('safety.target_settings_link') }}</a>
+            <a href="{{ admin_url('safety_check_setting') }}">{{ exmtrans('safety.target_settings_link') }}</a>
         </p>
         @endisset
     </div>
