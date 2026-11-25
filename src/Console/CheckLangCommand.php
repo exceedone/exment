@@ -49,7 +49,9 @@ class CheckLangCommand extends Command
      */
     public function handle(): int
     {
-        $jaTrans = trans('exment::exment', [], 'ja');
+        // the keys of Exment's own ja file (not the texts an application adds over them, which
+        // fall back to another language by design)
+        $jaTrans = require exment_package_path('resources/lang/ja/exment.php');
         // all the installed languages (the folders of resources/lang), against ja
         $langs = SystemLocale::getLocaleOptions();
 

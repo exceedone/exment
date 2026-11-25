@@ -194,6 +194,9 @@ class PluginController extends AdminControllerBase
         }
     }
 
+    /** The uri of a page or API plugin (a new or changed one). */
+    public const URI_PATTERN = '/^[a-z0-9][a-z0-9_\-]*$/';
+
     //Check request when edit record to delete null values in event_triggers
     public function update(Request $request, $id)
     {
@@ -201,6 +204,29 @@ class PluginController extends AdminControllerBase
         if (!$plugin || !$plugin->hasPermission(Permission::PLUGIN_SETTING)) {
             Checker::notFoundOrDeny();
             return false;
+        }
+
+        // a changed uri of a page or API plugin: lower case letters, digits, _ and - (it is a
+        // part of the url). An uri saved before this rule (with capital letters) can stay.
+        if ($plugin->matchPluginType(PluginType::PLUGIN_TYPE_URL()) && $request->has('options')) {
+            $uri = array_get((array)$request->get('options'), 'uri');
+            if ($uri !== $plugin->getOption('uri')) {
+                $validator = \Validator::make(
+                    ['uri' => $uri],
+                    ['uri' => ['required', 'regex:' . static::URI_PATTERN, 'max:100']]
+                );
+                if ($validator->fails()) {
+                    // a form sent by pjax is answered with a redirect (the Pjax middleware does not
+                    // take a JSON answer of an error)
+                    if ($request->pjax()) {
+                        return back()->withErrors(['options.uri' => $validator->errors()->first('uri')])->withInput();
+                    }
+                    return getAjaxResponse([
+                        'result' => false,
+                        'errors' => ['options.uri' => $validator->errors()->first('uri')],
+                    ]);
+                }
+            }
         }
 
         if (isset($request->get('options')['event_triggers']) === true) {

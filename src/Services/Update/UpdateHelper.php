@@ -17,12 +17,8 @@ class UpdateHelper extends UpdateHelperBase
     public function require(array $dependencies)
     {
         foreach ($dependencies as $name => $version) {
-            $composer = \Exment::getComposerPath();
-            // a path to the binary (EXMENT_COMPOSER_PATH) is quoted; "composer" or
-            // "php composer.phar" is a command line and is left as it is
-            if (is_file($composer)) {
-                $composer = escapeshellarg($composer);
-            }
+            // EXMENT_COMPOSER_PATH is one program (a path or "composer"), passed as one quoted argument
+            $composer = escapeshellarg(\Exment::getComposerPath());
             //$output = shell_exec("composer require {$name}={$version} --no-scripts");
             chdir(base_path());
             exec("{$composer} require {$name}={$version} --no-scripts", $output, $return_var);
