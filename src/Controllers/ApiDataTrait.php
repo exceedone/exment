@@ -188,7 +188,7 @@ trait ApiDataTrait
     /**
      * Modify logic for getting value
      * @param Request $request
-     * @param Collection|\Illuminate\Pagination\LengthAwarePaginator|CustomValue $target
+     * @param Collection|\Illuminate\Pagination\AbstractPaginator|CustomValue $target
      * @param $options
      * @return array|CustomValue|\Illuminate\Pagination\LengthAwarePaginator|mixed|void
      */
