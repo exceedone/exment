@@ -115,13 +115,12 @@ class GridStateBackTest extends FeatureTestBase
 
     /**
      * @param string $url
-     * @return array<string, mixed> the query of the url
+     * @return array<int|string, mixed> the query of the url
      */
     protected function queryOf(string $url): array
     {
         $query = [];
         parse_str(strval(parse_url($url, PHP_URL_QUERY)), $query);
-        /** @var array<string, mixed> $query */
         return $query;
     }
 
