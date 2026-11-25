@@ -251,6 +251,31 @@ class KanbanServerFilterTest extends UnitTestBase
     }
 
     /**
+     * A keyword matches a label held by a column of several values, behind a
+     * card that does not hold it.
+     */
+    public function testKeywordMatchesALabelOfAColumnOfSeveralValues(): void
+    {
+        $tag = $this->newTag();
+        $s1 = $this->card($tag, ['select' => 'foo', 'select_valtext' => 'foo']);
+        $s2 = $this->card($tag, ['select' => 'foo', 'select_valtext' => 'foo']);
+        $s3 = $this->card($tag, ['select' => 'foo', 'select_valtext' => 'foo', 'select_multiple' => ['baz', 'bar']]);
+        $s4 = $this->card($tag, ['select' => 'baz', 'select_valtext' => 'foo']);
+        $s5 = $this->card($tag, ['select' => 'baz', 'select_valtext' => 'foo', 'select_multiple' => ['bar']]);
+        // the label strip of the cards: a column the board reads
+        $view = $this->boardView($tag, [
+            'kanban_col_count' => 1,
+            'kanban_labels_column_id' => $this->column('select_multiple')->id,
+        ]);
+
+        $this->assertIds([$s1, $s4], $this->boardIds($this->gridOf($view)));
+
+        $grid = $this->gridOf($view)->setBoardState(['keyword' => 'bar']);
+        $this->assertIds([$s3, $s5], $this->boardIds($grid));
+        $this->assertNotContains($s2, $this->boardIds($grid));
+    }
+
+    /**
      * A keyword matches the name of the person a user column holds, not the
      * id it stores.
      */
@@ -552,7 +577,7 @@ class KanbanServerFilterTest extends UnitTestBase
      */
     protected function cardIds(array $cards): array
     {
-        return array_values(array_map('strval', array_column($cards, 'id')));
+        return array_map('strval', array_column($cards, 'id'));
     }
 
     /**

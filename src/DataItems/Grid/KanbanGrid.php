@@ -2466,7 +2466,9 @@ class KanbanGrid extends GridBase
                     $keys = $this->keywordKeys($custom_column, $keyword);
                     if (!empty($keys)) {
                         if (boolval($custom_column->isMultipleEnabled())) {
-                            $q->orWhereInArrayString($this->columnKey($custom_column), $keys);
+                            $q->orWhere(function ($one) use ($custom_column, $keys) {
+                                $this->whereHolds($one, $custom_column, $keys);
+                            });
                         } else {
                             $q->orWhereIn($expr, $keys);
                         }
