@@ -6,6 +6,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\DataImportExport;
+use Exceedone\Exment\Services\UserTimezone;
 use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Layout\Content;
 use ExmentAdminCore\Admin\Show;
@@ -182,7 +183,10 @@ class LogController extends AdminControllerBase
         $grid->column('method', exmtrans('operation_log.method'));
         $grid->column('path', exmtrans('operation_log.path'));
         $grid->column('ip', exmtrans('operation_log.ip'));
-        $grid->column('created_at', trans('admin.created_at'));
+        // in the time zone of the user (ISS02835)
+        $grid->column('created_at', trans('admin.created_at'))->display(function ($created_at) {
+            return UserTimezone::display($created_at);
+        });
 
         $grid->actions(function (Grid\Displayers\Actions $actions) {
             $actions->disableEdit();
@@ -250,7 +254,9 @@ class LogController extends AdminControllerBase
 
                 return json_encode($input, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
             });
-            $show->field('created_at', trans('admin.created_at'));
+            $show->field('created_at', trans('admin.created_at'))->as(function ($created_at) {
+                return UserTimezone::display($created_at);
+            });
 
             $show->panel()->tools(function ($tools) {
                 $tools->disableEdit();

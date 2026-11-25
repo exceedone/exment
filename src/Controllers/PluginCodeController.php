@@ -47,7 +47,7 @@ class PluginCodeController extends AdminControllerBase
 
         $this->plugin = Plugin::getEloquent($id);
 
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -97,7 +97,7 @@ class PluginCodeController extends AdminControllerBase
     public function getTreeData(Request $request, $id)
     {
         $this->plugin = Plugin::getEloquent($id);
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -136,9 +136,13 @@ class PluginCodeController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function fileupload(Request $request, $id)
     {
+        // Editing plugin code executes arbitrary PHP; disabled in shared/multi-tenant.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         $this->plugin = Plugin::getEloquent($id);
 
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -333,8 +337,12 @@ class PluginCodeController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function delete(Request $request, $id)
     {
+        // Editing plugin code executes arbitrary PHP; disabled in shared/multi-tenant.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         $this->plugin = Plugin::getEloquent($id);
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -383,8 +391,12 @@ class PluginCodeController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function store(Request $request, $id)
     {
+        // Editing plugin code executes arbitrary PHP; disabled in shared/multi-tenant.
+        if (!config('exment.plugin_upload_enabled', true)) {
+            abort(403);
+        }
         $this->plugin = Plugin::getEloquent($id);
-        if (!$this->plugin->hasPermission(Permission::PLUGIN_SETTING)) {
+        if (!static::canEditCode()) {
             Checker::error();
             return false;
         }
@@ -449,5 +461,15 @@ class PluginCodeController extends AdminControllerBase
     protected function getFilePaths($folder)
     {
         return $this->plugin->getPluginFilePaths($folder, false);
+    }
+
+    /**
+     * The code editor reads and writes the PHP of a plugin, which the server
+     * runs: it needs the permission of all plugins (as uploading a plugin),
+     * not the setting permission of one plugin. Not in the demo mode.
+     */
+    protected static function canEditCode(): bool
+    {
+        return \Exment::user()->hasPermission(Permission::PLUGIN_ALL) && !\Exceedone\Exment\Services\DemoMode::enabled();
     }
 }

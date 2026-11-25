@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>顧客情報 編集 | Exment modern UI sample</title>
+<style>
+/* ---- tokens: same names and values as public/vendor/exment/css/modern.css ---- */
+:root{
+  --exm-ui-accent:#2563eb; --exm-ui-accent-strong:#1d4ed8; --exm-ui-accent-soft:#eff4ff; --exm-ui-accent-ring:rgba(37,99,235,.22);
+  --exm-ui-text:#1c2024; --exm-ui-text-sub:#5f6b7a; --exm-ui-text-faint:#8b95a1;
+  --exm-ui-bg:#ffffff; --exm-ui-bg-sub:#f7f8f9; --exm-ui-bg-hover:#f3f5f7; --exm-ui-line:#e6e8eb; --exm-ui-line-soft:#eff1f3;
+  --exm-ui-danger:#d1242f;
+  --exm-ui-font:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Meiryo",sans-serif;
+  --exm-ui-fs-xs:12px; --exm-ui-fs-sm:13px; --exm-ui-fs-md:14px; --exm-ui-fs-lg:18px; --exm-ui-fs-xl:24px;
+  --exm-ui-space-1:4px; --exm-ui-space-2:8px; --exm-ui-space-3:12px; --exm-ui-space-4:16px; --exm-ui-space-5:24px; --exm-ui-space-6:32px; --exm-ui-space-7:48px;
+  --exm-ui-radius-sm:6px; --exm-ui-radius-md:10px;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--exm-ui-font);font-size:var(--exm-ui-fs-md);line-height:1.6;color:var(--exm-ui-text);background:var(--exm-ui-bg)}
+a{color:var(--exm-ui-accent-strong);text-decoration:none}
+a:hover{text-decoration:underline}
+h1,h2,h3,p{margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:0;box-shadow:0 0 0 3px var(--exm-ui-accent-ring);border-radius:var(--exm-ui-radius-sm)}
+.mark{width:28px;height:28px;flex:0 0 auto}
+
+/* ---- buttons: one filled (the main action), the rest quiet ---- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;height:34px;padding:0 14px;font-size:var(--exm-ui-fs-sm);font-weight:600;white-space:nowrap;color:var(--exm-ui-text-sub);background:var(--exm-ui-bg);border:1px solid var(--exm-ui-line);border-radius:var(--exm-ui-radius-sm);cursor:pointer;text-decoration:none}
+.btn:hover{color:var(--exm-ui-text);background:var(--exm-ui-bg-hover);text-decoration:none}
+.btn-primary{color:#fff;background:var(--exm-ui-accent);border-color:var(--exm-ui-accent)}
+.btn-primary:hover{color:#fff;background:var(--exm-ui-accent-strong);border-color:var(--exm-ui-accent-strong)}
+.btn-ghost{border-color:transparent;background:transparent}
+.btn-lg{height:42px;font-size:var(--exm-ui-fs-md)}
+
+/* ---- fields ---- */
+.input{width:100%;height:38px;padding:0 var(--exm-ui-space-3);background:var(--exm-ui-bg);border:1px solid var(--exm-ui-line);border-radius:var(--exm-ui-radius-sm);transition:border-color .12s,box-shadow .12s}
+textarea.input{height:auto;padding:10px var(--exm-ui-space-3);resize:vertical;line-height:1.6}
+.input::placeholder{color:var(--exm-ui-text-faint)}
+.input:hover{border-color:#cfd4da}
+.input:focus{border-color:var(--exm-ui-accent);box-shadow:0 0 0 3px var(--exm-ui-accent-ring);outline:0}
+input[type=checkbox],input[type=radio]{width:16px;height:16px;margin:0;accent-color:var(--exm-ui-accent)}
+
+/* ---- small parts ---- */
+.tag{display:inline-block;padding:1px 8px;font-size:var(--exm-ui-fs-xs);line-height:1.6;color:var(--exm-ui-text-sub);background:var(--exm-ui-bg-sub);border:1px solid var(--exm-ui-line);border-radius:999px;white-space:nowrap}
+.tag-accent{color:var(--exm-ui-accent-strong);background:var(--exm-ui-accent-soft);border-color:transparent}
+.muted{color:var(--exm-ui-text-sub)}
+.faint{color:var(--exm-ui-text-faint)}
+.num{font-variant-numeric:tabular-nums}
+
+/* ---- app shell: gray sidebar, white page, no dividing shadows ---- */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.side{background:var(--exm-ui-bg-sub);padding:var(--exm-ui-space-4) var(--exm-ui-space-3);position:sticky;top:0;height:100vh;overflow-y:auto}
+.brand{display:flex;align-items:center;gap:10px;padding:var(--exm-ui-space-2) var(--exm-ui-space-2) var(--exm-ui-space-5);font-size:17px;font-weight:700;color:var(--exm-ui-text)}
+.brand:hover{text-decoration:none}
+.nav-title{padding:var(--exm-ui-space-4) var(--exm-ui-space-2) var(--exm-ui-space-1);font-size:var(--exm-ui-fs-xs);font-weight:600;color:var(--exm-ui-text-faint)}
+.nav a{display:block;padding:6px var(--exm-ui-space-2);margin:1px 0;font-size:var(--exm-ui-fs-md);color:var(--exm-ui-text-sub);border-radius:var(--exm-ui-radius-sm)}
+.nav a:hover{background:#eceef1;color:var(--exm-ui-text);text-decoration:none}
+.nav a.on{background:#e9ecef;color:var(--exm-ui-text);font-weight:600}
+.main{min-width:0}
+.top{display:flex;align-items:center;gap:var(--exm-ui-space-4);height:56px;padding:0 var(--exm-ui-space-6)}
+.top .search{flex:1 1 auto;max-width:360px}
+.top .search .input{height:34px;background:var(--exm-ui-bg-sub);border-color:transparent}
+.top .search .input:focus{background:var(--exm-ui-bg);border-color:var(--exm-ui-accent)}
+.top .sp{flex:1 1 auto}
+.top .who{display:flex;align-items:center;gap:8px;font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub);white-space:nowrap}
+.avatar{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--exm-ui-accent-soft);color:var(--exm-ui-accent-strong);font-size:var(--exm-ui-fs-xs);font-weight:700}
+.badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--exm-ui-accent);color:#fff;font-size:11px;font-weight:700}
+.page{padding:var(--exm-ui-space-5) var(--exm-ui-space-6) var(--exm-ui-space-7);max-width:1240px}
+.crumb{font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint);margin-bottom:var(--exm-ui-space-2)}
+.crumb a{color:var(--exm-ui-text-faint)}
+.page-head{display:flex;align-items:flex-end;flex-wrap:wrap;gap:var(--exm-ui-space-3);margin-bottom:var(--exm-ui-space-5)}
+.page-head h1{font-size:var(--exm-ui-fs-xl);font-weight:700;line-height:1.3}
+.page-head .desc{font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub);margin-top:2px}
+.page-head .sp{flex:1 1 auto}
+.sample-note{margin-top:var(--exm-ui-space-7);font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint)}
+@media (max-width:860px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .top{padding:0 var(--exm-ui-space-4);gap:var(--exm-ui-space-1);justify-content:flex-end}
+  .top .sp{display:none}
+  .top .who span:last-child,.top .search{display:none}
+  .page{padding:var(--exm-ui-space-4) var(--exm-ui-space-4) var(--exm-ui-space-7)}
+}
+
+.form{max-width:760px}
+.sec{margin-bottom:var(--exm-ui-space-7)}
+.sec h2{font-size:var(--exm-ui-fs-lg);font-weight:600;padding-bottom:var(--exm-ui-space-3);margin-bottom:var(--exm-ui-space-5);border-bottom:1px solid var(--exm-ui-line)}
+.row{display:grid;grid-template-columns:160px minmax(0,1fr);gap:var(--exm-ui-space-2) var(--exm-ui-space-5);margin-bottom:var(--exm-ui-space-5)}
+.row>label,.row>.lbl{padding-top:8px;font-size:var(--exm-ui-fs-sm);font-weight:600;color:var(--exm-ui-text-sub)}
+.req{margin-left:6px;font-size:11px;font-weight:600;color:var(--exm-ui-danger)}
+.help{margin-top:6px;font-size:var(--exm-ui-fs-xs);color:var(--exm-ui-text-faint)}
+.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--exm-ui-space-3)}
+.w-s{max-width:220px}
+.radios{display:flex;flex-wrap:wrap;gap:var(--exm-ui-space-2) var(--exm-ui-space-5);padding-top:8px}
+.radios label{display:inline-flex;align-items:center;gap:6px}
+.bar{position:sticky;bottom:0;display:flex;align-items:center;flex-wrap:wrap;gap:var(--exm-ui-space-3);max-width:760px;padding:var(--exm-ui-space-4) 0;background:var(--exm-ui-bg);border-top:1px solid var(--exm-ui-line)}
+.bar .sp{flex:1}
+.bar label{display:inline-flex;align-items:center;gap:6px;font-size:var(--exm-ui-fs-sm);color:var(--exm-ui-text-sub)}
+@media (max-width:640px){.row{grid-template-columns:minmax(0,1fr)}.row>label,.row>.lbl{padding-top:0}.two{grid-template-columns:minmax(0,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <a class="brand" href="dashboard.html"><svg class="mark" viewBox="0 0 120 120" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#1d4ed8"/></linearGradient></defs><rect x="4" y="4" width="112" height="112" rx="26" fill="url(#g)"/><rect x="28" y="27" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="27" width="40" height="18" rx="4" fill="#fff"/><rect x="28" y="51" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="51" width="28" height="18" rx="4" fill="#fff"/><rect x="28" y="75" width="18" height="18" rx="4" fill="#bfdbfe"/><rect x="52" y="75" width="40" height="18" rx="4" fill="#fff"/></svg><span>Exment</span></a>
+    <nav class="nav" aria-label="メニュー">
+      <a href="dashboard.html">HOME</a>
+      <div class="nav-title">データ</div>
+      <a href="data-list.html" class="on" aria-current="page">顧客情報</a>
+      <a href="#">契約情報</a>
+      <a href="#">商談</a>
+      <a href="#">お知らせ</a>
+      <div class="nav-title">マスター管理</div>
+      <a href="#">ユーザー</a>
+      <a href="#">組織</a>
+      <div class="nav-title">管理者設定</div>
+      <a href="#">システム設定</a>
+      <a href="#">カスタムテーブル</a>
+      <a href="#">役割グループ</a>
+      <a href="#">ワークフロー</a>
+      <a href="#">通知</a>
+      <a href="#">プラグイン</a>
+      <a href="#">メニュー</a>
+      <a href="#">テンプレート</a>
+      <a href="#">バックアップ</a>
+      <a href="#">ログイン設定</a>
+      <a href="#">操作ログ</a>
+    </nav>
+  </aside>
+  <div class="main">
+    <header class="top">
+      <div class="search"><input class="input" type="search" placeholder="データを検索" aria-label="データを検索"></div>
+      <div class="sp"></div>
+      <a class="btn btn-ghost" href="#">未処理タスク <span class="badge">3</span></a>
+      <a class="btn btn-ghost" href="#">通知 <span class="badge">2</span></a>
+      <div class="who"><span class="avatar">山</span><span>山田 太郎</span></div>
+    </header>
+    <main class="page">
+      <p class="crumb"><a href="dashboard.html">HOME</a> / <a href="data-list.html">顧客情報</a> / 編集</p>
+      <div class="page-head">
+        <div><h1>株式会社サンプル商事</h1><p class="desc">顧客情報 ・ ID 128 ・ 最終更新 2026/11/16 09:12 山田 太郎</p></div>
+        <div class="sp"></div>
+        <a class="btn" href="data-list.html">一覧</a>
+        <a class="btn" href="#">表示</a>
+      </div>
+
+      <form class="form" action="data-list.html">
+        <section class="sec">
+          <h2>基本情報</h2>
+          <div class="row"><label for="f1">顧客コード<span class="req">必須</span></label><div><input id="f1" class="input w-s" value="C-00128"><p class="help">半角英数字とハイフンで入力してください。</p></div></div>
+          <div class="row"><label for="f2">顧客名<span class="req">必須</span></label><div><input id="f2" class="input" value="株式会社サンプル商事"></div></div>
+          <div class="row"><label for="f3">業種</label><div><select id="f3" class="input w-s"><option>卸売</option><option>製造</option><option>情報通信</option><option>運輸</option><option>建設</option></select></div></div>
+          <div class="row"><div class="lbl">ステータス</div><div class="radios"><label><input type="radio" name="st"> 見込み</label><label><input type="radio" name="st"> 商談中</label><label><input type="radio" name="st" checked> 取引中</label><label><input type="radio" name="st"> 休止</label></div></div>
+          <div class="row"><label for="f4">担当者</label><div><select id="f4" class="input w-s"><option>山田 太郎</option><option>佐藤 花子</option><option>鈴木 一郎</option><option>高橋 健</option></select></div></div>
+        </section>
+
+        <section class="sec">
+          <h2>連絡先</h2>
+          <div class="row"><label for="f5">住所</label><div><div class="two"><input class="input" value="100-0005" aria-label="郵便番号"><input class="input" value="東京都" aria-label="都道府県"></div><input id="f5" class="input" style="margin-top:12px" value="千代田区丸の内1-1-1 サンプルビル5階"></div></div>
+          <div class="row"><label for="f6">電話番号</label><div><input id="f6" class="input w-s" value="03-0000-0000"></div></div>
+          <div class="row"><label for="f7">メールアドレス</label><div><input id="f7" class="input" type="email" value="info@sample-shoji.example.com"></div></div>
+          <div class="row"><label for="f8">備考</label><div><textarea id="f8" class="input" rows="4">年間保守契約は毎年4月に更新。請求書は本社経理部あてに郵送。</textarea></div></div>
+        </section>
+
+        <div class="bar">
+          <button class="btn btn-primary" type="submit">保存</button>
+          <a class="btn btn-ghost" href="data-list.html">キャンセル</a>
+          <span class="sp"></span>
+          <label><input type="checkbox"> 続けて編集する</label>
+        </div>
+      </form>
+      <p class="sample-note">デザインサンプル（静的HTML）。データはすべて架空です。 <a href="index.html">サンプル一覧へ</a></p>
+    </main>
+  </div>
+</div>
+</body>
+</html>

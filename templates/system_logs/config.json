@@ -311,14 +311,13 @@
     "custom_copies": [],
     "admin_menu": [
         {
-            "order": "4",
             "title": "System Performance Log",
             "icon": "fa-brands fa-blogger",
             "uri": "system_logs",
             "options": [],
             "menu_type": "table",
             "menu_name": "system_logs",
-            "parent_name": null,
+            "parent_name": "admin",
             "menu_target_name": "system_logs"
         }
     ],

@@ -127,6 +127,13 @@ class Auth2factorService
     {
         $loginuser = \Exment::user();
 
+        // only the newest code is good: a code sent before is taken back, so
+        // logging in again and again does not make many codes good at once
+        \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
+            ->where('verify_type', static::VERIFY_TYPE_2FACTOR . $verify_type)
+            ->where('login_user_id', $loginuser->id)
+            ->delete();
+
         // set database
         \DB::table(SystemTableName::EMAIL_CODE_VERIFY)
             ->insert(

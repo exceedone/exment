@@ -16,6 +16,7 @@ class SystemRequireList
 
     // @phpstan-ignore-next-line
     protected static $requireClassesCommand = [
+        PhpVersion::class,
         MemorySize::class,
         MaxInputVars::class,
         FileUploadSize::class,
@@ -27,6 +28,7 @@ class SystemRequireList
 
     // @phpstan-ignore-next-line
     protected static $requireClassesWeb = [
+        PhpVersion::class,
         MemorySize::class,
         MaxInputVars::class,
         FileUploadSize::class,
@@ -38,6 +40,7 @@ class SystemRequireList
 
     // @phpstan-ignore-next-line
     protected static $requireClassesInstallWeb = [
+        PhpVersion::class,
         MemorySize::class,
         MaxInputVars::class,
         FileUploadSize::class,
@@ -47,6 +50,34 @@ class SystemRequireList
         BackupRestore::class,
     ];
 
+
+    /**
+     * The tuning advice (ISS00414). Shown on the tuning page, on the install screen
+     * and by exment:checkrequire, apart from the requirements: it never blocks the install.
+     *
+     * @var array<class-string>
+     */
+    protected static $tuningClasses = [
+        Tuning\OpcacheTuning::class,
+        Tuning\PhpVersionTuning::class,
+        Tuning\AppDebugTuning::class,
+        Tuning\ConfigCacheTuning::class,
+        Tuning\ComposerAutoloadTuning::class,
+        Tuning\ExmentCacheTuning::class,
+        Tuning\CacheDriverTuning::class,
+        Tuning\QueueTuning::class,
+        Tuning\DebugLogTuning::class,
+        Tuning\SearchIndexTuning::class,
+        Tuning\DashboardCacheTuning::class,
+        // what was found slow on a server (ISS02823)
+        Tuning\ScheduleTuning::class,
+        Tuning\PhpFpmTuning::class,
+        Tuning\RouteCacheTuning::class,
+        Tuning\FilePermissionTuning::class,
+        Tuning\AssetsTuning::class,
+        Tuning\SlowQueryLogTuning::class,
+        Tuning\IndexMissingTuning::class,
+    ];
 
     // @phpstan-ignore-next-line
     protected static function getRequireClasses(string $systemRequireCalledType)
@@ -58,6 +89,8 @@ class SystemRequireList
                 return static::$requireClassesInstallWeb;
             case SystemRequireCalledType::WEB:
                 return static::$requireClassesWeb;
+            case SystemRequireCalledType::TUNING:
+                return static::$tuningClasses;
         }
 
         return static::$requireClassesCommand;

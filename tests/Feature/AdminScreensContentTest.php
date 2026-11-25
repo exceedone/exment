@@ -90,7 +90,8 @@ class AdminScreensContentTest extends FeatureTestBase
             'copy show' => ['copy/custom_value_edit_all/1', 'copy/custom_value_edit_all/1/edit'],
             'operation show' => ['operation/custom_value_edit_all/1', 'operation/custom_value_edit_all/1/edit'],
             'notify show' => ['notify/custom_value_edit_all/1', 'notify/custom_value_edit_all/1/edit'],
-            'install reset' => ['install/reset', 'install'],
+            // an installed site: the install pages are closed
+            'install reset' => ['install/reset', 'auth/login'],
         ];
     }
 
@@ -170,7 +171,8 @@ class AdminScreensContentTest extends FeatureTestBase
         $this->assertForm($this->html($create), 'notify_navbar', 'POST', []);
 
         $navbar = NotifyNavbar::findOrFail(1);
-        $show = $this->open('notify_navbar/1');
+        // notify_navbar/1 alone opens the notification's record (NotifyOpenRecordTest)
+        $show = $this->open('notify_navbar/1?content=1');
         $this->assertScreen($show, exmtrans('notify_navbar.header'));
         $show->assertSee(strval($navbar->notify_subject));
     }

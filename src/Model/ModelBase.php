@@ -108,10 +108,18 @@ class ModelBase extends Model
     }
 
 
+    /**
+     * The table name of each model class (the table of a class does not change).
+     *
+     * @var array<string, string>
+     */
+    protected static $tableNames = [];
+
     // @phpstan-ignore-next-line
     public static function getTableName()
     {
-        return (new static())->getTable();
+        // making a model is not cheap (CustomValue reads its custom table), and this is called for every cached lookup
+        return static::$tableNames[static::class] ??= (new static())->getTable();
     }
 
     /**

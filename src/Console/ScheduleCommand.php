@@ -50,7 +50,21 @@ class ScheduleCommand extends Command
         $this->backup();
         $this->clearOperationLog();
         $this->pluginBatch();
+        $this->adminNotices();
         return 0;
+    }
+
+    /**
+     * Tell the system administrators, once, of the fixes for the safety of the
+     * bundled plugins and of the features not decided yet (ISS00419).
+     */
+    protected function adminNotices(): void
+    {
+        try {
+            \Exceedone\Exment\Services\PluginDistribution\AdminNotices::deliver();
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
+        }
     }
 
     // @phpstan-ignore-next-line

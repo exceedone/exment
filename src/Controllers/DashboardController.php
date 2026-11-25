@@ -37,6 +37,18 @@ class DashboardController extends AdminControllerBase
     // @phpstan-ignore-next-line
     protected $dashboard;
 
+    /**
+     * The max height (px) of a dashboard item in the stylesheet (.box-body-inner-body), shown as
+     * the default of the max height of a row.
+     */
+    protected const ROW_HEIGHT_DEFAULT = 400;
+
+    /**
+     * The range (px) of the max height of a row. The lowest is the min-height of the stylesheet.
+     */
+    protected const ROW_HEIGHT_MIN = 150;
+    protected const ROW_HEIGHT_MAX = 3000;
+
     public function __construct()
     {
         $this->setPageInfo(exmtrans("dashboard.header"), exmtrans("dashboard.header"), null, 'fa-home');
@@ -157,6 +169,8 @@ class DashboardController extends AdminControllerBase
         }
         // if system admin, check version
         $this->showVersionUpdate();
+        // the system administrators only: the fixes for the safety of the bundled plugins, the new features
+        $this->showAdminNotices();
 
         $this->setDashboardInfo($request);
 
@@ -227,7 +241,7 @@ class DashboardController extends AdminControllerBase
             // bundle (the ECharts chart types) and the admin layer's own Ion.RangeSlider (its Slider
             // form field), the two-handle slider under a number range item of the bar
             'assets' => [
-                'echarts' => asset('vendor/exment/echarts/echarts.min.js?ver=' . $ver),
+                'echarts' => admin_asset('vendor/exment/echarts/echarts.min.js?ver=' . $ver),
                 'ionslider' => asset('vendor/open-admin/AdminLTE/plugins/ionslider'),
             ],
         ];
@@ -308,6 +322,12 @@ class DashboardController extends AdminControllerBase
                     ->help(sprintf(exmtrans("dashboard.description_row"), $row_count))
                     ->required()
                     ->default($default);
+
+                // the max height of the items of the row. Empty: the height of the stylesheet
+                $form->text('row'.$row_count.'_height', sprintf(exmtrans("dashboard.row_height"), $row_count))
+                    ->rules(['nullable', 'integer', 'min:'.static::ROW_HEIGHT_MIN, 'max:'.static::ROW_HEIGHT_MAX])
+                    ->attribute(['placeholder' => static::ROW_HEIGHT_DEFAULT])
+                    ->help(sprintf(exmtrans("dashboard.description_row_height"), $row_count, static::ROW_HEIGHT_DEFAULT, static::ROW_HEIGHT_MIN, static::ROW_HEIGHT_MAX));
             }
         })->disableHeader();
 
@@ -509,6 +529,7 @@ class DashboardController extends AdminControllerBase
     protected function setDashboardBox($content, $row_column_count, $row_no)
     {
         $content->row(function ($row) use ($row_column_count, $row_no) {
+            $box_height = $this->getRowHeight($row_no);
             // check role.
             $has_role = $this->dashboard->hasEditPermission();
             $filter_bar = FilterBarConfig::forViewer($this->dashboard);
@@ -585,9 +606,75 @@ class DashboardController extends AdminControllerBase
                     'dashboardboxes_newbuttons' => $dashboardboxes_newbuttons,
                     'icons' => $icons,
                     'attributes' => \Exment::formatAttributes($attributes),
+                    'box_height' => $box_height,
                 ]));
             }
         });
+    }
+
+    /**
+     * Get the max height (px) of the items of a row, set on the dashboard setting page.
+     *
+     * @param int $row_no
+     * @return int|null null if not set: the items keep the height of the stylesheet
+     */
+    protected function getRowHeight($row_no): ?int
+    {
+        $height = $this->dashboard->getOption('row'.$row_no.'_height');
+        if (!is_numeric($height)) {
+            return null;
+        }
+
+        $height = intval($height);
+        if ($height < static::ROW_HEIGHT_MIN || $height > static::ROW_HEIGHT_MAX) {
+            return null;
+        }
+
+        return $height;
+    }
+
+    /**
+     * For the system administrators only (the others see nothing of it).
+     */
+    protected function showAdminNotices(): void
+    {
+        if (!\Exment::user()->hasPermission(Permission::SYSTEM)) {
+            return;
+        }
+        try {
+            $link = '<a href="' . e(admin_url('feature')) . '">' . e(exmtrans('plugin_distribution.open_feature')) . '</a>';
+            $only = static::adminOnlyNote();
+            foreach (\Exceedone\Exment\Services\PluginDistribution\AdminNotices::security() as $item) {
+                // a notice (a warning), not an error: nothing is broken, an update is waiting
+                admin_warning(
+                    exmtrans('plugin_distribution.notice_security_subject', ['name' => $item['label']]),
+                    e(exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]))
+                        . ($item['note'] !== '' ? '<br>' . e($item['note']) : '') . '<br>' . $link . $only
+                );
+            }
+            $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();
+            if (count($features) > 0) {
+                admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link . $only . static::noticesKnownScript());
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * The × of the notice of new features remembers it (FeatureController::noticesKnown):
+     * the close of the alert alone would bring it back on the next page.
+     */
+    protected static function noticesKnownScript(): string
+    {
+        $url = json_encode(admin_url('feature/notices_known'));
+        return '<span class="exment-features-notice" hidden></span><script>(function(){if(window.exmentFeaturesNotice){return;}window.exmentFeaturesNotice=true;'
+            . 'document.addEventListener("click",function(e){var t=e.target;if(!t||!t.closest){return;}'
+            . 'if(!t.closest("[data-bs-dismiss=alert],[data-dismiss=alert],.close,.btn-close")){return;}'
+            . 'var a=t.closest(".alert");if(!a||!a.querySelector(".exment-features-notice")){return;}'
+            . 'var m=document.querySelector("meta[name=csrf-token]");'
+            . 'fetch(' . $url . ',{method:"POST",credentials:"same-origin",headers:{"X-Requested-With":"XMLHttpRequest","X-CSRF-TOKEN":m?m.content:""}});'
+            . '},true);})();</script>';
     }
 
     // @phpstan-ignore-next-line
@@ -605,8 +692,17 @@ class DashboardController extends AdminControllerBase
         $versionCheck = \Exment::checkLatestVersion();
         if ($versionCheck === SystemVersion::HAS_NEXT) {
             list($latest, $current) = \Exment::getExmentVersion();
-            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. admin_url('system').'">'.exmtrans("system.update_guide").'</a>');
+            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. esc_html(\Exment::versionUpdateUrl()).'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
         }
+    }
+
+    /**
+     * The line under a notice for the system administrators: the others never see
+     * it, and could not act on it (they cannot update or turn features on).
+     */
+    protected static function adminOnlyNote(): string
+    {
+        return '<br><small>' . e(exmtrans('common.notice_admin_only')) . '</small>';
     }
 
     /**

@@ -162,26 +162,40 @@ class ExportImportButton extends ModalTileMenuButton
 
         ///// Append default output
         if ($this->export_flg) {
+            $items = [
+                [
+                    'icon' => 'fa-table',
+                    'header' => $all,
+                    'description' => exmtrans("$base_key.help.export_all"),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&format=$key")], $format);
+                    })->toArray(),
+                ],
+                [
+                    'icon' => 'fa-table',
+                    'header' => $currentPage,
+                    'description' => exmtrans("$base_key.help.export_page"),
+                    'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('page', $page) . "&action=export&format=$key")], $format);
+                    })->toArray(),
+                ],
+            ];
+
+            // all data with the comments, only if the table uses the comments
+            if ($this->enableCommentExport()) {
+                $items[] = [
+                    'icon' => 'fa-comments',
+                    'header' => exmtrans('custom_value.export_all_comment'),
+                    'description' => exmtrans('custom_value.help.export_all_comment'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&add_comment=1&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+
             $groups[] = [
                 'header' => exmtrans("$base_key.default_export"),
-                'items' => [
-                    [
-                        'icon' => 'fa-table',
-                        'header' => $all,
-                        'description' => exmtrans("$base_key.help.export_all"),
-                        'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&format=$key")], $format);
-                        })->toArray(),
-                    ],
-                    [
-                        'icon' => 'fa-table',
-                        'header' => $currentPage,
-                        'description' => exmtrans("$base_key.help.export_page"),
-                        'buttons' => collect($formats)->map(function ($format, $key) use ($page) {
-                            return array_merge(['href' => url($this->grid->getExportUrl('page', $page) . "&action=export&format=$key")], $format);
-                        })->toArray(),
-                    ],
-                ]
+                'items' => $items,
             ];
         }
 
@@ -207,6 +221,35 @@ class ExportImportButton extends ModalTileMenuButton
                         })->toArray(),
                     ],
                 ]
+            ];
+        }
+
+        ///// the date and times in the time zone of the user (the others are in the time zone of the site). ISS02835
+        if (\Exceedone\Exment\Services\UserTimezone::differs() && ($this->export_flg || $this->view_flg)) {
+            $items = [];
+            if ($this->export_flg) {
+                $items[] = [
+                    'icon' => 'fa-clock-o',
+                    'header' => exmtrans("$base_key.default_export") . ' - ' . $all,
+                    'description' => exmtrans('custom_value.help.export_user_timezone'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=export&timezone=user&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+            if ($this->view_flg) {
+                $items[] = [
+                    'icon' => 'fa-clock-o',
+                    'header' => exmtrans('custom_value.view_export') . ' - ' . $all,
+                    'description' => exmtrans('custom_value.help.export_user_timezone'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => url($this->grid->getExportUrl('all') . "&action=view_export&timezone=user&format=$key")], $format);
+                    })->toArray(),
+                ];
+            }
+            $groups[] = [
+                'header' => exmtrans('custom_value.export_user_timezone', ['timezone' => \Exceedone\Exment\Services\UserTimezone::user()]),
+                'items' => $items,
             ];
         }
 
@@ -251,33 +294,36 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         if ($this->import_flg) {
+            $items = [
+                [
+                    'icon' => 'fa-download',
+                    'header' => exmtrans('custom_value.template'),
+                    'description' => exmtrans('custom_value.help.template'),
+                    'buttons' => collect($formats)->map(function ($format, $key) {
+                        return array_merge(['href' => $this->endpoint . "?_export_=all&temp=1&format=$key"], $format);
+                    })->toArray(),
+                ],
+                [
+                    'icon' => 'fa-upload',
+                    'header' => exmtrans('common.import'),
+                    'description' => exmtrans("$base_key.help.import"),
+                    'buttons' => [
+                        [
+                            'label' => exmtrans('common.import'),
+                            'icon' => 'fa-upload',
+                            'url' => '#',
+                            'attributes' => \Exment::formatAttributes([
+                                'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
+                            ]),
+                        ]
+                    ],
+                ],
+            ];
+            // the import items of an application (ScreenExtensions import.items)
+            $items = \Exceedone\Exment\Services\ScreenExtensions::filter('import.items', $items, $this->custom_table);
             $groups[] = [
                 'header' => exmtrans('common.import'),
-                'items' => [
-                    [
-                        'icon' => 'fa-download',
-                        'header' => exmtrans('custom_value.template'),
-                        'description' => exmtrans('custom_value.help.template'),
-                        'buttons' => collect($formats)->map(function ($format, $key) {
-                            return array_merge(['href' => $this->endpoint . "?_export_=all&temp=1&format=$key"], $format);
-                        })->toArray(),
-                    ],
-                    [
-                        'icon' => 'fa-upload',
-                        'header' => exmtrans('common.import'),
-                        'description' => exmtrans("$base_key.help.import"),
-                        'buttons' => [
-                            [
-                                'label' => exmtrans('common.import'),
-                                'icon' => 'fa-upload',
-                                'url' => '#',
-                                'attributes' => \Exment::formatAttributes([
-                                    'data-widgetmodal_url' => url_join($this->endpoint, 'importModal')
-                                ]),
-                            ]
-                        ],
-                    ],
-                ]
+                'items' => $items,
             ];
         }
 
@@ -299,6 +345,20 @@ class ExportImportButton extends ModalTileMenuButton
         }
 
         return false;
+    }
+
+    /**
+     * Whether the dialog has "All data with the comments". Only for the data of a custom table that uses the comments.
+     *
+     * @return bool
+     */
+    protected function enableCommentExport(): bool
+    {
+        if (!isset($this->custom_table)) {
+            return false;
+        }
+
+        return boolval($this->custom_table->getOption('comment_flg') ?? true);
     }
 
     // @phpstan-ignore-next-line

@@ -231,6 +231,40 @@ php artisan exment:publish
 GitHubのブランチを、以下のように運用しています。  
 [Gitのブランチモデルについて](https://qiita.com/okuderap/items/0b57830d2f56d1d51692)
 
+> **ブランチ（2026-11-24 に決定。exment と exment-saas で同じ）**
+>
+> ブランチは 2 種類だけです。
+>
+> | ブランチ | 役目 |
+> |---|---|
+> | `develop/<版>`（例：`develop/7.2.6`、`develop/7.3.0`） | その版で出すものを集めるところ。**pull request は全部、出したい版の `develop/<版>` に出す** |
+> | `master` | **出した版**（exment はリリースずみの版、exment-saas は本番の版）。直接は出さない |
+>
+> - 作業のブランチ（`feature/XXX`・`fix/XXX`）から、`develop/<版>` に PR を出す
+> - 大きな機能（例：7.3 の機能）は `develop/7.3.0` に、7.2.x の直しは `develop/7.2.<n>` に出す。どの版に出すかわからないときは、まとめ役に聞く
+> - 説明書（`document/`）だけの直しは、`master` に出してよい
+> - 古い版（`7.1`・`7.0`・`6.2`）は、脆弱性の直しだけ。まとめ役が cherry-pick する（6.2 は 2027-03-31 まで）
+>
+> **毎回の流れ（exment と exment-saas で同じ）**
+> 1. 前の版を出したら、次の版の `develop/<版>` を作る（例：7.2.5 を出したら `develop/7.2.6`）
+> 2. その版で出すものを、PR で入れる
+> 3. 出す前に、AI チームに「`develop/<版>` をチェックしてください」と頼む。AI の機能（AI アシスタント・チャットボット・AI-OCR）は SaaS にしかないので、ステージング（`stg.*`）で確かめてもらう。**チェック中の `develop/<版>` には、ほかのものを入れない**
+> 4. OK が出たら、最新の中身でテストをまとめて通し、タグを付けて出す（exment `v7.2.6`、exment-saas `saas.v7.2.6`）。`master` に入れて、`develop/<版>` を消す
+> 5. 2 つの `develop/<版>` があるとき（例：`develop/7.2.6` と `develop/7.3.0`）、先に出した版の直しを、まとめ役がもう 1 つにも入れる
+>
+> **exment-saas の版**は、本体と同じ番号にする：本体 7.2.4 を取り込んだ SaaS は `saas.v7.2.4`、その上の SaaS だけの直しは `saas.v7.2.4.1`…
+>
+> **PR の出し方（GitHub のテストの順番待ちを減らすため）**
+> - 小さな直しは、話題ごとにまとめる。1 つの直しごとに PR を作らない
+> - テストが動いているあいだは、なるべく push しない
+> - ネットワークで落ちたジョブは、落ちたジョブだけ動かし直す
+>
+> 脆弱性の修正は、公開の Issue・pull request にせず、SECURITY.md の方法で扱います（GitHub の Security Advisory の非公開のフォークで直す）。
+>
+> **2026-11-24 の切り替え**：exment の `master` は、それまで次の版（7.3 向け）の開発に使っていた。その中身は `develop/7.3.0` に移し、`master` は出した版（v7.2.4）にもどした（前の `master` は `backup/master-2026-11-24` に残してある）。版の番号のない `develop` と `7.2` のブランチは使わない。同じ日に、`release/<版>` の名前を `develop/<版>` に変えた。7.2.5 だけは、AI チームがテスト中だったので、出すまで `release/7.2.5` のまま。`dev-master` を使っている人は、中身が 7.2.4 に変わる。
+>
+> 下の表は以前のブランチの運用です。
+
 | GitHub Brunch Name | Derived from | Explain |
 | ------------------ | -------------| ------------- |
 | `master` | - | 現在の安定版です。リリースした時点でのソースコードを管理します。 |
@@ -268,5 +302,5 @@ php-cs-fixer fix ./packages/hirossyi73/exment
 
 - GitHubのpull requestを実行します。  
 
-- exceedone/exmentのブランチhotfix(不具合対応)、もしくはdevelop(機能追加)を対象に、pull requestを実行します。  
+- exceedone/exmentの、上の「ブランチ」の決まりで、出したい版の **develop/<版>**を対象に、pull requestを実行します。ブランチ名は、機能追加は `feature/XXX`、不具合対応は `fix/XXX` としてください。  
 コメントは、可能な限り記載してください。

@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Menu;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Line\LineInstaller;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\Feature\FeatureTestBase;
@@ -25,6 +26,7 @@ class LineInstallerTest extends FeatureTestBase
 
     public function testEnsureAllCreatesTablesAndMenu(): void
     {
+        LineInstaller::removeLinkMenu();
         LineInstaller::ensureAll();
 
         $flex = CustomTable::getEloquent('line_flex_template');
@@ -41,7 +43,8 @@ class LineInstallerTest extends FeatureTestBase
             $this->assertNotNull(CustomColumn::getEloquent($col, $log), "missing column {$col}");
         }
 
-        $this->assertTrue(Menu::where('menu_name', 'line_link')->exists());
+        // "LINE" is in the user menu (top right) from v7.1.0, not in the side menu
+        $this->assertFalse(Menu::where('menu_name', 'line_link')->exists());
     }
 
     public function testSendLogFlexTemplateColumnPointsAtFlexTemplateTable(): void
@@ -55,14 +58,54 @@ class LineInstallerTest extends FeatureTestBase
         $this->assertEquals($flex->id, array_get($column->options, 'select_target_table'));
     }
 
+    public function testUpdateRemovesTheLinkMenuStillAtTheTop(): void
+    {
+        LineInstaller::ensureLinkMenu();
+        $this->assertEquals(0, Menu::where('menu_name', 'line_link')->first()->parent_id);
+
+        $this->runMoveToUserMenuMigration();
+
+        $this->assertFalse(Menu::where('menu_name', 'line_link')->exists());
+    }
+
+    public function testUpdateLeavesTheLinkMenuSomeoneMoved(): void
+    {
+        LineInstaller::ensureLinkMenu();
+        $master = Menu::where('menu_type', 'parent_node')->where('menu_name', 'master')->first();
+        $this->assertNotNull($master);
+        $menu = Menu::where('menu_name', 'line_link')->first();
+        $menu->parent_id = $master->id;
+        $menu->save();
+
+        $this->runMoveToUserMenuMigration();
+
+        $this->assertEquals($master->id, Menu::where('menu_name', 'line_link')->first()->parent_id);
+    }
+
+    public function testLinkIsInTheUserMenuOnlyWithALineAccount(): void
+    {
+        System::system_line_oa_basic_id('');
+        $this->assertFalse(LineInstaller::linkAvailable());
+
+        System::system_line_oa_basic_id('@123abcde');
+        $this->assertTrue(LineInstaller::linkAvailable());
+    }
+
+    protected function runMoveToUserMenuMigration(): void
+    {
+        $migration = require __DIR__ . '/../../../database/migrations/2026_11_21_000000_move_line_link_menu_to_user_menu.php';
+        $migration->up();
+    }
+
     public function testEnsureAllIsIdempotent(): void
     {
+        LineInstaller::removeLinkMenu();
         LineInstaller::ensureAll();
         LineInstaller::ensureAll();
 
         $this->assertEquals(1, CustomTable::where('table_name', 'line_flex_template')->count());
         $this->assertEquals(1, CustomTable::where('table_name', 'line_send_log')->count());
-        $this->assertEquals(1, Menu::where('menu_name', 'line_link')->count());
+        $this->assertEquals(0, Menu::where('menu_name', 'line_link')->count());
     }
     public function testEnsureAllRefusesForeignTableWithSameName(): void
     {

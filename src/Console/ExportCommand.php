@@ -19,7 +19,7 @@ class ExportCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--count=} {--format=csv} {--view=} {--dirpath=} {--add_setting=0} {--add_relation=0}';
+    protected $signature = 'exment:export {table_name} {--action=default} {--type=all} {--page=1} {--count=} {--format=csv} {--view=} {--dirpath=} {--add_setting=0} {--add_relation=0} {--add_comment=0}';
 
     /**
      * The console command description.
@@ -75,6 +75,7 @@ class ExportCommand extends Command
         $options['count'] = $this->option("count");
         $options['add_setting'] = $this->option("add_setting");
         $options['add_relation'] = $this->option("add_relation");
+        $options['add_comment'] = $this->option("add_comment");
 
         if (!\in_array($options['type'], ['all', 'page'])) {
             throw new \Exception('optional parameter type error : ' . $options['type']);

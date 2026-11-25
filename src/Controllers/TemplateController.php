@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\TemplateImportExport;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
@@ -26,6 +27,18 @@ class TemplateController extends AdminControllerBase
     }
 
     /**
+     * Redirect legacy GET template/import and template/export to the template index.
+     * Defined as a controller action (instead of a route closure) so the route table
+     * stays serializable for `php artisan route:cache`.
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function redirectIndex()
+    {
+        return redirect(admin_url('template'));
+    }
+
+    /**
      * Index interface.
      *
      * @return Content
@@ -34,7 +47,10 @@ class TemplateController extends AdminControllerBase
     {
         $this->AdminContent($content);
         $this->exportBox($content);
-        $this->importBox($content);
+        // demo mode: export only
+        if (!DemoMode::enabled()) {
+            $this->importBox($content);
+        }
         return $content;
     }
 

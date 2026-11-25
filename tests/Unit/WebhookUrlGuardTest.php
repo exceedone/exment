@@ -1,0 +1,90 @@
+<?php
+
+namespace Exceedone\Exment\Tests\Unit;
+
+use Exceedone\Exment\Controllers\CustomNotifyController;
+use Exceedone\Exment\Services\WebhookUrlGuard;
+
+/**
+ * Slack / Teams webhooks are posted from the server, so the URL may not point at the server
+ * itself or at the link-local range (cloud metadata). Private networks are allowed unless
+ * exment.notify_webhook_deny_private is set.
+ */
+class WebhookUrlGuardTest extends UnitTestBase
+{
+    protected function tearDown(): void
+    {
+        config(['exment.notify_webhook_deny_private' => false]);
+        parent::tearDown();
+    }
+
+    public function testAPublicAddressIsAllowed(): void
+    {
+        $this->assertTrue(WebhookUrlGuard::isAllowed('https://8.8.8.8/hook'));
+        $this->assertTrue(WebhookUrlGuard::isAllowed('http://1.1.1.1:8080/hook'));
+    }
+
+    public function testTheServerItselfAndLinkLocalAreRefused(): void
+    {
+        foreach ([
+            'http://127.0.0.1/hook',
+            'http://127.1.2.3:8080/',
+            'http://169.254.169.254/latest/meta-data/',
+            'http://0.0.0.0/',
+            'http://[::1]/',
+            'http://[::ffff:127.0.0.1]/',
+            'http://[fe80::1]/',
+            'http://100.64.0.1/',
+            'http://[fd00:ec2::254]/',
+            'http://168.63.129.16/',
+        ] as $url) {
+            $this->assertFalse(WebhookUrlGuard::isAllowed($url), $url);
+        }
+    }
+
+    public function testOtherSchemesAndCredentialsAreRefused(): void
+    {
+        $this->assertFalse(WebhookUrlGuard::isAllowed('ftp://8.8.8.8/'));
+        $this->assertFalse(WebhookUrlGuard::isAllowed('file:///etc/passwd'));
+        $this->assertFalse(WebhookUrlGuard::isAllowed('https://user:pass@8.8.8.8/'));
+        $this->assertFalse(WebhookUrlGuard::isAllowed(''));
+    }
+
+    public function testPrivateNetworksDependOnTheSetting(): void
+    {
+        $this->assertTrue(WebhookUrlGuard::isAllowed('http://10.0.0.5/hook'));
+        $this->assertTrue(WebhookUrlGuard::isAllowed('http://192.168.1.10/hook'));
+
+        config(['exment.notify_webhook_deny_private' => true]);
+        $this->assertFalse(WebhookUrlGuard::isAllowed('http://10.0.0.5/hook'));
+        $this->assertFalse(WebhookUrlGuard::isAllowed('http://192.168.1.10/hook'));
+        $this->assertFalse(WebhookUrlGuard::isAllowed('http://172.16.0.1/hook'));
+        $this->assertTrue(WebhookUrlGuard::isAllowed('https://8.8.8.8/hook'));
+    }
+
+    public function testAHostTheAdministratorAllowsIsTaken(): void
+    {
+        $this->assertFalse(WebhookUrlGuard::isAllowed('http://127.0.0.1:8065/hooks/x'));
+        config(['exment.notify_webhook_allow_hosts' => 'chat.example, 127.0.0.1']);
+        $this->assertTrue(WebhookUrlGuard::isAllowed('http://127.0.0.1:8065/hooks/x'));
+        config(['exment.notify_webhook_allow_hosts' => '']);
+    }
+
+    public function testTheNotifyListMarksAWebhookThatIsNotSent(): void
+    {
+        $blocked = [['notify_action' => '3', 'webhook_url' => 'http://127.0.0.1/hook']];
+        $sent = [['notify_action' => '3', 'webhook_url' => 'https://8.8.8.8/hook']];
+
+        $html = CustomNotifyController::notifyActionsText($blocked);
+        $this->assertStringContainsString('fa-exclamation-triangle', $html);
+        $this->assertStringContainsString('EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS', $html);
+
+        $this->assertStringNotContainsString('fa-exclamation-triangle', CustomNotifyController::notifyActionsText($sent));
+        $this->assertStringNotContainsString('fa-exclamation-triangle', CustomNotifyController::notifyActionsText([['notify_action' => '1']]));
+
+        // the host the administrator allows is not marked
+        config(['exment.notify_webhook_allow_hosts' => '127.0.0.1']);
+        $this->assertStringNotContainsString('fa-exclamation-triangle', CustomNotifyController::notifyActionsText($blocked));
+        config(['exment.notify_webhook_allow_hosts' => '']);
+    }
+}

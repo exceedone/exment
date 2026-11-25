@@ -309,7 +309,9 @@ class TemplateExporter
     protected static function setTemplateMenu(&$config, $target_tables, $is_lang = false)
     {
         // get menu --------------------------------------------------
-        $menuTree = (new Menu())->toTree(); // menutree:hierarchy
+        // with the menus of the features not used (a site that uses them gets them);
+        // with target tables, the menus of those tables the user sees (MenuVisibility)
+        $menuTree = \Exceedone\Exment\Services\MenuVisibility::forUser(\Admin::user())->exportTree((array) $target_tables); // menutree:hierarchy
         $menus = [];
 
         // loop for menutree
@@ -428,11 +430,7 @@ class TemplateExporter
     // @phpstan-ignore-next-line
     protected static function getTemplateMenuItems($menu, $target_tables, $is_lang = false)
     {
-        // checking target table visible. if false, return empty array
-        if (count($target_tables) > 0 && !\Admin::user()->visible($menu, $target_tables)) {
-            return [];
-        }
-
+        // the tree has only the menus to take (MenuVisibility::exportTree())
         $menus = [];
         // @phpstan-ignore-next-line
         $menus[] = Menu::find(array_get($menu, 'id'))->getTemplateExportItems($is_lang);

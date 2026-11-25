@@ -143,7 +143,7 @@
         width: 100%;
         white-space: nowrap;
     }
-    input {
+    .has-many-table input:not([type="checkbox"]):not([type="radio"]) {
         min-width: 90px !important;
     }
     .select2 {

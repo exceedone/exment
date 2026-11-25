@@ -17,10 +17,38 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifyActionTarget;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\WebhookUrlGuard;
 use Illuminate\Http\Request;
 
 trait NotifyTrait
 {
+    /**
+     * The actions of a notify for the grid, escaped. A webhook whose URL Exment
+     * does not post to (the server itself, internal addresses) gets a warning mark.
+     *
+     * @param mixed $val action_settings
+     * @return string
+     */
+    public static function notifyActionsText($val): string
+    {
+        $blocked = false;
+        $items = is_array($val) ? $val : [];
+        $text = collect($items)->map(function ($v) use (&$blocked) {
+            $url = array_get($v, 'webhook_url');
+            if (!is_nullorempty($url) && !WebhookUrlGuard::isAllowed($url)) {
+                $blocked = true;
+            }
+            $enum = NotifyAction::getEnum(array_get($v, 'notify_action'));
+            return isset($enum) ? $enum->transKey('notify.notify_action_options') : null;
+        })->filter()->unique()->implode(exmtrans('common.separate_word'));
+
+        $html = esc_html($text);
+        if ($blocked) {
+            $html .= ' <i class="fa fa-exclamation-triangle text-danger" data-toggle="tooltip" title="' . esc_html(exmtrans('notify.message.webhook_url_not_sent')) . '"></i>';
+        }
+        return $html;
+    }
+
     /**
      * Make a grid builder.
      */
@@ -98,7 +126,12 @@ trait NotifyTrait
         /** @phpstan-ignore-next-line */
         $form->url('webhook_url', exmtrans("notify.webhook_url"))
             ->required()
-            ->rules(["max:300"])
+            ->rules(["max:300", function ($attribute, $value, $fail) {
+                // not the server itself, nor the link-local range (cloud metadata)
+                if (!is_nullorempty($value) && !\Exceedone\Exment\Services\WebhookUrlGuard::isAllowed($value)) {
+                    $fail(exmtrans('notify.message.webhook_url_not_allowed'));
+                }
+            }])
             /** @phpstan-ignore-next-line */
             ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
             ->attribute([

@@ -66,6 +66,9 @@ class DefaultForm extends FormBase
         // for lock data
         $form->hidden('updated_at');
 
+        // an application adds its own to the form (ScreenExtensions data_form.form)
+        \Exceedone\Exment\Services\ScreenExtensions::call('data_form.form', $form, $this->custom_table, $this->id);
+
         // get select_parent
         $select_parent = $request->has('select_parent') ? intval($request->get('select_parent')) : null;
         // set one:many select
@@ -195,6 +198,9 @@ EOT;
             Admin::script($script);
         }
 
+        // the conditions items are shown on (Studio, ScreenCondition)
+        $this->setVisibleIfScript();
+
         // ignore select_parent
         $form->ignore('select_parent');
 
@@ -280,6 +286,62 @@ EOT;
     }
 
     /**
+     * Hide an item of the default block while the condition it is shown on does
+     * not hold (Studio: "show the memo when the status is paused"). The value of
+     * a hidden item is kept as it is.
+     */
+    protected function setVisibleIfScript(): void
+    {
+        $rules = [];
+        foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
+            if (intval($custom_form_block->form_block_type) !== FormBlockType::DEFAULT) {
+                continue;
+            }
+            $rules = array_merge($rules, \Exceedone\Exment\Services\Studio\ScreenCondition::rulesOf($custom_form_block));
+        }
+        if (count($rules) === 0) {
+            return;
+        }
+        $json = json_encode($rules, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT);
+        $script = <<<EOT
+(function (rules) {
+    function inputs(name) {
+        return $('[name="value[' + name + ']"], [name="value[' + name + '][]"]');
+    }
+    function valuesOf(name) {
+        var values = [];
+        inputs(name).each(function () {
+            if ((this.type === 'checkbox' || this.type === 'radio') && !this.checked) { return; }
+            var v = $(this).val();
+            (Array.isArray(v) ? v : [v]).forEach(function (x) { if (x !== null && x !== undefined && String(x) !== '') { values.push(String(x)); } });
+        });
+        return values;
+    }
+    function holds(c) {
+        var values = valuesOf(c.column);
+        switch (c.operator) {
+            case 'eq': return values.indexOf(String(c.value)) !== -1;
+            case 'ne': return values.indexOf(String(c.value)) === -1;
+            case 'empty': return values.length === 0;
+            case 'not_empty': return values.length > 0;
+        }
+        return true;
+    }
+    function apply() {
+        rules.forEach(function (rule) {
+            var show = rule.all.every(holds);
+            inputs(rule.name).first().closest('.form-group').toggle(show);
+        });
+    }
+    $(document).off('change.exmVisibleIf input.exmVisibleIf switchChange.bootstrapSwitch.exmVisibleIf')
+        .on('change.exmVisibleIf input.exmVisibleIf switchChange.bootstrapSwitch.exmVisibleIf', ':input', apply);
+    apply();
+})($json);
+EOT;
+        Admin::script($script);
+    }
+
+    /**
      * set custom form columns
      */
     // @phpstan-ignore-next-line
@@ -294,6 +356,9 @@ EOT;
             }
         }
         foreach ($custom_form_columns as $form_column) {
+            if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                continue;
+            }
             // exclusion header and html
             if ($form_column->form_column_type == FormColumnType::OTHER) {
                 continue;
@@ -329,6 +394,9 @@ EOT;
             $custom_form_columns = $custom_form_block->custom_form_columns;
             // setting fields.
             foreach ($custom_form_columns as $form_column) {
+                if (!\Exceedone\Exment\Services\ScreenExtensions::allows('data_form.column', $form_column, $this->custom_table)) {
+                    continue;
+                }
                 if (!isset($target_custom_value) && $form_column->form_column_type == FormColumnType::SYSTEM) {
                     continue;
                 }
@@ -349,6 +417,12 @@ EOT;
                 }
 
                 $field->setWidth(8, 2);
+
+                // the options of the column, for the scripts of the field
+                if (method_exists($field, 'setCustomOptions')) {
+                    // @phpstan-ignore-next-line
+                    $field->setCustomOptions($form_column->custom_column->options ?? []);
+                }
                 // push field to form
                 $form->pushFieldAndOption($field, [
                     'row' => $form_column->row_no,
@@ -468,7 +542,9 @@ EOT;
 
                 // loop input's value
                 foreach ($relationValues as $relationK => $relationV) {
-                    $instance = $relation->findOrNew(array_get($relationV, $keyName));
+                    // get the relation again for every row: findOrNew() adds "where id = ?" to the
+                    // relation's query, so a reused relation finds only the first row.
+                    $instance = $model->$relation_name()->findOrNew(array_get($relationV, $keyName));
                     // remove self item
                     $uniqueCheckSiblings = array_filter($relationValues, function ($relationValue, $key) use ($relationK) {
                         return !isMatchString($relationK, $key);
@@ -638,12 +714,47 @@ EOT;
                 ]));
             }
 
+            // Start the new record from a record of another table (#1828): one
+            // button for each copy setting the admin put on this form.
+            if (!$disableToolsButton && !isset($id)) {
+                $copies = \Exceedone\Exment\Model\CustomCopy::getCreateSources($custom_table);
+                foreach ($copies as $copy) {
+                    $from_table = $copy->from_custom_table;
+                    $target_class = 'copy_from_target_' . $copy->suuid;
+                    $tools->append(view('exment::tools.copy-from-button', [
+                        // one source: just "Copy from"; several: say which table
+                        'label' => \Exceedone\Exment\Model\CustomCopy::getCreateLabel($copy, count($copies) > 1),
+                        'target_class' => $target_class,
+                        // the picked record id is put after this
+                        'url' => admin_urls_query('data', $custom_table->table_name, 'create', ['copy_from' => $copy->suuid]) . '&copy_from_id=',
+                        // the search dialog of the copy-from table
+                        'modal_url' => admin_urls_query('data', $from_table->table_name, ['modalframe' => 1]),
+                        'expand' => json_encode([
+                            'target_column_class' => $target_class,
+                            'target_column_multiple' => 0,
+                            'display_table_id' => $custom_table->id,
+                        ]),
+                    ])->render());
+                }
+                if (count($copies) > 0) {
+                    Admin::script(<<<'EOT'
+$(document).off('change.exment_copy_from').on('change.exment_copy_from', 'select[data-copy-from-url]', function () {
+    var value = $(this).val();
+    if (value) {
+        window.location.href = $(this).data('copy-from-url') + encodeURIComponent(value);
+    }
+});
+EOT);
+                }
+            }
+
             if (!$disableToolsButton) {
                 PartialCrudService::setAdminFormTools($custom_table, $tools, $id);
             }
 
             if (!$disableToolsButton && $custom_table->enableTableMenuButton()) {
                 $tools->add((new Tools\CustomTableMenuButton('data', $custom_table)));
+                \Exceedone\Exment\Services\ScreenExtensions::call('data_form.tools', $tools, $custom_table, $id);
             }
         });
     }

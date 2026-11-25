@@ -18,7 +18,9 @@ class Define
     public const COMPOSER_PACKAGE_NAME = 'exceedone/exment';
     public const COMPOSER_PACKAGE_NAME_EXMENT_ADMIN = 'exceedone/exment-admin-core';
     public const COMPOSER_VERSION_CHECK_URL = 'https://packagist.org/packages/exceedone/exment.json';
-    public const EXMENT_NEWS_API_URL = 'https://exment.net/wp-json/wp/v2/posts';
+    // A static JSON file in the WordPress REST API format (the WordPress path /wp-json/wp/v2/posts redirects here).
+    // It takes no query, so Exment picks the news itself (News::filterItems()).
+    public const EXMENT_NEWS_API_URL = 'https://exment.net/api/posts.json';
     public const EXMENT_NEWS_LINK = 'https://exment.net/category/news';
     public const USER_IMAGE_LINK = 'vendor/exment/images/user.png';
     public const ORGANIZATION_IMAGE_LINK = 'vendor/exment/images/organization.png';
@@ -58,12 +60,17 @@ class Define
         'site_favicon' => ['type' => 'file', 'move' => 'system', 'group' => 'initialize'],
         'site_skin' => ['config' => 'admin.skin', 'group' => 'initialize'],
         'site_layout' => ['default' => 'layout_default', 'group' => 'initialize'],
+        'ui_design' => ['default' => 'modern', 'group' => 'initialize'],
 
         'api_available' => ['type' => 'boolean', 'config' => 'exment.api', 'group' => 'initialize'],
         'outside_api' => ['type' => 'boolean', 'group' => 'initialize', 'default' => true],
         'permission_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'organization_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'initialize'],
         'logging_toggle_available' => ['type' => 'boolean', 'default' => '0', 'group' => 'initialize'],
+        // system performance log: save only slow requests (seconds; both 0 = every request), at most N logs in an hour (0 = no limit)
+        'logging_slow_request_seconds' => ['type' => 'int', 'default' => '3', 'group' => 'initialize'],
+        'logging_slow_sql_seconds' => ['type' => 'int', 'default' => '1', 'group' => 'initialize'],
+        'logging_max_per_hour' => ['type' => 'int', 'default' => '100', 'group' => 'initialize'],
 
         // Advanced ----------------------------------
         'filter_search_type' => ['default' => 'forward', 'group' => 'advanced'],
@@ -73,6 +80,10 @@ class Define
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
         'data_submit_redirect' => ['type' => 'string', 'default' => null, 'group' => 'advanced'],
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
+        // the languages the users can choose (ISS02835). Empty: all the installed languages
+        'allowed_locales' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
+        // the language of the browser for a user who has not chosen one (ISS02835). On by default
+        'locale_from_browser' => ['type' => 'boolean', 'default' => '1', 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
         'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,
@@ -87,6 +98,18 @@ class Define
 
         // public form ----------------------------------------------------
         'publicform_available' => ['type' => 'boolean', 'default' => false, 'group' => 'advanced'],
+        // the features an administrator turns on (Services\Features; Admin setting → Feature management)
+        'features' => ['type' => 'json', 'default' => []],
+        // the menu before "Arrange in the standard order" (Services\MenuArranger), for undoing it
+        'menu_arrange_backup' => ['type' => 'json', 'default' => []],
+        // maintenance mode of the site (Services\MaintenanceMode)
+        'maintenance' => ['type' => 'json', 'default' => []],
+        // an exment:schedule skipped in a maintenance, to run after it
+        'maintenance_missed_schedule' => ['default' => null],
+        // the id of the site (a UUID made once; the market and the licenses of the plugins know the site by it)
+        'site_id' => ['type' => 'string', 'default' => null],
+        // the notices told to the system administrators (Services\PluginDistribution\AdminNotices)
+        'admin_notices_sent' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
@@ -149,6 +172,10 @@ class Define
         'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
         'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'notify'],
         'safety_check_last_feed_time' => ['type' => 'datetime'],
+        // Comments written before this time ('Y-m-d H:i:s') are shown as the plain text they were
+        // written as; later ones are shown as Markdown. Set once, by the migration that brings
+        // Markdown comments. Not set: every comment is Markdown.
+        'comment_markdown_start' => [],
 
         // Backup
         'backup_enable_automatic' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
@@ -189,6 +216,17 @@ class Define
         "skin-black",
         "skin-black-light",
     ];
+
+    /**
+     * Screen designs. The first one is the default.
+     */
+    public const SYSTEM_UI_DESIGN = [
+        'modern',
+        'classic',
+    ];
+
+    /** Cookie holding how the sidebar was last left: "collapsed" or "expanded". */
+    public const COOKIE_SIDEBAR_STATE = 'exment_sidebar';
 
     public const SYSTEM_LAYOUT = [
         'layout_default' => ['sidebar-mini'],
@@ -244,6 +282,10 @@ class Define
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE = "import_key_value_%s_%s_%s";
     public const SYSTEM_KEY_SESSION_IMPORT_KEY_VALUE_PREFIX = "import_key_value_";
     public const SYSTEM_KEY_SESSION_ORGANIZATION_TREE = "organization_tree";
+    public const SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_INDEX = "organization_parent_index";
+    // the row of the table systems that holds the generation of the cache (System::cacheGeneration)
+    public const SYSTEM_KEY_CACHE_GENERATION = "cache_generation";
+    public const SYSTEM_KEY_SESSION_ORGANIZATION_PARENT_IDS = "organization_parent_ids";
     public const SYSTEM_KEY_SESSION_GRID_AUTHORITABLE = "grid_authoritable_%s";
     public const SYSTEM_KEY_SESSION_ACCESSIBLE_TABLE = "accessible_table_%s_%s";
     public const SYSTEM_KEY_SESSION_DISABLE_DATA_URL_TAG = "disable_data_url_tag";
@@ -267,6 +309,24 @@ class Define
     /**
      * MENU SYSTEM DIFINITION
      */
+    /**
+     * The groups of the left menu (parent nodes), in the order of the feature
+     * map (exment.net/feature-map/): the first menu of a new site, the bundled
+     * templates and the official plugins put their menus under them
+     * (Menu::groupParentId()). The settings (admin_data, admin_user, admin)
+     * come at the end, after 90.
+     */
+    public const MENU_GROUP_DEFINITION = [
+        'groupware' => ['icon' => 'fa-comments', 'order' => 2],
+        'request' => ['icon' => 'fa-check-square-o', 'order' => 10],
+        'sales' => ['icon' => 'fa-briefcase', 'order' => 20],
+        'asset' => ['icon' => 'fa-archive', 'order' => 25],
+        'project' => ['icon' => 'fa-tasks', 'order' => 30],
+        'it_support' => ['icon' => 'fa-life-ring', 'order' => 40],
+        'hr' => ['icon' => 'fa-users', 'order' => 50],
+        'master' => ['icon' => 'fa-database', 'order' => 90],
+    ];
+
     public const MENU_SYSTEM_DEFINITION = [
         'home' => [
             'uri' => '/',
@@ -284,13 +344,37 @@ class Define
             'uri' => 'meili-dictionary',
             'icon' => 'fa-language',
         ],
+        'file_server' => [
+            'uri' => 'file_server',
+            'icon' => 'fa-folder-open',
+        ],
         'custom_table' => [
             'uri' => 'table',
             'icon' => 'fa-table',
         ],
+        'studio' => [
+            'uri' => 'studio',
+            'icon' => 'fa-th-large',
+        ],
+        'tuning' => [
+            'uri' => 'tuning',
+            'icon' => 'fa-tachometer',
+        ],
+        'security_check' => [
+            'uri' => 'security_check',
+            'icon' => 'fa-shield',
+        ],
+        'maintenance' => [
+            'uri' => 'maintenance',
+            'icon' => 'fa-wrench',
+        ],
         'role_group' => [
             'uri' => 'role_group',
             'icon' => 'fa-user-secret',
+        ],
+        'feature' => [
+            'uri' => 'feature',
+            'icon' => 'fa-toggle-on',
         ],
         'menu' => [
             'uri' => 'auth/menu',
@@ -307,6 +391,10 @@ class Define
         'workflow' => [
             'uri' => 'workflow',
             'icon' => 'fa-share-alt',
+        ],
+        'workflow_task' => [
+            'uri' => 'workflow_task',
+            'icon' => 'fa-check-square-o',
         ],
         'backup' => [
             'uri' => 'backup',
@@ -527,6 +615,9 @@ class Define
         ['uri'=> 'system', 'help_uri'=> 'system_setting'],
         ['uri'=> 'workflow', 'help_uri'=> 'workflow_setting'],
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
+        ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
+        ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
+        ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];
 

@@ -21,11 +21,15 @@ use Cache;
  * @method static string|void site_favicon($arg = null)
  * @method static string|void site_skin($arg = null)
  * @method static string|void site_layout($arg = null)
+ * @method static string|void ui_design($arg = null)
  * @method static boolean|void api_available($arg = null)
  * @method static boolean|void outside_api($arg = null)
  * @method static boolean|void permission_available($arg = null)
  * @method static boolean|void organization_available($arg = null)
  * @method static boolean|void logging_toggle_available($arg = null)
+ * @method static int|void logging_slow_request_seconds($arg = null)
+ * @method static int|void logging_slow_sql_seconds($arg = null)
+ * @method static int|void logging_max_per_hour($arg = null)
  * @method static string|void filter_search_type($arg = null)
  * @method static string|void system_mail_host($arg = null)
  * @method static string|void system_mail_port($arg = null)
@@ -44,6 +48,8 @@ use Cache;
  * @method static string|void system_values_pos($arg = null)
  * @method static string|void data_submit_redirect($arg = null)
  * @method static array|void header_user_info($arg = null)
+ * @method static array<int, string>|void allowed_locales($arg = null)
+ * @method static bool|void locale_from_browser($arg = null)
  * @method static boolean|void complex_password($arg = null)
  * @method static int|void password_expiration_days($arg = null)
  * @method static boolean|void first_change_password($arg = null)
@@ -91,7 +97,14 @@ use Cache;
  * @method static int|void safety_check_resend_throttle_minutes($arg = null)
  * @method static int|void safety_check_answer_url_expire_days($arg = null)
  * @method static Carbon|void safety_check_last_feed_time($arg = null)
+ * @method static string|null|void comment_markdown_start($arg = null)
  * @method static bool|void publicform_available($arg = null)
+ * @method static mixed features($arg = null)
+ * @method static mixed menu_arrange_backup($arg = null)
+ * @method static mixed maintenance($arg = null)
+ * @method static mixed maintenance_missed_schedule($arg = null)
+ * @method static string|null|void site_id($arg = null)
+ * @method static mixed admin_notices_sent($arg = null)
  * @method static string|void recaptcha_site_key($arg = null)
  * @method static string|void recaptcha_secret_key($arg = null)
  * @method static string|void recaptcha_type($arg = null)
@@ -125,7 +138,7 @@ class System extends ModelBase
     {
         // Get system setting value
         if (static::hasFunction($name)) {
-            $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
+            $setting = \Exceedone\Exment\Services\CoreExtensions::systemSettings()[$name];
             return static::getset_system_value($name, $setting, $argments);
         }
 
@@ -250,8 +263,8 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
-                $val = Cache::get($key);
+            // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -262,8 +275,8 @@ class System extends ModelBase
                 return $val;
             }
 
-            if (boolval(config('exment.use_cache', false)) && Cache::has($key)) {
-                $val = Cache::get($key);
+            // one read of the store: has() reads the value too, and a null is not kept (ISS00413)
+            if (boolval(config('exment.use_cache', false)) && !is_null($val = static::store()->get(static::storeKey($key)))) {
                 static::setRequestSession($key, $val);
                 return $val;
             }
@@ -280,13 +293,145 @@ class System extends ModelBase
 
             // set cache
             if (boolval(config('exment.use_cache', false))) {
-                Cache::put($key, $val, Define::CACHE_CLEAR_MINUTE);
+                static::store()->put(static::storeKey($key), $val, Define::CACHE_CLEAR_MINUTE);
             }
             return $val;
         }
 
         static::setRequestSession($key, $value);
-        Cache::put($key, $value, Define::CACHE_CLEAR_MINUTE);
+        static::store()->put(static::storeKey($key), $value, Define::CACHE_CLEAR_MINUTE);
+    }
+
+    /** @var string|null the generation of the cache last read from the database */
+    protected static $cacheGeneration;
+
+    /** @var float when it was read (microtime) */
+    protected static $cacheGenerationReadAt = 0.0;
+
+    /**
+     * The generation of the cache: a value kept in the database (table systems) that changes
+     * each time the cache is cleared. What is kept in the cache store is kept under it, so a
+     * server whose store was not cleared (two web servers with a file cache each, a worker of
+     * the queue) no longer reads what it kept before: it sees the new generation and works the
+     * values out again. Read once for a request (again after a second, for a process that
+     * runs long).
+     */
+    public static function cacheGeneration(): string
+    {
+        $now = microtime(true);
+        if (isset(static::$cacheGeneration) && $now - static::$cacheGenerationReadAt < 1.0) {
+            return static::$cacheGeneration;
+        }
+        try {
+            $value = \DB::table((new static())->getTable())
+                ->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION)->value('system_value');
+        } catch (\Throwable $e) {
+            // no database yet (the install): nothing is shared with another server
+            $value = null;
+        }
+        static::$cacheGenerationReadAt = $now;
+        return static::$cacheGeneration = strval($value ?? '0');
+    }
+
+    /**
+     * A new generation of the cache, for every server of the site (see cacheGeneration).
+     * Inside a transaction that is rolled back, the generation of before stays.
+     */
+    public static function renewCacheGeneration(): string
+    {
+        $generation = dechex(time()) . bin2hex(random_bytes(4));
+        try {
+            \DB::table((new static())->getTable())->updateOrInsert(
+                ['system_name' => Define::SYSTEM_KEY_CACHE_GENERATION],
+                ['system_value' => $generation]
+            );
+        } catch (\Throwable $e) {
+            // no database yet (the install)
+            return static::cacheGeneration();
+        }
+        static::$cacheGenerationReadAt = microtime(true);
+        return static::$cacheGeneration = $generation;
+    }
+
+    /**
+     * The key of a value in the cache store: under the generation of the cache. Without the
+     * cache of Exment (EXMENT_USE_CACHE) nothing is read from the store, and the generation
+     * is not asked.
+     *
+     * @param string $key
+     */
+    protected static function storeKey($key): string
+    {
+        if (!boolval(config('exment.use_cache', false))) {
+            return strval($key);
+        }
+        return static::STORE_KEY_PREFIX . static::cacheGeneration() . ':' . $key;
+    }
+
+    /** what every key of the cache of Exment starts with in the cache store */
+    public const STORE_KEY_PREFIX = 'exm:';
+
+    /** the name of the store made for the cache of Exment when the cache of the site is in files */
+    public const FILE_STORE = 'exment_kept';
+
+    /**
+     * The driver of the cache store of the site (file, redis, database, array...).
+     */
+    protected static function storeDriver(): string
+    {
+        $default = strval(config('cache.default'));
+        return strval(config("cache.stores.{$default}.driver", $default));
+    }
+
+    /**
+     * Where the cache of Exment is kept: the cache store of the site. When that is files,
+     * a folder of its own inside it ("exment"), so that it can be emptied alone (the files of
+     * a store are never removed when their time is over, only when they are read).
+     *
+     * @return \Illuminate\Contracts\Cache\Repository
+     */
+    protected static function store()
+    {
+        if (static::storeDriver() !== 'file') {
+            return Cache::store();
+        }
+        if (is_null(config('cache.stores.' . static::FILE_STORE))) {
+            $default = strval(config('cache.default'));
+            $settings = (array) config("cache.stores.{$default}");
+            $path = strval($settings['path'] ?? storage_path('framework/cache/data'));
+            config(['cache.stores.' . static::FILE_STORE => array_merge($settings, [
+                'driver' => 'file',
+                'path' => $path . DIRECTORY_SEPARATOR . 'exment',
+            ])]);
+        }
+        return Cache::store(static::FILE_STORE);
+    }
+
+    /**
+     * Remove what the cache of Exment kept on this server, and only that: the rest of the
+     * cache store (the count of wrong passwords, the signal to restart the queue, the locks)
+     * is not Exment's to clear. A store that drops what is past its time itself (Redis,
+     * Memcached) needs nothing: the values of the generation before are no longer read, and
+     * go when their time is over (an hour).
+     */
+    protected static function dropKept(): void
+    {
+        try {
+            $driver = static::storeDriver();
+            if ($driver === 'file') {
+                static::store()->getStore()->flush();
+            } elseif ($driver === 'database') {
+                $default = strval(config('cache.default'));
+                $prefix = strval(Cache::store()->getStore()->getPrefix()) . static::STORE_KEY_PREFIX;
+                \DB::connection(config("cache.stores.{$default}.connection"))
+                    ->table(strval(config("cache.stores.{$default}.table", 'cache')))
+                    ->where('key', 'like', addcslashes($prefix, '%_\\') . '%')
+                    ->delete();
+            }
+        } catch (\Throwable $e) {
+            // the values of the generation before are not read in any case
+            \Log::debug('[Exment] the kept cache was not removed: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -303,9 +448,12 @@ class System extends ModelBase
         }
 
         if (!isset($key)) {
-            Cache::flush();
+            // a new generation: no server of the site reads what it kept before. Then what
+            // this server kept is removed (only what is Exment's, see dropKept).
+            static::renewCacheGeneration();
+            static::dropKept();
         } else {
-            Cache::forget($key);
+            static::store()->forget(static::storeKey($key));
         }
     }
 
@@ -339,7 +487,7 @@ class System extends ModelBase
     // @phpstan-ignore-next-line
     public static function hasFunction($name)
     {
-        return array_key_exists($name, Define::SYSTEM_SETTING_NAME_VALUE);
+        return array_key_exists($name, \Exceedone\Exment\Services\CoreExtensions::systemSettings());
     }
 
 
@@ -347,7 +495,7 @@ class System extends ModelBase
     public static function get_system_keys($group = null)
     {
         $keys = [];
-        foreach (Define::SYSTEM_SETTING_NAME_VALUE as $k => $v) {
+        foreach (\Exceedone\Exment\Services\CoreExtensions::systemSettings() as $k => $v) {
             if (isset($group)) {
                 if (is_string($group)) {
                     $group = [$group];
@@ -395,9 +543,8 @@ class System extends ModelBase
     {
         $key = static::getConfigKey($name);
         return static::cache($key, function () use ($name, $setting) {
-            $system = static::allRecordsCache(function ($record) use ($name) {
-                return $record->system_name == $name;
-            }, false)->first();
+            // by the index of system_name: a scan of every row was run for each setting (ISS00413)
+            $system = static::recordsCacheBy(['system_name'], [$name])->first();
 
             $type = array_get($setting, 'type');
             $value = null;
@@ -500,7 +647,7 @@ class System extends ModelBase
         $old_value = $system->system_value;
 
         // change set value by type
-        $setting = Define::SYSTEM_SETTING_NAME_VALUE[$name];
+        $setting = \Exceedone\Exment\Services\CoreExtensions::systemSettings()[$name];
         $type = array_get($setting, 'type');
 
         if ($type == 'file') {

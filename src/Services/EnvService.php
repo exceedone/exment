@@ -51,6 +51,26 @@ class EnvService
 
         // Use exclusive lock to avoid concurrent write corruption.
         file_put_contents($path, implode("\n", $newEnvs), LOCK_EX);
+
+        static::forgetCachedConfig();
+    }
+
+    /**
+     * After .env changes, a config cache (php artisan config:cache) would keep the old values:
+     * remove it, so the next request reads .env again (ISS00414).
+     *
+     * @return void
+     */
+    public static function forgetCachedConfig()
+    {
+        try {
+            // not configurationIsCached(): it keeps the answer of the start of the request
+            $path = app()->getCachedConfigPath();
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        } catch (\Throwable $e) {
+        }
     }
 
 

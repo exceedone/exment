@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Services\Login\LoginService;
+use Exceedone\Exment\Services\DemoMode;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -29,6 +30,11 @@ class LoginUserItem extends ProviderBase
         }
 
         if (!LoginSetting::isUseDefaultLoginForm()) {
+            return;
+        }
+
+        // demo mode: logins and passwords of users are not changed
+        if (DemoMode::enabled()) {
             return;
         }
 
@@ -115,6 +121,11 @@ class LoginUserItem extends ProviderBase
             return;
         }
 
+        // demo mode: logins and passwords of users are not changed
+        if (DemoMode::enabled()) {
+            return;
+        }
+
         $data = request()->all();
         $info = $this->getLoginUserInfo($data, $id);
         if ($info instanceof \Symfony\Component\HttpFoundation\Response) {
@@ -135,6 +146,11 @@ class LoginUserItem extends ProviderBase
         }
 
         if (!LoginSetting::isUseDefaultLoginForm()) {
+            return;
+        }
+
+        // demo mode: logins and passwords of users are not changed
+        if (DemoMode::enabled()) {
             return;
         }
 

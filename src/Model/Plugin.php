@@ -296,7 +296,19 @@ class Plugin extends ModelBase
         $diskService = new PluginDiskService($this);
         // sync from crowd.
         $diskService->syncFromDisk();
-        $this->requirePlugin($diskService);
+
+        // S3 was unreachable during sync check — skip requirePlugin entirely
+        if ($diskService->syncFailed) {
+            return null;
+        }
+
+        try {
+            $this->requirePlugin($diskService);
+        } catch (\Throwable $e) {
+            // S3 unreachable or file not found — log once and return null so callers can skip
+            \Log::warning("Plugin::getFullPath - could not load plugin [{$this->plugin_name}]: " . $e->getMessage());
+            return null;
+        }
 
         $plugin_fullpath = $diskService->localSyncDiskItem()->dirFullPath();
         return path_join($plugin_fullpath, ...$pass_array);
@@ -433,10 +445,8 @@ class Plugin extends ModelBase
      */
     public function requirePlugin(?PluginDiskService $diskService = null)
     {
-        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
-
         // call plugin
-        $fullPathDir = \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
+        $fullPathDir = $this->getLocalFullPath($diskService);
 
         \Exment::classLoader()->registerDir($fullPathDir, $this->getNameSpace());
     }
@@ -453,7 +463,16 @@ class Plugin extends ModelBase
      */
     public function getLocalFullPath(?PluginDiskService $diskService = null): string
     {
-        list($diskService, $disk, $dirName, $filePath) = $this->initPluginDisk(null, $diskService, ['sync' => true]);
+        if (!isset($diskService)) {
+            $diskService = new PluginDiskService($this);
+            $diskService->syncFromDisk();
+        }
+
+        // whether the plugin is there. A local copy that was up to date is not asked of the cloud
+        // disk again (ISS00413): it was copied from there, and the request costs time on each page
+        if (!$diskService->isLocalCopyCurrent()) {
+            $this->initPluginDisk(null, $diskService);
+        }
 
         return \Exment::replaceBackToSlash($diskService->localSyncDiskItem()->dirFullPath());
     }
@@ -482,8 +501,11 @@ class Plugin extends ModelBase
             }
         }
 
-        $disk = $diskService->diskItem()->disk();
-        $dirName = $diskService->diskItem()->dirName();
+        // When sync is requested the plugin is executed from the local synced copy,
+        // so check existence there instead of calling the remote disk (S3) on every request.
+        $diskItem = boolval($options['sync']) ? $diskService->localSyncDiskItem() : $diskService->diskItem();
+        $disk = $diskItem->disk();
+        $dirName = $diskItem->dirName();
 
         if (!$disk->exists($dirName)) {
             throw new FileNotFoundException($dirName);
@@ -527,7 +549,8 @@ class Plugin extends ModelBase
                     continue;
                 }
 
-                $event_triggers = array_get($plugin, 'options.event_triggers', []);
+                // a plugin installed before #1712 was fixed keeps the comma separated string
+                $event_triggers = stringToArray(array_get($plugin, 'options.event_triggers', []));
                 $enum = PluginEventType::getEnum($event);
 
                 $options['throw_ex'] = false;
@@ -597,7 +620,7 @@ class Plugin extends ModelBase
                         break;
                     case PluginType::TRIGGER:
                     case PluginType::BUTTON:
-                        $event_triggers = toArray(array_get($plugin->options, 'event_triggers', []));
+                        $event_triggers = stringToArray(array_get($plugin->options, 'event_triggers', []));
                         if (!in_array($event, $event_triggers) || is_null(PluginButtonType::getEnum($event))) {
                             break;
                         }
@@ -797,11 +820,16 @@ class Plugin extends ModelBase
                 $targetPluginTypes = [$targetPluginTypes];
             }
 
-            foreach ($targetPluginTypes as $targetPluginType) {
-                $class = $plugin->getClass($targetPluginType, ['throw_ex' => false]);
-                if (isset($class)) {
-                    return $class;
+            try {
+                foreach ($targetPluginTypes as $targetPluginType) {
+                    $class = $plugin->getClass($targetPluginType, ['throw_ex' => false]);
+                    if (isset($class)) {
+                        return $class;
+                    }
                 }
+            } catch (\Throwable $e) {
+                \Log::error('Plugin load failed, skipping plugin [' . $plugin->plugin_name . ']: ' . $e->getMessage());
+                return null;
             }
         })->filter();
     }
@@ -999,6 +1027,13 @@ class Plugin extends ModelBase
         static::saving(function ($model) {
             $model->prepareJson('options');
             $model->prepareJson('custom_options');
+        });
+        // what the plugins registered as features is made again (the routes cached)
+        static::saved(function ($model) {
+            \Exceedone\Exment\Services\Features::forgetPluginsCache();
+        });
+        static::deleted(function ($model) {
+            \Exceedone\Exment\Services\Features::forgetPluginsCache();
         });
     }
 }

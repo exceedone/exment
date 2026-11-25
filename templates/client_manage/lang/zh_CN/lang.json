@@ -1,0 +1,141 @@
+{
+    "template_view_name": "客户管理",
+    "description": "简单的客户管理。登记客户的大类和小类后，可按类别搜索客户。",
+    "custom_tables": [
+        {
+            "table_name": "major_class",
+            "table_view_name": "大类",
+            "description": "大类",
+            "custom_columns": [
+                {
+                    "column_name": "major_class_code",
+                    "column_view_name": "大类代码"
+                },
+                {
+                    "column_name": "major_class_name",
+                    "column_view_name": "大类名称"
+                }
+            ]
+        },
+        {
+            "table_name": "minor_class",
+            "table_view_name": "小类",
+            "description": "小类",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "大类"
+                },
+                {
+                    "column_name": "minor_class_code",
+                    "column_view_name": "小类代码"
+                },
+                {
+                    "column_name": "minor_class_name",
+                    "column_view_name": "小类名称"
+                }
+            ]
+        },
+        {
+            "table_name": "client_manage",
+            "table_view_name": "客户信息",
+            "description": "客户信息",
+            "custom_columns": [
+                {
+                    "column_name": "major_class",
+                    "column_view_name": "大类"
+                },
+                {
+                    "column_name": "minor_class",
+                    "column_view_name": "小类"
+                },
+                {
+                    "column_name": "client_name",
+                    "column_view_name": "客户名称"
+                },
+                {
+                    "column_name": "postal_code",
+                    "column_view_name": "邮政编码"
+                },
+                {
+                    "column_name": "street_address",
+                    "column_view_name": "地址"
+                },
+                {
+                    "column_name": "tel",
+                    "column_view_name": "电话"
+                },
+                {
+                    "column_name": "fax",
+                    "column_view_name": "传真"
+                },
+                {
+                    "column_name": "mail",
+                    "column_view_name": "电子邮箱"
+                },
+                {
+                    "column_name": "hp",
+                    "column_view_name": "网站"
+                },
+                {
+                    "column_name": "available_flg",
+                    "column_view_name": "有效标志"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "9b7cdef69121669e53f3",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "874049a23fa54616587e",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "d72abe95f6a2bd472bee",
+            "form_view_name": "表单"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "901117b47cad43291ed6",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "58c28b1a750f81b6621a",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "1e425a576a67c5d993f2",
+            "view_view_name": "全部客户信息"
+        },
+        {
+            "suuid": "bc5692520c4d124b4815",
+            "view_view_name": "有效客户信息"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "客户管理",
+            "menu_type": "parent_node",
+            "menu_name": "client_manage_parent"
+        },
+        {
+            "title": "大类",
+            "menu_type": "table",
+            "menu_name": "major_class"
+        },
+        {
+            "title": "小类",
+            "menu_type": "table",
+            "menu_name": "minor_class"
+        },
+        {
+            "title": "客户信息",
+            "menu_type": "table",
+            "menu_name": "client_manage"
+        }
+    ]
+}

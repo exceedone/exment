@@ -470,13 +470,13 @@ parameters:
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Controllers/CustomNotifyController.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Controllers/CustomNotifyController.php
 
 		-
@@ -767,13 +767,13 @@ parameters:
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Controllers/WorkflowNotifyController.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Controllers/WorkflowNotifyController.php
 
 		-
@@ -1106,17 +1106,7 @@ parameters:
 			count: 1
 			path: vendor/exceedone/exment/src/Enums/SystemColumn.php
 
-		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Exment.php
 
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Exment.php
 
 		-
 			message: '#^Call to function method_exists\(\) with ''\\\\ExmentAdminCore…'' and ''registered'' will always evaluate to true\.$#'
@@ -1574,11 +1564,6 @@ parameters:
 			count: 1
 			path: vendor/exceedone/exment/src/Form/Tools/PluginMenuButton.php
 
-		-
-			message: '#^PHPDoc tag @return with type array is incompatible with native type string\.$#'
-			identifier: return.phpDocType
-			count: 1
-			path: vendor/exceedone/exment/src/Form/Widgets/ModalForm.php
 
 		-
 			message: '#^Return type \(string\) of method Exceedone\\Exment\\Form\\Widgets\\ModalForm\:\:getScript\(\) should be compatible with return type \(array\<string\>\) of method ExmentAdminCore\\Admin\\Widgets\\Form\:\:getScript\(\)$#'
@@ -2307,19 +2292,7 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/LoginUser.php
 
 		-
-			message: '#^Unable to resolve the template type TKey in call to function collect$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Model/LoginUser.php
-
-		-
 			message: '#^Unable to resolve the template type TRelatedModel in call to method Illuminate\\Database\\Eloquent\\Model\:\:belongsTo\(\)$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Model/LoginUser.php
-
-		-
-			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
 			path: vendor/exceedone/exment/src/Model/LoginUser.php
@@ -2621,13 +2594,13 @@ parameters:
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Services/AuthUserOrgHelper.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Services/AuthUserOrgHelper.php
 
 		-
@@ -3161,13 +3134,13 @@ parameters:
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Services/TemplateImportExport/TemplateImporter.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Services/TemplateImportExport/TemplateImporter.php
 
 		-

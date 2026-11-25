@@ -1,0 +1,144 @@
+{
+    "template_view_name": "项目/任务管理",
+    "description": "管理项目和任务。",
+    "custom_tables": [
+        {
+            "table_name": "project",
+            "table_view_name": "项目管理",
+            "description": "管理项目。",
+            "custom_columns": [
+                {
+                    "column_name": "project_code",
+                    "column_view_name": "项目代码",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                },
+                {
+                    "column_name": "project_name",
+                    "column_view_name": "项目名称",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "task",
+            "table_view_name": "任务管理",
+            "description": "管理日常任务。",
+            "custom_columns": [
+                {
+                    "column_name": "task_name",
+                    "column_view_name": "任务名称",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "说明",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状态",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否",
+                        "select_item_valtext": "1,新建\r\n2,处理中\r\n90,已完成\r\n91,暂缓\r\n97,不处理"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "优先级",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否",
+                        "select_item_valtext": "1,低\r\n2,普通\r\n3,高\r\n4,尽快\r\n5,紧急"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "开始日期",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "结束日期",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                },
+                {
+                    "column_name": "charge_user",
+                    "column_view_name": "负责人",
+                    "options": {
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                },
+                {
+                    "column_name": "complete_flg",
+                    "column_view_name": "完成标志",
+                    "options": {
+                        "help": "任务完成时，请选择 [是]。",
+                        "true_label": "是",
+                        "false_label": "否"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "a0ce41d5d7816f0aab70",
+            "form_view_name": "表单"
+        },
+        {
+            "suuid": "d31c7b1ade9a4574fcfb",
+            "form_view_name": "表单"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "7ef66a7fdef45f094079",
+            "view_view_name": "默认视图"
+        },
+        {
+            "suuid": "204a26c2f5f8061cd30f",
+            "view_view_name": "未完成任务列表"
+        },
+        {
+            "suuid": "356404ddc4d26620fa13",
+            "view_view_name": "全部任务列表"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "项目管理",
+            "menu_type": "parent_node",
+            "menu_name": "project_management"
+        },
+        {
+            "title": "项目",
+            "menu_type": "table",
+            "menu_name": "project"
+        },
+        {
+            "title": "任务管理",
+            "menu_type": "table",
+            "menu_name": "task"
+        }
+    ]
+}

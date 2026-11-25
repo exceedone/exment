@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\DataItems\Show;
 
+use Exceedone\Exment\Services\ReferencePrefetcher;
 use Illuminate\Http\Request;
 use ExmentAdminCore\Admin\Facades\Admin;
 use ExmentAdminCore\Admin\Form;
@@ -34,6 +35,8 @@ use Exceedone\Exment\Enums\FormColumnType;
 use Exceedone\Exment\Enums\PluginEventTrigger;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Services\CommentMarkdown;
+use Exceedone\Exment\Services\DocumentVersionService;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ShowGridType;
@@ -73,6 +76,8 @@ class DefaultShow extends ShowBase
         $this->setChildBlockBox($row);
 
         $this->setDocumentBox($row);
+
+        $this->setFileServerBox($row);
 
         $this->setRevisionBox($row);
 
@@ -255,11 +260,12 @@ class DefaultShow extends ShowBase
                             }
                         }
 
-                        if ($enableEdit === true) {
-                            foreach ($operations as $operation) {
-                                if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
-                                    $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
-                                }
+                        foreach ($operations as $operation) {
+                            if (!$this->enableOperationButton($operation, $enableEdit)) {
+                                continue;
+                            }
+                            if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
+                                $tools->append(new Tools\OperationButton($operation, $this->custom_table, $this->custom_value->id));
                             }
                         }
 
@@ -430,6 +436,17 @@ class DefaultShow extends ShowBase
                 $custom_view = CustomView::getAllData($target_table);
                 $custom_view->setGrid($grid);
                 $custom_view->setValueSort($grid->model());
+
+                // the records and files the rows point at, read together as in the list (ISS00413)
+                // (the callbacks are kept for every grid of the request: only for this one)
+                $grid->getDataCallback(function ($target) use ($grid, $target_table, $custom_view) {
+                    if ($target !== $grid) {
+                        return;
+                    }
+                    $customValueCollection = $target->getOriginalCollection();
+                    $target_table->setSelectTableValues($customValueCollection);
+                    ReferencePrefetcher::prefetch($target_table, $customValueCollection, $custom_view->custom_view_columns_cache, false);
+                });
 
                 $grid->disableFilter();
                 $grid->disableCreateButton();
@@ -620,6 +637,11 @@ EOT;
     {
         $documents = $this->getDocuments();
         $useFileUpload = $this->useFileUpload();
+        // an application may show the files only, under its own title (ScreenExtensions data_show.attachment)
+        $attachment = ['uploader' => true, 'title' => exmtrans("common.attachment")];
+        foreach (\Exceedone\Exment\Services\ScreenExtensions::call('data_show.attachment', $this->custom_table) as $changed) {
+            $attachment = array_merge($attachment, (array) $changed);
+        }
 
         if (count($documents) == 0 && !$useFileUpload) {
             return;
@@ -633,11 +655,25 @@ EOT;
         if (count($documents) > 0) {
             $html = [];
             $allow_delete = config('exment.allow_delete_attachment', false);
+            // replacing keeps the older file as a version; the numbers come in one query
+            $useVersions = DocumentVersionService::available();
+            $documentIds = [];
+            foreach ($documents as $d) {
+                $documentIds[] = $d->id;
+            }
+            $versionNos = $useVersions ? DocumentVersionService::currentNumbers($documentIds) : [];
             foreach ($documents as $index => $d) {
                 $html[] = "<p>" . view('exment::form.field.documentlink', [
                     'document' => $d,
                     'candelete' => $this->custom_value->enableDelete(!$allow_delete) === true,
+                    'canreplace' => $useVersions && $useFileUpload,
+                    'version_no' => $versionNos[intval($d->id)] ?? 1,
+                    'replace_url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'documents', $d->id, 'replace'),
+                    'versions_url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'documents', $d->id, 'versions'),
                 ])->render() . "</p>";
+            }
+            if ($useVersions) {
+                Admin::script(static::documentVersionScript());
             }
             // loop and add as link
             $form->html(implode("", $html))
@@ -646,7 +682,7 @@ EOT;
         }
 
         // add file uploader
-        if ($useFileUpload) {
+        if ($useFileUpload && boolval($attachment['uploader'])) {
             $max_count = config('exment.document_upload_max_count', 5);
             $options = array_merge(Define::FILE_OPTION(), [
                 'showUpload' => true,
@@ -686,7 +722,57 @@ EOT;
 
             Admin::script($script);
         }
-        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.attachment"), $form))->style('info'));
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(strval($attachment['title']), $form))->style('info'));
+    }
+
+    /**
+     * The folders and files of the file server linked to this data (ISS00378),
+     * those the user may see. Nothing when there are none.
+     */
+    // @phpstan-ignore-next-line
+    protected function setFileServerBox($row)
+    {
+        if ($this->modal || !isset($this->custom_value) || !isset($this->custom_value->id)) {
+            return;
+        }
+        // the file server not used (Feature management): no box
+        if (!\Exceedone\Exment\Services\FileServer\Library::featureEnabled()) {
+            return;
+        }
+        try {
+            $library = new \Exceedone\Exment\Services\FileServer\Library(\Exceedone\Exment\Services\FileServer\Access::current());
+            $nodes = (new \Exceedone\Exment\Services\FileServer\DataLinks($library))->nodesOf($this->custom_table->table_name, intval($this->custom_value->id));
+        } catch (\Throwable $e) {
+            // the tables of the file server are not there yet (before the update)
+            return;
+        }
+        if (count($nodes) === 0) {
+            return;
+        }
+        $html = view('exment::file_server._data_files', ['nodes' => $nodes])->render();
+        $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans('file_server.data_files'), $html))->style('info'));
+    }
+
+    /**
+     * Whether the button of the data update setting is shown for this data.
+     *
+     * The button is for the users who can edit the data. A data the workflow locks cannot be
+     * edited by anyone, so it has no button, unless the setting says to show the button also
+     * for such a data (options.button_workflow_locked). CustomValue::enableEdit() answers
+     * WORKFLOW_LOCK only after the permission check, so the user still has to be allowed to
+     * edit the data.
+     *
+     * @param \Exceedone\Exment\Model\CustomOperation $operation
+     * @param bool|ErrorCode $enableEdit the answer of CustomValue::enableEdit()
+     * @return bool
+     */
+    protected function enableOperationButton($operation, $enableEdit): bool
+    {
+        if ($enableEdit === true) {
+            return true;
+        }
+
+        return $enableEdit == ErrorCode::WORKFLOW_LOCK && boolval($operation->getOption('button_workflow_locked'));
     }
 
     // @phpstan-ignore-next-line
@@ -715,12 +801,14 @@ EOT;
         $form->setWidth(10, 2);
 
         if (count($comments) > 0) {
+            $login_user = \Exment::user();
+            $isAdministrator = isset($login_user) && $login_user->isAdministrator();
             $html = [];
             foreach ($comments as $index => $comment) {
                 $html[] = "<div class='commentline'>" . view('exment::form.field.commentline', [
                     'comment' => $comment,
                     'table_name' => $this->custom_table->table_name,
-                    'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId()),
+                    'isAbleRemove' => ($comment->created_user_id == \Exment::getUserId() || $isAdministrator),
                     'deleteUrl' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'deletecomment', $comment->suuid),
                 ])->render() . "</div>";
             }
@@ -739,11 +827,21 @@ EOT;
             ->setLabelClass(['d-none'])
             // "@" opens the member picker; mention.js reads both attributes off
             // the field, so no page-level script tag is needed
+            // comment_markdown.js reads the data-comment-* attributes: the preview, and a
+            // pasted or dropped image, which is attached to the data and written as Markdown
             ->attribute([
                 'data-mention' => '1',
                 'data-mention-url' => admin_url('webapi/mention/users'),
                 'placeholder' => exmtrans('common.message.comment_mention'),
+                'data-comment-markdown' => '1',
+                'data-comment-preview-url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'previewcomment'),
+                'data-comment-image-url' => admin_urls('data', $this->custom_table->table_name, $this->custom_value->id, 'commentimage'),
+                'data-comment-label-write' => exmtrans('common.comment_markdown.write'),
+                'data-comment-label-preview' => exmtrans('common.comment_markdown.preview'),
+                'data-comment-label-uploading' => exmtrans('common.comment_markdown.uploading'),
+                'data-comment-label-error' => exmtrans('common.comment_markdown.upload_error'),
             ])
+            ->help(exmtrans('common.comment_markdown.help'))
             ->setWidth(12, 0);
         }
         $row->column(['xs' => 12, 'sm' => 6], (new Box(exmtrans("common.comment"), $form))->style('info'));
@@ -830,6 +928,16 @@ EOT;
     // @phpstan-ignore-next-line
     public function fileupload($httpfiles)
     {
+        // the page offers the upload to those who may edit the record, and only
+        // when the table keeps attachments (useFileUpload); the request is checked the same
+        if (!$this->custom_value || $this->custom_value->enableEdit(false, false) !== true
+            || !boolval($this->custom_table->getOption('attachment_flg') ?? true)) {
+            return getAjaxResponse([
+                'result'  => false,
+                'message' => trans('admin.deny'),
+            ]);
+        }
+
         if (is_nullorempty($httpfiles)) {
             return getAjaxResponse([
                 'result'  => false,
@@ -838,7 +946,12 @@ EOT;
         }
 
         // file put(store)
-        foreach (toArray($httpfiles) as $httpfile) {
+        // A single upload arrives as one UploadedFile. toArray() would cast that
+        // object into an array of its own properties instead of wrapping it, so the
+        // loop below would iterate over strings. Normalize first, the same way
+        // fileuploadTemp() does.
+        $files_array = is_array($httpfiles) ? $httpfiles : [$httpfiles];
+        foreach (toArray($files_array) as $httpfile) {
             $filename = $httpfile->getClientOriginalName();
             $custom_value = $this->custom_value;
             $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
@@ -855,6 +968,192 @@ EOT;
         return getAjaxResponse([
             'result'  => true,
             'message' => trans('admin.update_succeeded'),
+        ]);
+    }
+
+    /**
+     * Replace the file of an attachment: the file it had becomes an older version.
+     * Who may: as for adding an attachment (useFileUpload), and, when only the
+     * uploader may delete a file (file_delete_useronly), the uploader of the attachment.
+     *
+     * @param \Illuminate\Http\UploadedFile|array<mixed>|null $httpfile
+     * @param int|string $document_id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function documentReplace($httpfile, $document_id)
+    {
+        if (!DocumentVersionService::available() || !$this->custom_value || !$this->useFileUpload()) {
+            return response()->json(['result' => false, 'message' => trans('admin.deny')], 403);
+        }
+        $document = DocumentVersionService::findDocument($this->custom_value, $document_id);
+        if (!$document) {
+            return response()->json(['result' => false, 'message' => exmtrans('common.message.notfound')], 404);
+        }
+        if (boolval(config('exment.file_delete_useronly', false)) && !isMatchString($document->created_user_id, \Exment::getUserId())) {
+            return response()->json(['result' => false, 'message' => trans('admin.deny')], 403);
+        }
+        if (is_array($httpfile)) {
+            $httpfile = count($httpfile) === 1 ? reset($httpfile) : null;
+        }
+        if (!($httpfile instanceof \Illuminate\Http\UploadedFile) || !$httpfile->isValid()) {
+            return response()->json(['result' => false, 'message' => exmtrans('common.message.error_execute')], 400);
+        }
+
+        // replacing needs the right to edit; dropping the older versions beyond the limit, the right to delete
+        $canDelete = $this->custom_value->enableDelete(!config('exment.allow_delete_attachment', false)) === true;
+        DocumentVersionService::replace($this->custom_value, $document, $httpfile, $canDelete);
+
+        $this->custom_value->notify(false);
+        foreach ($this->custom_table->notifies as $notify) {
+            $notify->notifyCreateUpdateUser($this->custom_value, NotifySavedType::ATTACHMENT, ['attachment' => $httpfile->getClientOriginalName()]);
+        }
+
+        // the earlier file is opened from the "Version n" link of the row, n being this number
+        $no = DocumentVersionService::currentNumbers([$document->id])[intval($document->id)] ?? 2;
+        return getAjaxResponse([
+            'result' => true,
+            'message' => exmtrans('custom_value.document_replaced', ['no' => $no]),
+        ]);
+    }
+
+    /**
+     * The older versions of an attachment, as html (opened from the list of attachments).
+     *
+     * @param int|string $document_id
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function documentVersions($document_id)
+    {
+        $document = DocumentVersionService::available() && $this->custom_value
+            ? DocumentVersionService::findDocument($this->custom_value, $document_id) : null;
+        if (!$document) {
+            return response()->json(['result' => false, 'message' => exmtrans('common.message.notfound')], 404);
+        }
+        $versions = DocumentVersionService::versions(intval($document->id))->map(function ($version) {
+            $user = isset($version->created_user_id) ? getModelName(SystemTableName::USER)::find($version->created_user_id) : null;
+            return [
+                'version_no' => $version->version_no,
+                'name' => strval($version->document_name),
+                'url' => admin_urls('files', $version->file_uuid),
+                'created_at' => strval($version->created_at),
+                'created_user' => $user ? strval($user->getLabel()) : '',
+            ];
+        });
+
+        return getAjaxResponse([
+            'result' => true,
+            'html' => view('exment::form.field.documentversions', ['versions' => $versions])->render(),
+        ]);
+    }
+
+    /**
+     * The script of the list of attachments: replace a file, open the older versions.
+     */
+    protected static function documentVersionScript(): string
+    {
+        $failed = json_encode(exmtrans('common.message.error_execute'), JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+        return <<<EOT
+        $(document).off('click.exmdocver').on('click.exmdocver', '[data-exment-document-replace]', function (e) {
+            e.preventDefault();
+            $(this).siblings('input[type=file].exment-document-replace-file').trigger('click');
+        });
+        $(document).off('change.exmdocver').on('change.exmdocver', 'input[type=file].exment-document-replace-file', function () {
+            if (!this.files || this.files.length !== 1) { return; }
+            var data = new FormData();
+            data.append('file_data', this.files[0]);
+            data.append('_token', LA.token);
+            $.ajax({ url: $(this).data('url'), type: 'POST', data: data, processData: false, contentType: false })
+                .done(function (res) {
+                    if (res && res.result) {
+                        // the toast is outside the pjax container: it stays while the page is read again
+                        if (res.message) { toastr.success(res.message); }
+                        $.pjax.reload('#pjax-container');
+                        return;
+                    }
+                    toastr.error((res && res.message) || {$failed});
+                })
+                .fail(function (xhr) { toastr.error((xhr.responseJSON && xhr.responseJSON.message) || {$failed}); });
+            this.value = '';
+        });
+        $(document).off('click.exmdocverlist').on('click.exmdocverlist', '[data-exment-document-versions]', function (e) {
+            e.preventDefault();
+            var box = $(this).closest('p').find('.exment-document-versions');
+            // open or closed is kept on the element (its visibility depends on the theme's classes)
+            if (box.data('open')) { box.data('open', false).hide(); return; }
+            $.get($(this).data('url')).done(function (res) {
+                if (res && res.result) { box.html(res.html).css('display', 'block').data('open', true); return; }
+                toastr.error((res && res.message) || {$failed});
+            }).fail(function () { toastr.error({$failed}); });
+        });
+EOT;
+    }
+
+    /**
+     * The html a comment will be shown as, for the preview of the comment box.
+     *
+     * @param string|null $comment
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function previewComment($comment)
+    {
+        return getAjaxResponse([
+            'result' => true,
+            'html' => CommentMarkdown::toHtml($comment),
+        ]);
+    }
+
+    /**
+     * Attach an image pasted or dropped into the comment box to the data, and answer the
+     * Markdown that shows it. The file is an attachment of the data like any other, so it is
+     * seen by the users who can see the data.
+     *
+     * @param \Illuminate\Http\UploadedFile|array<mixed>|null $httpfile
+     * @return \Symfony\Component\HttpFoundation\Response
+     */
+    public function uploadCommentImage($httpfile)
+    {
+        // only where comments can be written (useComment)
+        if (!boolval($this->custom_table->getOption('comment_flg') ?? true)) {
+            return response()->json([
+                'result' => false,
+                'message' => trans('admin.deny'),
+            ], 403);
+        }
+
+        $validator = \Validator::make(['file' => $httpfile], [
+            'file' => [
+                'required',
+                'file',
+                // by the content, not by the name. No svg: it can hold a script.
+                'mimetypes:image/png,image/jpeg,image/gif,image/webp',
+                'max:' . intval(config('exment.comment_image_max_size_kb', 10240)),
+            ],
+        ]);
+        if ($validator->fails() || !($httpfile instanceof \Illuminate\Http\UploadedFile)) {
+            return response()->json([
+                'result' => false,
+                'message' => $validator->errors()->first('file') ?: exmtrans('common.message.error_execute'),
+            ], 400);
+        }
+
+        // the name decides whether the file is shown as a picture, so it follows the content
+        $extensions = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/webp' => 'webp'];
+        $extension = $extensions[strval($httpfile->getMimeType())];
+        $filename = pathinfo(strval($httpfile->getClientOriginalName()), PATHINFO_FILENAME);
+        $filename = (is_nullorempty($filename) ? 'image' : $filename) . '.' . $extension;
+
+        $file = ExmentFile::storeAs(FileType::CUSTOM_VALUE_DOCUMENT, $httpfile, $this->custom_table->table_name, $filename)
+            ->saveCustomValue($this->custom_value->id, null, $this->custom_table);
+        $file->saveDocumentModel($this->custom_value, $filename);
+
+        $url = admin_urls('files', $file->uuid);
+        // "[" and "]" would end the alt text
+        $alt = str_replace(['[', ']', "\r", "\n"], ['(', ')', ' ', ' '], pathinfo($filename, PATHINFO_FILENAME));
+
+        return getAjaxResponse([
+            'result' => true,
+            'url' => $url,
+            'markdown' => "![{$alt}]({$url})",
         ]);
     }
 
@@ -906,23 +1205,19 @@ EOT;
     // @phpstan-ignore-next-line
     public function addComment($comment)
     {
-        if (!empty($comment)) {
-            // save Comment Model
-            $model = CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel();
-            $model->parent_id = $this->custom_value->id;
-            $model->parent_type = $this->custom_table->table_name;
-            $model->setValue([
-                'comment_detail' => $comment,
-            ]);
-            $model->save();
+        $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
 
-            // execute notify
-            foreach ($this->custom_table->notifies as $notify) {
-                $notify->notifyCreateUpdateUser($this->custom_value, NotifySavedType::COMMENT, ['comment' => $comment]);
-            }
+        // a table set not to use comments has no comment box: refuse a request made by hand
+        if (!$this->custom_value->isCommentEnabled()) {
+            admin_toastr(ErrorCode::FORM_ACTION_DISABLED()->getMessage(), 'error');
+            return redirect($url);
         }
 
-        $url = admin_urls('data', $this->custom_table->table_name, $this->custom_value->id);
+        if (!empty($comment)) {
+            // save Comment Model and notify. The API (ApiDataController) shares this.
+            $this->custom_value->addComment($comment);
+        }
+
         admin_toastr(trans('admin.save_succeeded'));
         return redirect($url);
     }
@@ -934,14 +1229,16 @@ EOT;
     // @phpstan-ignore-next-line
     public function deleteComment($id, $suuid)
     {
-        if (!empty($suuid)) {
-            // save Comment Model
-            CustomTable::getEloquent(SystemTableName::COMMENT)->getValueModel()
-                ->where('suuid', $suuid)
-                ->where('parent_id', $id)
-                ->where('parent_type', $this->custom_table->table_name)
-                ->delete();
+        // The API (ApiDataController) shares this. The trash icon is only shown to the user
+        // who wrote the comment, and the model refuses the others also when asked by hand.
+        $result = $this->custom_value->deleteComment($suuid);
+        if ($result instanceof ErrorCode && $result == ErrorCode::PERMISSION_DENY) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => trans('admin.deny'),
+            ]);
         }
+
         return getAjaxResponse([
             'result' => true,
             'toastr' => trans('admin.delete_succeeded'),

@@ -3,6 +3,7 @@ name: phpstan
 on:
   pull_request:
     paths:
+      - '.github/workflows/**'
       - 'config/**'
       - 'database/**'
       - 'resources/**'
@@ -12,6 +13,16 @@ on:
 env:
   DOCKER_EXMENT_REPOSITORY: exceedone/docker-exment
   EXMENT_BOILERPLATE_REPOSITORY: exceedone/exment-boilerplate
+  # the versions that passed on master before v7.2.0 (exment-boilerplate#5 raised them in composer.dev.lock). Newer versions report more; update them with their fixes.
+  PHPSTAN_VERSION: 2.2.7
+  LARASTAN_VERSION: 3.10.0
+  # the types of meilisearch-php 1.17 add 3 errors in MeiliSearchService.php
+  MEILISEARCH_VERSION: 1.10.0
+
+# a newer push to the pull request stops the run of the push before (fewer runs waiting for a runner)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   phpstan:
@@ -25,12 +36,51 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
+          # 7.2 keeps the boilerplate of 7.2 (simple-qrcode); main moved to bacon-qr-code 3
+          ref: 7.2
           path: ./docker-exment/exment-boilerplate
 
       - uses: actions/checkout@v4
         with:
           path: ./docker-exment/exment-boilerplate/exment
           ref: ${{ github.event.pull_request.head.sha }}
+
+      # composer.dev.lock of exment-boilerplate installs exment-admin-core from the path ./exment-admin-core
+      - uses: actions/checkout@v4
+        with:
+          repository: exceedone/exment-admin-core
+          path: ./docker-exment/exment-boilerplate/exment-admin-core
+
+      # the downloads of composer are kept between runs (fewer downloads: faster, and fewer
+      # network failures). The folder is in exment-boilerplate, which the php container mounts.
+      - name: Cache the composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ./docker-exment/exment-boilerplate/.composer-cache
+          key: composer-${{ hashFiles('docker-exment/exment-boilerplate/composer.dev.lock') }}
+          restore-keys: composer-
+
+      - name: Composer uses the kept downloads
+        run: printf '\nCOMPOSER_CACHE_DIR=/var/www/exment/.composer-cache\n' >> docker-exment/.env
+
+      # the php image of docker-exment, built with its layers kept between runs (the OS packages
+      # and the SQL Server drivers are not made again each time). Tagged with the name docker
+      # compose gives it (docker-exment-php), so "up" uses it and does not build it again.
+      - name: The PHP version of docker-exment
+        id: php
+        run: echo "version=$(grep -E '^EXMENT_DOCKER_PHP_VERSION=' docker-exment/.env | cut -d= -f2)" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build the php image (kept layers)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./docker-exment/docker/php
+          build-args: PHP_VERSION=${{ steps.php.outputs.version }}
+          tags: docker-exment-php:latest
+          load: true
+          cache-from: type=gha,scope=docker-exment-php-${{ steps.php.outputs.version }}
+          cache-to: type=gha,mode=max,scope=docker-exment-php-${{ steps.php.outputs.version }}
 
       - name: Docker Compose Version
         run: docker compose --version
@@ -54,6 +104,10 @@ jobs:
       - name: setup phpstan
         working-directory: docker-exment
         run: |
+          # composer reads the versions of the path packages (./exment, ./exment-admin-core) from their git branches
+          git -C exment-boilerplate/exment checkout -B master
+          docker compose -f docker-compose.yml exec -T php git config --global --add safe.directory '*'
+          docker compose -f docker-compose.yml exec -T php composer require --dev --no-interaction --with-all-dependencies "phpstan/phpstan:${{ env.PHPSTAN_VERSION }}" "larastan/larastan:${{ env.LARASTAN_VERSION }}" "meilisearch/meilisearch-php:${{ env.MEILISEARCH_VERSION }}"
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan-baseline.neon .
 

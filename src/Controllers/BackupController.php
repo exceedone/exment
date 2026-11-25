@@ -364,6 +364,19 @@ class BackupController extends AdminControllerBase
         }
 
         if (isset($result) && $result === 0) {
+            // The uploaded / selected zip in admin_tmp has been consumed by the restore.
+            // Delete it here or it stays forever: the admin_tmp disk is hardcoded to the
+            // local driver and nothing else ever cleans it (the empty finally blocks
+            // above were the intended place but were never filled). Kept on FAILURE on
+            // purpose, so the user can retry from the already-uploaded file without
+            // re-uploading; abandoned files are collected by the host tmp sweeper.
+            if (isset($filename)) {
+                try {
+                    \Storage::disk(Define::DISKNAME_ADMIN_TMP)->delete($filename);
+                } catch (\Throwable $e) {
+                    // cleanup must never break a successful restore response
+                }
+            }
             admin_toastr(exmtrans('backup.message.restore_file_success'));
             \Auth::guard('admin')->logout();
             $request->session()->invalidate();

@@ -1,0 +1,144 @@
+{
+    "template_view_name": "Gestión de proyectos y tareas",
+    "description": "Gestiona proyectos y tareas.",
+    "custom_tables": [
+        {
+            "table_name": "project",
+            "table_view_name": "Gestión de proyectos",
+            "description": "Gestiona los proyectos.",
+            "custom_columns": [
+                {
+                    "column_name": "project_code",
+                    "column_view_name": "Código de proyecto",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                },
+                {
+                    "column_name": "project_name",
+                    "column_view_name": "Nombre del proyecto",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                }
+            ]
+        },
+        {
+            "table_name": "task",
+            "table_view_name": "Gestión de tareas",
+            "description": "Gestiona las tareas diarias.",
+            "custom_columns": [
+                {
+                    "column_name": "task_name",
+                    "column_view_name": "Nombre de la tarea",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                },
+                {
+                    "column_name": "explain",
+                    "column_view_name": "Descripción",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Estado",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No",
+                        "select_item_valtext": "1,Nuevo\r\n2,En curso\r\n90,Completado\r\n91,En espera\r\n97,No atendido"
+                    }
+                },
+                {
+                    "column_name": "priority",
+                    "column_view_name": "Prioridad",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No",
+                        "select_item_valtext": "1,Baja\r\n2,Normal\r\n3,Alta\r\n4,Pronto\r\n5,Urgente"
+                    }
+                },
+                {
+                    "column_name": "start_date",
+                    "column_view_name": "Fecha de inicio",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                },
+                {
+                    "column_name": "end_date",
+                    "column_view_name": "Fecha de fin",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                },
+                {
+                    "column_name": "charge_user",
+                    "column_view_name": "Responsable",
+                    "options": {
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                },
+                {
+                    "column_name": "complete_flg",
+                    "column_view_name": "Completado",
+                    "options": {
+                        "help": "Cuando la tarea esté completada, seleccione [SÍ].",
+                        "true_label": "Sí",
+                        "false_label": "No"
+                    }
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "a0ce41d5d7816f0aab70",
+            "form_view_name": "Formulario"
+        },
+        {
+            "suuid": "d31c7b1ade9a4574fcfb",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "7ef66a7fdef45f094079",
+            "view_view_name": "Vista predeterminada"
+        },
+        {
+            "suuid": "204a26c2f5f8061cd30f",
+            "view_view_name": "Tareas sin completar"
+        },
+        {
+            "suuid": "356404ddc4d26620fa13",
+            "view_view_name": "Todas las tareas"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Gestión de proyectos",
+            "menu_type": "parent_node",
+            "menu_name": "project_management"
+        },
+        {
+            "title": "Proyecto",
+            "menu_type": "table",
+            "menu_name": "project"
+        },
+        {
+            "title": "Gestión de tareas",
+            "menu_type": "table",
+            "menu_name": "task"
+        }
+    ]
+}

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Form\Navbar;
 
 use Exceedone\Exment\Model\Define;
+use Exceedone\Exment\Services\Features;
 
 class HelpNav
 {
@@ -11,8 +12,8 @@ class HelpNav
         // get manual url
         $manual_url = htmlspecialchars(getManualUrl());
 
-        // set help urls
-        $help_urls = esc_html(json_encode(Define::HELP_URLS));
+        // set help urls: the pages of the features first (their own manual), then the others
+        $help_urls = esc_html(json_encode(array_merge(static::featureHelpUrls(), \Exceedone\Exment\Services\CoreExtensions::helpUrls())));
 
         return <<<HTML
 
@@ -25,5 +26,19 @@ class HelpNav
 <input type="hidden" value="$help_urls" id="help_urls">
 
 HTML;
+    }
+
+    /**
+     * @return array<int, array{uri: string, help_uri: string}>
+     */
+    protected static function featureHelpUrls(): array
+    {
+        try {
+            return Features::helpUrls();
+        } catch (\Throwable $e) {
+            // the header is on every page: without the features, the button opens the others
+            \Log::warning('[HelpNav] the manuals of the features: ' . $e->getMessage());
+            return [];
+        }
     }
 }

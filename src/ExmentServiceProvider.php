@@ -60,6 +60,7 @@ class ExmentServiceProvider extends ServiceProvider
         ExmentProviders\RouteOAuthServiceProvider::class,
         ExmentProviders\PasswordResetServiceProvider::class,
         ExmentProviders\RoutePublicFormServiceProvider::class,
+        ExmentProviders\RouteFileShareServiceProvider::class,
         ExmentProviders\PluginServiceProvider::class,
     ];
 
@@ -73,9 +74,11 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\MeiliSettingsCommand::class,
         \Exceedone\Exment\Console\MeiliHealthCommand::class,
         \Exceedone\Exment\Console\MeiliReconcileCommand::class,
+        \Exceedone\Exment\Console\MeiliSetupCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
+        \Exceedone\Exment\Console\CacheClearCommand::class,
         \Exceedone\Exment\Console\PublishCommand::class,
         \Exceedone\Exment\Console\ScheduleCommand::class,
         \Exceedone\Exment\Console\NotifyScheduleCommand::class,
@@ -89,6 +92,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\InitTestCommand::class,
         \Exceedone\Exment\Console\CheckLangCommand::class,
         \Exceedone\Exment\Console\CheckRequireCommand::class,
+        \Exceedone\Exment\Console\TuningCommand::class,
         \Exceedone\Exment\Console\NotifyTestCommand::class,
         \Exceedone\Exment\Console\RefreshDataCommand::class,
         \Exceedone\Exment\Console\RefreshTableDataCommand::class,
@@ -98,6 +102,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\ResetPasswordCommand::class,
         \Exceedone\Exment\Console\CheckConnectionCommand::class,
         \Exceedone\Exment\Console\TotalUpdateCommand::class,
+        \Exceedone\Exment\Console\FileServerPurgeCommand::class,
+        \Exceedone\Exment\Console\FileServerIndexCommand::class,
         \Exceedone\Exment\Console\FileColumnImportCommand::class,
         \Exceedone\Exment\Console\DocumentImportCommand::class,
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
@@ -105,6 +111,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
+        \Exceedone\Exment\Console\MaintenanceCommand::class,
     ];
 
 
@@ -119,6 +126,8 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middleware = [
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
+        // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
+        \Exceedone\Exment\Middleware\MaintenanceOperatorGuard::class,
     ];
 
 
@@ -130,6 +139,7 @@ class ExmentServiceProvider extends ServiceProvider
     // @phpstan-ignore-next-line
     protected $routeMiddleware = [
         'admin.auth'       => \Exceedone\Exment\Middleware\Authenticate::class,
+        'admin.security-headers' => \Exceedone\Exment\Middleware\SecurityHeaders::class,
         'log.exec.time' => \Exceedone\Exment\Middleware\LogRouteExecutionTime::class,
         'check.logging.enabled' => \Exceedone\Exment\Middleware\CheckLoggingEnabled::class,
         'admin.auth-2factor'       => \Exceedone\Exment\Middleware\Authenticate2factor::class,
@@ -158,6 +168,13 @@ class ExmentServiceProvider extends ServiceProvider
         'publicform.session'    => \Exceedone\Exment\Middleware\PublicFormSession::class,
 
         'scope' => \Exceedone\Exment\Middleware\CheckForAnyScope::class,
+
+        'admin.demo-mode' => \Exceedone\Exment\Middleware\DemoModeGuard::class,
+        'admin.feature' => \Exceedone\Exment\Middleware\FeatureGuard::class,
+        // maintenance mode (Services\MaintenanceMode), with the kind of the pages
+        'exment.maintenance' => \Exceedone\Exment\Middleware\MaintenanceGuard::class,
+        // the language and the time zone of the user (ISS02835)
+        'exment.user-locale' => \Exceedone\Exment\Middleware\UserLocaleTimezone::class,
     ];
 
     /**
@@ -169,10 +186,15 @@ class ExmentServiceProvider extends ServiceProvider
     protected $middlewareGroups = [
         // Exment web page default
         'admin' => [
+            'admin.security-headers',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
             'admin.auth',
+            // the language and the time zone of the user: after the login is known
+            'exment.user-locale',
+            // maintenance mode: after the login is known
+            'exment.maintenance:web',
             'log.exec.time',
             'check.logging.enabled',
             'admin.auth-2factor',
@@ -184,12 +206,19 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+            'admin.demo-mode',
+            // the features not used (Admin setting → Feature management)
+            'admin.feature',
         ],
         // Exment not login web page. (Ex. login, forget password)
         'admin_anonymous' => [
+            'admin.security-headers',
             'admin.browser',
             'admin.web-ipfilter',
             'admin.initialize',
+            'exment.maintenance:anonymous',
+            // the language of the login page (cookie, browser)
+            'exment.user-locale',
             'admin.login',
             'admin.morph',
             'admin.bootstrap2',
@@ -198,6 +227,7 @@ class ExmentServiceProvider extends ServiceProvider
             'admin.bootstrap',
             'admin.permission',
             'admin.session',
+            'admin.demo-mode',
         ],
         // Exment not login web page, and simple config, (Almost use image)
         'admin_anonymous_simple' => [
@@ -231,25 +261,32 @@ class ExmentServiceProvider extends ServiceProvider
         'adminapi' => [
             'admin.api-ipfilter',
             'adminapi.auth',
+            'exment.user-locale:api',
+            'exment.maintenance:api',
             'admin.morph',
             'admin.log',
             // 'throttle:60,1',
             //'bindings',
             //　↓
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            'admin.demo-mode',
+            'admin.feature',
         ],
         // Exment Plugin API
         'pluginapi' => [
             'pluginapi.auth',
+            'exment.maintenance:api',
         ],
         // Exment API not login page. (Ex. get token)
         'adminapi_anonymous' => [
             'admin.api-ipfilter',
+            'exment.maintenance:api_anonymous',
             // 'throttle:60,1',
             'admin.morph',
             'admin.log',
             // 'bindings',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            'admin.demo-mode',
         ],
         // Extends web middleware If call exment's parts by user, please Add
         'exment_web' => [
@@ -258,6 +295,7 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment public form page.
         'publicform' => [
+            'exment.maintenance:public',
             'publicform.auth',
             'admin.browser',
             'admin.initialize',
@@ -287,6 +325,11 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        // a site not installed yet without APP_KEY: made before the cookies need it
+        if (!$this->app->runningInConsole()) {
+            Services\Installer\AppKey::ensure();
+        }
+
         // Re-register route middleware aliases.
         // The auto-discovered AdminServiceProvider runs register() after this provider,
         // and re-aliases names like "admin.log" or "admin.auth" back to the core classes.
@@ -303,8 +346,16 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootDatabase();
         $this->bootSchedule();
         $this->bootMeilisearch();
+        // when the user signed in to the pages (SSO too): a user of SSO makes an API key only soon after
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
+            \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
+        });
 
-        $this->publish();
+        // Perf: publishes() only feeds the `vendor:publish` console command; running it on
+        // every web request is pure waste (matches open-admin-core's console-guarded publishing).
+        if ($this->app->runningInConsole()) {
+            $this->publish();
+        }
         $this->load();
 
         $this->registerPolicies();
@@ -367,6 +418,9 @@ class ExmentServiceProvider extends ServiceProvider
         parent::register();
         require_once(__DIR__ . '/Services/Helpers.php');
 
+        // the class of a custom table is built when it is first used (ISS00413)
+        Services\ClassBuilder::registerAutoloader();
+
         $this->mergeConfigFrom(
             __DIR__ . '/../config/exment.php',
             'exment'
@@ -377,6 +431,11 @@ class ExmentServiceProvider extends ServiceProvider
             __DIR__.'/../config/meilisearch.php',
             'meilisearch'
         );
+
+        // maintenance mode: the queue workers wait (a listener of Looping that answers false)
+        $this->app->make('events')->listen(\Illuminate\Queue\Events\Looping::class, function () {
+            return \Exceedone\Exment\Services\MaintenanceMode::stopsQueue() ? false : null;
+        });
 
         // register global middleware.
         $kernel = $this->app->make(Kernel::class);
@@ -513,7 +572,12 @@ class ExmentServiceProvider extends ServiceProvider
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
             $schedule->command('exment:schedule')->hourly();
-            $schedule->command('exment:safetywatch')->everyMinute()->withoutOverlapping(10);
+            // only when the safety check watches the feed: otherwise it would start PHP every minute for nothing (ISS02823)
+            $schedule->command('exment:safetywatch')->cron(static::safetyWatchCron())->withoutOverlapping(10)->when(function () {
+                return static::safetyWatchUsed();
+            });
+            // file server: empty the trash past the days of each workspace (ISS00293)
+            $schedule->command('exment:file-server-purge')->dailyAt('03:30')->withoutOverlapping(60);
 
             // Daily index repair (fix drift accumulated from missed/failed sync
             // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
@@ -544,9 +608,61 @@ class ExmentServiceProvider extends ServiceProvider
             } catch (\Exception $ex) {
             }
 
+            // maintenance mode: the planned start and end; in maintenance the others are skipped
+            foreach ($schedule->events() as $event) {
+                $command = strval($event->command);
+                $event->skip(function () use ($command) {
+                    return \Exceedone\Exment\Services\MaintenanceMode::skipsScheduled($command);
+                });
+            }
+            $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);
+
             // Log debug
             \Exceedone\Exment\Middleware\ExmentDebug::logSchedule($schedule);
         });
+
+        // what the scheduler did, for the tuning page: whether cron runs it, and how long its tasks take (ISS02823)
+        \Illuminate\Support\Facades\Event::listen(\Illuminate\Console\Events\ScheduledTaskFinished::class, function ($event) {
+            try {
+                \Exceedone\Exment\Services\SystemRequire\Tuning\ScheduleStatus::record(
+                    \Exceedone\Exment\Services\SystemRequire\Tuning\ScheduleStatus::taskName($event->task),
+                    floatval($event->runtime)
+                );
+            } catch (\Throwable $ex) {
+                // never stop the scheduler for this
+            }
+        });
+    }
+
+    /**
+     * The cron expression of "exment:safetywatch" (config exment.safety_check.watch_interval).
+     * Impure: it reads the config, so two calls may answer differently.
+     *
+     * @phpstan-impure
+     */
+    public static function safetyWatchCron(): string
+    {
+        // config exment.safety_check.watch_interval: 1, 5, 10 or 15 minutes; anything else is 5
+        $minutes = intval(config('exment.safety_check.watch_interval', 5));
+        if (!in_array($minutes, [1, 5, 10, 15], true)) {
+            $minutes = 5;
+        }
+
+        return $minutes === 1 ? '* * * * *' : '*/' . $minutes . ' * * * *';
+    }
+
+    /**
+     * Whether "exment:safetywatch" has anything to do: the safety check is used and watches the earthquake feed.
+     */
+    public static function safetyWatchUsed(): bool
+    {
+        try {
+            return \Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::SAFETY_CHECK)
+                && boolval(\Exceedone\Exment\Model\System::safety_check_auto_enabled());
+        } catch (\Throwable $ex) {
+            // before the install: let the command decide
+            return true;
+        }
     }
 
     // @phpstan-ignore-next-line
@@ -590,6 +706,9 @@ class ExmentServiceProvider extends ServiceProvider
         }
 
         Initialize::initializeConfig(false);
+
+        // demo mode: drop Slack, Teams and other outside notifications
+        \Exceedone\Exment\Services\DemoMode::boot();
 
         if (method_exists("\ExmentAdminCore\Admin\Admin", "registered")) {
             Admin::registered(function () {
@@ -672,6 +791,14 @@ class ExmentServiceProvider extends ServiceProvider
             if ($m == 'adminapi.auth') {
                 $m = 'adminwebapi.auth';
             }
+            // the web API of the pages: the time zone of the user too
+            if ($m == 'exment.user-locale:api') {
+                $m = 'exment.user-locale';
+            }
+            // the web API of the pages: as the pages
+            if ($m == 'exment.maintenance:api') {
+                $m = 'exment.maintenance:webapi';
+            }
         }
         $middlewareGroups['adminwebapi'] = $middleware;
 
@@ -679,6 +806,9 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($middleware as &$m) {
             if ($m == 'adminapi.auth') {
                 $m = 'publicformapi.auth';
+            }
+            if ($m == 'exment.maintenance:api') {
+                $m = 'exment.maintenance:public';
             }
         }
         $middlewareGroups['publicformapi'] = $middleware;

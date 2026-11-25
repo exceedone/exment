@@ -57,6 +57,9 @@ class MicrosoftTeamsChannel
                 'title' => $message->title,
                 'text' => $message->content,
             ],
+            // the URL was checked (WebhookUrlGuard); a redirect is not followed elsewhere
+            'allow_redirects' => false,
+            'timeout' => 30,
         ];
     }
 }

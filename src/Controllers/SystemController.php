@@ -22,10 +22,11 @@ use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\Update\UpdateService;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
+use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\NotifyService;
+use Exceedone\Exment\Services\SystemInfo;
 use Exceedone\Exment\Services\SystemRequire;
-use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
-use Exceedone\Exment\Enums\SystemRequireCalledType;
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,19 @@ use Validator;
 
 class SystemController extends AdminControllerBase
 {
+    /** Flashed when the skin or the screen design changed: the next system page loads the whole page. */
+    public const SESSION_KEY_RELOAD_PAGE = 'exment_system_reload_page';
+
+    /**
+     * What the page frame looks like: the skin and the screen design.
+     *
+     * @return array<int, mixed>
+     */
+    protected static function screenLook(): array
+    {
+        return [System::site_skin(), \Exment::isModernUi()];
+    }
+
     use InitializeFormTrait;
 
     public function __construct()
@@ -48,6 +62,14 @@ class SystemController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
+        // The skin is a class of <body> and the screen design adds a stylesheet to <head>,
+        // both outside the part of the page that pjax replaces. After either changed,
+        // load the whole page once (the "saved" message is kept for that load).
+        if (session()->pull(static::SESSION_KEY_RELOAD_PAGE)) {
+            session()->keep(['toastr']);
+            \Admin::script('window.location.reload();');
+        }
+
         if ($request->has('advanced')) {
             return $this->formAdvancedBox($request, $content);
         }
@@ -69,15 +91,8 @@ class SystemController extends AdminControllerBase
 
         $content->row($box);
 
-        if (System::outside_api()) {
-            // Version infomation
-            $infoBox = $this->getVersionBox();
-            $content->row(new Box(exmtrans("system.version_header"), $infoBox->render()));
-        }
-
-        // Append system require box
-        $box = $this->getSystemRequireBox();
-        $content->row(new Box(exmtrans("install.system_require.header"), $box->render()));
+        // Version infomation: always (ISS02828). The system requirements are on the tuning page.
+        $content->row(new Box(exmtrans("system.version_header"), $this->getVersionInfo()));
 
         return $content;
     }
@@ -95,7 +110,7 @@ class SystemController extends AdminControllerBase
 
         $admin_users = System::system_admin_users();
         $form->multipleSelect('system_admin_users', exmtrans('system.system_admin_users'))
-            ->help(exmtrans('system.help.system_admin_users'))
+            ->help(DemoMode::keepsSystemAdmins() ? exmtrans('demo_mode.message_system_admin') : exmtrans('system.help.system_admin_users'))
             ->required()
             ->ajax(CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl())
             ->options(function ($option) use ($admin_users) {
@@ -133,8 +148,10 @@ class SystemController extends AdminControllerBase
 
         $content->row($box);
 
-        // sendmail test
-        $content->row($this->getsendmailTestBox());
+        // sendmail test. demo mode sends no mail.
+        if (!DemoMode::enabled()) {
+            $content->row($this->getsendmailTestBox());
+        }
 
         return $content;
     }
@@ -147,14 +164,23 @@ class SystemController extends AdminControllerBase
      */
     protected function formAdvanced(Request $request): WidgetForm
     {
-        $form = new WidgetForm(System::get_system_values(['advanced', 'notify']));
+        $form = new WidgetForm(DemoMode::maskSystemValues(System::get_system_values(['advanced', 'notify'])));
         $form->disableReset();
         $form->action(admin_url('system'));
 
+        if (DemoMode::enabled()) {
+            $form->descriptionHtml(esc_html(exmtrans('demo_mode.message_system_setting')));
+        }
+
         $form->progressTracker()->options($this->getProgressInfo(true));
+
+        // table of contents for the sections below
+        $form->sectionNav();
 
         $form->hidden('advanced')->default(1);
         $form->ignore('advanced');
+
+        $form->exmheader(exmtrans('system.display_header'))->hr();
 
         $grid_per_pages = stringToArray(config('exment.grid_per_pages'));
         if (empty($grid_per_pages)) {
@@ -205,6 +231,14 @@ class SystemController extends AdminControllerBase
             ->default(Enums\DataSubmitRedirect::LIST)
             ->disableClear()
             ->help(exmtrans("system.help.data_submit_redirect"));
+
+        // the languages the users can choose (ISS02835)
+        $form->multipleSelect('allowed_locales', exmtrans('system.allowed_locales'))
+            ->options(\Exceedone\Exment\Services\UserLocale::options())
+            ->help(exmtrans('system.help.allowed_locales'));
+        $form->switchbool('locale_from_browser', exmtrans('system.locale_from_browser'))
+            ->default(1)
+            ->help(exmtrans('system.help.locale_from_browser'));
 
         $form->multipleSelect('header_user_info', exmtrans('system.header_user_info'))
             ->help(exmtrans('system.help.header_user_info'))
@@ -332,7 +366,23 @@ class SystemController extends AdminControllerBase
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
+        \Exceedone\Exment\Services\ScreenExtensions::call('system.advanced', $form);
+
         return $form;
+    }
+
+    /**
+     * The versions of Exment, PHP, the web server, the database and the OS, with a copy
+     * button (ISS02828); the latest version when the server may ask outside; a link to tuning.
+     */
+    protected function getVersionInfo(): string
+    {
+        return view('exment::widgets.version-info', [
+            'items' => SystemInfo::items(),
+            'text' => SystemInfo::text(),
+            'latestForm' => System::outside_api() ? $this->getVersionBox()->render() : null,
+            'tuningUrl' => Features::enabled(Features::TUNING) ? admin_url('tuning') : null,
+        ])->render();
     }
 
     /**
@@ -349,8 +399,6 @@ class SystemController extends AdminControllerBase
         $form = new WidgetForm();
         $form->disableReset()->disableSubmit();
 
-        $form->display('version_current', exmtrans('system.version_current_label'))
-            ->default($current);
         $form->display('version_latest', exmtrans('system.version_latest_label'))
             ->default($latest);
 
@@ -448,17 +496,20 @@ class SystemController extends AdminControllerBase
     // }
 
     /**
-     * get system require box.
+     * The values of the settings whose change reloads the whole page ('reload' => true in
+     * their definition, CoreExtensions::addSystemSettings()).
      *
-     * @return bool|\Illuminate\Auth\Access\Response|\Illuminate\Contracts\Foundation\Application|\Illuminate\Contracts\View\Factory|\Illuminate\Contracts\View\View|mixed
+     * @return array<string, mixed>
      */
-    protected function getSystemRequireBox()
+    protected static function reloadSettingValues(): array
     {
-        $checkResult = SystemRequireList::make(SystemRequireCalledType::WEB);
-        $view = view('exment::widgets.system-require', [
-            'checkResult' => $checkResult,
-        ]);
-        return $view;
+        $values = [];
+        foreach (\Exceedone\Exment\Services\CoreExtensions::systemSettings() as $name => $setting) {
+            if (boolval(array_get($setting, 'reload'))) {
+                $values[$name] = System::{$name}();
+            }
+        }
+        return $values;
     }
 
     /**
@@ -471,6 +522,8 @@ class SystemController extends AdminControllerBase
     public function post(Request $request)
     {
         $advanced = $request->has('advanced');
+        $lookBefore = static::screenLook();
+        $reloadBefore = static::reloadSettingValues();
 
         // validation
         $form = $advanced ? $this->formAdvanced($request) : $this->formBasic($request);
@@ -488,14 +541,19 @@ class SystemController extends AdminControllerBase
                 return $result;
             }
 
-            // Set Role
-            if (!$advanced) {
+            // Set Role. demo mode keeps the system administrators, so the published login stays one.
+            if (!$advanced && !DemoMode::keepsSystemAdmins()) {
                 System::system_admin_users($request->get('system_admin_users'));
             }
 
             DB::commit();
 
             admin_toastr(trans('admin.save_succeeded'));
+
+            System::clearCache();
+            if (static::screenLook() !== $lookBefore || static::reloadSettingValues() !== $reloadBefore) {
+                session()->flash(static::SESSION_KEY_RELOAD_PAGE, true);
+            }
 
             return redirect(admin_url('system') . ($advanced ? '?advanced=1' : ''));
         } catch (InvalidZipEntryException $exception) {

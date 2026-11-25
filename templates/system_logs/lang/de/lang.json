@@ -1,0 +1,50 @@
+{
+    "template_view_name": "Systemleistungsprotokoll",
+    "description": "Vorlage zum Aufzeichnen von Systemleistungsprotokollen mit ausgeführter URL, Benutzer, Zeit und SQL-Abfragen.",
+    "custom_tables": [
+        {
+            "table_name": "system_logs",
+            "table_view_name": "Systemleistungsprotokoll",
+            "description": "Zeichnet Systemleistungsprotokolle wie ausgeführte SQL-Abfragen, ausgeführte URL, Benutzer und Zeit auf.",
+            "custom_columns": [
+                {
+                    "column_name": "url",
+                    "column_view_name": "Ausgeführte URL"
+                },
+                {
+                    "column_name": "email",
+                    "column_view_name": "Ausführender Benutzer"
+                },
+                {
+                    "column_name": "create_at",
+                    "column_view_name": "Ausführungszeit"
+                },
+                {
+                    "column_name": "sql",
+                    "column_view_name": "SQL"
+                }
+            ]
+        }
+    ],
+    "custom_relations": [],
+    "custom_forms": [
+        {
+            "suuid": "5160ffbedcfce843fb8e",
+            "form_view_name": "Formular"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "d9ce8f6d3b288d6da84b",
+            "view_view_name": "Alle Datensätze"
+        }
+    ],
+    "custom_copies": [],
+    "admin_menu": [
+        {
+            "title": "Systemleistungsprotokoll",
+            "menu_type": "table",
+            "menu_name": "system_logs"
+        }
+    ]
+}

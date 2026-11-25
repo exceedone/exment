@@ -2,9 +2,17 @@
 
 namespace Exceedone\Exment\DashboardBoxItems;
 
+use Exceedone\Exment\ColumnItems\CustomColumns\SelectTable;
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SystemColumn;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomViewColumn;
+use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Services\ReferencePrefetcher;
 use Exceedone\Exment\Enums\DashboardType;
 use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Enums\ViewKindType;
@@ -107,5 +115,47 @@ trait TableItemTrait
                 }
                 return array_get($value, 'view_type') == ViewType::SYSTEM;
             })->pluck('view_view_name', 'id')->toArray();
+    }
+
+    /**
+     * Read together the records the page's columns point at: a select_table, user or
+     * organization column, a column of the record it points at (through that pivot column),
+     * the parent, and the files of a file or image column. One query per table for the page,
+     * not one per row and column (ISS00413). Only what the view shows: a small view reads
+     * nothing more.
+     *
+     * @param \Illuminate\Support\Collection<int, mixed> $rows  the custom values
+     * @param iterable<mixed> $view_columns  the CustomViewColumns shown
+     * @return void
+     */
+    protected function prefetchReferences($rows, $view_columns)
+    {
+        ReferencePrefetcher::prefetch($this->custom_table, $rows, $view_columns);
+    }
+
+    /**
+     * Read together the records the groups of an aggregate view point at (a group by a
+     * select_table, user or organization column): their labels were read one query per group
+     * (ISS00413).
+     *
+     * @param iterable<mixed> $rows  the summary rows
+     * @param iterable<mixed> $items  the column items of the group columns (summary options set)
+     * @return void
+     */
+    protected function prefetchSummaryTargets($rows, $items)
+    {
+        foreach ($items as $item) {
+            if (!($item instanceof SelectTable) || is_null($target = $item->getSelectTable())) {
+                continue;
+            }
+            $values = [];
+            foreach ($rows as $row) {
+                $values[] = data_get($row, $item->uniqueName());
+            }
+            $values = array_filter($values);
+            if (!empty($values)) {
+                $target->setCustomValueModels($values);
+            }
+        }
     }
 }

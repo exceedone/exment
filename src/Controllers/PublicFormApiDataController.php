@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\Linkage;
@@ -56,7 +57,28 @@ class PublicFormApiDataController extends AdminControllerTableBase
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
-        return $this->_dataFind($request, $id);
+        // The related records are not for an anonymous visitor
+        $request->query->remove('children');
+        $request->query->remove('parents');
+        $request->request->remove('children');
+        $request->request->remove('parents');
+
+        $result = $this->_dataFind($request, $id);
+        if ($result instanceof \Symfony\Component\HttpFoundation\Response) {
+            return $result;
+        }
+
+        // The visitor of a public form is not logged in, and the record is read
+        // as the form's user. Only what the form needs goes back: the id and the
+        // label for a select box, and the columns the form copies from the
+        // record when it is selected ("changedata").
+        $array = $result instanceof \Illuminate\Contracts\Support\Arrayable ? $result->toArray() : (array)$result;
+        $values = (array)array_get($array, 'value', []);
+        return [
+            'id' => array_get($array, 'id'),
+            'label' => array_get($array, 'label', ($result instanceof \Exceedone\Exment\Model\CustomValue ? $result->getLabel() : null)),
+            'value' => array_intersect_key($values, array_flip($this->getChangedataColumnNames())),
+        ];
     }
 
     /**
@@ -69,6 +91,36 @@ class PublicFormApiDataController extends AdminControllerTableBase
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
         }
+
+        // The view that narrows the choices is the one of the form's select
+        // column (its "select_target_view"), not one the visitor sends.
+        $columns = collect();
+        foreach ($this->eachFormColumn() as $custom_form_column) {
+            $custom_column = $custom_form_column->custom_column_cache;
+            if ($custom_column && $custom_column->select_target_table && $custom_column->select_target_table->id == $this->custom_table->id) {
+                $columns->push($custom_column);
+            }
+        }
+        $expand = (array)$request->get('expand', []);
+        $column_id = array_get($expand, 'column_id') ?? $request->get('column_id');
+        $column = $columns->first(function ($c) use ($column_id) {
+            return isMatchString($c->id, $column_id);
+        });
+        if ($column) {
+            $views = collect([$column->getOption('select_target_view')]);
+        } else {
+            $views = $columns->map(function ($c) {
+                return $c->getOption('select_target_view');
+            })->unique()->values();
+        }
+        if ($views->count() != 1) {
+            // several columns with different views, and none named: not decided by the visitor
+            return abortJson(403, ErrorCode::NOT_CONTAINS_CUSTOM_FORM());
+        }
+        $expand['target_view_id'] = $views->first();
+        $request->merge(['expand' => $expand]);
+        $request->query->set('expand', $expand);
+
         return $this->_dataSelect($request);
     }
 
@@ -85,6 +137,10 @@ class PublicFormApiDataController extends AdminControllerTableBase
     {
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
+        }
+        // only a column that is on the form
+        if (!in_array($column_name, $this->getFormColumnNames(), true)) {
+            return abortJson(403, ErrorCode::NOT_CONTAINS_CUSTOM_FORM());
         }
         // @phpstan-ignore-next-line
         return $this->_columnData($request, $column_name);
@@ -103,6 +159,14 @@ class PublicFormApiDataController extends AdminControllerTableBase
     {
         if (($response = $this->checkContainsCustomTableInForm($request)) !== true) {
             return $response;
+        }
+        // the table whose records are listed has to be used by the form too
+        $child_select_table = CustomTable::getEloquent($request->get('child_select_table_id'));
+        // (without it nothing is listed: _relatedLinkage answers [])
+        if ($child_select_table && !$this->public_form->getListOfTablesUsed()->contains(function ($table) use ($child_select_table) {
+            return $table->id == $child_select_table->id;
+        })) {
+            return abortJson(403, ErrorCode::NOT_CONTAINS_CUSTOM_FORM());
         }
         return $this->_relatedLinkage($request);
     }
@@ -125,5 +189,80 @@ class PublicFormApiDataController extends AdminControllerTableBase
 
         // if not contains custom form column in this table, return 403 error
         return abortJson(403, ErrorCode::NOT_CONTAINS_CUSTOM_FORM());
+    }
+
+    /**
+     * The columns of this table that the form copies from a selected record
+     * ("changedata": the form column's changedata_column_id).
+     *
+     * @return array<string>
+     */
+    protected function getChangedataColumnNames(): array
+    {
+        $names = [];
+        foreach ($this->eachFormColumn() as $custom_form_column) {
+            $changedata_column = CustomColumn::getEloquent(array_get($custom_form_column->options, 'changedata_column_id'));
+            if ($changedata_column && $changedata_column->custom_table_id == $this->custom_table->id) {
+                $names[] = $changedata_column->column_name;
+            }
+        }
+
+        // and the columns a calculation of the form reads from a selected record
+        // or from the parent (calc.js: model['value'][formula_column])
+        foreach ($this->public_form->custom_form->custom_form_blocks as $custom_form_block) {
+            if (!$custom_form_block->available) {
+                continue;
+            }
+            foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
+                $custom_column = $custom_form_column->custom_column_cache;
+                $formula = $custom_column ? array_get($custom_column, 'options.calc_formula') : null;
+                if (!is_string($formula) || is_nullorempty($formula) || $formula == 'null') {
+                    continue;
+                }
+                $params = \Exceedone\Exment\Services\Calc\CalcService::getCalcParamsFromString($formula, $custom_column->custom_table_cache, $custom_form_block);
+                foreach ($params as $param) {
+                    if (!in_array(array_get($param, 'type'), ['select_table', 'parent'], true)) {
+                        continue;
+                    }
+                    $formula_column = array_get($param, 'custom_column');
+                    if ($formula_column && $formula_column->custom_table_id == $this->custom_table->id) {
+                        $names[] = $formula_column->column_name;
+                    }
+                }
+            }
+        }
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * The columns of this table that are on the form.
+     *
+     * @return array<string>
+     */
+    protected function getFormColumnNames(): array
+    {
+        $names = [];
+        foreach ($this->eachFormColumn() as $custom_form_column) {
+            $custom_column = $custom_form_column->custom_column_cache;
+            if ($custom_column && $custom_column->custom_table_id == $this->custom_table->id) {
+                $names[] = $custom_column->column_name;
+            }
+        }
+        return array_values(array_unique($names));
+    }
+
+    /**
+     * @return \Generator<\Exceedone\Exment\Model\CustomFormColumn>
+     */
+    protected function eachFormColumn()
+    {
+        foreach ($this->public_form->custom_form->custom_form_blocks as $custom_form_block) {
+            if (!$custom_form_block->available) {
+                continue;
+            }
+            foreach ($custom_form_block->custom_form_columns as $custom_form_column) {
+                yield $custom_form_column;
+            }
+        }
     }
 }
