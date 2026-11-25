@@ -530,6 +530,9 @@ class RoleGroupController extends AdminControllerBase
             return back()->withInput($request->all())->withErrors($errors);
         }
 
+        // the history of the changes (ISS02840)
+        $before = isset($id) ? \Exceedone\Exment\Services\LogManagement\PermissionChanges::snapshot($id) : null;
+
         \DB::beginTransaction();
 
         try {
@@ -576,6 +579,8 @@ class RoleGroupController extends AdminControllerBase
             }
 
             \DB::commit();
+            // @phpstan-ignore-next-line
+            \Exceedone\Exment\Services\LogManagement\PermissionChanges::record($role_group->id, $before, \Exceedone\Exment\Services\LogManagement\PermissionChanges::snapshot($role_group->id));
 
             admin_toastr(trans('admin.save_succeeded'));
 
@@ -630,6 +635,7 @@ class RoleGroupController extends AdminControllerBase
                 ];
             });
 
+            $before = \Exceedone\Exment\Services\LogManagement\PermissionChanges::snapshot($id);
             \Schema::insertDelete(SystemTableName::ROLE_GROUP_USER_ORGANIZATION, $role_group, [
                 'dbValueFilter' => function (&$model) use ($id) {
                     $model->where('role_group_id', $id);
@@ -646,6 +652,7 @@ class RoleGroupController extends AdminControllerBase
             ]);
 
             \DB::commit();
+            \Exceedone\Exment\Services\LogManagement\PermissionChanges::record($id, $before, \Exceedone\Exment\Services\LogManagement\PermissionChanges::snapshot($id));
 
             System::clearCache();
 

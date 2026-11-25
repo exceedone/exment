@@ -5156,7 +5156,33 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'any' => 'Beliebig',
         'yes' => 'Ja',
         'no' => 'Nein',
+        'role_type' => [
+            'system' => 'System',
+            'table' => 'Tabelle',
+            'plugin' => 'Plugin',
+        ],
+        'member_type' => [
+            'user' => 'Benutzer',
+            'organization' => 'Organisation',
+        ],
+        'change' => [
+            'added' => 'Hinzugefügt',
+            'removed' => 'Entfernt',
+        ],
+        'change_kind' => [
+            'group' => 'Rollengruppe',
+            'permission' => 'Berechtigung',
+            'member' => 'Mitglied',
+        ],
+        'source' => [
+            'page' => 'Seite',
+            'api' => 'API',
+            'deleted' => 'Benutzer oder Organisation gelöscht',
+        ],
         'section' => [
+            'role_group_permissions' => 'Berechtigungen der Rollengruppen',
+            'role_group_members' => 'Mitglieder der Rollengruppen',
+            'permission_changes' => 'Änderungen der Rollengruppen',
             'users' => 'Benutzer',
             'inactive' => 'Nicht benutzte Konten',
             'administrators' => 'Administratoren',
@@ -5170,6 +5196,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'log_retention' => 'Aufbewahrungsdauer der Protokolle',
         ],
         'note' => [
+            'role_group_permissions' => 'Was jede Rollengruppe derzeit erlaubt.',
+            'permission_changes' => 'Wer im Zeitraum eine Berechtigung oder ein Mitglied hinzugefügt oder entfernt hat. Der Verlauf beginnt mit 7.3.',
             'users' => 'Alle Anmeldekonten. Die letzte Anmeldung ist die letzte erfolgreiche aufgezeichnete; die Passwortänderung ist die letzte im Passwortverlauf.',
             'inactive' => 'Konten ohne Anmeldung in den letzten :days Tagen (oder nie, vor mehr als :days Tagen erstellt).',
             'administrators' => 'Die Systemadministratoren und die Benutzer mit einer Systemberechtigung, über ihre Rollengruppen oder die Rollengruppen ihrer Organisationen.',
@@ -5180,6 +5208,16 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'public_forms' => 'Seiten, an die jeder mit der URL senden kann.',
         ],
         'column' => [
+            'role_group' => 'Rollengruppe',
+            'role_type' => 'Bereich',
+            'permission_target' => 'Tabelle oder Plugin',
+            'permissions' => 'Berechtigungen',
+            'member_type' => 'Mitglied',
+            'member_code' => 'Code',
+            'member_name' => 'Name',
+            'changed_user' => 'Geändert von',
+            'change' => 'Änderung',
+            'source' => 'Wo',
             'user_code' => 'Benutzercode',
             'user_name' => 'Benutzername',
             'login_type' => 'Anmeldung',
@@ -5310,6 +5348,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         ],
         'setting' => [
             'login_log_days' => 'Anmeldeprotokolle: Tage aufbewahren',
+            'permission_change_days' => 'Verlauf der Rollengruppen: Tage aufbewahren',
             'app_log_days' => 'Anwendungsprotokoll (tägliche Dateien): Tage aufbewahren',
             'days_help' => 'Leer: :default Tage. 0: bis zum Löschen aufbewahrt.',
             'app_level' => 'Stufe des Anwendungsprotokolls',
@@ -5341,6 +5380,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'types' => [
             'operation_log' => 'Vorgangsprotokoll',
             'login_log' => 'Anmeldeprotokoll',
+            'permission_change' => 'Verlauf der Rollengruppen',
             'app_log' => 'Anwendungsprotokoll',
         ],
     ],

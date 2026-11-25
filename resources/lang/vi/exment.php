@@ -5156,7 +5156,33 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'any' => 'Bất kỳ',
         'yes' => 'Có',
         'no' => 'Không',
+        'role_type' => [
+            'system' => 'Hệ thống',
+            'table' => 'Bảng',
+            'plugin' => 'Plugin',
+        ],
+        'member_type' => [
+            'user' => 'Người dùng',
+            'organization' => 'Tổ chức',
+        ],
+        'change' => [
+            'added' => 'Đã thêm',
+            'removed' => 'Đã gỡ',
+        ],
+        'change_kind' => [
+            'group' => 'Nhóm vai trò',
+            'permission' => 'Quyền',
+            'member' => 'Thành viên',
+        ],
+        'source' => [
+            'page' => 'Màn hình',
+            'api' => 'API',
+            'deleted' => 'Xóa người dùng hoặc tổ chức',
+        ],
         'section' => [
+            'role_group_permissions' => 'Quyền của các nhóm vai trò',
+            'role_group_members' => 'Thành viên của các nhóm vai trò',
+            'permission_changes' => 'Lịch sử thay đổi nhóm vai trò',
             'users' => 'Người dùng',
             'inactive' => 'Tài khoản không dùng',
             'administrators' => 'Quản trị viên',
@@ -5170,6 +5196,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'log_retention' => 'Thời gian lưu nhật ký',
         ],
         'note' => [
+            'role_group_permissions' => 'Quyền hiện tại của từng nhóm vai trò.',
+            'permission_changes' => 'Ai đã thêm hoặc gỡ một quyền hay một thành viên trong kỳ. Lịch sử bắt đầu từ 7.3.',
             'users' => 'Mọi tài khoản đăng nhập. Lần đăng nhập cuối là lần thành công cuối cùng được ghi; lần đổi mật khẩu là lần cuối trong lịch sử mật khẩu.',
             'inactive' => 'Tài khoản không đăng nhập trong :days ngày qua (hoặc chưa từng, được tạo hơn :days ngày trước).',
             'administrators' => 'Quản trị viên hệ thống và người dùng có quyền hệ thống, qua nhóm vai trò của họ hoặc nhóm vai trò của tổ chức.',
@@ -5180,6 +5208,16 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'public_forms' => 'Các trang mà bất kỳ ai có URL đều có thể gửi.',
         ],
         'column' => [
+            'role_group' => 'Nhóm vai trò',
+            'role_type' => 'Phạm vi',
+            'permission_target' => 'Bảng hoặc plugin',
+            'permissions' => 'Quyền',
+            'member_type' => 'Thành viên',
+            'member_code' => 'Mã',
+            'member_name' => 'Tên',
+            'changed_user' => 'Người thay đổi',
+            'change' => 'Thay đổi',
+            'source' => 'Ở đâu',
             'user_code' => 'Mã người dùng',
             'user_name' => 'Tên người dùng',
             'login_type' => 'Đăng nhập',
@@ -5310,6 +5348,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         ],
         'setting' => [
             'login_log_days' => 'Nhật ký đăng nhập: số ngày lưu',
+            'permission_change_days' => 'Lịch sử nhóm vai trò: số ngày lưu',
             'app_log_days' => 'Log ứng dụng (tệp theo ngày): số ngày lưu',
             'days_help' => 'Để trống: :default ngày. 0: lưu đến khi xóa.',
             'app_level' => 'Mức log ứng dụng',
@@ -5341,6 +5380,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'types' => [
             'operation_log' => 'Nhật ký thao tác',
             'login_log' => 'Nhật ký đăng nhập',
+            'permission_change' => 'Lịch sử nhóm vai trò',
             'app_log' => 'Log ứng dụng',
         ],
     ],

@@ -5156,7 +5156,33 @@ IP 주소: :ip
         'any' => '모두',
         'yes' => '예',
         'no' => '아니요',
+        'role_type' => [
+            'system' => '시스템',
+            'table' => '테이블',
+            'plugin' => '플러그인',
+        ],
+        'member_type' => [
+            'user' => '사용자',
+            'organization' => '조직',
+        ],
+        'change' => [
+            'added' => '추가',
+            'removed' => '삭제',
+        ],
+        'change_kind' => [
+            'group' => '역할 그룹',
+            'permission' => '권한',
+            'member' => '멤버',
+        ],
+        'source' => [
+            'page' => '화면',
+            'api' => 'API',
+            'deleted' => '사용자·조직 삭제',
+        ],
         'section' => [
+            'role_group_permissions' => '역할 그룹의 권한',
+            'role_group_members' => '역할 그룹의 멤버',
+            'permission_changes' => '역할 그룹의 변경 이력',
             'users' => '사용자',
             'inactive' => '사용하지 않는 계정',
             'administrators' => '관리자',
@@ -5170,6 +5196,8 @@ IP 주소: :ip
             'log_retention' => '로그 보관 기간',
         ],
         'note' => [
+            'role_group_permissions' => '각 역할 그룹의 현재 권한입니다.',
+            'permission_changes' => '기간 중 누가 권한이나 멤버를 추가·삭제했는지. 이력은 7.3부터 기록됩니다.',
             'users' => '모든 로그인 계정. 마지막 로그인은 기록된 마지막 성공 로그인이고, 비밀번호 변경은 비밀번호 이력의 마지막 변경입니다.',
             'inactive' => '최근 :days일 동안 로그인하지 않은 계정(또는 :days일보다 전에 만들어져 한 번도 로그인하지 않은 계정).',
             'administrators' => '시스템 관리자와 시스템 권한이 있는 사용자(역할 그룹 또는 소속 조직의 역할 그룹을 통해).',
@@ -5180,6 +5208,16 @@ IP 주소: :ip
             'public_forms' => 'URL을 아는 사람 누구나 보낼 수 있는 페이지입니다.',
         ],
         'column' => [
+            'role_group' => '역할 그룹',
+            'role_type' => '대상',
+            'permission_target' => '테이블 또는 플러그인',
+            'permissions' => '권한',
+            'member_type' => '멤버',
+            'member_code' => '코드',
+            'member_name' => '이름',
+            'changed_user' => '변경한 사람',
+            'change' => '변경',
+            'source' => '위치',
             'user_code' => '사용자 코드',
             'user_name' => '사용자 이름',
             'login_type' => '로그인',
@@ -5310,6 +5348,7 @@ IP 주소: :ip
         ],
         'setting' => [
             'login_log_days' => '로그인 기록 보존 일수',
+            'permission_change_days' => '역할 그룹 변경 이력 보존 일수',
             'app_log_days' => '애플리케이션 로그(일별 파일) 보존 일수',
             'days_help' => '비우면 :default일. 0이면 삭제할 때까지 보존합니다.',
             'app_level' => '애플리케이션 로그 수준',
@@ -5341,6 +5380,7 @@ IP 주소: :ip
         'types' => [
             'operation_log' => '조작 기록',
             'login_log' => '로그인 기록',
+            'permission_change' => '역할 그룹의 변경 이력',
             'app_log' => '애플리케이션 로그',
         ],
     ],
