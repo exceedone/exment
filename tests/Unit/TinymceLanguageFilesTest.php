@@ -34,7 +34,7 @@ class TinymceLanguageFilesTest extends TestCase
     {
         foreach ($this->files() as $lang => $src) {
             $this->assertStringStartsWith('tinymce.addI18n("' . $lang . '", {', ltrim($src), $lang);
-            $this->assertSame(0, preg_match_all('/^\s*"(?:[^"\\\\]|\\\\.)*":\s*"",?\s*$/m', $src, $m), $lang . ': ' . implode(', ', $m[0] ?? []));
+            $this->assertSame(0, preg_match_all('/^\s*"(?:[^"\\\\]|\\\\.)*":\s*"",?\s*$/m', $src, $m), $lang . ': ' . implode(', ', $m[0]));
         }
     }
 
@@ -42,7 +42,7 @@ class TinymceLanguageFilesTest extends TestCase
     {
         $src = $this->files()['ko-KR'];
         foreach (['Block {0}', 'Font {0}', 'Font size {0}', 'Text color {0}', 'Background color {0}'] as $key) {
-            $this->assertMatchesRegularExpression('/^\s*' . preg_quote(json_encode($key), '/') . ':\s*"[^"]+",?\s*$/m', $src, $key);
+            $this->assertMatchesRegularExpression('/^\s*' . preg_quote(strval(json_encode($key)), '/') . ':\s*"[^"]+",?\s*$/m', $src, $key);
         }
     }
 }
