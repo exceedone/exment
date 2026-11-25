@@ -90,6 +90,7 @@ use Cache;
  * @method static string|void system_slack_user_column($arg = null)
  * @method static string|void system_line_channel_token($arg = null)
  * @method static string|void system_line_channel_secret($arg = null)
+ * @method static string|void system_teams_workflow_url($arg = null)
  * @method static string|void system_line_oa_basic_id($arg = null)
  * @method static boolean|void safety_check_auto_enabled($arg = null)
  * @method static int|void safety_check_min_scale($arg = null)
