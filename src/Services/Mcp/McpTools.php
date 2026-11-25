@@ -381,7 +381,8 @@ class McpTools
             if ($offset + $limit > static::MAX_SEARCH_DEPTH) {
                 throw new ToolError('The search does not read on past ' . static::MAX_SEARCH_DEPTH . ' records: use more words.');
             }
-            $found = collect($custom_table->searchValue($q, ['maxCount' => $offset + $limit, 'isApi' => true]) ?? []);
+            /** @var \Illuminate\Support\Collection<int, mixed> $found */
+            $found = $custom_table->searchValue($q, ['maxCount' => $offset + $limit, 'isApi' => true]) ?? collect();
             $more = $found->count() >= $offset + $limit;
             $found = $found->slice($offset)->values();
         } else {
