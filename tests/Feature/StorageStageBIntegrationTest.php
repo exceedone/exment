@@ -1040,7 +1040,8 @@ class StorageStageBIntegrationTest extends FeatureTestBase
         // columns, and is the select list of the same table before the conversion
         $db = getDBTableName($table);
         $is_board_select = function ($q) use ($db) {
-            return stripos($q['query'], 'from ' . static::q($db)) !== false && stripos($q['query'], 'order by') !== false && stripos($q['query'], 'limit') !== false;
+            return stripos($q['query'], 'from ' . static::q($db)) !== false && stripos($q['query'], 'order by') !== false
+                && (stripos($q['query'], 'limit') !== false || stripos($q['query'], 'fetch next') !== false || preg_match('/^select top \d+ /i', $q['query']));
         };
         $select_list = function ($log) use ($is_board_select) {
             $lists = [];
@@ -1063,7 +1064,7 @@ class StorageStageBIntegrationTest extends FeatureTestBase
         foreach ($lists as $list) {
             $this->assertStringNotContainsString($pcol, $list, 'no staging column in the select list');
             $this->assertStringNotContainsString(PhysicalNaming::VALUE_ORIGINAL, $list);
-            $this->assertStringNotContainsString('`column_', $list, 'no index column in the select list');
+            $this->assertDoesNotMatchRegularExpression('/column_[0-9a-z]{6,}/', $list, 'no index column in the select list');
         }
         $this->assertCount(1, $lists, 'one select list for every board query');
         $this->assertSame($before['cards'], $after['cards'], 'the cards of every board column');
