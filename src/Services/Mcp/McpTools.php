@@ -254,7 +254,7 @@ class McpTools
         $offset = max(0, intval($args['offset'] ?? 0));
         $total = count($items);
         return [
-            $key => array_values(array_slice($items, $offset, $limit)),
+            $key => array_slice($items, $offset, $limit),
             'total' => $total,
             'offset' => $offset,
             'next_offset' => $offset + $limit < $total ? $offset + $limit : null,
