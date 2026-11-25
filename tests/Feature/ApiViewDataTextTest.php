@@ -64,7 +64,8 @@ class ApiViewDataTextTest extends ApiTestBase
                 json_encode($data, JSON_UNESCAPED_UNICODE),
                 "view {$custom_view->view_view_name}"
             );
-            \Auth::logout();
+            // the next view is read with the token only (the guard of the API has no logout())
+            \Auth::forgetGuards();
         }
     }
 }
