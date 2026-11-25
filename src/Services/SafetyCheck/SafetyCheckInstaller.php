@@ -29,6 +29,73 @@ class SafetyCheckInstaller
         static::ensureFlexTemplate();
         static::ensureMailTemplate();
         static::ensureChannelMailOption();
+        static::ensureLabels();
+    }
+
+    /**
+     * The choice columns with the stored values (what the code compares) and
+     * their names on screen: column => [table, values, prefix of the lang key].
+     */
+    public const LABELED_COLUMNS = [
+        'trigger_type' => [SafetyCheckDefine::TABLE_EVENT, [SafetyCheckDefine::TRIGGER_MANUAL, SafetyCheckDefine::TRIGGER_DRILL, SafetyCheckDefine::TRIGGER_JMA_AUTO], 'safety.trigger_type_'],
+        'event_status' => [SafetyCheckDefine::TABLE_EVENT, [SafetyCheckDefine::EVENT_OPEN, SafetyCheckDefine::EVENT_CLOSED], 'safety.event_status_'],
+        'answer_status' => [SafetyCheckDefine::TABLE_ANSWER, [SafetyCheckDefine::ANSWER_NOT_ANSWERED, 'safe', 'minor_injury', 'need_help'], 'safety.status_'],
+        'channel' => [SafetyCheckDefine::TABLE_ANSWER, ['line', 'mail'], 'safety.channel_'],
+    ];
+
+    /**
+     * "value,name" lines of a "select (value and name)" column, the names in
+     * the language of the site (as the names of the columns, #2179). A value
+     * not known here (one an administrator added) is its own name.
+     *
+     * @param string $column a key of LABELED_COLUMNS
+     * @param string[]|null $values the values; the known ones when null
+     */
+    public static function valtext(string $column, ?array $values = null): string
+    {
+        [, $known, $prefix] = static::LABELED_COLUMNS[$column];
+        $locale = Menu::siteLocale();
+        $lines = [];
+        foreach ($values ?? $known as $value) {
+            $value = strval($value);
+            $label = in_array($value, $known, true) ? trans('exment::exment.' . $prefix . $value, [], $locale) : $value;
+            if (!is_string($label) || $label === '' || str_starts_with($label, 'exment::')) {
+                $label = $value;
+            }
+            $lines[] = $value . ',' . $label;
+        }
+        return implode("\n", $lines);
+    }
+
+    /**
+     * The choice columns a site made before #2179 ("select", which shows the
+     * stored value such as safe or mail) become "select (value and name)"
+     * with the same values: what is stored does not change.
+     */
+    public static function ensureLabels(): void
+    {
+        $changed = false;
+        foreach (static::LABELED_COLUMNS as $name => [$tableName]) {
+            $table = CustomTable::getEloquent($tableName);
+            if (!$table) {
+                continue;
+            }
+            $column = CustomColumn::getEloquent($name, $table);
+            if (!$column || $column->column_type !== ColumnType::SELECT) {
+                continue;
+            }
+            $values = preg_split('/\r?\n/', (string) array_get($column->options, 'select_item'), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+            $values = array_values(array_unique(array_filter(array_map('trim', $values), function ($value) {
+                return $value !== '';
+            })));
+            $column->column_type = ColumnType::SELECT_VALTEXT;
+            $column->setOption('select_item_valtext', static::valtext($name, $values));
+            $column->save();
+            $changed = true;
+        }
+        if ($changed) {
+            System::clearCache();
+        }
     }
 
     /**
@@ -38,8 +105,8 @@ class SafetyCheckInstaller
     {
         return [
             ['title',        exmtrans('safety.col_title'),        ColumnType::TEXT,     ['index_enabled' => 1]],
-            ['trigger_type', exmtrans('safety.col_trigger_type'), ColumnType::SELECT,   ['index_enabled' => 1, 'select_item' => implode("\n", [SafetyCheckDefine::TRIGGER_MANUAL, SafetyCheckDefine::TRIGGER_DRILL, SafetyCheckDefine::TRIGGER_JMA_AUTO])]],
-            ['event_status', exmtrans('safety.col_event_status'), ColumnType::SELECT,   ['index_enabled' => 1, 'select_item' => implode("\n", [SafetyCheckDefine::EVENT_OPEN, SafetyCheckDefine::EVENT_CLOSED])]],
+            ['trigger_type', exmtrans('safety.col_trigger_type'), ColumnType::SELECT_VALTEXT, ['index_enabled' => 1, 'select_item_valtext' => static::valtext('trigger_type')]],
+            ['event_status', exmtrans('safety.col_event_status'), ColumnType::SELECT_VALTEXT, ['index_enabled' => 1, 'select_item_valtext' => static::valtext('event_status')]],
             ['triggered_at', exmtrans('safety.col_triggered_at'), ColumnType::DATETIME, ['index_enabled' => 1]],
             ['jma_event_id', exmtrans('safety.col_jma_event_id'), ColumnType::TEXT,     ['index_enabled' => 1]],
             ['quake_time',   exmtrans('safety.col_quake_time'),   ColumnType::DATETIME, []],
@@ -91,14 +158,13 @@ class SafetyCheckInstaller
     protected static function answerColumns(): array
     {
         $eventTable = CustomTable::getEloquent(SafetyCheckDefine::TABLE_EVENT);
-        $answerStatuses = array_merge([SafetyCheckDefine::ANSWER_NOT_ANSWERED], SafetyCheckDefine::ANSWER_STATUSES);
         return [
             ['event',         exmtrans('safety.col_event'),         ColumnType::SELECT_TABLE, ['index_enabled' => 1, 'select_target_table' => $eventTable ? $eventTable->id : null]],
             ['user',          exmtrans('safety.col_user'),          ColumnType::USER,         ['index_enabled' => 1]],
-            ['answer_status', exmtrans('safety.col_answer_status'), ColumnType::SELECT,       ['index_enabled' => 1, 'select_item' => implode("\n", $answerStatuses), 'default' => SafetyCheckDefine::ANSWER_NOT_ANSWERED]],
+            ['answer_status', exmtrans('safety.col_answer_status'), ColumnType::SELECT_VALTEXT, ['index_enabled' => 1, 'select_item_valtext' => static::valtext('answer_status'), 'default' => SafetyCheckDefine::ANSWER_NOT_ANSWERED]],
             ['comment',       exmtrans('safety.col_comment'),       ColumnType::TEXTAREA,     []],
             ['answered_at',   exmtrans('safety.col_answered_at'),   ColumnType::DATETIME,     []],
-            ['channel',       exmtrans('safety.col_channel'),       ColumnType::SELECT,       ['select_item' => "line\nmail"]],
+            ['channel',       exmtrans('safety.col_channel'),       ColumnType::SELECT_VALTEXT, ['select_item_valtext' => static::valtext('channel')]],
             ['unlinked_flg',  exmtrans('safety.col_unlinked_flg'),  ColumnType::YESNO,        []],
         ];
     }
@@ -233,12 +299,18 @@ class SafetyCheckInstaller
         if (!$channel) {
             return;
         }
-        $items = preg_split('/\r?\n/', (string) array_get($channel->options, 'select_item'), -1, PREG_SPLIT_NO_EMPTY) ?: [];
-        if (in_array('mail', $items, true)) {
+        // "select (value and name)" from #2179: "mail,Mail"
+        $valtext = $channel->column_type === ColumnType::SELECT_VALTEXT;
+        $key = $valtext ? 'select_item_valtext' : 'select_item';
+        $items = preg_split('/\r?\n/', (string) array_get($channel->options, $key), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $values = array_map(function ($item) use ($valtext) {
+            return trim($valtext ? explode(',', $item, 2)[0] : $item);
+        }, $items);
+        if (in_array('mail', $values, true)) {
             return;
         }
-        $items[] = 'mail';
-        $channel->setOption('select_item', implode("\n", $items));
+        $items[] = $valtext ? static::valtext('channel', ['mail']) : 'mail';
+        $channel->setOption($key, implode("\n", $items));
         $channel->save();
     }
 

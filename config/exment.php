@@ -261,12 +261,25 @@ return [
     */
     'password_rule' => [
         // set regex rule
-        'rule' => '^[ -~]+$',
+        'rule' => env('EXMENT_PASSWORD_RULE', '^[ -~]+$'),
         // set min length
-        'min' => '8',
-        // set max length
-        'max' => '32',
+        'min' => env('EXMENT_PASSWORD_RULE_MIN', '8'),
+        // set max length (64: long pass phrases can be used)
+        'max' => env('EXMENT_PASSWORD_RULE_MAX', '64'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | password policy for a new site
+    |--------------------------------------------------------------------------
+    |
+    | true: a new site starts with the recommended password policy (Login
+    | settings): complex passwords, a change at the first login and no reuse
+    | of the last 5 passwords. Set when the site is initialized; a site that
+    | is there already is not changed. An administrator can change them later.
+    |
+    */
+    'password_policy_new_site' => env('EXMENT_PASSWORD_POLICY_NEW_SITE', false),
 
     /*
     |--------------------------------------------------------------------------

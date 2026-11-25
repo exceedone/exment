@@ -879,12 +879,14 @@ $(function () {
                         : (D.wip_column ? amountSum(items) : items.length));
                 var over = col.wip > 0 && load > col.wip;
                 var loadTxt = fmtNum(load, D.wip_column ? D.wip_format : GROUPED);
+                // the limit in the format of the total (#2184)
+                var wipTxt = fmtNum(col.wip, D.wip_column ? D.wip_format : GROUPED);
                 // The limit is set per board column, so the figure beside it
                 // counts the whole column. Split into lanes that is not the
                 // number of cards in this cell, and a head reading "0" next to
                 // a load of 16.5 looks broken unless the badge says which is
                 // which.
-                var wipTitle = fmt(swimBy ? L.col_wip_all : L.col_wip, loadTxt, col.wip);
+                var wipTitle = fmt(swimBy ? L.col_wip_all : L.col_wip, loadTxt, wipTxt);
                 var sum = (fromDb && st) ? st.sum : sumOf(items, D.sum_column);
                 var age = (fromDb && st) ? st.age : (D.col_age ? avgAge(items) : null);
                 var total = (fromDb && st) ? st.total : items.length;
@@ -919,7 +921,7 @@ $(function () {
                     (stuck ? '<span class="kb-col-blocked" title="' + esc(L.blocked) + '">' +
                         '<i class="fa fa-hand-paper-o"></i>' + stuck + '</span>' : '') +
                     (col.wip > 0 ? '<span class="kb-col-wip' + (swimBy ? ' kb-col-wip-all' : '') +
-                        '" title="' + esc(wipTitle) + '">' + esc(loadTxt) + '/' + col.wip + '</span>' : '') +
+                        '" title="' + esc(wipTitle) + '">' + esc(loadTxt) + '/' + esc(wipTxt) + '</span>' : '') +
                     // both are switched on one at a time in the view settings,
                     // and neither is worth a row of its own on every column.
                     // An empty column is left with its nought alone: a sum of
@@ -1896,6 +1898,10 @@ $(function () {
     // records the server would not hand over - locked by a workflow, not this
     // reader's to edit. Asked for again on a click, never again on a hover.
     var formDenied = {};
+    // records the server said this reader may not edit (a "noedit" answer or a
+    // 403): a click opens the drawer at once, with no window that flashes and
+    // closes (#2187). The cards the board knows of carry card.noedit already.
+    var formNoEdit = {};
     // how many times each record has been written since the page was opened,
     // so an answer can be matched against the state it was asked for
     var formEpoch = {};
@@ -1912,6 +1918,7 @@ $(function () {
         // next reader to ask gets a fresh request rather than being handed
         // the one that is already out of date.
         delete formPending[k];
+        delete formNoEdit[k];
         formEpoch[k] = (formEpoch[k] || 0) + 1;
     }
     // $.each hands over (index, value); named so the argument order is plain
@@ -1930,6 +1937,7 @@ $(function () {
         var era = formEpoch[String(id)] || 0;
         var req = $.ajax({ url: editUrl(id), dataType: 'json' })
             .done(function (res) {
+                if (res && res.noedit) { formNoEdit[id] = true; return; }
                 if (!res || !res.body) { return; }
                 // written while this was out: what came back shows the record
                 // as it was before that write, and keeping it would undo the
@@ -1940,7 +1948,10 @@ $(function () {
                 while (kept.length >= 8) { delete formCache[kept.shift()]; }
                 formCache[id] = res;
             })
-            .fail(function () { formDenied[id] = true; })
+            .fail(function (xhr) {
+                // not this reader's to edit; anything else is asked again on a click
+                if (xhr && xhr.status === 403) { formNoEdit[id] = true; } else { formDenied[id] = true; }
+            })
             .always(function () {
                 // a newer request owns the slot now - see forgetForm
                 if ((formEpoch[String(id)] || 0) !== era) { return; }
@@ -1957,7 +1968,9 @@ $(function () {
     var warmTimer = null;
     function warmForm(id) {
         if (!canOpenEditor() || D.editor.hook) { return; }
-        if (formCache[id] || formPending[id] || formDenied[id]) { return; }
+        if (formCache[id] || formPending[id] || formDenied[id] || formNoEdit[id]) { return; }
+        var warmCard = cardById(id);
+        if (warmCard && warmCard.noedit) { return; }
         if (warmTimer) { window.clearTimeout(warmTimer); }
         // a pointer crossing the column on its way somewhere else is not a
         // reader, and should not cost a request per card it passed over
@@ -2057,10 +2070,12 @@ $(function () {
             location.href = card.url;
             return;
         }
-        destroyDrawer();
         stopWarming();
-
         var id = String(card.id);
+        // a card the reader may not edit: the drawer, without a window first (#2187)
+        if (card.noedit || formNoEdit[id]) { noEditFallback(card); return; }
+        destroyDrawer();
+
         formOpen = id;
         // cached, and this paints before the browser has drawn anything else
         if (!formCache[id]) {
@@ -2078,9 +2093,12 @@ $(function () {
                 windowShell(res.title || card.title || card.label, res.body, false);
             })
             .fail(function (xhr) {
-                // locked by a workflow, deleted by somebody else, not this
-                // reader's to edit. Said where the reader is, rather than by
-                // taking them off the board and onto a screen saying it.
+                if (formOpen !== id) { return; }
+                // not this reader's to edit: as a "noedit" answer, no error
+                if (xhr && xhr.status === 403) { noEditFallback(card); return; }
+                // locked by a workflow, deleted by somebody else. Said where
+                // the reader is, rather than by taking them off the board and
+                // onto a screen saying it.
                 closeForm();
                 toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
                 if (D.features.drawer) { openDrawer(card.id); }

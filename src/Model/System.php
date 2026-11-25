@@ -54,6 +54,8 @@ use Cache;
  * @method static int|void password_expiration_days($arg = null)
  * @method static boolean|void first_change_password($arg = null)
  * @method static int|void password_history_cnt($arg = null)
+ * @method static bool|void login_notify_new_ip($arg = null)
+ * @method static bool|void login_notify_new_ip_mail($arg = null)
  * @method static string|void login_background_color($arg = null)
  * @method static string|void login_page_image($arg = null)
  * @method static string|void login_page_image_type($arg = null)

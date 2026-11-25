@@ -107,6 +107,22 @@ class TeamsPersonalNotifyTest extends UnitTestBase
         }
     }
 
+    public function testARedirectIsNotFollowed(): void
+    {
+        Http::fake([
+            'flow.example.com/*' => Http::response('', 302, ['Location' => 'https://other.example.net/next']),
+            'other.example.net/*' => Http::response('', 200),
+        ]);
+
+        $sender = TeamsWorkflowSender::make('user1@example.com', 'title', 'body', ['workflow_url' => static::URL]);
+        $sender->send();
+
+        $this->assertSame(302, $sender->status());
+        Http::assertNotSent(function (HttpRequest $request) {
+            return str_contains($request->url(), 'other.example.net');
+        });
+    }
+
     public function testNothingIsSentWhileTheFeatureIsOffOrWithoutTheAddress(): void
     {
         Http::fake();

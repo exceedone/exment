@@ -639,6 +639,8 @@ class KanbanGrid extends GridBase
         // to record; otherwise the board carries one answer for every card,
         // see buildBoard().
         $locks_per_card = !empty($writable_columns) && $this->isEditable() && $this->hasFormPriorities();
+        // a click opens the edit form: which cards the user may not edit (#2187)
+        $noedit_per_card = boolval($this->custom_view->kanban_editform ?? true) && $this->isEditable();
 
         // one option list shared by every card, not one lookup per card
         $labels_options = [];
@@ -805,6 +807,11 @@ class KanbanGrid extends GridBase
                     : [],
                 'wf' => $wf,
             ];
+            // a card the user may not edit opens the drawer, not a form that
+            // flashes and closes (#2187); only those cards carry it
+            if ($noedit_per_card && $record->enableEdit(true) !== true) {
+                $card['noedit'] = true;
+            }
             if ($locks_per_card) {
                 $locked = $this->getLockedColumns($writable_columns, $record);
                 // most cards have none, and an empty list on each of them
@@ -831,6 +838,10 @@ class KanbanGrid extends GridBase
     protected function buildCoverUrl($record, $cover_column)
     {
         $path = $record->getValue($cover_column);
+        // the values of a column that allows several (#2186)
+        if ($path instanceof \Illuminate\Support\Collection) {
+            $path = $path->first();
+        }
         if (is_array($path)) {
             $path = count($path) > 0 ? reset($path) : null;
         }
@@ -4945,7 +4956,8 @@ class KanbanGrid extends GridBase
                 $form->number('kanban_wip_limit', exmtrans("custom_view.kanban_wip_limit"))
                     ->required()
                     ->min(1)
-                    ->max(999)
+                    // 999 for a count of cards, no upper limit for a total of a number column (#2184)
+                    ->rules([new \Exceedone\Exment\Validator\KanbanWipLimitRule()])
                     ->default(5);
             })->setTableColumnWidth(8, 3, 1)
             ->help(exmtrans("custom_view.help.kanban_wips"));

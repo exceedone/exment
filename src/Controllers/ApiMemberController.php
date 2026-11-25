@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\RoleGroup;
@@ -95,6 +96,10 @@ class ApiMemberController extends AdminControllerBase
         $organization = static::findValue(SystemTableName::ORGANIZATION, $id);
         if (!isset($organization)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
+        }
+        // an organization that gives a group of the system administrators: only they change it
+        if (!\Exment::user()->isAdministrator() && static::organizationGivesSystem($organization)) {
+            return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
         [$userIds, $error] = static::ids($request->input('users'), SystemTableName::USER, 'users');
         if (isset($error)) {
@@ -234,6 +239,27 @@ class ApiMemberController extends AdminControllerBase
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
         return null;
+    }
+
+    /**
+     * Whether a user of the organization is in a role group that gives the system permission:
+     * a group of the organization, or of its parents or children as the setting of the role
+     * groups joins them (the permissions of a user, HasPermissions).
+     */
+    public static function organizationGivesSystem(CustomValue $organization): bool
+    {
+        $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
+        $ids = [intval($organization->id)];
+        // @phpstan-ignore-next-line the organization model
+        foreach ((array)$organization->getOrganizationIdsForQuery($enum) as $orgId) {
+            $ids[] = intval($orgId);
+        }
+        foreach (RoleGroup::getHasPermissionRoleGroup(null, array_values(array_unique($ids))) as $roleGroup) {
+            if (static::givesSystem($roleGroup)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

@@ -22,7 +22,12 @@ class LoginRecorder
     {
         Event::listen(Login::class, function (Login $event) {
             if (static::isPages($event->guard)) {
+                // a login from a new IP address is found before this login is written (ISS00104)
+                $newIp = static::isNewIp($event->user);
                 static::write(LoginLog::RESULT_SUCCESS, $event->user);
+                if ($newIp) {
+                    static::notifyNewIp($event->user);
+                }
             }
         });
         Event::listen(Failed::class, function (Failed $event) {
@@ -56,6 +61,32 @@ class LoginRecorder
     public static function twoFactorFailed($user): void
     {
         static::write(LoginLog::RESULT_FAILURE, $user, ['failure_reason' => LoginLog::REASON_2FA_FAILED]);
+    }
+
+    /**
+     * @param mixed $user
+     */
+    protected static function isNewIp($user): bool
+    {
+        try {
+            $ip = mb_substr(strval(LogPrivacy::ip(request()->ip())), 0, 64);
+            return LoginHistory::isNewIp($user, $ip);
+        } catch (\Throwable $e) {
+            \Log::warning('Exment: a login from a new IP address was not checked: ' . get_class($e));
+            return false;
+        }
+    }
+
+    /**
+     * @param mixed $user
+     */
+    protected static function notifyNewIp($user): void
+    {
+        try {
+            LoginHistory::notifyNewIp($user);
+        } catch (\Throwable $e) {
+            \Log::warning('Exment: the notice of a login from a new IP address was not made: ' . get_class($e));
+        }
     }
 
     protected static function isPages(?string $guard): bool
