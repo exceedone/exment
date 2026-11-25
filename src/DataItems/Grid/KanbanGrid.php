@@ -57,6 +57,19 @@ class KanbanGrid extends GridBase
     public const WORKFLOW_KEY = '__workflow_status__';
 
     /**
+     * Stored in kanban_mine_column_id when "mine" follows the user who created
+     * the record. A custom column is stored as its numeric id, so this cannot
+     * collide with one.
+     */
+    public const MINE_CREATED_USER = 'created_user';
+
+    /** Key of the creator in a card's values; a custom column name never starts with two underscores. */
+    public const MINE_CREATED_USER_KEY = '__created_user__';
+
+    /** @var bool whether "mine" reads the creator of the record (buildCardContext) */
+    protected $mineCreatedUser = false;
+
+    /**
      * Prefix of a stored WIP / done setting value.
      *   "12::open"  -> value "open" of custom column 12
      *   "wf::3"     -> workflow status 3
@@ -315,7 +328,8 @@ class KanbanGrid extends GridBase
             // "only mine" is read against this one. The assignee column unless
             // the view says otherwise, so a board of requests can follow the
             // person who raised the work rather than the one doing it.
-            'mine_column' => isset($mine_column) ? $mine_column->column_name : '',
+            'mine_column' => $this->mineCreatedUser ? static::MINE_CREATED_USER_KEY
+                : (isset($mine_column) ? $mine_column->column_name : ''),
             'limit_column' => isset($limit_column) ? $limit_column->column_name : '',
             // What a card may be edited with without leaving the board: the
             // two fields a stand-up changes most often. Both carry the label
@@ -398,7 +412,7 @@ class KanbanGrid extends GridBase
                 ? '' : admin_url('data', [$this->custom_table->table_name, 'kanbanSaveView']),
             'assignees' => isset($assignee_column) ? $this->buildOptions($assignee_column) : [],
             // values of the "mine" column that stand for whoever is looking
-            'me' => $this->getMyKeys($mine_column),
+            'me' => $this->getMyKeys($this->mineCreatedUser ? static::MINE_CREATED_USER : $mine_column),
             'colors' => $colors,
             // how each card column is painted, in the data list's own terms.
             // Empty for a board that never picked a preset and whose columns
@@ -721,6 +735,10 @@ class KanbanGrid extends GridBase
                         $multi[$column_name] = $keys;
                     }
                 }
+            }
+
+            if ($this->mineCreatedUser) {
+                $values[static::MINE_CREATED_USER_KEY] = static::normalizeKey($record->created_user_id);
             }
 
             $wf = null;
@@ -1218,7 +1236,8 @@ class KanbanGrid extends GridBase
             'card_fields' => $this->getCardFields(),
         ];
 
-        $context['mine_column'] = $this->getMineColumn($context['assignee_column']);
+        $this->mineCreatedUser = strval($this->custom_view->kanban_mine_column_id) === static::MINE_CREATED_USER;
+        $context['mine_column'] = $this->mineCreatedUser ? null : $this->getMineColumn($context['assignee_column']);
         $context['filter_columns'] = $this->getFilterColumns(
             $context['groupables'],
             $context['assignee_column'],
@@ -3795,6 +3814,12 @@ class KanbanGrid extends GridBase
             return [];
         }
 
+        // the creator of the record is always a user
+        if ($mine_column === static::MINE_CREATED_USER) {
+            $user_id = \Exment::getUserId();
+            return is_nullorempty($user_id) ? [] : [strval($user_id)];
+        }
+
         // a select_table only holds people when the table it points at does
         $column_type = static::normalizedColumnType($mine_column);
 
@@ -5001,7 +5026,7 @@ class KanbanGrid extends GridBase
             // "mine" is not always "assigned to me": on a board of requests the
             // person who raised the work follows it, not the one carrying it out
             $form->select('kanban_mine_column_id', exmtrans("custom_view.kanban_mine_column"))
-                ->options($people_options)
+                ->options($people_options + [static::MINE_CREATED_USER => exmtrans('common.created_user')])
                 ->help(exmtrans("custom_view.help.kanban_mine_column"));
         }
 
