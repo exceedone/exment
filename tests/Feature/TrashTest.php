@@ -132,7 +132,7 @@ class TrashTest extends FeatureTestBase
 
         $response = $this->get(admin_url('trash'));
         $response->assertStatus(200);
-        $html = $response->getContent();
+        $html = strval($response->getContent());
         $this->assertStringContainsString('data-trash-item="' . $this->item($a) . '"', $html);
         $this->assertStringNotContainsString('data-trash-item="' . $this->item($b) . '"', $html);
         $this->assertStringContainsString(e($a->getUrl()) . '?trashed=1', $html);

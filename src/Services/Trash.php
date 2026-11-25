@@ -132,6 +132,7 @@ class Trash
             return isset($item['custom_table']);
         })->values()->all();
 
+        /** @var array<int, array<string, mixed>> $items */
         return new LengthAwarePaginator($items, $total, $perPage, $page);
     }
 

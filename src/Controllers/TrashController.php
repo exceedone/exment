@@ -105,7 +105,7 @@ class TrashController extends AdminControllerBase
             admin_toastr($success);
         }
         parse_str(strval($request->get('return_query', '')), $query);
-        $query = array_intersect_key(is_array($query) ? $query : [], array_flip(array_merge(static::FILTERS, ['page'])));
+        $query = array_intersect_key($query, array_flip(array_merge(static::FILTERS, ['page'])));
         return redirect(admin_url('trash') . (count($query) > 0 ? '?' . http_build_query($query) : ''));
     }
 
