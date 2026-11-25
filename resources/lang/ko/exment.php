@@ -3634,6 +3634,7 @@ return [
             'kanban_moved' => '%s을(를) "%s"(으)로 이동했습니다',
             'kanban_inline_saved' => '%s을(를) 저장했습니다',
             'kanban_view_saved' => '뷰 "%s"을(를) 저장했습니다. 내 전용 뷰로 만들어졌으며 뷰 목록에서 열 수 있습니다.',
+            'kanban_view_saved_system' => '뷰 "%s"을(를) 저장했습니다. 시스템 뷰로 만들어졌으며 뷰 목록에서 열 수 있습니다.',
             'kanban_blank_filtered' => '필터 조건에 맞는 카드가 없습니다. 조건을 변경하거나 보드를 초기화하십시오.',
             'kanban_created' => '%s을(를) 추가했습니다',
             'kanban_assigned' => '%s건의 담당자를 변경했습니다',

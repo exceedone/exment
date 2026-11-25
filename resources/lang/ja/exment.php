@@ -3760,6 +3760,7 @@ return [
             'kanban_moved' => '%s を「%s」へ移動しました',
             'kanban_inline_saved' => '%s を保存しました',
             'kanban_view_saved' => 'ビュー「%s」を保存しました。自分専用のビューとして作成され、ビュー一覧から開けます。',
+            'kanban_view_saved_system' => 'ビュー「%s」を保存しました。システムビューとして作成され、ビュー一覧から開けます。',
             'kanban_blank_filtered' => '絞り込みの条件に合うカードがありません。条件を変えるか、リセットしてください。',
             'kanban_created' => '%s を追加しました',
             'kanban_assigned' => '%s 件の担当者を変更しました',
