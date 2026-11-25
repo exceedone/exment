@@ -43,8 +43,8 @@ class ViewDataPivotFilterTest extends UnitTestBase
 
         // as the API viewdata reads it: a view of its own, as a request has (the search service
         // of a view joins a table once, so the view of the query above would not join it again)
-        $fresh = CustomView::query()->find($custom_view->id);
-        $this->assertNotNull($fresh);
+        $fresh = CustomView::query()->where('id', $custom_view->id)->first();
+        $this->assertInstanceOf(CustomView::class, $fresh);
         $paginator = $fresh->getDataPaginate(['maxCount' => 1000, 'executeSearch' => false, 'isApi' => true]);
         $ids = [];
         foreach ($paginator->items() as $item) {
