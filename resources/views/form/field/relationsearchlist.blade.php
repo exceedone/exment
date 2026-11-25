@@ -1,5 +1,5 @@
 <div class="{{$viewClass['form-group']}}">
-    <label class="{{$viewClass['label']}} control-label">{{$label}}</label>
+    <label class="{{$viewClass['label']}} control-label text-lg-end pt-2">{{$label}}</label>
     <div class="{{$viewClass['field']}}">
         @if(count($rows) === 0)
         <p class="form-control-static">{{ exmtrans('custom_table.relation_search.none') }}</p>
