@@ -232,6 +232,10 @@ class Define
         // the log of the browsers (ISS02904): the pages opened too, the days kept
         'browser_log_pages' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
         'log_retention_browser_log' => ['type' => 'int', 'group' => 'log_management'],
+        // the reads and the writes of the data (ISS02905): the days their rows and their counts are kept
+        'log_retention_data_access' => ['type' => 'int', 'group' => 'log_management'],
+        'log_retention_data_access_daily' => ['type' => 'int', 'group' => 'log_management'],
+        'data_access_summarized_until' => [],
         'log_privacy_notice_shown' => ['type' => 'boolean', 'default' => '0'],
 
         // 2factor ----------------------------------
