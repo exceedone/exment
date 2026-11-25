@@ -394,31 +394,6 @@ EOT;
     }
 
     /**
-     * Prepare for a field value before update or insert.
-     *
-     * @param mixed $value
-     *
-     * @return mixed
-     */
-    public function prepare($value)
-    {
-        // if enable rowUpDown, remove row
-        if (isset($this->rowUpDown) && (!is_null($value) && is_array($value))) {
-            $order = 1 * $this->power;
-            foreach ($value as &$v) {
-                if ($v[Form::REMOVE_FLAG_NAME] == 1) {
-                    continue;
-                }
-                array_set($v, $this->rowUpDown, $order);
-                $order = $order + $this->power;
-            }
-        }
-
-        // call parent prepare
-        return parent::prepare($value);
-    }
-
-    /**
      * Render the `HasMany` field.
      *
      * @throws \Exception
