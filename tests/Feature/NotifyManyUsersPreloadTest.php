@@ -123,6 +123,11 @@ class NotifyManyUsersPreloadTest extends FeatureTestBase
         $this->assertSame(0, $queries, 'no query a user after reading them at once');
     }
 
+    /**
+     * @param \Exceedone\Exment\Model\CustomValue $target the user it was sent to
+     * @param \Exceedone\Exment\Model\CustomValue $record the record it was about
+     * @param \Exceedone\Exment\Model\CustomValue $mailTemplate
+     */
     private function createMailSendLog($target, $record, $mailTemplate, Carbon $sentAt): void
     {
         $log = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG)->getValueModel();
