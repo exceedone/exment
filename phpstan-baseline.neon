@@ -25,12 +25,6 @@ parameters:
 			path: vendor/exceedone/exment/src/ColumnItems/CustomColumns/File.php
 
 		-
-			message: '#^Call to function is_null\(\) with \$this\(Exceedone\\Exment\\ColumnItems\\CustomItem\) will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/src/ColumnItems/CustomItem.php
-
-		-
 			message: '#^Parameter \#1 \$field of method Exceedone\\Exment\\ColumnItems\\CustomItem\:\:setLabelType\(\) expects ExmentAdminCore\\Admin\\Form\\Field, ExmentAdminCore\\Admin\\Show\\Field given\.$#'
 			identifier: argument.type
 			count: 1
@@ -43,22 +37,10 @@ parameters:
 			path: vendor/exceedone/exment/src/ColumnItems/ItemInterface.php
 
 		-
-			message: '#^Call to function is_null\(\) with \$this\(Exceedone\\Exment\\ColumnItems\\ParentItem\) will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/src/ColumnItems/ParentItem.php
-
-		-
 			message: '#^Property Exceedone\\Exment\\ColumnItems\\ParentItem\:\:\$custom_table \(Exceedone\\Exment\\Model\\CustomTable\) in isset\(\) is not nullable\.$#'
 			identifier: isset.property
 			count: 1
 			path: vendor/exceedone/exment/src/ColumnItems/ParentItem.php
-
-		-
-			message: '#^Call to function is_null\(\) with \$this\(Exceedone\\Exment\\ColumnItems\\SystemItem\) will always evaluate to false\.$#'
-			identifier: function.impossibleType
-			count: 1
-			path: vendor/exceedone/exment/src/ColumnItems/SystemItem.php
 
 		-
 			message: '#^Cannot access property \$custom_table on Exceedone\\Exment\\Model\\CustomColumn\|void\.$#'
@@ -70,6 +52,12 @@ parameters:
 			message: '#^Parameter \#1 \$array of function array_get expects array\|ArrayAccess, Exceedone\\Exment\\Model\\CustomColumn\|void\|null given\.$#'
 			identifier: argument.type
 			count: 3
+			path: vendor/exceedone/exment/src/ConditionItems/ColumnItem.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
 			path: vendor/exceedone/exment/src/ConditionItems/ColumnItem.php
 
 		-
@@ -127,10 +115,22 @@ parameters:
 			path: vendor/exceedone/exment/src/ConditionItems/LoginUserColumnItem.php
 
 		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/ConditionItems/ParentIdItem.php
+
+		-
 			message: '#^Method Exceedone\\Exment\\ConditionItems\\RoleGroupItem\:\:getText\(\) should return string but returns null\.$#'
 			identifier: return.type
 			count: 1
 			path: vendor/exceedone/exment/src/ConditionItems/RoleGroupItem.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/ConditionItems/SystemItem.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -195,6 +195,12 @@ parameters:
 		-
 			message: '#^Cannot call method getIndexColumnName\(\) on Exceedone\\Exment\\Model\\CustomColumn\|void\.$#'
 			identifier: method.nonObject
+			count: 1
+			path: vendor/exceedone/exment/src/Controllers/ApiDataController.php
+
+		-
+			message: '#^Parameter \#1 \$comment of method Exceedone\\Exment\\Controllers\\ApiDataController\:\:getCommentArray\(\) expects Exceedone\\Exment\\Model\\CustomValue, mixed given\.$#'
+			identifier: argument.type
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/ApiDataController.php
 
@@ -379,20 +385,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/CodeTreeTrait.php
 
 		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomColumnController.php
-			reportUnmatched: false
-
-		-
-			message: '#^Cannot call method editable\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomColumnController.php
-			reportUnmatched: false
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
@@ -405,13 +397,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/CustomColumnController.php
 
 		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomCopyController.php
-			reportUnmatched: false
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 2
@@ -422,13 +407,6 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/CustomCopyController.php
-
-		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomFormController.php
-			reportUnmatched: false
 
 		-
 			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<\(int\|string\), mixed\>\|iterable\<\(int\|string\), mixed\>\|null, array\|string given\.$#'
@@ -461,13 +439,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/CustomFormPublicController.php
 
 		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 3
-			path: vendor/exceedone/exment/src/Controllers/CustomNotifyController.php
-			reportUnmatched: false
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 2
@@ -478,13 +449,6 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/CustomNotifyController.php
-
-		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomOperationController.php
-			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -499,20 +463,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/CustomOperationController.php
 
 		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomRelationController.php
-			reportUnmatched: false
-
-		-
-			message: '#^Cannot call method editable\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomTableController.php
-			reportUnmatched: false
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 2
@@ -523,21 +473,6 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/CustomTableController.php
-
-
-		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: vendor/exceedone/exment/src/Controllers/CustomViewController.php
-			reportUnmatched: false
-
-		-
-			message: '#^Cannot call method editable\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/CustomViewController.php
-			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -592,13 +527,6 @@ parameters:
 			identifier: property.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Controllers/NotifyNavbarController.php
-
-		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 2
-			path: vendor/exceedone/exment/src/Controllers/NotifyNavbarController.php
-			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -715,13 +643,6 @@ parameters:
 			path: vendor/exceedone/exment/src/Controllers/ResetPasswordController.php
 
 		-
-			message: '#^Cannot call method editable\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/RoleGroupController.php
-			reportUnmatched: false
-
-		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 2
@@ -732,6 +653,12 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/RoleGroupController.php
+
+		-
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Controllers/SafetyCheckController.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -756,13 +683,6 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Controllers/WorkflowController.php
-
-		-
-			message: '#^Cannot call method display\(\) on ExmentAdminCore\\Admin\\Grid\\Column\|string\.$#'
-			identifier: method.nonObject
-			count: 3
-			path: vendor/exceedone/exment/src/Controllers/WorkflowNotifyController.php
-			reportUnmatched: false
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -807,7 +727,7 @@ parameters:
 			path: vendor/exceedone/exment/src/DataItems/Form/DefaultForm.php
 
 		-
-			message: '#^PHPDoc tag @var with type int is not subtype of native type float\.$#'
+			message: '#^PHPDoc tag @var with type int is not subtype of native type float\<min, max\>\.$#'
 			identifier: varTag.nativeType
 			count: 1
 			path: vendor/exceedone/exment/src/DataItems/Grid/DefaultGrid.php
@@ -849,7 +769,31 @@ parameters:
 			path: vendor/exceedone/exment/src/DataItems/Grid/GridBase.php
 
 		-
-			message: '#^PHPDoc tag @var with type int is not subtype of native type float\.$#'
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Query\\Builder\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 10
+			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, string given\.$#'
+			identifier: argument.type
+			count: 3
+			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
+
+		-
+			message: '#^PHPDoc tag @var with type int is not subtype of native type float\<min, max\>\.$#'
 			identifier: varTag.nativeType
 			count: 1
 			path: vendor/exceedone/exment/src/DataItems/Grid/SummaryGrid.php
@@ -891,6 +835,18 @@ parameters:
 			path: vendor/exceedone/exment/src/Database/Eloquent/ExtendedBuilder.php
 
 		-
+			message: '#^Parameter \#1 \$sql of method Exceedone\\Exment\\Database\\Eloquent\\ExtendedBuilder\<TModelClass of Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Database/Eloquent/ExtendedBuilder.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Database/Eloquent/ExtendedBuilder.php
+
+		-
 			message: '#^Unable to resolve the template type TGroupKey in call to method Illuminate\\Support\\Collection\<\(int\|string\),mixed\>\:\:groupBy\(\)$#'
 			identifier: argument.templateType
 			count: 1
@@ -918,6 +874,18 @@ parameters:
 			message: '#^Method Illuminate\\Database\\Grammar\:\:wrap\(\) invoked with 2 parameters, 1 required\.$#'
 			identifier: arguments.count
 			count: 1
+			path: vendor/exceedone/exment/src/Database/Query/Grammars/MySqlGrammar.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orWhereRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: vendor/exceedone/exment/src/Database/Query/Grammars/MySqlGrammar.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 2
 			path: vendor/exceedone/exment/src/Database/Query/Grammars/MySqlGrammar.php
 
 		-
@@ -1106,8 +1074,6 @@ parameters:
 			count: 1
 			path: vendor/exceedone/exment/src/Enums/SystemColumn.php
 
-
-
 		-
 			message: '#^Call to function method_exists\(\) with ''\\\\ExmentAdminCore…'' and ''registered'' will always evaluate to true\.$#'
 			identifier: function.alreadyNarrowedType
@@ -1187,8 +1153,8 @@ parameters:
 			path: vendor/exceedone/exment/src/Facades/ExmentDBFacade.php
 
 		-
-			message: '#^PHPDoc tag @method for method Exceedone\\Exment\\Form\\EmbeddedForm\:\:datetimeRange\(\) return type contains unknown class ExmentAdminCore\\Admin\\Form\\Field\\DateTimeRange\.$#'
-			identifier: class.notFound
+			message: '#^Class ExmentAdminCore\\Admin\\Form\\Field\\DatetimeRange referenced with incorrect case\: ExmentAdminCore\\Admin\\Form\\Field\\DateTimeRange\.$#'
+			identifier: class.nameCase
 			count: 1
 			path: vendor/exceedone/exment/src/Form/EmbeddedForm.php
 
@@ -1241,8 +1207,8 @@ parameters:
 			path: vendor/exceedone/exment/src/Form/Field/Embeds.php
 
 		-
-			message: '#^Offset ''calcWidth'' on array\{column\: \(int\|string\), width\: int, calcWidth\: bool, fields\: Illuminate\\Support\\Collection\<int, array\{field\: mixed\}\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),Illuminate\\Support\\Collection\<int, mixed\>\>\:\:map\(\) expects callable\(Illuminate\\Support\\Collection\<int, mixed\>, int\|string\)\: array\{row\: int\|string, columns\: Illuminate\\Support\\Collection\<int\|string, array\{column\: int\|string, width\: int, calcWidth\: bool, fields\: Illuminate\\Support\\Collection\<int, array\{field\: mixed\}\>\}\>\}, Closure\(mixed, mixed\)\: array\{row\: int\|string, columns\: Illuminate\\Support\\Collection\<int\|string, array\{column\: int\|string, width\: int, calcWidth\: bool, fields\: Illuminate\\Support\\Collection\<int, mixed\>\}\>\} given\.$#'
+			identifier: argument.type
 			count: 1
 			path: vendor/exceedone/exment/src/Form/Field/Embeds.php
 
@@ -1275,6 +1241,12 @@ parameters:
 			identifier: argument.templateType
 			count: 1
 			path: vendor/exceedone/exment/src/Form/Field/Embeds.php
+
+		-
+			message: '#^Offset ''calcWidth'' on array\{column\: \(int\|string\), width\: int, calcWidth\: bool, fields\: Illuminate\\Support\\Collection\<int, mixed\>\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: vendor/exceedone/exment/src/Form/Field/FieldGroupTrait.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -1457,8 +1429,8 @@ parameters:
 			path: vendor/exceedone/exment/src/Form/PublicContent.php
 
 		-
-			message: '#^Offset ''calcWidth'' on array\{column\: \(int\|string\), width\: int, calcWidth\: bool, fields\: Illuminate\\Support\\Collection\<int, array\{field\: mixed\}\>\} on left side of \?\? always exists and is not nullable\.$#'
-			identifier: nullCoalesce.offset
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<\(int\|string\),Illuminate\\Support\\Collection\<int, mixed\>\>\:\:map\(\) expects callable\(Illuminate\\Support\\Collection\<int, mixed\>, int\|string\)\: array\{row\: int\|string, columns\: Illuminate\\Support\\Collection\<int\|string, array\{column\: int\|string, width\: int, calcWidth\: bool, fields\: Illuminate\\Support\\Collection\<int, array\{field\: mixed\}\>\}\>\}, Closure\(mixed, mixed\)\: array\{row\: int\|string, columns\: Illuminate\\Support\\Collection\<int\|string, array\{column\: int\|string, width\: int, calcWidth\: bool, fields\: Illuminate\\Support\\Collection\<int, mixed\>\}\>\} given\.$#'
+			identifier: argument.type
 			count: 1
 			path: vendor/exceedone/exment/src/Form/Show.php
 
@@ -1564,7 +1536,6 @@ parameters:
 			count: 1
 			path: vendor/exceedone/exment/src/Form/Tools/PluginMenuButton.php
 
-
 		-
 			message: '#^Return type \(string\) of method Exceedone\\Exment\\Form\\Widgets\\ModalForm\:\:getScript\(\) should be compatible with return type \(array\<string\>\) of method ExmentAdminCore\\Admin\\Widgets\\Form\:\:getScript\(\)$#'
 			identifier: method.childReturnType
@@ -1654,18 +1625,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: vendor/exceedone/exment/src/Middleware/Morph.php
-
-		-
-			message: '#^Parameter \#1 \$related of method Illuminate\\Database\\Eloquent\\Model\:\:belongsTo\(\) expects class\-string\<Illuminate\\Database\\Eloquent\\Model\>, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/ApiKey.php
-
-		-
-			message: '#^Unable to resolve the template type TRelatedModel in call to method Illuminate\\Database\\Eloquent\\Model\:\:belongsTo\(\)$#'
-			identifier: argument.templateType
-			count: 1
-			path: vendor/exceedone/exment/src/Model/ApiKey.php
 
 		-
 			message: '#^Class Exceedone\\Exment\\Model\\Condition has PHPDoc tag @method for method create\(\) parameter \#1 \$attributes with no value type specified in iterable type array\.$#'
@@ -1986,6 +1945,18 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomTable.php
 
 		-
+			message: '#^Unable to resolve the template type TSetKey in call to method Illuminate\\Pagination\\AbstractPaginator\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:setCollection\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: vendor/exceedone/exment/src/Model/CustomTable.php
+
+		-
+			message: '#^Unable to resolve the template type TSetValue in call to method Illuminate\\Pagination\\AbstractPaginator\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:setCollection\(\)$#'
+			identifier: argument.templateType
+			count: 1
+			path: vendor/exceedone/exment/src/Model/CustomTable.php
+
+		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
@@ -2022,8 +1993,8 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/CustomValue.php
 
 		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
+			message: '#^Parameter \#2 \$direction of method Illuminate\\Database\\Eloquent\\Builder\<Exceedone\\Exment\\Revisionable\\Revision\>\:\:orderBy\(\) expects ''asc''\|''desc''\|SortDirection, string given\.$#'
+			identifier: argument.type
 			count: 1
 			path: vendor/exceedone/exment/src/Model/CustomValue.php
 
@@ -2298,6 +2269,12 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/LoginUser.php
 
 		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: vendor/exceedone/exment/src/Model/Menu.php
+
+		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 2
@@ -2334,6 +2311,12 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/NotifyNavbar.php
 
 		-
+			message: '#^Parameter \#1 \$value of function collect expects Illuminate\\Contracts\\Support\\Arrayable\<int\|string, mixed\>\|iterable\<int\|string, mixed\>\|null, Exceedone\\Exment\\Model\\Plugin\|Illuminate\\Support\\Collection\<int, Exceedone\\Exment\\Model\\Plugin\>\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Model/Plugin.php
+
+		-
 			message: '#^Strict comparison using \!\=\= between string and null will always evaluate to true\.$#'
 			identifier: notIdentical.alwaysTrue
 			count: 1
@@ -2350,6 +2333,18 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Model/Plugin.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: vendor/exceedone/exment/src/Model/PublicForm.php
+
+		-
+			message: '#^Return type of call to function collect contains unresolvable type\.$#'
+			identifier: function.unresolvableReturnType
+			count: 1
+			path: vendor/exceedone/exment/src/Model/PublicForm.php
 
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
@@ -2448,6 +2443,18 @@ parameters:
 			path: vendor/exceedone/exment/src/Model/Traits/OrganizationTrait.php
 
 		-
+			message: '#^Loose comparison using \=\= between 0 and 0 will always evaluate to true\.$#'
+			identifier: equal.alwaysTrue
+			count: 1
+			path: vendor/exceedone/exment/src/Model/Traits/UseRequestSessionTrait.php
+
+		-
+			message: '#^Result of \|\| is always true\.$#'
+			identifier: booleanOr.alwaysTrue
+			count: 1
+			path: vendor/exceedone/exment/src/Model/Traits/UseRequestSessionTrait.php
+
+		-
 			message: '#^Trait Exceedone\\Exment\\Model\\Traits\\UserTrait is used zero times and is not analysed\.$#'
 			identifier: trait.unused
 			count: 1
@@ -2536,6 +2543,12 @@ parameters:
 			identifier: offsetAccess.notFound
 			count: 1
 			path: vendor/exceedone/exment/src/Revisionable/FieldFormatter.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 1
+			path: vendor/exceedone/exment/src/Revisionable/RevisionableTrait.php
 
 		-
 			message: '#^Call to function method_exists\(\) with \$this\(Exceedone\\Exment\\Services\\Auth2factor\\Providers\\Email\) and ''clearLoginAttempts'' will always evaluate to true\.$#'
@@ -2628,6 +2641,24 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/Calc/CalcService.php
 
 		-
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Dashboard/ColumnOptions.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Dashboard/ColumnOptions.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Dashboard/ColumnOptions.php
+
+		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 1
@@ -2718,6 +2749,12 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/DataImportExport/Providers/Export/ViewProvider.php
 
 		-
+			message: '#^Strict comparison using \!\=\= between mixed and true will always evaluate to true\.$#'
+			identifier: notIdentical.alwaysTrue
+			count: 1
+			path: vendor/exceedone/exment/src/Services/DataImportExport/Providers/Import/DefaultTableProvider.php
+
+		-
 			message: '#^Parameter \#1 \$array of function array_filter expects array, array\|ArrayAccess\|TReduceInitial\|TReduceReturnType given\.$#'
 			identifier: argument.type
 			count: 1
@@ -2760,7 +2797,13 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/EnvService.php
 
 		-
-			message: '#^Parameter \#1 \.\.\.\$values of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:push\(\) expects array\{row_no\: mixed, columns\: Illuminate\\Support\\Collection\<\(int\|string\), array\{column_no\: mixed, width\: mixed, gridWidth\: \(float\|int\), custom_form_columns\: array\<mixed\>\}\>, isShowAddButton\: bool\}, array\{row_no\: 1, columns\: Illuminate\\Support\\Collection\<int, array\{column_no\: int, width\: int, gridWidth\: int, custom_form_columns\: array\{\}\}\>, isShowAddButton\: true\} given\.$#'
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: vendor/exceedone/exment/src/Services/FileServer/ShareLinks.php
+
+		-
+			message: '#^Parameter \#1 \.\.\.\$values of method Illuminate\\Support\\Collection\<\(int\|string\),array\<string, mixed\>\>\:\:push\(\) expects array\{row_no\: mixed, columns\: Illuminate\\Support\\Collection\<\(int\|string\), array\{column_no\: mixed, width\: mixed, gridWidth\: \(float\|int\), custom_form_columns\: array\<int, mixed\>\}\>, isShowAddButton\: bool\}, array\{row_no\: 1, columns\: Illuminate\\Support\\Collection\<int, array\{column_no\: int, width\: int, gridWidth\: int, custom_form_columns\: array\{\}\}\>, isShowAddButton\: true\} given\.$#'
 			identifier: argument.type
 			count: 1
 			path: vendor/exceedone/exment/src/Services/FormSetting/FormBlock/BlockBase.php
@@ -2958,6 +3001,12 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/Login/OAuth/OAuthService.php
 
 		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Meili/GlobalSearch/LabelResolver.php
+
+		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 6
@@ -3108,6 +3157,30 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
 
 		-
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 4
+			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:groupByRaw\(\) expects literal\-string, mixed given\.$#'
+			identifier: argument.type
+			count: 2
+			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
+
+		-
+			message: '#^Parameter \#2 \$direction of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:orderBy\(\) expects ''asc''\|''desc''\|SortDirection, string given\.$#'
+			identifier: argument.type
+			count: 3
+			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
+
+		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
 			count: 2
@@ -3118,6 +3191,12 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Services/SystemRequire/SystemRequireList.php
+
+		-
+			message: '#^Offset ''name'' on array\{name\: string, columns\: list\<string\>, type\: string, unique\: bool, primary\: bool\} on left side of \?\? always exists and is not nullable\.$#'
+			identifier: nullCoalesce.offset
+			count: 1
+			path: vendor/exceedone/exment/src/Services/SystemRequire/Tuning/IndexMissingTuning.php
 
 		-
 			message: '#^Call to function array_key_exists\(\) with ''custom_columns'' and array\{custom_tables\: array, custom_columns\: array, custom_column_multisettings\: array, custom_relations\: array, admin_menu\: array\} will always evaluate to true\.$#'
@@ -3156,6 +3235,12 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/ViewFilter/Items/Exists/ExistsBase.php
 
 		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Services/ViewFilter/Items/Number/NumberCompareBase.php
+
+		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Query\\Builder\|Illuminate\\Database\\Schema\\Builder\:\:orWhere\(\)\.$#'
 			identifier: method.notFound
 			count: 1
@@ -3180,6 +3265,24 @@ parameters:
 			path: vendor/exceedone/exment/src/Services/ViewFilter/Items/WorkflowWorkUser.php
 
 		-
+			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: vendor/exceedone/exment/src/Services/Workflow/WorkflowTaskService.php
+
+		-
+			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: vendor/exceedone/exment/src/Services/Workflow/WorkflowTaskService.php
+
+		-
+			message: '#^Parameter \#2 \$direction of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:orderBy\(\) expects ''asc''\|''desc''\|SortDirection, string given\.$#'
+			identifier: argument.type
+			count: 2
+			path: vendor/exceedone/exment/src/Services/Workflow/WorkflowTaskService.php
+
+		-
 			message: '#^Trait Exceedone\\Exment\\Storage\\Adapter\\AdapterTrait has PHPDoc tag @method for method getMergeConfigKeys\(\) parameter \#2 \$options with no value type specified in iterable type array\.$#'
 			identifier: missingType.iterableValue
 			count: 1
@@ -3196,6 +3299,42 @@ parameters:
 			identifier: argument.templateType
 			count: 2
 			path: vendor/exceedone/exment/src/Validator/FileRule.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertTrue\(\) with true will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 6
+			path: vendor/exceedone/exment/tests/Browser/EBackupDataTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with ''1\.0\.0'' and ''1\.0\.0'' will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/BundledPluginsTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with mixed and mixed will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/CustomOperationPermissionTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertSame\(\) with ''held'' and ''held'' will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: vendor/exceedone/exment/tests/Feature/FileShareTest.php
+
+		-
+			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
+			identifier: argument.type
+			count: 9
+			path: vendor/exceedone/exment/tests/Unit/CustomViewGridFilterTest.php
+
+		-
+			message: '#^Call to method PHPUnit\\Framework\\Assert\:\:assertIsString\(\) with string will always evaluate to true\.$#'
+			identifier: method.alreadyNarrowedType
+			count: 1
+			path: vendor/exceedone/exment/tests/Unit/HasTableHelperTest.php
 
 		-
 			message: '#^Call to method expect\(\) on an unknown class LdapRecord\\Testing\\LdapFake\.$#'
@@ -3251,160 +3390,8 @@ parameters:
 			count: 1
 			path: vendor/exceedone/exment/tests/Unit/LdapServiceTest.php
 
-		# Laravel 13 types the raw SQL methods as literal-string and orderBy() directions as
-		# 'asc'|'desc'|SortDirection. Exment builds these from checked values, so they are accepted here.
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/ConditionItems/ColumnItem.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/ConditionItems/ParentIdItem.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/ConditionItems/SystemItem.php
-
-		-
-			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Controllers/SafetyCheckController.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 9
-			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, string given\.$#'
-			identifier: argument.type
-			count: 3
-			path: vendor/exceedone/exment/src/DataItems/Grid/KanbanGrid.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Exceedone\\Exment\\Database\\Eloquent\\ExtendedBuilder\<TModelClass of Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Database/Eloquent/ExtendedBuilder.php
-
 		-
 			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
 			identifier: argument.type
 			count: 1
-			path: vendor/exceedone/exment/src/Database/Eloquent/ExtendedBuilder.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orWhereRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/src/Database/Query/Grammars/MySqlGrammar.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/src/Database/Query/Grammars/MySqlGrammar.php
-
-		-
-			message: '#^Parameter \#2 \$direction of method Illuminate\\Database\\Eloquent\\Builder\<Exceedone\\Exment\\Revisionable\\Revision\>\:\:orderBy\(\) expects ''asc''\|''desc''\|SortDirection, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Model/CustomValue.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Query\\Builder\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/src/Model/Menu.php
-
-		-
-			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Services/Dashboard/ColumnOptions.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Services/Dashboard/ColumnOptions.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Services/Dashboard/ColumnOptions.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Services/Meili/GlobalSearch/LabelResolver.php
-
-		-
-			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 4
-			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:groupByRaw\(\) expects literal\-string, mixed given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:orderByRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
-
-		-
-			message: '#^Parameter \#2 \$direction of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:orderBy\(\) expects ''asc''\|''desc''\|SortDirection, string given\.$#'
-			identifier: argument.type
-			count: 3
-			path: vendor/exceedone/exment/src/Services/Search/SearchService.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Services/ViewFilter/Items/Number/NumberCompareBase.php
-
-		-
-			message: '#^Parameter \#1 \$expression of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:selectRaw\(\) expects literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 1
-			path: vendor/exceedone/exment/src/Services/Workflow/WorkflowTaskService.php
-
-		-
-			message: '#^Parameter \#1 \$sql of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:whereRaw\(\) expects Illuminate\\Contracts\\Database\\Query\\Expression\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/src/Services/Workflow/WorkflowTaskService.php
-
-		-
-			message: '#^Parameter \#2 \$direction of method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:orderBy\(\) expects ''asc''\|''desc''\|SortDirection, string given\.$#'
-			identifier: argument.type
-			count: 2
-			path: vendor/exceedone/exment/src/Services/Workflow/WorkflowTaskService.php
-
-		-
-			message: '#^Parameter \#1 \$value of static method Illuminate\\Database\\Connection\:\:raw\(\) expects float\|int\|literal\-string, non\-falsy\-string given\.$#'
-			identifier: argument.type
-			count: 9
-			path: vendor/exceedone/exment/tests/Unit/CustomViewGridFilterTest.php
+			path: vendor/exceedone/exment/tests/Unit/NotifyAlertPerUserTest.php

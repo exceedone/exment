@@ -48,8 +48,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: ${{ env.EXMENT_BOILERPLATE_REPOSITORY}}
-          # 7.2 keeps the boilerplate of 7.2 (simple-qrcode); main moved to bacon-qr-code 3
-          ref: 7.2
+          # Laravel 13: the boilerplate branch of Laravel 13 (its composer.dev.lock has Laravel 13; 7.2 has Laravel 12).
+          # Change it to the release branch of the boilerplate when it is made.
+          ref: feature/laravel-13-upgrade
           path: ./docker-exment/exment-boilerplate
 
       - uses: actions/checkout@v4
@@ -61,6 +62,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: exceedone/exment-admin-core
+          # Laravel 13: the admin-core branch of Laravel 13 (master is Laravel 12). Change it to the release branch when it is made.
+          ref: feature/laravel-13-upgrade
           path: ./docker-exment/exment-boilerplate/exment-admin-core
 
       # the free official plugins as released (exceedone/exment-plugins-release):

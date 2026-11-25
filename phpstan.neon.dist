@@ -91,10 +91,6 @@ parameters:
             path: vendor/exceedone/exment/src/*
 
         -
-            message: "#^Anonymous function should return Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, Exceedone\\\\Exment\\\\Model\\\\[A-Za-z]+\\> but returns Illuminate\\\\Database\\\\Eloquent\\\\Collection\\<int, Exceedone\\\\Exment\\\\Model\\\\[A-Za-z]+\\>\\.$#"
-            path: vendor/exceedone/exment/src/*
-
-        -
             # env() belongs in a config file, but larastan only knows the application's own config
             # directory, not the one of this package
             identifier: larastan.noEnvCallsOutsideOfConfig
