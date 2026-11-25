@@ -31,7 +31,17 @@ class AdminControllerBase extends Controller
     public function callAction($method, $parameters)
     {
         $this->localizePageInfo();
-        return parent::callAction($method, $parameters);
+
+        // The Controller of the application is the host's: the skeleton of Laravel 11 / 12 makes it a
+        // plain class (no callAction), while one that extends Illuminate\Routing\Controller has it.
+        // Without this check every admin / API page of such an application ends in a 500
+        // ("Call to undefined method App\Http\Controllers\Controller::callAction()").
+        if (method_exists(parent::class, 'callAction')) {
+            return parent::callAction($method, $parameters);
+        }
+
+        // what Illuminate\Routing\Controller::callAction does
+        return $this->{$method}(...array_values($parameters));
     }
 
     /**
