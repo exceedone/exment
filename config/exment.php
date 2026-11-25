@@ -1602,6 +1602,17 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | How the records of the logs are written (ISS02903)
+    |--------------------------------------------------------------------------
+    | The operation log, the logins and the last use of an API key, without making the response
+    | wait. "after_response" (the default): after the response is sent. "queue": by the queue
+    | (QUEUE_CONNECTION other than sync; without one, after_response). "sync": at once, as before.
+    | A record that cannot be written is kept in storage/logs/exment-log-fallback.log.
+    */
+    'log_write_mode' => env('EXMENT_LOG_WRITE_MODE', 'after_response'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mask targets for the operation log
     |--------------------------------------------------------------------------
     |

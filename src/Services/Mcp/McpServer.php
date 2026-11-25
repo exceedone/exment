@@ -117,7 +117,7 @@ class McpServer
             if (strlen($input) > static::MAX_LOG_INPUT) {
                 $input = json_encode(['_cut' => mb_strcut($input, 0, static::MAX_LOG_INPUT)], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
             }
-            OperationLogModel::create([
+            \Exceedone\Exment\Services\LogManagement\LogWriter::insert(OperationLogModel::class, [
                 'user_id' => $this->user->id,
                 'path' => 'mcp/' . $tool,
                 'method' => 'MCP',
