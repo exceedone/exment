@@ -1949,6 +1949,13 @@ abstract class CustomValue extends ModelBase
                 if (isset($options['target_view'])) {
                     $options['target_view']->filterModel($query); // sort is false.
                 }
+
+                // Only the columns of this table: a filter on a column of the table a column
+                // selects (the pivot) joins that table, and "select *" then has its id as well,
+                // which the sub query of searchValue cannot take ("Duplicate column name 'id'").
+                if (!$options['executeSearch'] && empty($query->getQuery()->columns)) {
+                    $query->select(getDBTableName($this->custom_table) . '.*');
+                }
             }
 
             return $queries;
