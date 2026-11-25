@@ -150,7 +150,7 @@ trait ExtendedBuilderTrait
             return $item[0];
         });
 
-        $ids = $subquery->where(function ($query) use ($groups, $columns) {
+        $subquery->where(function ($query) use ($groups, $columns) {
             foreach ($groups as $key => $group) {
                 $query->orWhere(function ($query) use ($key, $group, $columns) {
                     $values = collect($group)->map(function ($g) {
@@ -160,10 +160,18 @@ trait ExtendedBuilderTrait
                         ->whereIn($columns[1], $values);
                 });
             }
-        })->select(['id'])->pluck('id');
+        })->select(['id']);
+
+        // The set-based form, asked for by a caller whose statement would not fit the bound parameters of the
+        // driver (ParameterBudget): the ids are not read here and bound one by one, the same condition is
+        // evaluated by the database. Same rows; the statement carries the values of the lookup, not one
+        // parameter per matching row.
+        if (ParameterBudget::subqueriesPreferred()) {
+            return $this->whereIn('id', $subquery);
+        }
 
         // set id filter
-        return $this->whereIn('id', $ids);
+        return $this->whereIn('id', $subquery->pluck('id'));
     }
 
 

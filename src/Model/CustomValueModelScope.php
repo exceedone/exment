@@ -10,6 +10,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\RelationType;
+use Exceedone\Exment\Database\ParameterBudget;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
 
 class CustomValueModelScope implements Scope
@@ -164,8 +165,48 @@ class CustomValueModelScope implements Scope
      */
     protected function applyParentAccessible(Builder $builder, string $db_table_name)
     {
-        // The tables the user cannot access all records of. "query" is the ids
-        // the user can access, null if none.
+        $restricteds = $this->parentAccessibleRestricteds();
+        if (empty($restricteds)) {
+            return;
+        }
+
+        // The bound parameters this filter adds: the NOT IN list of table names, and for each restricted table its
+        // table name and the bindings of the user's own scope of that table.
+        $added = function (array $restricteds) {
+            return count($restricteds) + array_sum(array_map(function ($restricted) {
+                return 1 + (is_null($restricted['query']) ? 0 : ParameterBudget::bindingCount($restricted['query']));
+            }, $restricteds));
+        };
+        $connection = $builder->getModel()->getConnectionName();
+        if (!ParameterBudget::fits($builder, $added($restricteds), $connection)) {
+            // SQL Server accepts 2,100 bound parameters per statement. The user's scope of a table carries the ids of
+            // the shares of the user as bound values (whereInMultiple() reads them first on that driver), and this filter
+            // repeats that scope for every restricted table. Build the same scopes again with the set-based form of that
+            // condition: same rows, and the statement carries the values of the lookup instead of one parameter per id.
+            $restricteds = ParameterBudget::preferSubqueries(function () {
+                return $this->parentAccessibleRestricteds();
+            });
+            if (!ParameterBudget::fits($builder, $added($restricteds), $connection)) {
+                throw new \LogicException(sprintf(
+                    'The access filter of "%s" needs %d bound parameters, more than the %d the database accepts in one statement, even as subqueries.',
+                    $db_table_name,
+                    ParameterBudget::bindingCount($builder) + $added($restricteds),
+                    ParameterBudget::limit($connection)
+                ));
+            }
+        }
+
+        $this->addParentAccessible($builder, $db_table_name, $restricteds);
+    }
+
+    /**
+     * The tables the user cannot access all records of, for applyParentAccessible(). "query" is the
+     * ids the user can access, null if none.
+     *
+     * @return array<int, array{table_name: string, db_table_name: string, query: \Illuminate\Database\Query\Builder|null}>
+     */
+    protected function parentAccessibleRestricteds(): array
+    {
         $restricteds = [];
         /** @var CustomTable $parent_table */
         foreach (CustomTable::allRecords() as $parent_table) {
@@ -210,10 +251,17 @@ class CustomValueModelScope implements Scope
             ];
         }
 
-        if (empty($restricteds)) {
-            return;
-        }
+        return $restricteds;
+    }
 
+    /**
+     * @param Builder<\Illuminate\Database\Eloquent\Model> $builder
+     * @param string $db_table_name
+     * @param array<int, array{table_name: string, db_table_name: string, query: \Illuminate\Database\Query\Builder|null}> $restricteds
+     * @return void
+     */
+    protected function addParentAccessible(Builder $builder, string $db_table_name, array $restricteds)
+    {
         $builder->where(function ($builder) use ($restricteds, $db_table_name) {
             // no parent
             $builder->whereNull("$db_table_name.parent_type")
