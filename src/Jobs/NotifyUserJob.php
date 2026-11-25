@@ -28,13 +28,6 @@ class NotifyUserJob implements ShouldQueue
     public $tries = 1;
 
     /**
-     * After the save is committed: the worker must find the record.
-     *
-     * @var bool
-     */
-    public $afterCommit = true;
-
-    /**
      * @param array<string, mixed> $options texts only (comment, attachment, prms)
      */
     public function __construct(
@@ -44,6 +37,8 @@ class NotifyUserJob implements ShouldQueue
         public array $options,
         public ?int $actorUserId
     ) {
+        // after the save is committed: the worker must find the record (Queueable has the property)
+        $this->afterCommit();
     }
 
     public function handle(): void
