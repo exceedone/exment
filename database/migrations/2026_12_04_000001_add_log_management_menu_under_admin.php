@@ -10,6 +10,8 @@ return new class extends Migration
      * The log management (ISS02839): its menu in "Admin Setting" of an installed site, right after
      * the scheduled jobs (a new site gets it from the system template). Who sees it: the system
      * administrators and Audit (Auth\Permission, "log_management").
+     *
+     * @return void
      */
     public function up()
     {
