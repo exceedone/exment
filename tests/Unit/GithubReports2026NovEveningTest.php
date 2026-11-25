@@ -186,14 +186,14 @@ class GithubReports2026NovEveningTest extends UnitTestBase
         $this->runMigration('2026_12_05_000001_safety_check_choices_with_names.php');
         System::clearCache();
 
-        $status = CustomColumn::find($status->id);
+        $status->refresh();
         $this->assertSame(ColumnType::SELECT_VALTEXT, $status->column_type);
         $options = $status->createSelectOptions();
         $this->assertSame(trans('exment::exment.safety.status_safe', [], $locale), $options['safe']);
         $this->assertSame(trans('exment::exment.safety.status_not_answered', [], $locale), $options['not_answered']);
         $this->assertSame('evacuated', $options['evacuated'], 'a value the site added is its own name');
 
-        $channel = CustomColumn::find($channel->id);
+        $channel->refresh();
         $this->assertSame(ColumnType::SELECT_VALTEXT, $channel->column_type);
         $this->assertSame(trans('exment::exment.safety.channel_mail', [], $locale), $channel->createSelectOptions()['mail']);
 
@@ -331,9 +331,11 @@ class GithubReports2026NovEveningTest extends UnitTestBase
         $locked->save();
         $this->lock($table, $locked);
 
-        $grid = new KanbanGrid($table, CustomView::withoutGlobalScopes()->find($view->id));
+        $grid = new KanbanGrid($table, CustomView::withoutGlobalScopes()->whereKey($view->id)->firstOrFail());
         $records = collect([$table->getValueModel($free->id), $table->getValueModel($locked->id)]);
-        $cards = collect($this->invoke($grid, 'buildCards', [$records, [], [], null]))->keyBy('id');
+        $built = $this->invoke($grid, 'buildCards', [$records, [], [], null]);
+        $this->assertIsArray($built);
+        $cards = collect($built)->keyBy('id');
 
         $this->assertArrayNotHasKey('noedit', $cards[$free->id]);
         $this->assertTrue($cards[$locked->id]['noedit'] ?? false, 'locked by the workflow');
