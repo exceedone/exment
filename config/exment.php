@@ -83,6 +83,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Security check: the APP_KEY of the download zip
+    |--------------------------------------------------------------------------
+    |
+    | The zip of Exment writes here the SHA-256 of the APP_KEY in its .env. While APP_KEY is still
+    | that one (php artisan key:generate was not run), the security check says so.
+    */
+    'shipped_app_key_sha256' => env('EXMENT_SHIPPED_APP_KEY_SHA256'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Chart of a list view: max rows
     |--------------------------------------------------------------------------
     |

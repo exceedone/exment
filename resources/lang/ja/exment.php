@@ -733,6 +733,8 @@ return [
                 'explain' => '暗号化とセッションの署名に使うキーです。サイトごとに作った値が要ります。',
                 'warning' => 'APP_KEY がないか、見本の値のままです。',
                 'fix' => 'サーバーで php artisan key:generate を実行してください。すでに使っているサイトでは、キーを変えると暗号化して保存した値（メールサーバーのパスワードなど）が読めなくなります。そのときは設定し直してください。',
+                'shipped_warning' => 'APP_KEY が、ダウンロードした zip に入っていた値のままです。',
+                'shipped_fix' => 'サーバーで php artisan key:generate を実行してください。キーを変えると、全員がログインし直しになります。暗号化して保存した値（メールサーバーのパスワードなど）は読めなくなるので、設定し直してください。',
             ],
             'app_env' => [
                 'label' => '動かし方（APP_ENV）',
@@ -779,6 +781,16 @@ return [
                 'explain' => 'Exment と公式プラグインを新しい版にします。安全のための直しが出ているプラグインは、すぐに更新します。',
                 'warning' => '新しい版があります。',
                 'fix' => 'Exment はシステム設定の「バージョン」から、公式プラグインは機能の管理から更新してください。',
+            ],
+            'supported_versions' => [
+                'label' => 'PHP とデータベースの版',
+                'explain' => 'PHP とデータベースが安全のための直しを受けられるのは、決まった期間だけです。直しが出る版を使ってください（PHP 8.3 以上、MySQL 8.0・MariaDB 10.11・SQL Server 2016 以上）。',
+                'php_until' => ':date まで直しあり',
+                'php_ended' => 'PHP :version の安全のためのサポートは :date で終わりました。',
+                'php_ending' => 'PHP :version の安全のためのサポートは :date で終わります。',
+                'database_old' => ':database :version は、おすすめの版（:recommended 以上）より古い版です。',
+                'warning' => 'PHP :version の安全のためのサポートは :date で終わります。',
+                'fix' => 'PHP を 8.3 以上にしてください（レンタルサーバーでは、管理画面の PHP の版）。データベースは、おすすめの版にしてください。それまでも Exment は動きます。',
             ],
             'session_cookie' => [
                 'label' => 'セッションの cookie',

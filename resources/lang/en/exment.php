@@ -733,6 +733,8 @@ return [
                 'explain' => 'The key for encryption and for signing the session. Each site needs its own.',
                 'warning' => 'APP_KEY is missing or still a sample value.',
                 'fix' => 'Run php artisan key:generate on the server. On a site already in use, a new key makes the values saved encrypted (the password of the mail server...) unreadable: set them again.',
+                'shipped_warning' => 'APP_KEY is the one shipped in the download zip.',
+                'shipped_fix' => 'Run php artisan key:generate on the server. Everyone is then logged out and signs in again. The values saved encrypted (the password of the mail server...) become unreadable: set them again.',
             ],
             'app_env' => [
                 'label' => 'Environment (APP_ENV)',
@@ -779,6 +781,16 @@ return [
                 'explain' => 'Keep Exment and the official plugins up to date. A plugin with a fix for safety is updated at once.',
                 'warning' => 'There is a newer version.',
                 'fix' => 'Update Exment from "Version" in the system setting, and the official plugins from Feature management.',
+            ],
+            'supported_versions' => [
+                'label' => 'Versions of PHP and the database',
+                'explain' => 'PHP and the database get security fixes only for a time. Use versions that still get them: PHP 8.3 or later, MySQL 8.0, MariaDB 10.11 or SQL Server 2016 or later.',
+                'php_until' => 'fixes until :date',
+                'php_ended' => 'The security support of PHP :version ended on :date.',
+                'php_ending' => 'The security support of PHP :version ends on :date.',
+                'database_old' => ':database :version is older than the recommended version (:recommended or later).',
+                'warning' => 'The security support of PHP :version ends on :date.',
+                'fix' => 'Update PHP to 8.3 or later (on a rental server, the PHP version in its control panel). Update the database to the recommended version. Exment keeps working until then.',
             ],
             'session_cookie' => [
                 'label' => 'The session cookie',

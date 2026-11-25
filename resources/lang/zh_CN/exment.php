@@ -713,6 +713,8 @@ return [
                 'explain' => '用于加密和会话签名的密钥。每个网站都需要单独生成。',
                 'warning' => 'APP_KEY 不存在或仍为示例值。',
                 'fix' => '请在服务器上运行 php artisan key:generate。对于已在使用中的网站，更换密钥后，加密保存的值（邮件服务器的密码等）将无法读取，届时请重新设置。',
+                'shipped_warning' => 'APP_KEY 仍是下载的 zip 中自带的值。',
+                'shipped_fix' => '请在服务器上运行 php artisan key:generate。之后所有用户都会退出登录，需要重新登录。加密保存的值（邮件服务器的密码等）将无法读取，请重新设置。',
             ],
             'app_env' => [
                 'label' => '运行环境（APP_ENV）',
@@ -759,6 +761,16 @@ return [
                 'explain' => '将 Exment 和官方插件保持为最新版本。已发布安全修复的插件请立即更新。',
                 'warning' => '有新版本。',
                 'fix' => '请在系统设置的“版本”中更新 Exment，在功能管理中更新官方插件。',
+            ],
+            'supported_versions' => [
+                'label' => 'PHP 和数据库的版本',
+                'explain' => 'PHP 和数据库只在一定期间内提供安全修复。请使用仍提供修复的版本：PHP 8.3 及以上、MySQL 8.0、MariaDB 10.11 或 SQL Server 2016 及以上。',
+                'php_until' => '修复提供至 :date',
+                'php_ended' => 'PHP :version 的安全支持已于 :date 结束。',
+                'php_ending' => 'PHP :version 的安全支持将于 :date 结束。',
+                'database_old' => ':database :version 比推荐版本（:recommended 及以上）旧。',
+                'warning' => 'PHP :version 的安全支持将于 :date 结束。',
+                'fix' => '请将 PHP 升级到 8.3 及以上（租用服务器请在管理画面中更改 PHP 版本）。请将数据库升级到推荐版本。在此之前 Exment 仍可运行。',
             ],
             'session_cookie' => [
                 'label' => '会话 cookie',

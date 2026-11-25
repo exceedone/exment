@@ -713,6 +713,8 @@ return [
                 'explain' => '암호화와 세션 서명에 사용하는 키입니다. 사이트마다 고유한 값이 필요합니다.',
                 'warning' => 'APP_KEY가 없거나 샘플 값 그대로입니다.',
                 'fix' => '서버에서 php artisan key:generate를 실행하십시오. 이미 사용 중인 사이트에서 키를 변경하면 암호화하여 저장한 값(메일 서버 비밀번호 등)을 읽을 수 없게 됩니다. 이 경우 다시 설정하십시오.',
+                'shipped_warning' => 'APP_KEY가 다운로드한 zip에 포함된 값 그대로입니다.',
+                'shipped_fix' => '서버에서 php artisan key:generate를 실행하십시오. 그러면 모든 사용자가 로그아웃되어 다시 로그인해야 합니다. 암호화하여 저장한 값(메일 서버 비밀번호 등)은 읽을 수 없게 되므로 다시 설정하십시오.',
             ],
             'app_env' => [
                 'label' => '실행 환경(APP_ENV)',
@@ -759,6 +761,16 @@ return [
                 'explain' => 'Exment와 공식 플러그인을 최신 버전으로 유지합니다. 보안 수정이 공개된 플러그인은 즉시 업데이트합니다.',
                 'warning' => '새 버전이 있습니다.',
                 'fix' => 'Exment는 시스템 설정의 "버전"에서, 공식 플러그인은 기능 관리에서 업데이트하십시오.',
+            ],
+            'supported_versions' => [
+                'label' => 'PHP 및 데이터베이스의 버전',
+                'explain' => 'PHP와 데이터베이스는 정해진 기간에만 보안 수정을 받습니다. 아직 수정을 받는 버전을 사용하십시오(PHP 8.3 이상, MySQL 8.0, MariaDB 10.11, SQL Server 2016 이상).',
+                'php_until' => ':date까지 수정 제공',
+                'php_ended' => 'PHP :version의 보안 지원은 :date에 종료되었습니다.',
+                'php_ending' => 'PHP :version의 보안 지원은 :date에 종료됩니다.',
+                'database_old' => ':database :version은(는) 권장 버전(:recommended 이상)보다 오래된 버전입니다.',
+                'warning' => 'PHP :version의 보안 지원은 :date에 종료됩니다.',
+                'fix' => 'PHP를 8.3 이상으로 업데이트하십시오(임대 서버에서는 관리 화면의 PHP 버전). 데이터베이스는 권장 버전으로 업데이트하십시오. 그때까지도 Exment는 동작합니다.',
             ],
             'session_cookie' => [
                 'label' => '세션 cookie',

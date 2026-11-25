@@ -713,6 +713,8 @@ return [
                 'explain' => 'Khóa dùng để mã hóa và ký phiên làm việc. Mỗi trang web cần có khóa riêng.',
                 'warning' => 'APP_KEY chưa có hoặc vẫn là giá trị mẫu.',
                 'fix' => 'Vui lòng chạy php artisan key:generate trên máy chủ. Với trang web đang được sử dụng, khóa mới sẽ khiến các giá trị đã lưu ở dạng mã hóa (mật khẩu máy chủ email...) không đọc được: khi đó vui lòng thiết lập lại.',
+                'shipped_warning' => 'APP_KEY vẫn là khóa có sẵn trong tệp zip tải về.',
+                'shipped_fix' => 'Vui lòng chạy php artisan key:generate trên máy chủ. Sau đó mọi người sẽ bị đăng xuất và phải đăng nhập lại. Các giá trị đã lưu ở dạng mã hóa (mật khẩu máy chủ email...) sẽ không đọc được: vui lòng thiết lập lại.',
             ],
             'app_env' => [
                 'label' => 'Môi trường (APP_ENV)',
@@ -759,6 +761,16 @@ return [
                 'explain' => 'Luôn cập nhật Exment và các plugin chính thức lên phiên bản mới. Plugin có bản sửa lỗi bảo mật cần được cập nhật ngay.',
                 'warning' => 'Đã có phiên bản mới hơn.',
                 'fix' => 'Vui lòng cập nhật Exment từ mục "Phiên bản" trong cài đặt hệ thống, và cập nhật các plugin chính thức từ quản lý tính năng.',
+            ],
+            'supported_versions' => [
+                'label' => 'Phiên bản của PHP và cơ sở dữ liệu',
+                'explain' => 'PHP và cơ sở dữ liệu chỉ nhận bản sửa lỗi bảo mật trong một thời gian nhất định. Hãy dùng phiên bản vẫn còn nhận: PHP 8.3 trở lên, MySQL 8.0, MariaDB 10.11 hoặc SQL Server 2016 trở lên.',
+                'php_until' => 'có bản sửa đến :date',
+                'php_ended' => 'Hỗ trợ bảo mật của PHP :version đã kết thúc vào :date.',
+                'php_ending' => 'Hỗ trợ bảo mật của PHP :version sẽ kết thúc vào :date.',
+                'database_old' => ':database :version cũ hơn phiên bản khuyến nghị (:recommended trở lên).',
+                'warning' => 'Hỗ trợ bảo mật của PHP :version sẽ kết thúc vào :date.',
+                'fix' => 'Hãy nâng PHP lên 8.3 trở lên (với máy chủ thuê, phiên bản PHP trong trang quản lý). Hãy nâng cơ sở dữ liệu lên phiên bản khuyến nghị. Exment vẫn chạy cho đến lúc đó.',
             ],
             'session_cookie' => [
                 'label' => 'Cookie phiên',

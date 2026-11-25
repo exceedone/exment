@@ -713,6 +713,8 @@ return [
                 'explain' => 'La clave para el cifrado y para firmar la sesión. Cada sitio necesita la suya propia.',
                 'warning' => 'APP_KEY no existe o sigue siendo un valor de ejemplo.',
                 'fix' => 'Ejecute php artisan key:generate en el servidor. En un sitio que ya está en uso, una clave nueva hace que los valores guardados cifrados (la contraseña del servidor de correo...) no se puedan leer: vuelva a configurarlos.',
+                'shipped_warning' => 'APP_KEY sigue siendo la clave incluida en el zip de descarga.',
+                'shipped_fix' => 'Ejecute php artisan key:generate en el servidor. Después se cerrará la sesión de todos y tendrán que volver a iniciarla. Los valores guardados cifrados (la contraseña del servidor de correo...) no se podrán leer: vuelva a configurarlos.',
             ],
             'app_env' => [
                 'label' => 'Entorno (APP_ENV)',
@@ -759,6 +761,16 @@ return [
                 'explain' => 'Mantenga Exment y los plugins oficiales actualizados. Si un plugin tiene una corrección de seguridad, actualícelo de inmediato.',
                 'warning' => 'Hay una versión más reciente.',
                 'fix' => 'Actualice Exment desde "Versión" en la configuración del sistema, y los plugins oficiales desde la gestión de funciones.',
+            ],
+            'supported_versions' => [
+                'label' => 'Versiones de PHP y de la base de datos',
+                'explain' => 'PHP y la base de datos reciben correcciones de seguridad solo durante un tiempo. Use versiones que todavía las reciban: PHP 8.3 o posterior, MySQL 8.0, MariaDB 10.11 o SQL Server 2016 o posterior.',
+                'php_until' => 'correcciones hasta :date',
+                'php_ended' => 'El soporte de seguridad de PHP :version terminó el :date.',
+                'php_ending' => 'El soporte de seguridad de PHP :version termina el :date.',
+                'database_old' => ':database :version es más antigua que la versión recomendada (:recommended o posterior).',
+                'warning' => 'El soporte de seguridad de PHP :version termina el :date.',
+                'fix' => 'Actualice PHP a 8.3 o posterior (en un servidor de alquiler, la versión de PHP en su panel de control). Actualice la base de datos a la versión recomendada. Exment sigue funcionando mientras tanto.',
             ],
             'session_cookie' => [
                 'label' => 'Cookie de sesión',
