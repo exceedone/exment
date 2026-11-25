@@ -188,7 +188,7 @@ trait ApiDataTrait
     /**
      * Modify logic for getting value
      * @param Request $request
-     * @param Collection|\Illuminate\Pagination\LengthAwarePaginator|CustomValue $target
+     * @param Collection|\Illuminate\Pagination\AbstractPaginator|CustomValue $target
      * @param $options
      * @return array|CustomValue|\Illuminate\Pagination\LengthAwarePaginator|mixed|void
      */
@@ -212,7 +212,7 @@ trait ApiDataTrait
         );
 
         // for paginate logic
-        if ($target instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+        if ($target instanceof \Illuminate\Pagination\AbstractPaginator) {
             $options = array_merge(
                 [
                     'appends' => [],
@@ -231,6 +231,7 @@ trait ApiDataTrait
                     'target_view_id',
                     'children',
                     'parents',
+                    'total',
                 ]),
                 $options['appends']
             );
@@ -420,6 +421,9 @@ trait ApiDataTrait
         $getLabel = $this->isAppendLabel($request);
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
+            'simplePaginate' => $this->withoutTotal($request),
+            // one order, each match once on its page (ISS02907)
+            'stableOrder' => true,
             'makeHidden' => true,
             'target_view' => $custom_view,
             'maxCount' => $count,

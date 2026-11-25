@@ -123,6 +123,7 @@
                     @else
                     tension: 0, // draw straightline
                     borderColor: base,
+                    backgroundColor: base, // Chart.js 4 fills the legend box with it; fill: false keeps the area empty
                     pointBackgroundColor: pointColors(),
                     pointRadius: pointRadii(),
                     fill: false,

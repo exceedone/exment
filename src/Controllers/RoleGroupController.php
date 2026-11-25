@@ -478,7 +478,11 @@ class RoleGroupController extends AdminControllerBase
      */
     public function update($id)
     {
-        if (request()->get('_editable') == 1 && request()->get('_method') == 'PUT') {
+        // _editable is what x-editable sends; _edit_inline is the inline edit of admin-core 2.0
+        // (Form::isEditable() accepts both). The inline edit sends `_edit_inline: true`, so its
+        // presence counts, as in Form::isEditable().
+        $isInlineEdit = request()->get('_editable') == 1 || request()->has('_edit_inline');
+        if ($isInlineEdit && request()->get('_method') == 'PUT') {
             if (!$this->hasPermission_UserOrganization()) {
                 Checker::error();
                 return false;

@@ -117,15 +117,22 @@
             var id = selectedRows().join();
             deletefile(id);
         });
-        $('.grid-select-all').iCheck({checkboxClass:'icheckbox_minimal-blue'});
-        $('.grid-select-all').on('ifChanged', function(event) {
-            if (this.checked) {
-                $('.grid-row-checkbox').iCheck('check');
+        // iCheck triggers only its own ifChanged (no native change), so one event is listened to:
+        // ifChanged while iCheck is loaded, the native change once it is gone (admin-core 2.0)
+        var hasICheck = !!($.fn && $.fn.iCheck);
+        var checkEvent = hasICheck ? 'ifChanged' : 'change';
+        if (hasICheck) {
+            $('.grid-select-all').iCheck({checkboxClass:'icheckbox_minimal-blue'});
+            $('.grid-row-checkbox').iCheck({checkboxClass:'icheckbox_minimal-blue'});
+        }
+        $('.grid-select-all').on(checkEvent, function(event) {
+            if (hasICheck) {
+                $('.grid-row-checkbox').iCheck(this.checked ? 'check' : 'uncheck');
             } else {
-                $('.grid-row-checkbox').iCheck('uncheck');
+                $('.grid-row-checkbox').prop('checked', this.checked).trigger('change');
             }
         });
-        $('.grid-row-checkbox').iCheck({checkboxClass:'icheckbox_minimal-blue'}).on('ifChanged', function () {
+        $('.grid-row-checkbox').on(checkEvent, function () {
             if (this.checked) {
                 $(this).closest('tr').css('background-color', '#ffffd5');
             } else {
