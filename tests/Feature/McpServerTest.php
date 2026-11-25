@@ -402,4 +402,80 @@ class McpServerTest extends ApiTestBase
             $this->assertStringNotContainsString('does not have the scope', (string)($result['content'][0]['text'] ?? ''), "$tool with a key for MCP");
         }
     }
+
+    /**
+     * search_data reads on with next_cursor: the pages one after another are the records one
+     * call reads, in the same order, none twice (ISS02885).
+     */
+    public function testSearchReadsOnWithTheCursor(): void
+    {
+        $key = $this->key();
+        config(['exment.mcp_max_rows' => 100]);
+
+        foreach ([['table' => 'custom_value_edit'], ['table' => 'custom_value_access_all', 'q' => 'index']] as $args) {
+            $all = $this->data($this->tool($key, 'search_data', $args + ['limit' => 100]));
+            $expected = array_column($all['rows'], 'id');
+            $this->assertGreaterThan(7, count($expected), json_encode($args) ?: '');
+
+            // all of them in one call: the pages end (no cursor) with the last of them
+            $enough = count($expected) < 100 ? PHP_INT_MAX : count($expected);
+            $this->assertSame($expected, $this->readAllPages($key, $args + ['limit' => 7], $enough), json_encode($args) ?: '');
+        }
+    }
+
+    public function testSearchCursorOfAnotherSearch(): void
+    {
+        $key = $this->key();
+        $first = $this->data($this->tool($key, 'search_data', ['table' => 'custom_value_edit', 'limit' => 2]));
+        $this->assertNotNull($first['next_cursor']);
+
+        foreach ([['q' => 'other'], ['table' => 'custom_value_access_all']] as $other) {
+            $denied = $this->tool($key, 'search_data', $other + ['table' => 'custom_value_edit', 'cursor' => $first['next_cursor']]);
+            $this->assertTrue($denied['isError']);
+            $this->assertStringContainsString('another search', $denied['content'][0]['text']);
+        }
+        $denied = $this->tool($key, 'search_data', ['table' => 'custom_value_edit', 'cursor' => 'not a cursor']);
+        $this->assertTrue($denied['isError']);
+    }
+
+    public function testSearchStopsAtTheTimeAndReadsOn(): void
+    {
+        $key = $this->key();
+        config(['exment.mcp_max_rows' => 100]);
+        $args = ['table' => 'custom_value_edit', 'limit' => 20];
+        $expected = array_column($this->data($this->tool($key, 'search_data', $args))['rows'], 'id');
+
+        // a time no record can be read in: one record a call, and the cursor goes on
+        config(['exment.mcp_search_seconds' => 0.000001]);
+        $first = $this->data($this->tool($key, 'search_data', $args));
+        $this->assertLessThanOrEqual(1, $first['count']);
+        $this->assertArrayHasKey('stopped', $first);
+        $this->assertNotNull($first['next_cursor']);
+
+        $this->assertSame($expected, array_slice($this->readAllPages($key, $args, count($expected)), 0, count($expected)));
+    }
+
+    /**
+     * The ids of the pages, read on with next_cursor until there is none or there are enough.
+     *
+     * @param array<string, mixed> $args
+     * @return array<int, mixed>
+     */
+    protected function readAllPages(string $key, array $args, int $enough): array
+    {
+        $ids = [];
+        $cursor = null;
+        for ($i = 0; $i < 200; $i++) {
+            $page = $this->data($this->tool($key, 'search_data', $args + (isset($cursor) ? ['cursor' => $cursor] : [])));
+            foreach (array_column($page['rows'], 'id') as $id) {
+                $this->assertNotContains($id, $ids, 'no record twice');
+                $ids[] = $id;
+            }
+            $cursor = $page['next_cursor'];
+            if (!isset($cursor) || count($ids) >= $enough) {
+                break;
+            }
+        }
+        return array_slice($ids, 0, $enough);
+    }
 }
