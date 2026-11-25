@@ -713,7 +713,7 @@ class Exment
             $validates[] = 'confirmed';
         }
 
-        $validates[] = 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '32');
+        $validates[] = 'max:'.(!is_null(config('exment.password_rule.max')) ? config('exment.password_rule.max') : '64');
 
         // check password policy
         $complex = false;

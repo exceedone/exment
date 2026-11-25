@@ -1412,6 +1412,19 @@ return [
         'mapping_setting' => 'Cài đặt ánh xạ',
         'update_user_info' => 'Cập nhật thông tin người dùng',
         'show_default_login_provider' => 'Hiển thị đăng nhập mặc định',
+        'new_ip_header' => 'Đăng nhập từ nơi mới',
+        'login_notify_new_ip' => 'Thông báo cho người dùng khi đăng nhập từ địa chỉ IP mới',
+        'login_notify_new_ip_mail' => 'Gửi cả email',
+        'new_ip_subject' => 'Đăng nhập từ địa chỉ IP mới',
+        'new_ip_body' => "Tài khoản của bạn đã được đăng nhập từ một địa chỉ IP không được dùng để đăng nhập trong :days ngày qua.
+
+Ngày giờ: :datetime
+Địa chỉ IP: :ip
+Trình duyệt: :browser
+
+Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị viên.",
+        'history_header' => 'Lịch sử đăng nhập của tôi',
+        'history_help' => ':count lần đăng nhập gần nhất vào tài khoản của bạn.',
         'sso_redirect_force' => 'Chuyển hướng đến đăng nhập SSO',
         'sso_setting' => 'Cài đặt SSO',
         'sso_accept_mail_domain' => 'Tên miền được phép đăng nhập',
@@ -1468,6 +1481,8 @@ return [
             'login_button_font_color' => 'Vui lòng nhập màu chữ của nút đăng nhập.',
             'login_button_font_color_hover' => 'Vui lòng nhập màu chữ của nút đăng nhập (khi di chuột).',
             'show_default_login_provider' => 'Nếu chọn YES, biểu mẫu đăng nhập bằng ID và mật khẩu của Exment sẽ được hiển thị.',
+            'login_notify_new_ip' => 'Sau khi đăng nhập, người dùng nhận được thông báo khi địa chỉ IP không được dùng trong lần đăng nhập nào của cùng người dùng trong :days ngày qua. Lần đăng nhập đầu tiên của người dùng không được thông báo.',
+            'login_notify_new_ip_mail' => 'Gửi cả thông báo đến địa chỉ email của người dùng.',
             'sso_redirect_force' => 'Nếu chọn YES, trang đăng nhập của Exment sẽ không hiển thị mà chuyển hướng thẳng đến trang đăng nhập SSO. *Chỉ có hiệu lực khi chỉ có một nhà cung cấp SSO.',
             'sso_jit' => 'Nếu chọn YES, khi người dùng đăng nhập chưa tồn tại trong Exment, hệ thống sẽ dùng thông tin đăng nhập để tạo mới người dùng Exment. Nếu chọn NO, cần tạo người dùng trong Exment trước.',
             'update_user_info' => 'Nếu chọn YES, thông tin người dùng Exment sẽ được cập nhật khi đăng nhập.',
@@ -3510,7 +3525,7 @@ return [
             'kanban_source' => 'Nguồn tạo các làn Kanban.<br/>*Từ cột lựa chọn: các lựa chọn của cột sẽ trở thành các làn.<br/>*Từ quy trình làm việc: các trạng thái của quy trình làm việc áp dụng cho bảng này sẽ trở thành các làn. Khi kéo thẻ, màn hình xác nhận thao tác quy trình làm việc dẫn đến trạng thái đó sẽ mở ra, nên việc di chuyển không được quy trình làm việc cho phép sẽ bị từ chối.',
             'kanban_wip_enforce' => 'Quyết định điều gì xảy ra khi thả thẻ vào cột đã đạt giới hạn WIP.<br/>"Cho phép" giữ cách hoạt động cũ: tiêu đề chuyển màu đỏ và thẻ vẫn được di chuyển.<br/>"Hỏi xác nhận trước" hiển thị thông báo xác nhận và chỉ di chuyển thẻ khi bạn đồng ý.<br/>"Không cho phép" làm mờ cột đã đầy trong khi kéo và từ chối việc thả.<br/>*Các cột không đặt giới hạn WIP không bị ảnh hưởng.<br/>*Thẻ khớp với "Giá trị được coi là khẩn cấp" được miễn quy tắc này nhưng vẫn được đếm - nên tiêu đề vẫn hiển thị là cột đã vượt giới hạn.',
             'kanban_policies' => 'Quy tắc hiển thị trên tiêu đề cột - di chuột lên dấu hiệu để đọc nội dung.<br/>Ví dụ: ở cột "Đang kiểm thử" ghi "tất cả các mục trong bảng kiểm thử phải được duyệt trước khi chuyển tiếp", điều kiện để chuyển tiếp sẽ hiển thị cho cả nhóm.<br/>*Cột áp dụng được chọn từ các giá trị của bảng (hoặc trạng thái của quy trình làm việc).<br/>*Cài đặt không khớp với các cột đang hiển thị sẽ bị bỏ qua.',
-            'kanban_wips' => 'Số thẻ tối đa mà một làn có thể chứa. Làn áp dụng được chọn từ các giá trị của bảng (hoặc trạng thái của quy trình làm việc), không cần nhập tay.<br/>*Làn vượt quá giới hạn sẽ có tiêu đề màu đỏ.<br/>*Cài đặt không khớp với các làn đang hiển thị sẽ bị bỏ qua.',
+            'kanban_wips' => 'Số thẻ tối đa mà một làn có thể chứa. Làn áp dụng được chọn từ các giá trị của bảng (hoặc trạng thái của quy trình làm việc), không cần nhập tay.<br/>*Làn vượt quá giới hạn sẽ có tiêu đề màu đỏ.<br/>*Cài đặt không khớp với các làn đang hiển thị sẽ bị bỏ qua.<br/>*Khi đếm số thẻ, giới hạn là 1 đến 999. Khi chỉ định "Cách đếm giới hạn WIP (cột số)", hãy nhập giới hạn của tổng cột đó (có thể lớn hơn 999).',
             'kanban_done_keys' => 'Các làn mang nghĩa "hoàn thành", chọn từ các giá trị của bảng.<br/>*Các bản ghi này sẽ dừng đếm ngược hạn chót và được tính là "Hoàn thành" trên thanh tổng hợp.<br/>*Với bảng Kanban tạo từ quy trình làm việc, mọi trạng thái được đặt là hoàn thành đã tự động được coi là hoàn thành, nên không cần cài đặt ở đây.<br/>*Cài đặt không khớp với các làn đang hiển thị sẽ bị bỏ qua.',
             'kanban_title_column' => 'Cột hiển thị làm tiêu đề in đậm trong thẻ.<br/>*Khi được đặt, tên hiển thị của bản ghi sẽ hiện dưới dạng liên kết ở đầu thẻ.<br/>*Khi không đặt, tên hiển thị của bản ghi sẽ trở thành tiêu đề.',
             'kanban_assignee_column' => 'Cột chứa người phụ trách.<br/>*Được hiển thị kèm ảnh đại diện ở cuối thẻ; thẻ chưa nhập sẽ hiển thị "Chưa phân công".<br/>*Cũng được dùng cho thanh tổng hợp, bộ lọc "Chỉ chưa phân công" và phân công hàng loạt.<br/>*<b>Nếu để trống</b>, bảng Kanban sẽ không có ảnh đại diện, ô "Chưa phân công", bộ lọc "Chỉ chưa phân công", phân công hàng loạt, thay đổi người phụ trách trên thẻ và tự động phân công. Nút "Của tôi" cũng không hiển thị, trừ khi đã đặt cột trong "Cột dùng để xác định "Của tôi"".',
@@ -4743,6 +4758,7 @@ return [
         'status_safe' => 'An toàn',
         'status_minor_injury' => 'Bị thương nhẹ',
         'status_need_help' => 'Cần hỗ trợ',
+        'status_not_answered' => 'Chưa trả lời', 'channel_line' => 'LINE', 'channel_mail' => 'Email',
         'flex_note' => 'Vui lòng gửi thông tin bổ sung dưới dạng tin nhắn',
         'drill_prefix' => '[Diễn tập] ',
         'answer_done' => 'Đã ghi nhận ":status". Nếu có thông tin bổ sung, vui lòng gửi dưới dạng tin nhắn.',

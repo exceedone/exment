@@ -345,6 +345,52 @@ class KanbanFixTest extends UnitTestBase
     }
 
     /**
+     * GH #2188: "mine" can follow the user who created the record. The board
+     * names the creator as its mine column, every card carries it, and the
+     * logged in user is the one who stands for "me".
+     */
+    public function testOnlyMineCanFollowTheCreatedUser(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => CustomColumn::getEloquent('select', $table)->id,
+            'kanban_mine_column_id' => KanbanGrid::MINE_CREATED_USER,
+        ]);
+
+        $board = $this->boardOf($view);
+        $this->assertSame(KanbanGrid::MINE_CREATED_USER_KEY, $board['mine_column']);
+        $this->assertSame([strval(\Exment::getUserId())], $board['me']);
+        $this->assertNotEmpty($board['cards']);
+        foreach ($board['cards'] as $card) {
+            $record = $table->getValueModel($card['id']);
+            $this->assertSame(
+                strval($record->created_user_id),
+                $card['values'][KanbanGrid::MINE_CREATED_USER_KEY],
+                'Every card carries the user who created it.'
+            );
+        }
+
+        $this->assertSame([strval(\Exment::getUserId())], $this->invoke($this->gridOf($view), 'getMyKeys', [KanbanGrid::MINE_CREATED_USER]));
+    }
+
+    /**
+     * GH #2188: a custom column stored as before still works.
+     */
+    public function testOnlyMineStillFollowsACustomColumn(): void
+    {
+        $table = CustomTable::getEloquent(static::COLUMNS_TABLE);
+        $user = CustomColumn::getEloquent('user', $table);
+        $view = $this->createKanbanView(static::COLUMNS_TABLE, [
+            'kanban_group_column_id' => CustomColumn::getEloquent('select', $table)->id,
+            'kanban_mine_column_id' => $user->id,
+        ]);
+
+        $board = $this->boardOf($view);
+        $this->assertSame($user->column_name, $board['mine_column']);
+        $this->assertArrayNotHasKey(KanbanGrid::MINE_CREATED_USER_KEY, $board['cards'][0]['values']);
+    }
+
+    /**
      * K-05: a keyword is looked up in a long lookup table through the view the
      * column's select box uses, once for every board column. That view is
      * cached for the request and its search service remembers the joins it

@@ -149,11 +149,62 @@ $(function () {
         } catch (ex) {}
     }
 
-    // keywords already asked of the server, so typing does not ask twice
-    var searched = {};
-    // per keyword: did the server have to stop before the end of a column?
-    var searchCapped = {};
-    var searchTimer = null;
+
+    // The filters the cards on the board were read with, as sent to the
+    // server ('' for none). A board read per column holds the first slice of
+    // every column only, so its filters are run on the server: every read
+    // carries them, the counts come back for the filtered board, and "load
+    // more" goes on from there (#2185).
+    var loadedSig = '';
+    var refilterTimer = null;
+    var refilterXhr = null;
+    function serverFilters() { return D.col_count > 0 && !!D.more_url; }
+    function stateSig() {
+        if (!filtersActive()) { return ''; }
+        var st = currentState();
+        return JSON.stringify({ filters: st.filters, keyword: st.keyword, only: st.only });
+    }
+    function stateParam() { return loadedSig ? { state: loadedSig } : {}; }
+    // what is drawn is narrowed by a filter the server has not run yet: the
+    // figures from the server then describe some other board
+    function filteredHere() {
+        return filtersActive() && !(serverFilters() && stateSig() === loadedSig);
+    }
+    // Draw the cards on hand at once, then read the board again under the new
+    // filters. Typing waits a moment, so a word asks once rather than per key.
+    function refilter(delay) {
+        render();
+        if (!serverFilters()) { return; }
+        if (refilterTimer) { window.clearTimeout(refilterTimer); refilterTimer = null; }
+        if (stateSig() === loadedSig) { return; }
+        refilterTimer = window.setTimeout(function () {
+            refilterTimer = null;
+            var want = stateSig();
+            if (want === loadedSig) { return; }
+            if (refilterXhr) { refilterXhr.abort(); }
+            var $box = $(root).find('.kb-search, .kb-f-keyword').addClass('kb-searching');
+            refilterXhr = $.getJSON(D.more_url, $.extend({ view: D.view_suuid, reload: 1 },
+                want ? { state: want } : {}, EMB))
+                .done(function (res) {
+                    // changed again while this was on its way: the next read is coming
+                    if (want !== stateSig()) { return; }
+                    D.cards = (res && res.cards) || [];
+                    D.col_stats = (res && res.flat) || {};
+                    D.col_stats_lane = (res && res.lanes) || {};
+                    loadedSig = want;
+                    initColSeq();
+                    render();
+                })
+                .fail(function (xhr) {
+                    if (xhr.statusText === 'abort') { return; }
+                    toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
+                })
+                .always(function () {
+                    refilterXhr = null;
+                    $box.removeClass('kb-searching');
+                });
+        }, delay || 0);
+    }
     var dragId = null;
 
     // a card field already showing the assignee makes the footer avatar a
@@ -403,8 +454,11 @@ $(function () {
     // filter keystroke.
     var cellStyles = D.card_styles || {};
     var cellCache = {};
+    var separateWord = String(D.separate_word || '');
     function cellHTML(f, options) {
-        var key = f.key + '\u0000' + f.value + '\u0000' + f.text + '\u0000' + f.icon;
+        var parts = $.isArray(f.parts) ? f.parts : null;
+        var key = f.key + '\u0000' + f.value + '\u0000' + f.text + '\u0000' + f.icon
+            + (parts ? '\u0000' + JSON.stringify(parts) : '');
         if (cellCache[key] !== undefined) { return cellCache[key]; }
 
         // The card's icon setting may name one icon per value, which a preset
@@ -413,9 +467,21 @@ $(function () {
 
         // The palette colours arrive already written out per value, so the
         // renderer never needs the option order this board does not carry.
-        var html = $('<span>').append(
-            Exment.CellStylePresetEvent.sample(options, f.value, f.text, null)
-        ).html();
+        var $box = $('<span>');
+        if (parts) {
+            // A multi-value field drawn as shapes: one shape per value, in the
+            // color of its own value, as the data list draws it (#2159). The
+            // separator stays for the text of the card, hidden by css.
+            $.each(parts, function (i, part) {
+                if (i > 0 && separateWord !== '') {
+                    $box.append($('<span>', { 'class': 'exm-cell-sep', text: separateWord }));
+                }
+                $box.append(Exment.CellStylePresetEvent.sample(options, part.value, part.text, null));
+            });
+        } else {
+            $box.append(Exment.CellStylePresetEvent.sample(options, f.value, f.text, null));
+        }
+        var html = $box.html();
 
         cellCache[key] = html;
         return html;
@@ -753,14 +819,14 @@ $(function () {
         var stats = D.col_stats || {};
         var laneStats = D.col_stats_lane || {};
         var colMode = colModeNow();
-        var fromDb = colMode && !filtersActive();
+        var fromDb = colMode && !filteredHere();
         // How full each board column is, straight from the table. Unlike the
         // paging and the per-cell figures, this survives a lane switch: the sql
         // figures follow the board columns of the configured grouping, and a
         // swimlane only rearranges the same records inside them. Set aside
         // while a filter is on - the badge would then contradict the cards
         // drawn under it.
-        var loadDb = D.col_count > 0 && groupBy === D.group_column && !filtersActive();
+        var loadDb = D.col_count > 0 && groupBy === D.group_column && !filteredHere();
 
         var lanes = [];
         if (!swimBy) {
@@ -828,12 +894,14 @@ $(function () {
                         : (D.wip_column ? amountSum(items) : items.length));
                 var over = col.wip > 0 && load > col.wip;
                 var loadTxt = fmtNum(load, D.wip_column ? D.wip_format : GROUPED);
+                // the limit in the format of the total (#2184)
+                var wipTxt = fmtNum(col.wip, D.wip_column ? D.wip_format : GROUPED);
                 // The limit is set per board column, so the figure beside it
                 // counts the whole column. Split into lanes that is not the
                 // number of cards in this cell, and a head reading "0" next to
                 // a load of 16.5 looks broken unless the badge says which is
                 // which.
-                var wipTitle = fmt(swimBy ? L.col_wip_all : L.col_wip, loadTxt, col.wip);
+                var wipTitle = fmt(swimBy ? L.col_wip_all : L.col_wip, loadTxt, wipTxt);
                 var sum = (fromDb && st) ? st.sum : sumOf(items, D.sum_column);
                 var age = (fromDb && st) ? st.age : (D.col_age ? avgAge(items) : null);
                 var total = (fromDb && st) ? st.total : items.length;
@@ -868,7 +936,7 @@ $(function () {
                     (stuck ? '<span class="kb-col-blocked" title="' + esc(L.blocked) + '">' +
                         '<i class="fa fa-hand-paper-o"></i>' + stuck + '</span>' : '') +
                     (col.wip > 0 ? '<span class="kb-col-wip' + (swimBy ? ' kb-col-wip-all' : '') +
-                        '" title="' + esc(wipTitle) + '">' + esc(loadTxt) + '/' + col.wip + '</span>' : '') +
+                        '" title="' + esc(wipTitle) + '">' + esc(loadTxt) + '/' + esc(wipTxt) + '</span>' : '') +
                     // both are switched on one at a time in the view settings,
                     // and neither is worth a row of its own on every column.
                     // An empty column is left with its nought alone: a sum of
@@ -977,11 +1045,6 @@ $(function () {
                 msgs.push(fmt(L.partial, fmtNum(D.cards.length, GROUPED), fmtNum(whole, GROUPED)));
             }
         }
-        // a column that ran out of room kept its first slice and dropped the
-        // rest, so the board is answering a narrower question than it was asked
-        if (searchCapped[keyword]) {
-            msgs.push(fmt(L.search_capped, fmtNum(D.col_count, GROUPED)));
-        }
 
         if (!msgs.length) {
             $box.empty().hide();
@@ -1000,7 +1063,7 @@ $(function () {
     function renderBlank(count) {
         var $box = $(root).find('.kb-blank');
         if (!$box.length) { return; }
-        if (count > 0 || !D.cards.length || !filtersActive()) {
+        if (count > 0 || (!D.cards.length && !loadedSig) || !filtersActive()) {
             $box.empty().hide();
             return;
         }
@@ -1022,7 +1085,7 @@ $(function () {
         // same sql pass that fed the column heads answers this too. A swimlane
         // makes no difference here - it rearranges the same records, and these
         // are totals over all of them.
-        var fromDb = D.col_count > 0 && groupBy === D.group_column && !filtersActive();
+        var fromDb = D.col_count > 0 && groupBy === D.group_column && !filteredHere();
         if (fromDb) {
             $.each(D.col_stats || {}, function (key, st) {
                 if (D.done_keys.indexOf(key) >= 0) {
@@ -1093,44 +1156,6 @@ $(function () {
                 cellSeq[ck] = (cellSeq[ck] || 0) + 1;
             }
         });
-    }
-
-    // The board holds the first slice of every column, so filtering it here can
-    // only ever find what already arrived. When it is loaded per column, go and
-    // fetch the matches sitting further down as well - they are merged into the
-    // same card list and the usual filter decides what to draw.
-    function searchServer() {
-        if (searchTimer) { window.clearTimeout(searchTimer); searchTimer = null; }
-        if (!(D.col_count > 0) || !D.more_url) { return; }
-        var q = keyword;
-        if (q.length < 2 || searched[q]) { return; }
-
-        searchTimer = window.setTimeout(function () {
-            searchTimer = null;
-            if (q !== keyword || searched[q]) { return; }
-            searched[q] = true;
-
-            var $box = $(root).find('.kb-search, .kb-f-keyword').addClass('kb-searching');
-            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, q: q }, EMB))
-                .done(function (res) {
-                    var seen = {}, added = 0;
-                    $.each(D.cards, function (i, c) { seen[c.id] = true; });
-                    $.each((res && res.cards) || [], function (i, c) {
-                        if (!seen[c.id]) { D.cards.push(c); added++; }
-                    });
-                    searchCapped[q] = !!(res && res.has_more);
-                    if (added > 0) {
-                        render();
-                        toast(fmt(L.search_more, added), 'fa-search');
-                    } else {
-                        // nothing new to draw, but the answer was still short
-                        renderPartial();
-                    }
-                })
-                // let the same keyword ask again; otherwise it stays half found
-                .fail(function () { delete searched[q]; })
-                .always(function () { $box.removeClass('kb-searching'); });
-        }, 400);
     }
 
     /* ---------------------------------------------------------- bulk ----- */
@@ -1320,9 +1345,11 @@ $(function () {
             // enough apart can still be in the air together, and the older
             // totals must not land on top of the newer ones
             var gen = ++statsGen;
-            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, stats: 1 }, EMB))
+            var sig = loadedSig;
+            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, stats: 1 }, stateParam(), EMB))
                 .done(function (res) {
-                    if (!res || gen !== statsGen) { return; }
+                    // figures of a board filtered another way than the one on screen
+                    if (!res || gen !== statsGen || sig !== loadedSig) { return; }
                     D.col_stats = res.flat || {};
                     D.col_stats_lane = res.lanes || {};
                     render();
@@ -1886,6 +1913,10 @@ $(function () {
     // records the server would not hand over - locked by a workflow, not this
     // reader's to edit. Asked for again on a click, never again on a hover.
     var formDenied = {};
+    // records the server said this reader may not edit (a "noedit" answer or a
+    // 403): a click opens the drawer at once, with no window that flashes and
+    // closes (#2187). The cards the board knows of carry card.noedit already.
+    var formNoEdit = {};
     // how many times each record has been written since the page was opened,
     // so an answer can be matched against the state it was asked for
     var formEpoch = {};
@@ -1902,6 +1933,7 @@ $(function () {
         // next reader to ask gets a fresh request rather than being handed
         // the one that is already out of date.
         delete formPending[k];
+        delete formNoEdit[k];
         formEpoch[k] = (formEpoch[k] || 0) + 1;
     }
     // $.each hands over (index, value); named so the argument order is plain
@@ -1920,6 +1952,7 @@ $(function () {
         var era = formEpoch[String(id)] || 0;
         var req = $.ajax({ url: editUrl(id), dataType: 'json' })
             .done(function (res) {
+                if (res && res.noedit) { formNoEdit[id] = true; return; }
                 if (!res || !res.body) { return; }
                 // written while this was out: what came back shows the record
                 // as it was before that write, and keeping it would undo the
@@ -1930,7 +1963,10 @@ $(function () {
                 while (kept.length >= 8) { delete formCache[kept.shift()]; }
                 formCache[id] = res;
             })
-            .fail(function () { formDenied[id] = true; })
+            .fail(function (xhr) {
+                // not this reader's to edit; anything else is asked again on a click
+                if (xhr && xhr.status === 403) { formNoEdit[id] = true; } else { formDenied[id] = true; }
+            })
             .always(function () {
                 // a newer request owns the slot now - see forgetForm
                 if ((formEpoch[String(id)] || 0) !== era) { return; }
@@ -1947,7 +1983,9 @@ $(function () {
     var warmTimer = null;
     function warmForm(id) {
         if (!canOpenEditor() || D.editor.hook) { return; }
-        if (formCache[id] || formPending[id] || formDenied[id]) { return; }
+        if (formCache[id] || formPending[id] || formDenied[id] || formNoEdit[id]) { return; }
+        var warmCard = cardById(id);
+        if (warmCard && warmCard.noedit) { return; }
         if (warmTimer) { window.clearTimeout(warmTimer); }
         // a pointer crossing the column on its way somewhere else is not a
         // reader, and should not cost a request per card it passed over
@@ -2047,10 +2085,12 @@ $(function () {
             location.href = card.url;
             return;
         }
-        destroyDrawer();
         stopWarming();
-
         var id = String(card.id);
+        // a card the reader may not edit: the drawer, without a window first (#2187)
+        if (card.noedit || formNoEdit[id]) { noEditFallback(card); return; }
+        destroyDrawer();
+
         formOpen = id;
         // cached, and this paints before the browser has drawn anything else
         if (!formCache[id]) {
@@ -2068,9 +2108,12 @@ $(function () {
                 windowShell(res.title || card.title || card.label, res.body, false);
             })
             .fail(function (xhr) {
-                // locked by a workflow, deleted by somebody else, not this
-                // reader's to edit. Said where the reader is, rather than by
-                // taking them off the board and onto a screen saying it.
+                if (formOpen !== id) { return; }
+                // not this reader's to edit: as a "noedit" answer, no error
+                if (xhr && xhr.status === 403) { noEditFallback(card); return; }
+                // locked by a workflow, deleted by somebody else. Said where
+                // the reader is, rather than by taking them off the board and
+                // onto a screen saying it.
                 closeForm();
                 toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
                 if (D.features.drawer) { openDrawer(card.id); }
@@ -2899,7 +2942,7 @@ $(function () {
         onlyMine = !!on;
         syncMineBtn();
         savePrefs();
-        render();
+        refilter();
     }
 
     function buildFilterPanel() {
@@ -2970,12 +3013,11 @@ $(function () {
         $root.on('input', '.kb-search, .kb-f-keyword', function () {
             keyword = $(this).val().trim();
             $root.find('.kb-search, .kb-f-keyword').not(this).val(keyword);
-            render();
-            searchServer();
+            refilter(400);
         });
         $root.on('change', '.kb-f-select', function () {
             filters[$(this).data('name')] = $(this).val();
-            render();
+            refilter();
         });
         $root.on('change', '.kb-f-groupby', function () {
             groupBy = $(this).val();
@@ -2996,10 +3038,10 @@ $(function () {
             buildFilterPanel();
             render();
         });
-        $root.on('change', '.kb-f-over', function () { onlyOver = this.checked; render(); });
-        $root.on('change', '.kb-f-unassigned', function () { onlyUnassigned = this.checked; render(); });
-        $root.on('change', '.kb-f-blocked', function () { onlyBlocked = this.checked; render(); });
-        $root.on('change', '.kb-f-expedite', function () { onlyExpedite = this.checked; render(); });
+        $root.on('change', '.kb-f-over', function () { onlyOver = this.checked; refilter(); });
+        $root.on('change', '.kb-f-unassigned', function () { onlyUnassigned = this.checked; refilter(); });
+        $root.on('change', '.kb-f-blocked', function () { onlyBlocked = this.checked; refilter(); });
+        $root.on('change', '.kb-f-expedite', function () { onlyExpedite = this.checked; refilter(); });
 
         // The one filter worth a button of its own: on a shared board it is
         // the first thing anyone does. Kept in step with the checkbox in the
@@ -3012,12 +3054,12 @@ $(function () {
             onlyMine = false; onlyBlocked = false; onlyExpedite = false;
             groupBy = D.group_column;
             swimBy = (D.swimlane_column && D.swimlane_column !== D.group_column) ? D.swimlane_column : '';
-            if (searchTimer) { window.clearTimeout(searchTimer); searchTimer = null; }
+            if (refilterTimer) { window.clearTimeout(refilterTimer); refilterTimer = null; }
             savePrefs();
             buildFilterPanel();
             syncMineBtn();
             $root.find('.kb-search').val('');
-            render();
+            refilter();
         });
 
         // Folding is layout, not a filter: reset leaves it alone, and it
@@ -3041,8 +3083,12 @@ $(function () {
             var offset = parseInt($btn.attr('data-offset'), 10) || 0;
             $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
 
-            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, key: key, offset: offset, lane: lane }, EMB))
+            var sig = loadedSig;
+            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, key: key, offset: offset, lane: lane }, stateParam(), EMB))
                 .done(function (res) {
+                    // the board was read again under other filters meanwhile:
+                    // this slice belongs to a board that is no longer there
+                    if (sig !== loadedSig) { return; }
                     var cards = (res && res.cards) || [];
                     var seen = {};
                     $.each(D.cards, function (i, c) { seen[c.id] = true; });
@@ -3300,6 +3346,6 @@ $(function () {
     syncMineBtn();
     // the toolbar box is not part of the panel, so it is filled in here
     $(root).find('.kb-search').val(keyword);
-    render();
+    refilter();
 });
 </script>

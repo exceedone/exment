@@ -14,6 +14,7 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\Mcp\McpGuide;
+use Exceedone\Exment\Services\UserTimezone;
 
 class ApiSettingController extends AdminControllerBase
 {
@@ -58,7 +59,11 @@ class ApiSettingController extends AdminControllerBase
         $grid->column('client_type_text', exmtrans('api.client_type_text'));
         $grid->column('name', exmtrans('api.app_name'));
         $grid->column('id', exmtrans('api.client_id'));
-        $grid->column('created_at', trans('admin.created_at'));
+        // the stored time in the time zone of the user, as the other lists (ISS02894): the client is a
+        // model of Passport, whose dates are written as ISO 8601 in UTC
+        $grid->column('created_at', trans('admin.created_at'))->display(function ($created_at, $column, ApiClient $client) {
+            return UserTimezone::display($client->getRawOriginal('created_at') ?? $created_at);
+        });
         $grid->column('user_id', exmtrans('common.created_user'))->display(function ($user_id) {
             return getUserName($user_id, true);
         })->escape(false);

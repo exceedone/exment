@@ -157,7 +157,8 @@ class SafetyCheckInstallerTest extends FeatureTestBase
 
         $answerTable = \Exceedone\Exment\Model\CustomTable::getEloquent('safety_check_answer');
         $channel = \Exceedone\Exment\Model\CustomColumn::getEloquent('channel', $answerTable);
-        $this->assertStringContainsString('mail', (string) array_get($channel->options, 'select_item'));
+        // the choices are "value,name" lines since #2179
+        $this->assertArrayHasKey('mail', $channel->createSelectOptions());
     }
 
     public function testSentCountLabelRenamed(): void
