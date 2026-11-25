@@ -28,6 +28,8 @@ class NameLocales
     public const OFF_PATHS = [
         'table', 'table/*', 'column/*', 'view/*', 'copy/*', 'auth/menu', 'auth/menu/*', 'auth/menu_arrange*',
         'template', 'template/*', 'studio', 'studio/*', 'api/*', 'data/*/import*', 'data/*/export*',
+        // phase 2: forms (the designer and its preview), the edit pages of dashboards and boxes
+        'form/*', 'dashboard/create', 'dashboard/*/edit', 'dashboardbox/create', 'dashboardbox/create/*', 'dashboardbox/*/edit',
     ];
 
     /** @var int how many raw() are running, plus one for off() */
@@ -174,6 +176,25 @@ class NameLocales
                     ->rules('nullable|max:256');
             }
         });
+    }
+
+    /**
+     * The fields of the other languages as name_locales[<locale>] of a widget form (the header of
+     * the form designer), which has no embedded forms.
+     *
+     * @param mixed $form
+     */
+    public static function addArrayFields($form, string $label): void
+    {
+        $locales = static::locales();
+        if (empty($locales)) {
+            return;
+        }
+        $form->description(exmtrans('name_locales.header') . ': ' . exmtrans('name_locales.help', $label));
+        foreach ($locales as $locale) {
+            $form->text('name_locales.' . $locale, exmtrans('name_locales.name_in', static::localeName($locale)))
+                ->rules('nullable|max:256');
+        }
     }
 
     public static function localeName(string $locale): string

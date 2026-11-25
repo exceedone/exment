@@ -24,9 +24,26 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
     use Traits\UseRequestSessionTrait;
     use Traits\ClearCacheTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\NameLocalesTrait;
+
+    /** the names in the other languages (ISS02859): written by the form designer */
+    protected $appends = ['name_locales'];
     use Traits\TemplateTrait;
 
     protected $casts = ['options' => 'json'];
+
+    /**
+     * The name in the language of the user, when one is given for it (ISS02859, phase 2):
+     * the stored name otherwise, and always on the pages that edit it (NameLocales).
+     *
+     * @param mixed $value the stored name
+     * @return mixed
+     */
+    public function getFormBlockViewNameAttribute($value)
+    {
+        $options = $this->getAttributeValue('options');
+        return \Exceedone\Exment\Services\NameLocales::pick(is_array($options) ? $options : null, $value);
+    }
 
     /**
      * request key. Used by custom form setting display. Ex. NEW__f482dce0-662c-11eb-8f65-5f9d12681ab1
@@ -38,7 +55,7 @@ class CustomFormBlock extends ModelBase implements Interfaces\TemplateImporterIn
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['custom_form_id', 'target_table'],
+        'excepts' => ['custom_form_id', 'target_table', 'name_locales'],
         'langs' => [
             'keys' => ['form_block_target_table_name'],
             'values' => ['form_block_view_name'],

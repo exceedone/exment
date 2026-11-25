@@ -407,6 +407,8 @@ class DashboardBoxController extends AdminControllerBase
         $form->hidden('dashboard_box_type')->default($dashboard_box_type);
 
         $form->text('dashboard_box_view_name', exmtrans("dashboard.dashboard_box_view_name"))->rules("max:40")->required();
+        // the name in the other languages (ISS02859)
+        \Exceedone\Exment\Services\NameLocales::addEmbeds($form, exmtrans("dashboard.dashboard_box_view_name"));
 
         // Option Setting --------------------------------------------------
         $form->embeds('options', function ($form) use ($dashboard, $dashboard_box_type) {
