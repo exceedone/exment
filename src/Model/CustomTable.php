@@ -1705,6 +1705,7 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'isLike' => true, // search as "like"
                 'maxCount' => 5, // result max count
                 'paginate' => false, // if return as paginate, set true.
+                'simplePaginate' => false, // with paginate: without counting all (no total)
                 'makeHidden' => false,
                 'searchColumns' => null, // if select search columns, set them. If null search for index_enabled columns.
                 'relation' => false, // if relation search, set true
@@ -1742,7 +1743,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
 
             // get data(only id)
-            $paginates = $mainQuery->select("$dbTableName.id")->paginate($maxCount);
+            $mainQuery->select("$dbTableName.id");
+            $paginates = boolval($options['simplePaginate']) ? $mainQuery->simplePaginate($maxCount) : $mainQuery->paginate($maxCount);
 
             // set eloquent data using ids
             $ids = collect($paginates->items())->map(function ($item) {
