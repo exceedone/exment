@@ -2594,13 +2594,13 @@ parameters:
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 2
+			count: 1
 			path: vendor/exceedone/exment/src/Services/AuthUserOrgHelper.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 2
+			count: 1
 			path: vendor/exceedone/exment/src/Services/AuthUserOrgHelper.php
 
 		-

@@ -12,7 +12,7 @@ class RouteNamesUniqueTest extends FeatureTestBase
     public function testEveryNameOnce(): void
     {
         $counts = [];
-        foreach (app('router')->getRoutes() as $route) {
+        foreach (app('router')->getRoutes()->getRoutes() as $route) {
             $name = $route->getName();
             if (is_string($name) && $name !== '') {
                 $counts[$name] = ($counts[$name] ?? 0) + 1;
