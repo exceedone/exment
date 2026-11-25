@@ -131,10 +131,10 @@ class GridInlineEditSettingTest extends UnitTestBase
     public function testViewSettingTurnsInlineEditOff(): void
     {
         $view = new CustomView();
-        $view->inline_edit_enabled = '0';
+        $view->inline_edit_enabled = false;
         $this->assertFalse(GridInlineEditor::isInlineEditEnabled($view));
 
-        $view->inline_edit_enabled = '1';
+        $view->inline_edit_enabled = true;
         $this->assertTrue(GridInlineEditor::isInlineEditEnabled($view));
     }
 
@@ -144,7 +144,7 @@ class GridInlineEditSettingTest extends UnitTestBase
         System::clearCache();
 
         $view = new CustomView();
-        $view->inline_edit_enabled = '1';
+        $view->inline_edit_enabled = true;
         $this->assertFalse(GridInlineEditor::isInlineEditEnabled(null));
         $this->assertFalse(GridInlineEditor::isInlineEditEnabled($view), 'a view cannot turn it back on');
     }
@@ -233,7 +233,8 @@ class GridInlineEditSettingTest extends UnitTestBase
 
         $status = $this->callUpdate($table, intval($record->id), [self::SCREEN_WRITE => 1, self::INLINE_EDIT => 1, 'value' => ['boolean' => 'ok']]);
         $this->assertSame(200, $status);
-        $saved = $table->getValueModel()->query()->withoutGlobalScopes()->find($record->id);
+        /** @var \Exceedone\Exment\Model\CustomValue $saved */
+        $saved = $table->getValueModel()->query()->withoutGlobalScopes()->findOrFail($record->id);
         $this->assertSame('ok', $saved->getValue('boolean'), 'the value of the chosen side is saved');
     }
 }
