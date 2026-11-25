@@ -7,6 +7,7 @@ use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\Login\PasswordPolicy;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
 use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
@@ -93,6 +94,9 @@ class InitializeForm
             $loginuser->saveOrFail();
             // add system role
             System::system_admin_users([$user->getUserId()]);
+
+            // the recommended password policy for a new site (EXMENT_PASSWORD_POLICY_NEW_SITE)
+            PasswordPolicy::applyNewSite();
 
             // add system initialized flg.
             System::initialized(1);

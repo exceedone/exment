@@ -33,7 +33,7 @@ class GanttLevelsTest extends UnitTestBase
     public function testADeeperLevelIsIndentedAndAParentFolds(): void
     {
         $script = $this->script();
-        $this->assertStringContainsString("' style=\"padding-left:' + ((depth - 1) * 12) + 'px\"'", $script);
+        $this->assertStringContainsString("' style=\"padding-left:' + (depth * 12) + 'px\"'", $script);
         $this->assertStringContainsString('class="gt-tgl fa fa-caret-down" data-tid="', $script);
         $this->assertStringContainsString("el.classList.toggle('gt-tree-hidden'", $script);
         $this->assertStringContainsString('data-anc="', $script);
