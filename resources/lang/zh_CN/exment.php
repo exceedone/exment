@@ -1410,6 +1410,19 @@ return [
         'mapping_setting' => '映射设置',
         'update_user_info' => '更新用户信息',
         'show_default_login_provider' => '显示默认登录',
+        'new_ip_header' => '来自新位置的登录',
+        'login_notify_new_ip' => '将来自新 IP 地址的登录通知本人',
+        'login_notify_new_ip_mail' => '同时发送邮件',
+        'new_ip_subject' => '来自新 IP 地址的登录',
+        'new_ip_body' => "您的账户有一次来自过去 :days 天内未用于登录的 IP 地址的登录。
+
+日期时间: :datetime
+IP 地址: :ip
+浏览器: :browser
+
+如果不是您本人操作，请更改密码并联系管理员。",
+        'history_header' => '我的登录历史',
+        'history_help' => '您账户最近的 :count 次登录。',
         'sso_redirect_force' => '重定向到 SSO 登录',
         'sso_setting' => 'SSO 设置',
         'sso_accept_mail_domain' => '允许登录的域名',
@@ -1466,6 +1479,8 @@ return [
             'login_button_font_color' => '请输入登录按钮的文字颜色。',
             'login_button_font_color_hover' => '请输入登录按钮的文字颜色（悬停时）。',
             'show_default_login_provider' => '设为 YES 时，将显示使用 Exment ID 和密码的登录表单。',
+            'login_notify_new_ip' => '登录后，如果该 IP 地址在过去 :days 天内未被同一用户用于登录，则通知本人。用户的首次登录不通知。',
+            'login_notify_new_ip_mail' => '同时将通知发送到用户的邮箱地址。',
             'sso_redirect_force' => '设为 YES 时，不显示 Exment 的登录页面，而是直接重定向到 SSO 登录页面。※仅在只有一个 SSO 提供商时有效。',
             'sso_jit' => '设为 YES 时，如果登录的用户在 Exment 中不存在，将使用登录信息新建 Exment 用户。设为 NO 时，需要事先在 Exment 中创建用户。',
             'update_user_info' => '设为 YES 时，登录时会更新 Exment 的用户信息。',

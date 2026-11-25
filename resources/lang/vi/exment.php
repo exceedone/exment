@@ -1410,6 +1410,19 @@ return [
         'mapping_setting' => 'Cài đặt ánh xạ',
         'update_user_info' => 'Cập nhật thông tin người dùng',
         'show_default_login_provider' => 'Hiển thị đăng nhập mặc định',
+        'new_ip_header' => 'Đăng nhập từ nơi mới',
+        'login_notify_new_ip' => 'Thông báo cho người dùng khi đăng nhập từ địa chỉ IP mới',
+        'login_notify_new_ip_mail' => 'Gửi cả email',
+        'new_ip_subject' => 'Đăng nhập từ địa chỉ IP mới',
+        'new_ip_body' => "Tài khoản của bạn đã được đăng nhập từ một địa chỉ IP không được dùng để đăng nhập trong :days ngày qua.
+
+Ngày giờ: :datetime
+Địa chỉ IP: :ip
+Trình duyệt: :browser
+
+Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị viên.",
+        'history_header' => 'Lịch sử đăng nhập của tôi',
+        'history_help' => ':count lần đăng nhập gần nhất vào tài khoản của bạn.',
         'sso_redirect_force' => 'Chuyển hướng đến đăng nhập SSO',
         'sso_setting' => 'Cài đặt SSO',
         'sso_accept_mail_domain' => 'Tên miền được phép đăng nhập',
@@ -1466,6 +1479,8 @@ return [
             'login_button_font_color' => 'Vui lòng nhập màu chữ của nút đăng nhập.',
             'login_button_font_color_hover' => 'Vui lòng nhập màu chữ của nút đăng nhập (khi di chuột).',
             'show_default_login_provider' => 'Nếu chọn YES, biểu mẫu đăng nhập bằng ID và mật khẩu của Exment sẽ được hiển thị.',
+            'login_notify_new_ip' => 'Sau khi đăng nhập, người dùng nhận được thông báo khi địa chỉ IP không được dùng trong lần đăng nhập nào của cùng người dùng trong :days ngày qua. Lần đăng nhập đầu tiên của người dùng không được thông báo.',
+            'login_notify_new_ip_mail' => 'Gửi cả thông báo đến địa chỉ email của người dùng.',
             'sso_redirect_force' => 'Nếu chọn YES, trang đăng nhập của Exment sẽ không hiển thị mà chuyển hướng thẳng đến trang đăng nhập SSO. *Chỉ có hiệu lực khi chỉ có một nhà cung cấp SSO.',
             'sso_jit' => 'Nếu chọn YES, khi người dùng đăng nhập chưa tồn tại trong Exment, hệ thống sẽ dùng thông tin đăng nhập để tạo mới người dùng Exment. Nếu chọn NO, cần tạo người dùng trong Exment trước.',
             'update_user_info' => 'Nếu chọn YES, thông tin người dùng Exment sẽ được cập nhật khi đăng nhập.',

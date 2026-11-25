@@ -1464,6 +1464,19 @@ return [
         'mapping_setting' => 'Mapping Setting',
         'update_user_info' => 'Update User Info',
         'show_default_login_provider' => 'Show Default Login',
+        'new_ip_header' => 'Logins from a new place',
+        'login_notify_new_ip' => 'Tell the user of a login from a new IP address',
+        'login_notify_new_ip_mail' => 'Also send a mail',
+        'new_ip_subject' => 'A login from a new IP address',
+        'new_ip_body' => "Your account was logged in to from an IP address not used for a login in the last :days days.
+
+Date and time: :datetime
+IP address: :ip
+Browser: :browser
+
+If it was not you, change your password and tell the administrators.",
+        'history_header' => 'My login history',
+        'history_help' => 'The last :count logins to your account.',
         'sso_redirect_force' => 'Redirect SSO Login',
         'sso_setting' => 'SSO Setting',
         'sso_accept_mail_domain' => 'Accept Domain',
@@ -1529,6 +1542,8 @@ return [
             'login_button_font_color' => 'Enter the login button font color.',
             'login_button_font_color_hover' => 'Enter the login button font color(hover).',
             'show_default_login_provider' => 'If YES, the login form using the Exment ID and password will be displayed.',
+            'login_notify_new_ip' => 'After a login, the user gets a notification when the IP address was not used for a login of the same user in the last :days days. The first login of a user is not told.',
+            'login_notify_new_ip_mail' => 'Also send the notice to the mail address of the user.',
             'sso_redirect_force' => 'If YES, do not display the Exment login page and redirect directly to the SSO login page. *Effective only when there is only one SSO provider.',
             'sso_jit' => 'If YES, if the logged-in user does not exist in Exment, use the login information to create a new Exment user. If NO, you need to create a user in Exment in advance.',
             'update_user_info' => 'If YES, update Exment user information at login.',

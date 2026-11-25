@@ -1410,6 +1410,19 @@ return [
         'mapping_setting' => 'Configuración de asignación',
         'update_user_info' => 'Actualizar datos del usuario',
         'show_default_login_provider' => 'Mostrar inicio de sesión predeterminado',
+        'new_ip_header' => 'Inicios de sesión desde un lugar nuevo',
+        'login_notify_new_ip' => 'Avisar al usuario de un inicio de sesión desde una dirección IP nueva',
+        'login_notify_new_ip_mail' => 'Enviar también un correo',
+        'new_ip_subject' => 'Inicio de sesión desde una dirección IP nueva',
+        'new_ip_body' => "Se inició sesión en su cuenta desde una dirección IP que no se usó para iniciar sesión en los últimos :days días.
+
+Fecha y hora: :datetime
+Dirección IP: :ip
+Navegador: :browser
+
+Si no fue usted, cambie su contraseña y avise a los administradores.",
+        'history_header' => 'Mi historial de inicios de sesión',
+        'history_help' => 'Los últimos :count inicios de sesión en su cuenta.',
         'sso_redirect_force' => 'Redirigir al inicio de sesión SSO',
         'sso_setting' => 'Configuración de SSO',
         'sso_accept_mail_domain' => 'Dominios permitidos',
@@ -1466,6 +1479,8 @@ return [
             'login_button_font_color' => 'Introduzca el color del texto del botón de inicio de sesión.',
             'login_button_font_color_hover' => 'Introduzca el color del texto del botón de inicio de sesión (al pasar el ratón).',
             'show_default_login_provider' => 'Si es SÍ, se muestra el formulario de inicio de sesión con el ID y la contraseña de Exment.',
+            'login_notify_new_ip' => 'Tras un inicio de sesión, el usuario recibe una notificación cuando la dirección IP no se usó en un inicio de sesión del mismo usuario en los últimos :days días. El primer inicio de sesión de un usuario no se avisa.',
+            'login_notify_new_ip_mail' => 'Enviar también el aviso a la dirección de correo del usuario.',
             'sso_redirect_force' => 'Si es SÍ, no se muestra la página de inicio de sesión de Exment y se redirige directamente a la página de inicio de sesión SSO. *Solo es efectivo cuando hay un único proveedor SSO.',
             'sso_jit' => 'Si es SÍ y el usuario que inicia sesión no existe en Exment, se usa la información de inicio de sesión para crear un nuevo usuario de Exment. Si es NO, debe crear el usuario en Exment con antelación.',
             'update_user_info' => 'Si es SÍ, se actualizan los datos del usuario de Exment al iniciar sesión.',
