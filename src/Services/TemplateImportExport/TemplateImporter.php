@@ -1067,6 +1067,32 @@ class TemplateImporter
                     }
                 }
             }
+            foreach ((array) array_get($json, 'custom_forms', []) as $f => $form) {
+                $otherForm = array_get($other, "custom_forms.$f");
+                if (!is_array($form) || !is_array($otherForm)) {
+                    continue;
+                }
+                $put($json['custom_forms'][$f], array_get($otherForm, 'form_view_name'), strval($loc));
+                foreach ((array) array_get($form, 'custom_form_blocks', []) as $b => $block) {
+                    $otherBlock = array_get($otherForm, "custom_form_blocks.$b");
+                    if (is_array($block) && is_array($otherBlock)) {
+                        $put($json['custom_forms'][$f]['custom_form_blocks'][$b], array_get($otherBlock, 'form_block_view_name'), strval($loc));
+                    }
+                }
+            }
+            foreach ((array) array_get($json, 'dashboards', []) as $d => $dashboard) {
+                $otherDashboard = array_get($other, "dashboards.$d");
+                if (!is_array($dashboard) || !is_array($otherDashboard)) {
+                    continue;
+                }
+                $put($json['dashboards'][$d], array_get($otherDashboard, 'dashboard_view_name'), strval($loc));
+                foreach ((array) array_get($dashboard, 'dashboard_boxes', []) as $x => $box) {
+                    $otherBox = array_get($otherDashboard, "dashboard_boxes.$x");
+                    if (is_array($box) && is_array($otherBox)) {
+                        $put($json['dashboards'][$d]['dashboard_boxes'][$x], array_get($otherBox, 'dashboard_box_view_name'), strval($loc));
+                    }
+                }
+            }
             foreach ((array) array_get($json, 'custom_views', []) as $v => $view) {
                 $otherView = array_get($other, "custom_views.$v");
                 if (is_array($view) && is_array($otherView) && array_get($otherView, 'view_view_name') !== null) {

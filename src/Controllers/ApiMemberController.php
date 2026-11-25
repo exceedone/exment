@@ -3,15 +3,12 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Enums\ErrorCode;
-use Exceedone\Exment\Enums\Permission;
-use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
-use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Services\Features;
+use Exceedone\Exment\Services\MemberDirectory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,7 +31,7 @@ class ApiMemberController extends AdminControllerBase
 {
     use ApiTrait;
 
-    public const FEATURE = 'api_members';
+    public const FEATURE = MemberDirectory::FEATURE;
 
     /** The most ids in one request. */
     public const MAX_IDS = 1000;
@@ -51,18 +48,7 @@ class ApiMemberController extends AdminControllerBase
         if (($denied = static::denied()) !== null) {
             return $denied;
         }
-        $organization = static::findValue(SystemTableName::ORGANIZATION, $id);
-        if (!isset($organization)) {
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
-        }
-        return [
-            'organization' => static::valueItem($organization),
-            'users' => static::userIdsOf(intval($organization->id))->map(function ($userId) {
-                return static::findValue(SystemTableName::USER, $userId);
-            })->filter()->map(function ($user) {
-                return static::valueItem($user);
-            })->values()->all(),
-        ];
+        return MemberDirectory::organizationUsers($id) ?? abortJson(400, ErrorCode::DATA_NOT_FOUND());
     }
 
     /**
@@ -95,19 +81,7 @@ class ApiMemberController extends AdminControllerBase
         if (($denied = static::denied()) !== null) {
             return $denied;
         }
-        $user = static::findValue(SystemTableName::USER, $id);
-        if (!isset($user)) {
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
-        }
-        $orgIds = DB::table(static::pivotTable())->where('child_id', $user->id)->pluck('parent_id');
-        return [
-            'user' => static::valueItem($user),
-            'organizations' => collect($orgIds)->map(function ($orgId) {
-                return static::findValue(SystemTableName::ORGANIZATION, $orgId);
-            })->filter()->map(function ($org) {
-                return static::valueItem($org);
-            })->values()->all(),
-        ];
+        return MemberDirectory::userOrganizations($id) ?? abortJson(400, ErrorCode::DATA_NOT_FOUND());
     }
 
     /**
@@ -157,9 +131,7 @@ class ApiMemberController extends AdminControllerBase
         if (($denied = static::denied()) !== null) {
             return $denied;
         }
-        return RoleGroup::query()->orderBy('role_group_order')->orderBy('id')->get()->map(function (RoleGroup $roleGroup) {
-            return static::roleGroupItem($roleGroup, false);
-        })->values()->all();
+        return MemberDirectory::roleGroups();
     }
 
     /**
@@ -172,11 +144,7 @@ class ApiMemberController extends AdminControllerBase
         if (($denied = static::denied()) !== null) {
             return $denied;
         }
-        $roleGroup = is_numeric($id) ? RoleGroup::query()->whereKey(intval($id))->first() : null;
-        if (!isset($roleGroup)) {
-            return abortJson(400, ErrorCode::DATA_NOT_FOUND());
-        }
-        return static::roleGroupItem($roleGroup, true);
+        return MemberDirectory::roleGroup($id) ?? abortJson(400, ErrorCode::DATA_NOT_FOUND());
     }
 
     /**
@@ -207,7 +175,7 @@ class ApiMemberController extends AdminControllerBase
         if (($denied = static::denied()) !== null) {
             return $denied;
         }
-        $roleGroup = is_numeric($id) ? RoleGroup::query()->whereKey(intval($id))->first() : null;
+        $roleGroup = MemberDirectory::findRoleGroup($id);
         if (!isset($roleGroup)) {
             return abortJson(400, ErrorCode::DATA_NOT_FOUND());
         }
@@ -262,11 +230,7 @@ class ApiMemberController extends AdminControllerBase
      */
     protected static function denied(): ?Response
     {
-        if (!Features::enabled(static::FEATURE)) {
-            return abortJson(403, ErrorCode::PERMISSION_DENY());
-        }
-        $user = \Exment::user();
-        if (!isset($user) || !$user->hasPermission([Permission::ROLE_GROUP_ALL, Permission::ROLE_GROUP_USER_ORGANIZATION])) {
+        if (!MemberDirectory::allowed(\Exment::user())) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());
         }
         return null;
@@ -277,16 +241,7 @@ class ApiMemberController extends AdminControllerBase
      */
     public static function givesSystem(RoleGroup $roleGroup): bool
     {
-        foreach ($roleGroup->role_group_permissions as $permission) {
-            if (strval($permission->role_group_permission_type) !== strval(RoleType::SYSTEM)) {
-                continue;
-            }
-            $details = (array)$permission->permissions;
-            if (array_key_exists(Permission::SYSTEM, $details) || in_array(Permission::SYSTEM, $details, true)) {
-                return true;
-            }
-        }
-        return false;
+        return MemberDirectory::givesSystem($roleGroup);
     }
 
     /**
@@ -326,7 +281,7 @@ class ApiMemberController extends AdminControllerBase
 
     protected static function pivotTable(): string
     {
-        return CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        return MemberDirectory::pivotTable();
     }
 
     /**
@@ -334,34 +289,12 @@ class ApiMemberController extends AdminControllerBase
      */
     protected static function userIdsOf(int $orgId): \Illuminate\Support\Collection
     {
-        return DB::table(static::pivotTable())->where('parent_id', $orgId)->pluck('child_id')->map(fn ($id) => intval($id));
+        return MemberDirectory::userIdsOf($orgId);
     }
 
     protected static function findValue(string $tableName, mixed $id): ?CustomValue
     {
-        if (!is_numeric($id)) {
-            return null;
-        }
-        $value = getModelName($tableName)::query()->find(intval($id));
-        return $value instanceof CustomValue ? $value : null;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    protected static function valueItem(CustomValue $value): array
-    {
-        $item = [
-            'id' => intval($value->id),
-            'label' => strval($value->getLabel()),
-        ];
-        foreach (['user_code', 'user_name', 'email', 'organization_code', 'organization_name'] as $column) {
-            $v = $value->getValue($column);
-            if (isset($v)) {
-                $item[$column] = $v;
-            }
-        }
-        return $item;
+        return MemberDirectory::findValue($tableName, $id);
     }
 
     /**
@@ -369,36 +302,6 @@ class ApiMemberController extends AdminControllerBase
      */
     protected static function roleGroupItem(RoleGroup $roleGroup, bool $members): array
     {
-        $targets = RoleGroupUserOrganization::query()->where('role_group_id', $roleGroup->id)->get();
-        $ids = function (string $type) use ($targets) {
-            return $targets->where('role_group_user_org_type', $type)->pluck('role_group_target_id')->map(fn ($id) => intval($id))->values();
-        };
-        $item = [
-            'id' => intval($roleGroup->id),
-            'role_group_name' => $roleGroup->role_group_name,
-            'role_group_view_name' => $roleGroup->role_group_view_name,
-            'description' => $roleGroup->description,
-            'system' => static::givesSystem($roleGroup),
-            'user_count' => $ids(SystemTableName::USER)->count(),
-            'organization_count' => $ids(SystemTableName::ORGANIZATION)->count(),
-        ];
-        if (!$members) {
-            return $item;
-        }
-        $item['permissions'] = $roleGroup->role_group_permissions->map(function ($permission) {
-            return [
-                'role_group_permission_type' => intval($permission->role_group_permission_type),
-                'role_group_target_id' => $permission->role_group_target_id,
-                'permissions' => $permission->permissions,
-            ];
-        })->values()->all();
-        foreach ([SystemTableName::USER, SystemTableName::ORGANIZATION] as $type) {
-            $item[$type] = $ids($type)->map(function ($id) use ($type) {
-                return static::findValue($type, $id);
-            })->filter()->map(function ($value) {
-                return static::valueItem($value);
-            })->values()->all();
-        }
-        return $item;
+        return MemberDirectory::roleGroupItem($roleGroup, $members);
     }
 }

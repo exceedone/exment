@@ -1640,7 +1640,8 @@ $(function () {
                 headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') }
             }).done(function (res) {
                 closePop();
-                toast(fmt(L.view_saved, name), 'fa-bookmark', 'success', function () {
+                // the server says what it made: a user view or a system view (#2151)
+                toast(res.message || fmt(L.view_saved, name), 'fa-bookmark', 'success', function () {
                     location.href = res.url;
                 }, L.view_open);
             }).fail(function (xhr) {
