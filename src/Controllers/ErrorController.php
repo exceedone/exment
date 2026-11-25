@@ -55,7 +55,35 @@ class ErrorController extends Controller
                 ;
             }
             $content->row(new Box(exmtrans("error.header"), $form));
-        }));
+        }), static::statusCode($exception));
+    }
+
+    /**
+     * A page that is not there (the route of a plugin page that is not there): 404, shown as
+     * Exment's error page by the handler of the errors (Exment::error()).
+     *
+     * @return never
+     */
+    public function notFound()
+    {
+        abort(404);
+    }
+
+    /**
+     * The status of the error page: the one of an HTTP exception (abort(404) of a plugin page,
+     * a 403), 404 for a record not found, else 200 as before (the page itself is the same).
+     *
+     * @param mixed $exception
+     */
+    public static function statusCode($exception): int
+    {
+        if ($exception instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+            return $exception->getStatusCode();
+        }
+        if ($exception instanceof \Illuminate\Database\Eloquent\ModelNotFoundException) {
+            return 404;
+        }
+        return 200;
     }
 
 

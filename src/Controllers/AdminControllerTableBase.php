@@ -71,6 +71,8 @@ abstract class AdminControllerTableBase extends Controller
         if (!$this->custom_table) {
             abort(404);
         }
+        // the title and the header in the language of the user (ExmentControllerTrait)
+        $this->localizePageInfo();
 
         return $this->{$method}(...array_values($parameters));
     }

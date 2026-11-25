@@ -36,10 +36,12 @@ class OAuthService implements LoginServiceInterface
     // @phpstan-ignore-next-line
     public static function retrieveByCredential(array $credentials)
     {
-        list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), array_get($credentials, 'login_setting') ?? LoginSetting::getOAuthSetting(array_get($credentials, 'provider_name')));
+        $login_setting = array_get($credentials, 'login_setting') ?? LoginSetting::getOAuthSetting(array_get($credentials, 'provider_name'));
+        list($result, $message, $adminMessage, $custom_login_user) = static::loginCallback(request(), $login_setting);
 
         if ($result === true) {
-            return LoginService::executeLogin(request(), $custom_login_user);
+            // the provider goes with the login: one that reads the avatar itself (Auth\ProviderAvatar) gives it (ISS02869)
+            return LoginService::executeLogin(request(), $custom_login_user, static::avatarProvider($login_setting));
         }
 
         // if not exists, retun null
@@ -49,6 +51,26 @@ class OAuthService implements LoginServiceInterface
 
         // else, throw exception
         throw new SsoLoginErrorException($result, $message, $adminMessage);
+    }
+
+    /**
+     * The socialite provider of a login setting when it reads the avatar itself
+     * (Auth\ProviderAvatar), else null.
+     *
+     * @param mixed $login_setting
+     * @return \Exceedone\Exment\Auth\ProviderAvatar|null
+     */
+    public static function avatarProvider($login_setting)
+    {
+        if (!$login_setting instanceof LoginSetting) {
+            return null;
+        }
+        try {
+            $socialiteProvider = LoginSetting::getSocialiteProvider($login_setting);
+        } catch (\Throwable $ex) {
+            return null;
+        }
+        return $socialiteProvider instanceof \Exceedone\Exment\Auth\ProviderAvatar ? $socialiteProvider : null;
     }
 
 

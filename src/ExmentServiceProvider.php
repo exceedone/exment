@@ -112,6 +112,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
         \Exceedone\Exment\Console\MaintenanceCommand::class,
+        \Exceedone\Exment\Console\ScheduleStatusCommand::class,
+        \Exceedone\Exment\Console\ScheduledJobFinishCommand::class,
     ];
 
 
@@ -571,51 +573,23 @@ class ExmentServiceProvider extends ServiceProvider
         // set hourly event
         $this->app->booted(function () {
             $schedule = $this->app->make(Schedule::class);
-            $schedule->command('exment:schedule')->hourly();
-            // only when the safety check watches the feed: otherwise it would start PHP every minute for nothing (ISS02823)
-            $schedule->command('exment:safetywatch')->cron(static::safetyWatchCron())->withoutOverlapping(10)->when(function () {
-                return static::safetyWatchUsed();
-            });
-            // file server: empty the trash past the days of each workspace (ISS00293)
-            $schedule->command('exment:file-server-purge')->dailyAt('03:30')->withoutOverlapping(60);
-
-            // Daily index repair (fix drift accumulated from missed/failed sync
-            // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
-            // orphans) instead of a full exment:meili-index reindex, so it is cheap.
-            if (boolval(config('meilisearch.repair_enabled'))) {
-                $repairAt = (string) config('meilisearch.repair_at', '03:00');
-                if (!preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/D', $repairAt)) {
-                    \Illuminate\Support\Facades\Log::warning(
-                        "[Meili] ignoring index repair schedule: '{$repairAt}' is not a HH:MM time."
-                    );
-                } else {
-                    $schedule->command('exment:meili-reconcile')
-                        ->dailyAt($repairAt)
-                        ->withoutOverlapping()
-                        ->runInBackground();
-                }
+            if (boolval(config('meilisearch.repair_enabled')) && is_null(static::meiliRepairAt())) {
+                \Illuminate\Support\Facades\Log::warning(
+                    "[Meili] ignoring index repair schedule: '" . strval(config('meilisearch.repair_at', '03:00')) . "' is not a HH:MM time."
+                );
             }
+            static::registerSchedule($schedule);
 
-            // set cron event
-            try {
-                if (hasTable(SystemTableName::PLUGIN)) {
-                    $plugins = Plugin::getCronBatches();
-                    foreach ($plugins as $plugin) {
-                        $cronSchedule = $this->app->make(Schedule::class);
-                        $cronSchedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));
-                    }
-                }
-            } catch (\Exception $ex) {
-            }
-
-            // maintenance mode: the planned start and end; in maintenance the others are skipped
+            // maintenance mode: the planned start and end (the tick); in maintenance the others are skipped
             foreach ($schedule->events() as $event) {
                 $command = strval($event->command);
+                if (static::isMaintenanceTick($command)) {
+                    continue;
+                }
                 $event->skip(function () use ($command) {
                     return \Exceedone\Exment\Services\MaintenanceMode::skipsScheduled($command);
                 });
             }
-            $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);
 
             // Log debug
             \Exceedone\Exment\Middleware\ExmentDebug::logSchedule($schedule);
@@ -632,6 +606,72 @@ class ExmentServiceProvider extends ServiceProvider
                 // never stop the scheduler for this
             }
         });
+
+        // the runs of each scheduled job, for the page "Scheduled jobs" (ISS02832): only while its feature is used
+        \Exceedone\Exment\Services\ScheduledJobs\Recorder::listen();
+    }
+
+    /**
+     * The scheduled jobs of Exment (php artisan schedule:run), on the schedule given. Static and
+     * without side effects, so that the page "Scheduled jobs" builds the same list on a new
+     * Schedule (ISS02832). The console (bootSchedule) adds the skip in a maintenance and the debug.
+     */
+    public static function registerSchedule(Schedule $schedule): void
+    {
+        $schedule->command('exment:schedule')->hourly();
+        // only when the safety check watches the feed: otherwise it would start PHP every minute for nothing (ISS02823)
+        $schedule->command('exment:safetywatch')->cron(static::safetyWatchCron())->withoutOverlapping(10)->when(function () {
+            return static::safetyWatchUsed();
+        });
+        // file server: empty the trash past the days of each workspace (ISS00293)
+        $schedule->command('exment:file-server-purge')->dailyAt('03:30')->withoutOverlapping(60);
+
+        // Daily index repair (fix drift accumulated from missed/failed sync
+        // jobs). Uses exment:meili-reconcile (only re-indexes missing docs + removes
+        // orphans) instead of a full exment:meili-index reindex, so it is cheap.
+        $repairAt = boolval(config('meilisearch.repair_enabled')) ? static::meiliRepairAt() : null;
+        if (!is_null($repairAt)) {
+            $schedule->command('exment:meili-reconcile')
+                ->dailyAt($repairAt)
+                ->withoutOverlapping()
+                ->runInBackground();
+        }
+
+        // set cron event
+        try {
+            if (hasTable(SystemTableName::PLUGIN)) {
+                $plugins = Plugin::getCronBatches();
+                foreach ($plugins as $plugin) {
+                    $schedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));
+                }
+            }
+        } catch (\Exception $ex) {
+        }
+
+        // the jobs an application added (CoreExtensions::addSchedule())
+        foreach (\Exceedone\Exment\Services\CoreExtensions::schedules() as $register) {
+            $register($schedule);
+        }
+
+        // maintenance mode: the planned start and end (never skipped in a maintenance)
+        $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);
+    }
+
+    /**
+     * The time of the daily index repair (config meilisearch.repair_at, HH:MM), null when it is not a time.
+     */
+    public static function meiliRepairAt(): ?string
+    {
+        $repairAt = (string) config('meilisearch.repair_at', '03:00');
+        return preg_match('/^([01][0-9]|2[0-3]):[0-5][0-9]$/D', $repairAt) ? $repairAt : null;
+    }
+
+    /**
+     * Whether a command of the schedule is "exment:maintenance tick" (not skipped in a maintenance).
+     */
+    public static function isMaintenanceTick(string $command): bool
+    {
+        return str_ends_with(trim(str_replace(["'", '"'], '', $command)), 'exment:maintenance tick');
     }
 
     /**

@@ -12,6 +12,8 @@ use Exceedone\Exment\Auth\Permission as Checker;
 use Exceedone\Exment\Enums\ApiClientType;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\Features;
+use Exceedone\Exment\Services\Mcp\McpGuide;
 
 class ApiSettingController extends AdminControllerBase
 {
@@ -20,6 +22,29 @@ class ApiSettingController extends AdminControllerBase
     public function __construct()
     {
         $this->setPageInfo(exmtrans("api.header"), exmtrans("api.header"), exmtrans("api.description"), 'fa-code-fork');
+    }
+
+    /**
+     * The clients of the API, under what the site says about its MCP server (ISS02879).
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \ExmentAdminCore\Admin\Layout\Content $content
+     * @return \ExmentAdminCore\Admin\Layout\Content
+     */
+    public function index(\Illuminate\Http\Request $request, \ExmentAdminCore\Admin\Layout\Content $content)
+    {
+        $content = $this->AdminContent($content);
+        $content->row(view('exment::api_setting.mcp', [
+            'enabled' => McpGuide::enabled(),
+            'feature_on' => Features::enabled(Features::MCP),
+            'api_on' => boolval(\Exceedone\Exment\Model\System::api_available()),
+            'feature_url' => admin_url('feature'),
+            'url' => McpGuide::url(),
+            'tools' => McpGuide::tools(),
+            'recent' => McpGuide::recentUsers(),
+            'keys_url' => admin_url('auth/api_keys'),
+        ]));
+        return $content->row($this->grid());
     }
 
     /**
@@ -78,6 +103,10 @@ class ApiSettingController extends AdminControllerBase
             // the API keys the users made (ISS00437): the system administrators
             if (\Exment::user()->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM)) {
                 $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('api_keys')) . '"><i class="fa fa-key"></i> ' . esc_html(exmtrans('api_key.admin_header')) . '</a>');
+            }
+            // temporary raises of the API rate limit (ISS00442)
+            if (\Exment::user()->isAdministrator() && \Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\ApiRateRaises::FEATURE)) {
+                $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('api_rate_raises')) . '"><i class="fa fa-tachometer"></i> ' . esc_html(exmtrans('api_rate_raise.header')) . '</a>');
             }
         });
         return $grid;

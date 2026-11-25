@@ -308,6 +308,8 @@ class Permission
             case "security_check":
             case "api_keys":
             case "maintenance":
+            case "scheduled_jobs":
+            case "api_rate_raises":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('system', $this->permission_details);
                 }
@@ -365,6 +367,8 @@ class Permission
             case "relation":
             case "copy":
             case "operation":
+            // data maintenance of the table (#1829): the feature is checked by the middleware admin.feature
+            case "data_maintenance":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_key_exists('custom_table', $this->permission_details);
                 }

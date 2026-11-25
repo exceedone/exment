@@ -51,6 +51,8 @@ class Features
     public const API_KEYS = 'api_keys';
     public const MCP = 'mcp';
     public const SAFETY_CHECK = 'safety_check';
+    public const DATA_MAINTENANCE = 'data_maintenance';
+    public const TEAMS_NOTIFY = 'teams_notify';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -150,6 +152,16 @@ class Features
             'description' => 'exment::exment.feature.features.api_keys_help',
             'endpoints' => ['auth/api_keys'],
         ]);
+        // the API of the members (Controllers\ApiMemberController, ISS00335): the users of an
+        // organization and the members of the role groups. Off until it is turned on; who may use it
+        // is the permission of the role groups
+        $core[\Exceedone\Exment\Controllers\ApiMemberController::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.api_members',
+            'description' => 'exment::exment.feature.features.api_members_help',
+            'api' => ['organization', 'user', 'role_group'],
+            'manual' => 'api_members',
+            'who' => false,
+        ]);
         // the MCP server (api/mcp, ISS00439): off until an administrator turns it on and
         // chooses the role groups whose users may use it from an AI
         $core[static::MCP] = static::definition([
@@ -166,6 +178,24 @@ class Features
             'description' => 'exment::exment.feature.features.safety_check_help',
             'endpoints' => ['safety_check'],
             'manual' => 'safety_check',
+        ]);
+        // data maintenance of a table (#1829): delete the attachments of a table at once.
+        // It deletes files for good, so it is off until an administrator turns it on; who may
+        // use it is the permission to change the table (Permission::CUSTOM_TABLE).
+        $core[static::DATA_MAINTENANCE] = static::definition([
+            'label' => 'exment::exment.feature.features.data_maintenance',
+            'description' => 'exment::exment.feature.features.data_maintenance_help',
+            'endpoints' => ['data_maintenance'],
+            'manual' => 'data_maintenance',
+            'who' => false,
+        ]);
+        // notifications to a person's Teams chat through a Teams workflow (ISS02863): off until a
+        // system administrator turns it on (and sets the address of the workflow)
+        $core[static::TEAMS_NOTIFY] = static::definition([
+            'label' => 'exment::exment.feature.features.teams_notify',
+            'description' => 'exment::exment.feature.features.teams_notify_help',
+            'manual' => 'notify_teams',
+            'who' => false,
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
@@ -187,6 +217,25 @@ class Features
             'description' => 'exment::exment.feature.features.maintenance_mode_help',
             'endpoints' => ['maintenance'],
             'menu' => 'maintenance',
+            'who' => false,
+        ]);
+        // the scheduled jobs (ScheduledJobs\ScheduledJobs, ISS02832): the system administrators only.
+        // Off until it is turned on: the runs are kept only while it is used
+        $core[ScheduledJobs\ScheduledJobs::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.scheduled_jobs',
+            'description' => 'exment::exment.feature.features.scheduled_jobs_help',
+            'endpoints' => ['scheduled_jobs'],
+            'menu' => 'scheduled_jobs',
+            'manual' => 'scheduled_jobs',
+            'who' => false,
+        ]);
+        // temporary raises of the API rate limit (ApiRateRaises, ISS00442): the system
+        // administrators only. Off until it is turned on
+        $core[ApiRateRaises::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.api_rate_raise',
+            'description' => 'exment::exment.feature.features.api_rate_raise_help',
+            'endpoints' => ['api_rate_raises'],
+            'manual' => 'api_rate_raise',
             'who' => false,
         ]);
         return $core;

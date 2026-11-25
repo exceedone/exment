@@ -110,6 +110,8 @@ class Define
         'site_id' => ['type' => 'string', 'default' => null],
         // the notices told to the system administrators (Services\PluginDistribution\AdminNotices)
         'admin_notices_sent' => ['type' => 'json', 'default' => []],
+        // the scheduled jobs told to the system administrators as failing, until they run well (Services\ScheduledJobs\Recorder)
+        'scheduled_job_alerted' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
@@ -162,6 +164,8 @@ class Define
 
         'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
         'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        // the address of the Teams workflow (ISS02863): a secret, never shown again
+        'system_teams_workflow_url' => ['type' => 'password', 'group' => 'notify'],
         'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
 
         'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
@@ -364,6 +368,10 @@ class Define
             'uri' => 'security_check',
             'icon' => 'fa-shield',
         ],
+        'scheduled_jobs' => [
+            'uri' => 'scheduled_jobs',
+            'icon' => 'fa-clock-o',
+        ],
         'maintenance' => [
             'uri' => 'maintenance',
             'icon' => 'fa-wrench',
@@ -487,6 +495,8 @@ class Define
         ['name' => 'data', 'href' => 'data/:table_name', 'icon' => 'fa-database', 'roles' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE, 'exmtrans' => 'change_page_menu.custom_value', 'description' => 'custom_value.description'],
         ['name' => 'qrcode', 'href' => 'table/:id/edit?qrcodesetting=1', 'icon' => 'fa-qrcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.qrcode', 'description' => 'qrcode.description'],
         ['name' => 'jancode', 'href' => 'table/:id/edit?jancodesetting=1', 'icon' => 'fa-barcode', 'roles' => Permission::CUSTOM_TABLE, 'exmtrans' => 'change_page_menu.jancode', 'description' => 'jancode.description'],
+        // only when the feature is used (Features::DATA_MAINTENANCE, #1829)
+        ['name' => 'data_maintenance', 'href' => 'data_maintenance/:table_name', 'icon' => 'fa-wrench', 'roles' => [Permission::CUSTOM_TABLE], 'exmtrans' => 'change_page_menu.data_maintenance', 'description' => 'data_maintenance.description', 'feature' => 'data_maintenance'],
     ];
 
     public const CUSTOM_VALUE_TRAITS = [
@@ -532,10 +542,12 @@ class Define
         'sqlsrv' => 'SQLServer',
     ];
 
+    // min: the install stops below it. recommended: the versions that still get fixes from their
+    // makers (the security check and exment:update say so below it; ISS00216)
     public const DATABASE_VERSION = [
-        'mysql' => ['min' => '5.7.8'],
-        'mariadb' => ['min' => '10.2.7'],
-        'sqlsrv' => ['min' => '13.0.0.0'],
+        'mysql' => ['min' => '5.7.8', 'recommended' => '8.0'],
+        'mariadb' => ['min' => '10.2.7', 'recommended' => '10.11'],
+        'sqlsrv' => ['min' => '13.0.0.0', 'recommended' => '13.0'],
     ];
 
     /**
@@ -617,6 +629,7 @@ class Define
         ['uri'=> 'login_setting', 'help_uri'=> 'login_setting'],
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
+        ['uri'=> 'scheduled_jobs', 'help_uri'=> 'scheduled_jobs'],
         ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];

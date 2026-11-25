@@ -1,0 +1,237 @@
+{
+    "template_view_name": "Asset-Paket",
+    "description": "Inventar (mit QR-Codes), Inventaranträge (Kauf, Umsetzung, Entsorgung, mit Genehmigung), Inventur (mit Positionen) und Ausleihe, Rollengruppen für Inventar und ein Menü „Inventar“.",
+    "custom_tables": [
+        {
+            "table_name": "asset_item",
+            "table_view_name": "Inventar",
+            "description": "PCs, Möbel, Geräte und Verbrauchsmaterial. Bringen Sie an jedem Objekt einen QR-Code an und scannen Sie ihn, um den Datensatz zu öffnen.",
+            "custom_columns": [
+                {
+                    "column_name": "asset_no",
+                    "column_view_name": "Inventarnr."
+                },
+                {
+                    "column_name": "asset_name",
+                    "column_view_name": "Name"
+                },
+                {
+                    "column_name": "category",
+                    "column_view_name": "Kategorie",
+                    "options": {
+                        "select_item_valtext": "it,PCs & IT\nfurniture,Möbel & Einrichtung\nequipment,Geräte & Maschinen\nvehicle,Fahrzeuge\nsupply,Verbrauchsmaterial\nother,Sonstiges"
+                    }
+                },
+                {
+                    "column_name": "location",
+                    "column_view_name": "Standort"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Verantwortliche Abteilung"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Benutzer"
+                },
+                {
+                    "column_name": "purchase_date",
+                    "column_view_name": "Kaufdatum"
+                },
+                {
+                    "column_name": "purchase_price",
+                    "column_view_name": "Kaufpreis"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Status",
+                    "options": {
+                        "select_item_valtext": "in_use,In Gebrauch\nstock,Auf Lager\nlending,Ausgeliehen\nrepair,In Reparatur\ndisposed,Entsorgt"
+                    }
+                },
+                {
+                    "column_name": "photo",
+                    "column_view_name": "Foto"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_request",
+            "table_view_name": "Inventaranträge",
+            "description": "Anträge auf Kauf, Umsetzung oder Entsorgung von Inventar, genehmigt über einen Workflow.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Betreff"
+                },
+                {
+                    "column_name": "request_type",
+                    "column_view_name": "Art",
+                    "options": {
+                        "select_item_valtext": "purchase,Kauf\ntransfer,Umsetzung\ndisposal,Entsorgung"
+                    }
+                },
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Inventarobjekt"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Betrag"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Wunschtermin"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Begründung"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake",
+            "table_view_name": "Inventur",
+            "description": "Inventuren. Das Ergebnis für jedes Inventarobjekt wird in den Positionen erfasst.",
+            "custom_columns": [
+                {
+                    "column_name": "stocktake_name",
+                    "column_view_name": "Inventur"
+                },
+                {
+                    "column_name": "stocktake_date",
+                    "column_view_name": "Datum"
+                },
+                {
+                    "column_name": "staff",
+                    "column_view_name": "Mitarbeiter"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake_detail",
+            "table_view_name": "Inventurpositionen",
+            "description": "Das Ergebnis für jedes geprüfte Inventarobjekt.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Inventarobjekt"
+                },
+                {
+                    "column_name": "result",
+                    "column_view_name": "Ergebnis",
+                    "options": {
+                        "select_item_valtext": "found,Vorhanden\nmissing,Fehlt\ndamaged,Beschädigt"
+                    }
+                },
+                {
+                    "column_name": "location_found",
+                    "column_view_name": "Gefunden in"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_lending",
+            "table_view_name": "Ausleihe",
+            "description": "Ausgeliehene und zurückgegebene Inventarobjekte.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Inventarobjekt"
+                },
+                {
+                    "column_name": "borrower",
+                    "column_view_name": "Entleiher"
+                },
+                {
+                    "column_name": "lend_date",
+                    "column_view_name": "Ausgeliehen am"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Fällig am"
+                },
+                {
+                    "column_name": "return_date",
+                    "column_view_name": "Zurückgegeben am"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notiz"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "afef91701db2db9db4cd",
+            "form_view_name": "Formular"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Inventar",
+            "menu_type": "parent_node",
+            "menu_name": "asset"
+        },
+        {
+            "title": "Inventar",
+            "menu_type": "table",
+            "menu_name": "asset_item"
+        },
+        {
+            "title": "Inventaranträge",
+            "menu_type": "table",
+            "menu_name": "asset_request"
+        },
+        {
+            "title": "Inventur",
+            "menu_type": "table",
+            "menu_name": "asset_stocktake"
+        },
+        {
+            "title": "Ausleihe",
+            "menu_type": "table",
+            "menu_name": "asset_lending"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "asset_admin_group",
+            "role_group_view_name": "Inventarverwalter",
+            "description": "Personen, die Inventar, Anträge, Inventuren und Ausleihen sehen, anlegen und bearbeiten."
+        },
+        {
+            "role_group_name": "asset_member_group",
+            "role_group_view_name": "Inventarnutzer",
+            "description": "Personen, die Inventar und Ausleihen sehen und Inventaranträge stellen."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Inventaranträge (Standard)"
+        }
+    ],
+    "notifies": [
+        {
+            "suuid": "443a629e799118e3d3b6",
+            "notify_view_name": "Rückgabe überfällig (am Tag danach)"
+        },
+        {
+            "suuid": "bee2b3c2eed422884924",
+            "notify_view_name": "Anträge für Inventar (eingereicht, genehmigt, zurückgegeben)"
+        }
+    ]
+}

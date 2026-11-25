@@ -1,0 +1,1262 @@
+{
+    "template_name": "asset_pack",
+    "template_view_name": "資産パック",
+    "description": "資産（QR コード）・資産の申請（購入・移転・廃棄の承認）・棚卸（明細）・貸出と、資産管理者・利用者の役割グループ、「資産管理」のメニューのセットです。",
+    "custom_tables": [
+        {
+            "table_name": "asset_item",
+            "table_view_name": "資産",
+            "description": "PC・家具・設備などの資産と備品の台帳です。QR コードを貼って、読み取って開けます。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-archive",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "active_qr_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "asset_no",
+                    "column_view_name": "資産番号",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "asset_name",
+                    "column_view_name": "名前",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "category",
+                    "column_view_name": "区分",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "it,PC・IT 機器\nfurniture,家具・什器\nequipment,設備・機械\nvehicle,車両\nsupply,備品・消耗品\nother,その他",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "location",
+                    "column_view_name": "場所",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "管理部署",
+                    "column_type": "organization",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "使う人",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "purchase_date",
+                    "column_view_name": "購入日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "7",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "purchase_price",
+                    "column_view_name": "購入金額",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "8",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "number_format": "1",
+                        "currency_symbol": "JPY1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "状態",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "9",
+                    "options": {
+                        "default": "in_use",
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "in_use,使用中\nstock,在庫\nlending,貸出中\nrepair,修理中\ndisposed,廃棄済み",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "photo",
+                    "column_view_name": "写真",
+                    "column_type": "image",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "10",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "11",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "17f7dacb27e1721325ca",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "asset_item",
+                        "table_label_column_name": "asset_no"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "asset_request",
+            "table_view_name": "資産の申請",
+            "description": "資産の購入・移転・廃棄の申請です。承認のワークフローで出します。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-check-square-o",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "件名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "request_type",
+                    "column_view_name": "種類",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "purchase,購入\ntransfer,移転\ndisposal,廃棄",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "asset",
+                    "column_view_name": "資産",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "asset_item",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "金額",
+                    "column_type": "currency",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "number_format": "1",
+                        "currency_symbol": "JPY1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "希望日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "理由",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "7398efccd9ced1ef7796",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "asset_request",
+                        "table_label_column_name": "title"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake",
+            "table_view_name": "棚卸",
+            "description": "棚卸の記録です。資産ごとの結果を明細に入れます。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-clipboard",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "stocktake_name",
+                    "column_view_name": "棚卸名",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "stocktake_date",
+                    "column_view_name": "実施日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "staff",
+                    "column_view_name": "担当者",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "f6cf2904655fd1f2281d",
+                    "multisetting_type": "2",
+                    "options": {
+                        "unique1_table_name": null,
+                        "unique1_column_name": null,
+                        "unique2_table_name": null,
+                        "unique2_column_name": null,
+                        "unique3_table_name": null,
+                        "unique3_column_name": null,
+                        "compare_column1_table_name": null,
+                        "compare_column1_column_name": null,
+                        "compare_column2_table_name": null,
+                        "compare_column2_column_name": null,
+                        "share_table_name": null,
+                        "share_column_name": null,
+                        "table_label_table_name": "asset_stocktake",
+                        "table_label_column_name": "stocktake_name"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake_detail",
+            "table_view_name": "棚卸の明細",
+            "description": "棚卸で確かめた資産ごとの結果です。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-list",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "資産",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "asset_item",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "result",
+                    "column_view_name": "結果",
+                    "column_type": "select_valtext",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "default": "found",
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "found,あり\nmissing,見つからない\ndamaged,破損",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "location_found",
+                    "column_view_name": "見つけた場所",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "string_length": "256",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "text",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "string_length": "256",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": []
+        },
+        {
+            "table_name": "asset_lending",
+            "table_view_name": "貸出",
+            "description": "資産の貸出と返却の記録です。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-exchange",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "資産",
+                    "column_type": "select_table",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "1",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "asset_item",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "borrower",
+                    "column_view_name": "借りる人",
+                    "column_type": "user",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "2",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "lend_date",
+                    "column_view_name": "貸出日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "3",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "返却予定日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "4",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "return_date",
+                    "column_view_name": "返却日",
+                    "column_type": "date",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "5",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "備考",
+                    "column_type": "textarea",
+                    "description": null,
+                    "system_flg": "0",
+                    "order": "6",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": []
+        }
+    ],
+    "custom_relations": [
+        {
+            "relation_type": "1",
+            "options": {
+                "parent_import_table_name": null,
+                "parent_import_column_name": null,
+                "parent_export_table_name": null,
+                "parent_export_column_name": null
+            },
+            "parent_custom_table_name": "asset_stocktake",
+            "child_custom_table_name": "asset_stocktake_detail"
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "afef91701db2db9db4cd",
+            "form_view_name": "フォーム",
+            "default_flg": "1",
+            "options": null,
+            "custom_form_blocks": [
+                {
+                    "form_block_view_name": null,
+                    "form_block_type": "0",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "f3f9682786cef073f5f3",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "424",
+                            "form_column_target_name": "stocktake_name"
+                        },
+                        {
+                            "suuid": "1a96b905321da36b257a",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "435",
+                            "form_column_target_name": "stocktake_date"
+                        },
+                        {
+                            "suuid": "f8acfddee354b9827f98",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "446",
+                            "form_column_target_name": "staff"
+                        },
+                        {
+                            "suuid": "8a3dc604c0dbf1376ec6",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "457",
+                            "form_column_target_name": "note"
+                        }
+                    ],
+                    "form_block_target_table_name": "asset_stocktake"
+                },
+                {
+                    "form_block_view_name": "棚卸の明細",
+                    "form_block_type": "1",
+                    "available": "1",
+                    "options": null,
+                    "custom_form_columns": [
+                        {
+                            "suuid": "a10092946603ce3fa92c",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "1",
+                            "form_column_target_name": "asset"
+                        },
+                        {
+                            "suuid": "c979f5aa4387ed5f2e15",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "2",
+                            "form_column_target_name": "result"
+                        },
+                        {
+                            "suuid": "6fd2afde869f8dae8b2c",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "3",
+                            "form_column_target_name": "location_found"
+                        },
+                        {
+                            "suuid": "f013b1cb4602b19c3143",
+                            "form_column_type": "0",
+                            "row_no": "1",
+                            "column_no": "1",
+                            "width": "2",
+                            "options": {
+                                "changedata_column_table_name": null,
+                                "changedata_column_name": null,
+                                "changedata_target_table_name": null,
+                                "changedata_target_column_name": null,
+                                "relation_filter_target_table_name": null,
+                                "relation_filter_target_column_name": null
+                            },
+                            "order": "4",
+                            "form_column_target_name": "note"
+                        }
+                    ],
+                    "form_block_target_table_name": "asset_stocktake_detail"
+                }
+            ],
+            "table_name": "asset_stocktake"
+        }
+    ],
+    "admin_menu": [
+        {
+            "order": "25",
+            "title": "資産管理",
+            "icon": "fa-archive",
+            "uri": "#",
+            "options": {
+                "visible_role_group_names": [
+                    "asset_admin_group",
+                    "asset_member_group"
+                ]
+            },
+            "menu_type": "parent_node",
+            "menu_name": "asset",
+            "parent_name": null,
+            "menu_target_name": null
+        },
+        {
+            "order": "1",
+            "title": "資産",
+            "icon": "fa-archive",
+            "uri": "asset_item",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "asset_item",
+            "parent_name": "asset",
+            "menu_target_name": "asset_item"
+        },
+        {
+            "order": "2",
+            "title": "資産の申請",
+            "icon": "fa-check-square-o",
+            "uri": "asset_request",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "asset_request",
+            "parent_name": "asset",
+            "menu_target_name": "asset_request"
+        },
+        {
+            "order": "3",
+            "title": "棚卸",
+            "icon": "fa-clipboard",
+            "uri": "asset_stocktake",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "asset_stocktake",
+            "parent_name": "asset",
+            "menu_target_name": "asset_stocktake"
+        },
+        {
+            "order": "4",
+            "title": "貸出",
+            "icon": "fa-exchange",
+            "uri": "asset_lending",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "asset_lending",
+            "parent_name": "asset",
+            "menu_target_name": "asset_lending"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "asset_admin_group",
+            "role_group_view_name": "資産管理者",
+            "role_group_order": "0",
+            "description": "資産・申請・棚卸・貸出をすべて見て、作り、直す人。",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "asset_item"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "asset_request"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "asset_stocktake"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "asset_stocktake_detail"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "asset_lending"
+                }
+            ]
+        },
+        {
+            "role_group_name": "asset_member_group",
+            "role_group_view_name": "資産の利用者",
+            "role_group_order": "0",
+            "description": "資産と貸出を見て、資産の申請を出す人。",
+            "role_group_permissions": [
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_view_all"
+                    ],
+                    "role_group_target_name": "asset_item"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_view_all"
+                    ],
+                    "role_group_target_name": "asset_lending"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit"
+                    ],
+                    "role_group_target_name": "asset_request"
+                }
+            ]
+        }
+    ],
+    "workflows": [
+        {
+            "suuid": "14361676ba6345534990",
+            "workflow_type": "1",
+            "workflow_view_name": "資産の申請（標準）",
+            "start_status_name": "下書き",
+            "setting_completed_flg": "1",
+            "options": null,
+            "deleted_at": null,
+            "workflow_tables": [
+                {
+                    "active_flg": "1",
+                    "active_start_date": null,
+                    "active_end_date": null,
+                    "table_name": "asset_request"
+                }
+            ],
+            "workflow_statuses": [
+                {
+                    "status_type": "0",
+                    "order": "0",
+                    "status_name": "申請中",
+                    "datalock_flg": "1",
+                    "completed_flg": "0"
+                },
+                {
+                    "status_type": "0",
+                    "order": "1",
+                    "status_name": "差し戻し",
+                    "datalock_flg": "0",
+                    "completed_flg": "0"
+                },
+                {
+                    "status_type": "0",
+                    "order": "2",
+                    "status_name": "承認済み",
+                    "datalock_flg": "1",
+                    "completed_flg": "1"
+                }
+            ],
+            "workflow_actions": [
+                {
+                    "action_name": "申請",
+                    "ignore_work": "0",
+                    "options": {
+                        "comment_type": "nullable",
+                        "flow_next_type": "some",
+                        "flow_next_count": "1",
+                        "work_target_type": "fix"
+                    },
+                    "comment_type": "nullable",
+                    "flow_next_type": "some",
+                    "flow_next_count": "1",
+                    "workflow_authorities": [
+                        {
+                            "related_id": "0",
+                            "related_type": "system"
+                        }
+                    ],
+                    "workflow_condition_headers": [
+                        {
+                            "status_to": "申請中",
+                            "enabled_flg": "1",
+                            "options": null,
+                            "condition_join": null,
+                            "condition_reverse": null,
+                            "workflow_conditions": []
+                        }
+                    ],
+                    "status_from_name": "start"
+                },
+                {
+                    "action_name": "承認",
+                    "ignore_work": "0",
+                    "options": {
+                        "comment_type": "nullable",
+                        "flow_next_type": "some",
+                        "flow_next_count": "1",
+                        "work_target_type": "action_select"
+                    },
+                    "comment_type": "nullable",
+                    "flow_next_type": "some",
+                    "flow_next_count": "1",
+                    "workflow_authorities": [],
+                    "workflow_condition_headers": [
+                        {
+                            "status_to": "承認済み",
+                            "enabled_flg": "1",
+                            "options": null,
+                            "condition_join": null,
+                            "condition_reverse": null,
+                            "workflow_conditions": []
+                        }
+                    ],
+                    "status_from_name": "申請中"
+                },
+                {
+                    "action_name": "差し戻し",
+                    "ignore_work": "0",
+                    "options": {
+                        "comment_type": "required",
+                        "flow_next_type": "some",
+                        "flow_next_count": "1",
+                        "work_target_type": "action_select"
+                    },
+                    "comment_type": "required",
+                    "flow_next_type": "some",
+                    "flow_next_count": "1",
+                    "workflow_authorities": [],
+                    "workflow_condition_headers": [
+                        {
+                            "status_to": "差し戻し",
+                            "enabled_flg": "1",
+                            "options": null,
+                            "condition_join": null,
+                            "condition_reverse": null,
+                            "workflow_conditions": []
+                        }
+                    ],
+                    "status_from_name": "申請中"
+                },
+                {
+                    "action_name": "再申請",
+                    "ignore_work": "0",
+                    "options": {
+                        "comment_type": "nullable",
+                        "flow_next_type": "some",
+                        "flow_next_count": "1",
+                        "work_target_type": "fix"
+                    },
+                    "comment_type": "nullable",
+                    "flow_next_type": "some",
+                    "flow_next_count": "1",
+                    "workflow_authorities": [
+                        {
+                            "related_id": "0",
+                            "related_type": "system"
+                        }
+                    ],
+                    "workflow_condition_headers": [
+                        {
+                            "status_to": "申請中",
+                            "enabled_flg": "1",
+                            "options": null,
+                            "condition_join": null,
+                            "condition_reverse": null,
+                            "workflow_conditions": []
+                        }
+                    ],
+                    "status_from_name": "差し戻し"
+                }
+            ]
+        }
+    ],
+    "thumbnail": "thumbnail.png",
+    "notifies": [
+        {
+            "suuid": "443a629e799118e3d3b6",
+            "notify_name": null,
+            "notify_view_name": "返却予定日を過ぎた（翌日）",
+            "active_flg": "1",
+            "notify_trigger": "1",
+            "target_name": "asset_lending",
+            "trigger_settings": {
+                "notify_target_table_name": "asset_lending",
+                "notify_target_column_name": "due_date",
+                "notify_day": "1",
+                "notify_beforeafter": "1",
+                "notify_hour": "9"
+            },
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "column:asset_lending.borrower",
+                        "created_user"
+                    ]
+                }
+            ],
+            "mail_key_name": "time_notify"
+        },
+        {
+            "suuid": "bee2b3c2eed422884924",
+            "notify_name": null,
+            "notify_view_name": "資産の申請（申請・承認・差し戻し）",
+            "active_flg": "1",
+            "notify_trigger": "4",
+            "target_name": "資産の申請（標準）",
+            "trigger_settings": [],
+            "action_settings": [
+                {
+                    "notify_action": "2",
+                    "notify_action_target": [
+                        "work_user",
+                        "created_user"
+                    ]
+                }
+            ],
+            "mail_key_name": "workflow_notify"
+        }
+    ]
+}

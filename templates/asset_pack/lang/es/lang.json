@@ -1,0 +1,237 @@
+{
+    "template_view_name": "Paquete de activos",
+    "description": "Activos (con códigos QR), solicitudes de activos (compra, traslado y baja, con aprobación), inventarios (con líneas) y préstamos, grupos de roles de activos y un menú \"Activos\".",
+    "custom_tables": [
+        {
+            "table_name": "asset_item",
+            "table_view_name": "Activos",
+            "description": "PC, mobiliario, equipos y suministros. Coloque un código QR en cada uno y escanéelo para abrir el registro.",
+            "custom_columns": [
+                {
+                    "column_name": "asset_no",
+                    "column_view_name": "N.º de activo"
+                },
+                {
+                    "column_name": "asset_name",
+                    "column_view_name": "Nombre"
+                },
+                {
+                    "column_name": "category",
+                    "column_view_name": "Categoría",
+                    "options": {
+                        "select_item_valtext": "it,PC e informática\nfurniture,Mobiliario e instalaciones\nequipment,Equipos y máquinas\nvehicle,Vehículos\nsupply,Suministros\nother,Otros"
+                    }
+                },
+                {
+                    "column_name": "location",
+                    "column_view_name": "Ubicación"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Departamento responsable"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Usuario"
+                },
+                {
+                    "column_name": "purchase_date",
+                    "column_view_name": "Fecha de compra"
+                },
+                {
+                    "column_name": "purchase_price",
+                    "column_view_name": "Precio de compra"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Estado",
+                    "options": {
+                        "select_item_valtext": "in_use,En uso\nstock,En almacén\nlending,Prestado\nrepair,En reparación\ndisposed,Dado de baja"
+                    }
+                },
+                {
+                    "column_name": "photo",
+                    "column_view_name": "Foto"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_request",
+            "table_view_name": "Solicitudes de activos",
+            "description": "Solicitudes de compra, traslado o baja de activos, aprobadas mediante un flujo de trabajo.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Asunto"
+                },
+                {
+                    "column_name": "request_type",
+                    "column_view_name": "Tipo",
+                    "options": {
+                        "select_item_valtext": "purchase,Compra\ntransfer,Traslado\ndisposal,Baja"
+                    }
+                },
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Activo"
+                },
+                {
+                    "column_name": "amount",
+                    "column_view_name": "Importe"
+                },
+                {
+                    "column_name": "desired_date",
+                    "column_view_name": "Fecha deseada"
+                },
+                {
+                    "column_name": "reason",
+                    "column_view_name": "Motivo"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake",
+            "table_view_name": "Inventario",
+            "description": "Inventarios. El resultado de cada activo se registra en las líneas.",
+            "custom_columns": [
+                {
+                    "column_name": "stocktake_name",
+                    "column_view_name": "Inventario"
+                },
+                {
+                    "column_name": "stocktake_date",
+                    "column_view_name": "Fecha"
+                },
+                {
+                    "column_name": "staff",
+                    "column_view_name": "Personal"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_stocktake_detail",
+            "table_view_name": "Líneas de inventario",
+            "description": "El resultado de cada activo revisado.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Activo"
+                },
+                {
+                    "column_name": "result",
+                    "column_view_name": "Resultado",
+                    "options": {
+                        "select_item_valtext": "found,Encontrado\nmissing,Faltante\ndamaged,Dañado"
+                    }
+                },
+                {
+                    "column_name": "location_found",
+                    "column_view_name": "Encontrado en"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        },
+        {
+            "table_name": "asset_lending",
+            "table_view_name": "Préstamos",
+            "description": "Activos prestados y devueltos.",
+            "custom_columns": [
+                {
+                    "column_name": "asset",
+                    "column_view_name": "Activo"
+                },
+                {
+                    "column_name": "borrower",
+                    "column_view_name": "Prestatario"
+                },
+                {
+                    "column_name": "lend_date",
+                    "column_view_name": "Prestado el"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Vencimiento"
+                },
+                {
+                    "column_name": "return_date",
+                    "column_view_name": "Devuelto el"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "afef91701db2db9db4cd",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "Activos",
+            "menu_type": "parent_node",
+            "menu_name": "asset"
+        },
+        {
+            "title": "Activos",
+            "menu_type": "table",
+            "menu_name": "asset_item"
+        },
+        {
+            "title": "Solicitudes de activos",
+            "menu_type": "table",
+            "menu_name": "asset_request"
+        },
+        {
+            "title": "Inventario",
+            "menu_type": "table",
+            "menu_name": "asset_stocktake"
+        },
+        {
+            "title": "Préstamos",
+            "menu_type": "table",
+            "menu_name": "asset_lending"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "asset_admin_group",
+            "role_group_view_name": "Gestores de activos",
+            "description": "Personas que ven, crean y editan activos, solicitudes, inventarios y préstamos."
+        },
+        {
+            "role_group_name": "asset_member_group",
+            "role_group_view_name": "Usuarios de activos",
+            "description": "Personas que ven los activos y los préstamos, y crean solicitudes de activos."
+        }
+    ],
+    "workflows": [
+        {
+            "workflow_view_name": "Solicitudes de activos (estándar)"
+        }
+    ],
+    "notifies": [
+        {
+            "suuid": "443a629e799118e3d3b6",
+            "notify_view_name": "Devolución vencida (al día siguiente)"
+        },
+        {
+            "suuid": "bee2b3c2eed422884924",
+            "notify_view_name": "Solicitudes de activos (enviadas, aprobadas, devueltas)"
+        }
+    ]
+}

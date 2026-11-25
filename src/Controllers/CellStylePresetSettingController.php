@@ -46,6 +46,7 @@ class CellStylePresetSettingController extends AdminControllerBase
             Checker::error();
             return response('');
         }
+        $this->localizePageInfo();
 
         return $this->{$method}(...array_values($parameters));
     }
