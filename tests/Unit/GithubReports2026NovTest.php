@@ -40,9 +40,9 @@ class GithubReports2026NovTest extends UnitTestBase
     {
         $uris = array_column(Define::HELP_URLS, 'uri');
         $helps = array_column(Define::HELP_URLS, 'help_uri', 'uri');
-        $this->assertSame('line', $helps['line/link'] ?? null);
-        $this->assertSame('workflow_design', $helps['workflow/design/create'] ?? null);
-        $this->assertSame('workflow_design', $helps['workflow/*/design'] ?? null);
+        $this->assertSame('line', array_get($helps, 'line/link'));
+        $this->assertSame('workflow_design', array_get($helps, 'workflow/design/create'));
+        $this->assertSame('workflow_design', array_get($helps, 'workflow/*/design'));
         // the first entry that matches wins: the designer before "workflow"
         $workflow = array_search('workflow', $uris, true);
         $this->assertLessThan($workflow, array_search('workflow/design/create', $uris, true));

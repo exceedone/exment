@@ -138,6 +138,7 @@ class WorkflowItem extends SystemItem
             if (is_nullorempty($key) || !is_scalar($key)) {
                 continue;
             }
+            $key = strval($key);
             $names[] = strval($options->get($key, $key));
         }
         return count($names) > 0 ? implode(', ', $names) : null;
