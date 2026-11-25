@@ -36,7 +36,8 @@ class CoreHardening3Test extends UnitTestBase
     public function testTheAvatarIsNotFetchedFromAPrivateAddress(): void
     {
         $source = $this->read('src/Services/Login/LoginService.php');
-        $this->assertStringContainsString('WebhookUrlGuard::isAllowed($custom_login_user->avatar, true)', $source);
+        // the avatar URL of the profile (downloadAvatar, ISS02869)
+        $this->assertStringContainsString('WebhookUrlGuard::isAllowed($url, true)', $source);
     }
 
     public function testATemplateNameIsOneFolder(): void

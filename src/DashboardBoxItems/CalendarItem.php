@@ -79,11 +79,7 @@ class CalendarItem implements ItemInterface
             return $result;
         }
 
-        // create model for getting data --------------------------------------------------
-        $model = $this->custom_table->getValueQuery();
-        // filter model
-        $this->custom_view->filterSortModel($model);
-
+        // the events are read by the calendar itself (webapi/data/{table}/calendar, ISS00169)
         $options = $this->dashboard_box->options;
 
         return view('exment::dashboard.calendar.calendar', [

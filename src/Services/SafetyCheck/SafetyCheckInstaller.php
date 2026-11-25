@@ -62,6 +62,7 @@ class SafetyCheckInstaller
             LineInstaller::assertOwnedTable($existing, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_EVENT]);
             static::ensureColumns($existing, static::eventColumns());
             static::markSystem($existing);
+            LineInstaller::markSystemColumns($existing, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_EVENT]);
             return;
         }
         $table = CustomTable::create([
@@ -81,6 +82,7 @@ class SafetyCheckInstaller
             ]);
         }
         static::markSystem($table);
+        LineInstaller::markSystemColumns($table, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_EVENT]);
     }
 
     /**
@@ -108,6 +110,7 @@ class SafetyCheckInstaller
             LineInstaller::assertOwnedTable($existing, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_ANSWER]);
             static::ensureColumns($existing, static::answerColumns());
             static::markSystem($existing);
+            LineInstaller::markSystemColumns($existing, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_ANSWER]);
             return;
         }
 
@@ -119,6 +122,7 @@ class SafetyCheckInstaller
         $table->createTable();
         static::ensureColumns($table, static::answerColumns());
         static::markSystem($table);
+        LineInstaller::markSystemColumns($table, static::OWNED_MARKERS[SafetyCheckDefine::TABLE_ANSWER]);
     }
 
     public static function ensureMenu(): void

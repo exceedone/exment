@@ -1590,6 +1590,14 @@
         {
             "order": "8",
             "menu_type": "system",
+            "menu_name": "log_management",
+            "title": "Log Management",
+            "parent_name": "admin",
+            "menu_target_name": "log_management"
+        },
+        {
+            "order": "9",
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Maintenance Mode",
             "parent_name": "admin",

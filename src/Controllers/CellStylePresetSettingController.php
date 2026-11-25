@@ -220,6 +220,12 @@ class CellStylePresetSettingController extends AdminControllerBase
                 . e($own_color ?? GridCellStyle::hashColor($name)) . '">' . e($initial) . '</span>' . e($name) . '</span>';
         }
 
+        // "plain" keeps the shape of the value and adds only the icon, as the list does
+        // (GridCellStyle::wrap): no color, no weight (#2153)
+        if ($style === GridCellStyle::STYLE_PLAIN) {
+            return $icon_html === '' ? e($name) : '<span class="exm-cell-text">' . $icon_html . e($name) . '</span>';
+        }
+
         $css = [];
         if (isset($weight)) {
             $css[] = 'font-weight:' . $weight;

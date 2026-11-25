@@ -243,7 +243,7 @@ class ChartItem implements ItemInterface
 
         $note = '';
         if ($this->list_rows_left_out > 0) {
-            $note = '<p class="small text-muted chart-rows-left-out">' . esc_html(exmtrans('dashboard.message.chart_list_rows_left_out', ['count' => intval(config('exment.chart_list_max_rows', 0))])) . '</p>';
+            $note = '<p class="small text-muted chart-rows-left-out">' . esc_html(exmtrans('dashboard.message.chart_list_rows_left_out', ['count' => intval(config('exment.chart_list_max_rows', 5000))])) . '</p>';
         }
         return $this->toolbarHtml($fields) . $note . $chart->render();
     }
@@ -518,10 +518,10 @@ class ChartItem implements ItemInterface
         // in the order the view lists its rows (a view without a sort keeps the database's)
         $this->viewForQuery()->filterModel($model, ['sort' => true]);
 
-        // get data: a chart of a list view draws one point per row. A site may limit it to
-        // chart_list_max_rows rows (a large table ran out of memory or time; ISS00413); by
-        // default it reads every row, as before. A summary view is the way to chart a large table.
-        $max = intval(config('exment.chart_list_max_rows', 0));
+        // get data: a chart of a list view draws one point per row, at most chart_list_max_rows
+        // (5000 by default; 0: every row). A large table ran out of memory or time (ISS00413,
+        // ISS00169). A summary view is the way to chart a large table.
+        $max = intval(config('exment.chart_list_max_rows', 5000));
         if ($max > 0) {
             $model->limit($max + 1);
         }
@@ -970,7 +970,7 @@ class ChartItem implements ItemInterface
                     $custom_table = null;
                 }
                 $options = [];
-                foreach ($custom_table ? $custom_table->custom_columns : [] as $column) {
+                foreach (\Exceedone\Exment\Services\Dashboard\FilterBarForm::filterableColumns($custom_table) as $column) {
                     $options[$column->column_name] = $column->column_view_name . ' (' . $column->column_name . ')';
                 }
                 return $options;

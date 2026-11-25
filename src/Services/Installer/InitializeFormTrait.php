@@ -223,6 +223,17 @@ trait InitializeFormTrait
         $form->display('system_line_webhook_url', exmtrans('system.system_line_webhook_url'))
             ->default(admin_url('line/webhook'));
 
+        // the Teams workflow (ISS02863): the address is a secret. It is not put back on the page:
+        // a new one replaces it, an empty field keeps it
+        $form->exmheader(exmtrans('system.system_teams'))->hr();
+        $form->display('system_teams_workflow_state', exmtrans('system.system_teams_workflow_url'))
+            ->default(is_nullorempty(System::system_teams_workflow_url()) ? exmtrans('system.system_teams_workflow_unset') : exmtrans('system.system_teams_workflow_set'));
+        $form->password('system_teams_workflow_url_new', exmtrans('system.system_teams_workflow_url_new'))
+            ->default('')
+            ->help(exmtrans('system.system_teams_workflow_url_help', ['manual' => getManualUrl('notify_teams')]));
+        $form->switchbool('system_teams_workflow_url_clear', exmtrans('system.system_teams_workflow_url_clear'))
+            ->default(false);
+
         $form->exmheader(exmtrans('system.safety_check'))->hr();
         if (!\Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::SAFETY_CHECK)) {
             $form->descriptionHtml('<span class="text-warning">' . esc_html(exmtrans('safety.feature_off')) . '</span> <a href="' . esc_html(admin_url('feature')) . '">' . esc_html(exmtrans('feature.open_feature')) . '</a>');
@@ -295,6 +306,20 @@ trait InitializeFormTrait
         // stored one.
         if (array_key_exists('ui_design', $inputs) && !in_array($inputs['ui_design'], Define::SYSTEM_UI_DESIGN, true)) {
             array_forget($inputs, 'ui_design');
+        }
+
+        // the address of the Teams workflow is never on the page: a new one, or cleared, or kept
+        if (array_key_exists('system_teams_workflow_url', $inputs) || $request->has('system_teams_workflow_url_new')) {
+            array_forget($inputs, 'system_teams_workflow_url');
+            $newUrl = trim(strval($request->input('system_teams_workflow_url_new')));
+            if ($newUrl !== '') {
+                if (!preg_match('#\Ahttps://#i', $newUrl) || !\Exceedone\Exment\Services\WebhookUrlGuard::isAllowed($newUrl)) {
+                    return back()->withInput(array_except(get_flash_input(), ['system_teams_workflow_url_new']))->withErrors(['system_teams_workflow_url_new' => exmtrans('notify.message.webhook_url_not_allowed')]);
+                }
+                $inputs['system_teams_workflow_url'] = $newUrl;
+            } elseif (boolval($request->input('system_teams_workflow_url_clear'))) {
+                $inputs['system_teams_workflow_url'] = null;
+            }
         }
 
         // demo mode: the mail, LINE, search server, IP filter, reCAPTCHA and API settings are kept

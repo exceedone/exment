@@ -134,6 +134,7 @@ class LineInstaller
         if ($existing) {
             static::assertOwnedTable($existing, static::OWNED_MARKERS['line_flex_template']);
             static::markSystem($existing);
+            static::markSystemColumns($existing, static::OWNED_MARKERS['line_flex_template']);
             return;
         }
 
@@ -174,6 +175,7 @@ class LineInstaller
         }
 
         static::markSystem($table);
+        static::markSystemColumns($table, static::OWNED_MARKERS['line_flex_template']);
     }
 
     public static function ensureSendLogTable(): void
@@ -182,6 +184,7 @@ class LineInstaller
         if ($existing) {
             static::assertOwnedTable($existing, static::OWNED_MARKERS['line_send_log']);
             static::markSystem($existing);
+            static::markSystemColumns($existing, static::OWNED_MARKERS['line_send_log']);
             return;
         }
 
@@ -218,6 +221,7 @@ class LineInstaller
         }
 
         static::markSystem($table);
+        static::markSystemColumns($table, static::OWNED_MARKERS['line_send_log']);
     }
 
     protected static function markSystem(CustomTable $table): void
@@ -228,5 +232,43 @@ class LineInstaller
         $table->system_flg = true;
         $table->save();
         System::clearCache();
+    }
+
+    /**
+     * The columns the feature made are system columns, as its table (#2160): not deleted from
+     * "Custom column settings" (deleting one deletes its values of all the records). The columns a
+     * user added stay deletable.
+     *
+     * @param array<int, string> $names
+     */
+    public static function markSystemColumns(CustomTable $table, array $names): void
+    {
+        $changed = false;
+        foreach ($names as $name) {
+            $column = CustomColumn::getEloquent($name, $table);
+            if (!$column || boolval($column->system_flg)) {
+                continue;
+            }
+            $column->system_flg = true;
+            $column->save();
+            $changed = true;
+        }
+        if ($changed) {
+            System::clearCache();
+        }
+    }
+
+    /**
+     * For a site installed before #2160: the columns of the feature's tables that are there.
+     */
+    public static function markOwnedColumns(): void
+    {
+        $markers = static::OWNED_MARKERS + \Exceedone\Exment\Services\SafetyCheck\SafetyCheckInstaller::OWNED_MARKERS;
+        foreach ($markers as $tableName => $names) {
+            $table = CustomTable::getEloquent($tableName);
+            if ($table && boolval($table->system_flg)) {
+                static::markSystemColumns($table, $names);
+            }
+        }
     }
 }
