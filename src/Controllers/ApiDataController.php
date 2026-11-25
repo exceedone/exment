@@ -647,6 +647,14 @@ class ApiDataController extends AdminControllerTableBase
             'makeHidden' => false,
         ]);
 
+        // As text, a cell of a column that selects a record (select table, user, organization)
+        // shows that record: the records of the page are read at once, not one a cell (ISS02885).
+        if (ValueType::isRegetApiCustomValue($valuetype)) {
+            /** @var array<int, \Exceedone\Exment\Model\CustomValue> $pageItems */
+            $pageItems = $paginator->items();
+            $this->custom_table->setSelectTableValues(collect($pageItems));
+        }
+
         list($results, $apiDefinitions) = $this->viewDataAfter($custom_view, $valuetype, $paginator->items());
 
         $paginator->setCollection(collect($results));

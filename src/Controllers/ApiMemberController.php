@@ -202,7 +202,8 @@ class ApiMemberController extends AdminControllerBase
         }
 
         $roleGroupId = intval($roleGroup->id);
-        DB::transaction(function () use ($roleGroupId, $targets, $add) {
+        // the history of the changes (ISS02840)
+        \Exceedone\Exment\Services\LogManagement\PermissionChanges::around($roleGroupId, fn () => DB::transaction(function () use ($roleGroupId, $targets, $add) {
             foreach ($targets as $type => $ids) {
                 if (count($ids) === 0) {
                     continue;
@@ -221,7 +222,7 @@ class ApiMemberController extends AdminControllerBase
                     $query->whereIn('role_group_target_id', $ids)->delete();
                 }
             }
-        });
+        }), \Exceedone\Exment\Services\LogManagement\PermissionChanges::SOURCE_API);
         // the permissions (as on the page of the role group)
         System::clearCache();
 

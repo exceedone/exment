@@ -127,6 +127,8 @@ class UserApiKeyTest extends ApiTestBase
         $this->assertSame(1 + 1, $usage['use_count']);
         $this->assertNotNull($usage['last_used_at']);
         $this->assertSame('127.0.0.1', $usage['last_used_ip']);
+        // by default every call writes, as always
+        $this->assertSame(1 + 1, $key->use_count);
     }
 
     /**
