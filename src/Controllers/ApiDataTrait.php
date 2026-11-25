@@ -411,6 +411,8 @@ trait ApiDataTrait
         $getLabel = $this->isAppendLabel($request);
         $paginator = $this->custom_table->searchValue($q, [
             'paginate' => true,
+            // one order, each match once on its page (ISS02907)
+            'stableOrder' => true,
             'makeHidden' => true,
             'target_view' => $custom_view,
             'maxCount' => $count,
