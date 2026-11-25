@@ -383,13 +383,14 @@ class AuthUserOrgHelper
         $userModelname = getModelName(SystemTableName::USER);
         $userTable = getDBTableName(SystemTableName::USER);
         $pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        /** @var array<int, true> $joined */
         $joined = [];
         foreach ($userModelname::withoutGlobalScope(CustomValueModelScope::class)
             ->join($pivot, "$pivot.child_id", '=', "$userTable.id")
             ->where("$userTable.id", $targetUserId)
             ->toBase()
             ->pluck("$pivot.parent_id") as $orgId) {
-            $joined[(string)$orgId] = true;
+            $joined[(int)$orgId] = true;
         }
         if (count($joined) === 0) {
             return [];
@@ -399,7 +400,7 @@ class AuthUserOrgHelper
         $upper = JoinedOrgFilterType::isGetUpper($filterType);
         $results = [];
         foreach ($orgs as $position => $org) {
-            if (!isset($joined[(string)$org['id']])) {
+            if (!isset($joined[$org['id']])) {
                 continue;
             }
             $results[] = $org['id'];
@@ -408,7 +409,7 @@ class AuthUserOrgHelper
                 $target = $org;
                 $visited = [];
                 while (isset($target['parent']) && $org['id'] != $target['parent']) {
-                    $parentPosition = $idIndex[(string)$target['parent']] ?? null;
+                    $parentPosition = $idIndex[(int)$target['parent']] ?? null;
                     if (is_null($parentPosition) || isset($visited[$parentPosition])) {
                         break;
                     }
@@ -432,12 +433,12 @@ class AuthUserOrgHelper
      * @param int $rootId
      * @param int $targetId
      * @param array<int, array{id: int, parent: string|null}> $orgs
-     * @param array<string, array<int>> $childrenIndex
+     * @param array<int, array<int>> $childrenIndex
      * @param array<int, bool> $visited
      */
     protected static function childIds(array &$results, $rootId, $targetId, array $orgs, array $childrenIndex, array &$visited): void
     {
-        foreach ($childrenIndex[(string)$targetId] ?? [] as $position) {
+        foreach ($childrenIndex[(int)$targetId] ?? [] as $position) {
             $child = $orgs[$position];
             if ($rootId == $child['id'] || isset($visited[$position])) {
                 continue;
@@ -452,7 +453,7 @@ class AuthUserOrgHelper
      * The organizations as [id, parent] in the order of the tree, with the indexes: id => first
      * position, parent id => the positions of the children. Once for a request.
      *
-     * @return array{0: array<int, array{id: int, parent: string|null}>, 1: array<string, int>, 2: array<string, array<int>>}
+     * @return array{0: array<int, array{id: int, parent: string|null}>, 1: array<int, int>, 2: array<int, array<int>>}
      */
     protected static function getOrganizationLinks(): array
     {
@@ -469,11 +470,11 @@ class AuthUserOrgHelper
             $idIndex = [];
             $childrenIndex = [];
             foreach ($orgs as $i => $o) {
-                if (!array_key_exists((string)$o['id'], $idIndex)) {
-                    $idIndex[(string)$o['id']] = $i;
+                if (!array_key_exists($o['id'], $idIndex)) {
+                    $idIndex[$o['id']] = $i;
                 }
                 if (isset($o['parent'])) {
-                    $childrenIndex[$o['parent']][] = $i;
+                    $childrenIndex[(int)$o['parent']][] = $i;
                 }
             }
             return [$orgs, $idIndex, $childrenIndex];

@@ -227,8 +227,10 @@ class PluginServiceProvider extends ServiceProvider
         }
         $isApi = $plugin_type == PluginType::API;
 
-        // the names of the routes (the same routes under each prefix, "api" and "webapi": a name
-        // once only, else route:cache stops with "Another route has already been assigned name")
+        // the names of the routes: the same routes are made under each prefix (an API plugin: with
+        // and without "api"), and a name twice stops route:cache ("Another route has already been
+        // assigned name"). Each route needs a name: AuthenticatePluginApi finds the plugin from it
+        // (its 3rd part, the plugin id), so the next ones get ".1", ".2" at the end.
         $named = [];
         foreach (stringToArray($prefix) as $p) {
             Route::group([
@@ -292,10 +294,9 @@ class PluginServiceProvider extends ServiceProvider
                                 $router->withoutMiddleware($skip);
                             }
                             $name = "exment.plugins.{$plugin->id}.{$method}.{$func}";
-                            if (!isset($named[$name])) {
-                                $named[$name] = true;
-                                $router->name($name);
-                            }
+                            $n = $named[$name] ?? 0;
+                            $named[$name] = $n + 1;
+                            $router->name($n === 0 ? $name : "{$name}.{$n}");
                         }
                     }
                 }
