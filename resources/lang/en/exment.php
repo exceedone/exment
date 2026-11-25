@@ -1559,6 +1559,8 @@ return [
     ],
 
     '2factor' => [
+        'login_unknown' => 'Unknown',
+        'login_location_separator' => ', ',
         '2factor' => 'Two-Step Authentication',
         'login' => 'Authentication',
         'submit_verify_code' => 'Authentication code transmission',
@@ -2407,6 +2409,8 @@ return [
         'changedata_column' => 'Select Link Column',
         'changedata_column_then' => 'Copy this column',
         'default_flg' => 'Default Form',
+        'check_missing_required' => 'Check the required columns not on this form',
+        'check_missing_required_help' => 'On: a new record made with this form is not saved while a required column the form does not have is empty. Off: it is saved with those columns empty (a form of a part of the columns, such as a public form).',
         'field_showing_type' => 'Field Type',
         'form_column_view_name' => 'Field Display Name',
         'image_aslink' => 'Display image as a link',
@@ -2470,6 +2474,7 @@ return [
         ],
 
         'message' => [
+            'missing_required_empty' => 'Not saved: the required columns :names are not on this form and have no value. Add them to the form, or turn off "Check the required columns not on this form".',
             'no_exists_column' => 'Required items have not been set.',
             'confirm_required' => 'Required items are not set. Are you sure you want to save it as it is?',
             'image_need_delete' => '* When replacing the image, delete the column once and then add it again.',

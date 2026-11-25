@@ -376,6 +376,10 @@ return [
     */
     'login_2factor_valid_period' =>  env('EXMENT_LOGIN_2FACTOR_VALID_PERIOD', 10),
 
+    // the mails of the 2-step verification: the country and the region from the headers of the CDN in
+    // front of the site (CloudFront, Cloudflare). Only with a CDN that sets them: anyone could send them.
+    'login_location_headers' => env('EXMENT_LOGIN_LOCATION_HEADERS', false),
+
     /*
     |--------------------------------------------------------------------------
     | Login Provider

@@ -505,6 +505,24 @@ EOT;
                 $message = $message->merge($validateResult);
             }
 
+            // a new record: the required columns this form does not have, when the form asks (ISS00374)
+            if (!$model->exists && isset($this->custom_form) && $this->custom_form->check_missing_required) {
+                $empty = $this->custom_form->missingRequiredColumns()->filter(function ($column) use ($input) {
+                    return is_nullorempty(array_get($input, 'value.' . $column->column_name));
+                });
+                if ($empty->count() > 0) {
+                    $names = $empty->map(function ($column) {
+                        return strval($column->column_view_name);
+                    })->implode(exmtrans('custom_form.name_separator'));
+                    $text = exmtrans('custom_form.message.missing_required_empty', ['names' => $names]);
+                    foreach ($empty as $column) {
+                        $message = $message->merge(['value.' . $column->column_name => [$text]]);
+                    }
+                    // the columns are not on the form: said at the top of the page
+                    admin_error(exmtrans('error.header'), $text);
+                }
+            }
+
             // validation relations ----------------------------------------------------
             foreach ($this->custom_form->custom_form_blocks as $custom_form_block) {
                 // if available is false, continue

@@ -1488,6 +1488,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => '未知',
+        'login_location_separator' => '・',
         '2factor' => '双重验证',
         'login' => '验证',
         'submit_verify_code' => '发送验证码',
@@ -2310,6 +2312,8 @@ return [
         'changedata_column' => '选择链接列',
         'changedata_column_then' => '复制此列的值',
         'default_flg' => '默认表单',
+        'check_missing_required' => '也检查此表单中没有的必填列',
+        'check_missing_required_help' => '开启后，此表单中没有的必填列为空时，不保存用此表单新建的数据。关闭时，这些列以空值保存（如公开表单等只有部分列的表单）。',
         'field_showing_type' => '字段类型',
         'form_column_view_name' => '字段显示名称',
         'image_aslink' => '以链接形式显示图片',
@@ -2366,6 +2370,7 @@ return [
             'lazy_load_enabled' => '打开编辑页面后自动加载此子表。适用于编辑已有数据时以表格形式显示的一对多区块。加载完成前无法保存。取消表格形式并保存表单后，此设置也将关闭。',
         ],
         'message' => [
+            'missing_required_empty' => '未保存：必填列 :names 不在此表单中且没有值。请将其加入表单，或关闭“也检查此表单中没有的必填列”。',
             'no_exists_column' => '未设置必填项目。',
             'confirm_required' => '未设置必填项目。确定要直接保存吗？',
             'image_need_delete' => '※更换图片时，请先删除该列，然后重新添加。',

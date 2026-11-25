@@ -1488,6 +1488,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => 'Desconocido',
+        'login_location_separator' => ', ',
         '2factor' => 'Autenticación de dos factores',
         'login' => 'Autenticación',
         'submit_verify_code' => 'Enviar código de autenticación',
@@ -2310,6 +2312,8 @@ return [
         'changedata_column' => 'Seleccionar columna de enlace',
         'changedata_column_then' => 'copiar el valor de esta columna',
         'default_flg' => 'Formulario predeterminado',
+        'check_missing_required' => 'Comprobar las columnas obligatorias que no están en este formulario',
+        'check_missing_required_help' => 'Activado: un registro nuevo creado con este formulario no se guarda mientras una columna obligatoria que el formulario no tiene esté vacía. Desactivado: se guarda con esas columnas vacías (un formulario con parte de las columnas, como un formulario público).',
         'field_showing_type' => 'Tipo de campo',
         'form_column_view_name' => 'Nombre visible del campo',
         'image_aslink' => 'Mostrar la imagen como enlace',
@@ -2366,6 +2370,7 @@ return [
             'lazy_load_enabled' => 'Carga automáticamente esta tabla hija después de abrir la página de edición. Disponible para bloques 1:N mostrados en formato de tabla al editar datos existentes. No se puede guardar hasta que termine la carga. Si se desactiva el formato de tabla, este ajuste también se desactiva al guardar el formulario.',
         ],
         'message' => [
+            'missing_required_empty' => 'No se guardó: las columnas obligatorias :names no están en este formulario y no tienen valor. Añádalas al formulario o desactive "Comprobar las columnas obligatorias que no están en este formulario".',
             'no_exists_column' => 'No se han configurado los campos obligatorios.',
             'confirm_required' => 'No se han configurado los campos obligatorios. ¿Está seguro de que desea guardar así?',
             'image_need_delete' => '* Para reemplazar la imagen, elimine la columna y vuelva a añadirla.',
