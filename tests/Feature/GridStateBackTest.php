@@ -121,6 +121,7 @@ class GridStateBackTest extends FeatureTestBase
     {
         $query = [];
         parse_str(strval(parse_url($url, PHP_URL_QUERY)), $query);
+        /** @var array<string, mixed> $query */
         return $query;
     }
 
