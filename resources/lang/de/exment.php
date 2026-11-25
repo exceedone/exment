@@ -185,6 +185,7 @@ return [
         'english' => 'Englisch',
         'japanese' => 'Japanisch',
         'back_button' => 'ZURÜCK',
+        'back' => 'Zurück',
         'message' => [
             'confirm_execute' => 'Möchten Sie %s wirklich ausführen?',
             'success_execute' => 'Erfolgreich ausgeführt!',

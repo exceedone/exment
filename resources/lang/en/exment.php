@@ -186,6 +186,7 @@ return [
         'english' => 'English',
         'japanese' => 'Japanese',
         'back_button' => 'BACK',
+        'back' => 'Back',
 
         'message' => [
             'confirm_execute' => 'Are you sure to %s ?',

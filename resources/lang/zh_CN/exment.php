@@ -185,6 +185,7 @@ return [
         'english' => '英语',
         'japanese' => '日语',
         'back_button' => '返回',
+        'back' => '返回',
         'message' => [
             'confirm_execute' => '确定要执行%s吗？',
             'success_execute' => '执行成功！',
