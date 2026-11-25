@@ -180,6 +180,10 @@ class Define
         'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'notify'],
         'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'notify'],
         'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'notify'],
+        // 送信対象 (GitHub #2180): empty is every user
+        'safety_check_target_organizations' => ['type' => 'array', 'default' => null, 'group' => 'notify'],
+        'safety_check_target_view' => ['type' => 'int', 'default' => null, 'group' => 'notify'],
+        'safety_check_excluded_users' => ['type' => 'array', 'default' => null, 'group' => 'notify'],
         'safety_check_last_feed_time' => ['type' => 'datetime'],
         // Comments written before this time ('Y-m-d H:i:s') are shown as the plain text they were
         // written as; later ones are shown as Markdown. Set once, by the migration that brings
