@@ -414,6 +414,9 @@ class KanbanGrid extends GridBase
             // Empty for a board that never picked a preset and whose columns
             // carry no appearance either - then the chips below take over.
             'card_styles' => (object) $this->buildCardStyles($card_fields),
+            // the word between the values of a multi-value field drawn as
+            // shapes: kept in the card for its text, hidden by css (#2159)
+            'separate_word' => strval(exmtrans('common.separate_word')),
 
             'wip' => $this->getWipLimits($group_column, $workflow),
             'wip_enforce' => $this->getWipEnforce(),
@@ -761,7 +764,7 @@ class KanbanGrid extends GridBase
                     ? array_get($values, $card_field['custom_column']->column_name, '')
                     : static::normalizeKey($item->value());
 
-                $fields[] = [
+                $field = [
                     'label' => $card_field['label'],
                     'html' => strval($html),
                     'text' => $text,
@@ -773,6 +776,16 @@ class KanbanGrid extends GridBase
                     'pos' => $card_field['pos'],
                     'icon' => static::resolveIcon($card_field['icon'], $value),
                 ];
+
+                // A multi-value column drawn as shapes: one shape per value,
+                // each in the color of its own value, as the data list draws
+                // it (#2159). Only sent where there is more than one value.
+                $parts = $this->buildFieldParts($card_field, $item);
+                if (!empty($parts)) {
+                    $field['parts'] = $parts;
+                }
+
+                $fields[] = $field;
             }
 
             // when this record arrived in the column it now sits in: the last
@@ -876,6 +889,42 @@ class KanbanGrid extends GridBase
         }
 
         return $labels;
+    }
+
+
+    /**
+     * The values of a card field one by one, for a multi-value column whose
+     * card style draws every value as a shape of its own (#2159).
+     *
+     * Empty where the field is drawn as one piece: no cell style, a style
+     * that is not a shape, a column that holds one value, or a record with
+     * fewer than two values. A value the cell style may not paint (a
+     * reference the viewer cannot open) is sent without its value, so its
+     * shape cannot wear the color of what it points at.
+     *
+     * @param array<string, mixed> $card_field
+     * @param mixed $item the field's column item, already set to the record
+     * @return array<int, array{value: string, text: string}>
+     */
+    protected function buildFieldParts(array $card_field, $item): array
+    {
+        $cell = array_get($card_field, 'cell');
+        if (!is_array($cell) || !GridCellStyle::isBlockStyleName(array_get($cell, 'grid_style'))) {
+            return [];
+        }
+        if (!($item instanceof CustomItem) || !$item->isMultipleEnabled()) {
+            return [];
+        }
+
+        $parts = [];
+        foreach ($item->textParts() as $part) {
+            $parts[] = [
+                'value' => $part['styled'] ? static::normalizeKey($part['value']) : '',
+                'text' => $part['text'],
+            ];
+        }
+
+        return count($parts) > 1 ? $parts : [];
     }
 
 
