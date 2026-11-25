@@ -706,6 +706,8 @@ abstract class CustomValue extends ModelBase
                     $model->notify(NotifySavedType::DELETE);
                 }
                 $model->postForceDelete();
+                // for the plugins and the applications (ISS00334): every way a row is deleted for good
+                event(new \Exceedone\Exment\Events\CustomValueForceDeleted($model));
                 return;
             }
 
@@ -728,6 +730,9 @@ abstract class CustomValue extends ModelBase
             $model->saved_notify = $saved_notify;
 
             $model->postRestore();
+
+            // for the plugins and the applications (ISS00334): every way a row comes back from the trash
+            event(new \Exceedone\Exment\Events\CustomValueRestored($model));
         });
 
         static::addGlobalScope(new CustomValueModelScope());
@@ -1948,6 +1953,13 @@ abstract class CustomValue extends ModelBase
                 // set custom view's filter
                 if (isset($options['target_view'])) {
                     $options['target_view']->filterModel($query); // sort is false.
+                }
+
+                // Only the columns of this table: a filter on a column of the table a column
+                // selects (the pivot) joins that table, and "select *" then has its id as well,
+                // which the sub query of searchValue cannot take ("Duplicate column name 'id'").
+                if (!$options['executeSearch'] && empty($query->getQuery()->columns)) {
+                    $query->select(getDBTableName($this->custom_table) . '.*');
                 }
             }
 

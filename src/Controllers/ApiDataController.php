@@ -90,7 +90,7 @@ class ApiDataController extends AdminControllerTableBase
         // @phpstan-ignore-next-line
         $this->setOrderByQuery($model, $orderby_list);
 
-        $paginator = $model->paginate($count);
+        $paginator = $this->paginateOf($model, $request, $count);
 
         return $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
@@ -176,7 +176,7 @@ class ApiDataController extends AdminControllerTableBase
         // @phpstan-ignore-next-line
         $this->setOrderByQuery($model, $orderby_list);
 
-        $paginator = $model->paginate($count);
+        $paginator = $this->paginateOf($model, $request, $count);
 
         return $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
@@ -638,6 +638,7 @@ class ApiDataController extends AdminControllerTableBase
             'maxCount' => $count,
             'executeSearch' => false,
             'isApi' => true,
+            'simplePaginate' => $this->withoutTotal($request),
         ]);
         $paginator = $this->modifyAfterGetValue($request, $paginator, [
             'appends' => [
@@ -645,6 +646,14 @@ class ApiDataController extends AdminControllerTableBase
             ],
             'makeHidden' => false,
         ]);
+
+        // As text, a cell of a column that selects a record (select table, user, organization)
+        // shows that record: the records of the page are read at once, not one a cell (ISS02885).
+        if (ValueType::isRegetApiCustomValue($valuetype)) {
+            /** @var array<int, \Exceedone\Exment\Model\CustomValue> $pageItems */
+            $pageItems = $paginator->items();
+            $this->custom_table->setSelectTableValues(collect($pageItems));
+        }
 
         list($results, $apiDefinitions) = $this->viewDataAfter($custom_view, $valuetype, $paginator->items());
 

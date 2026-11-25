@@ -289,6 +289,17 @@
                 {
                     "column_name": "send_datetime",
                     "column_view_name": "발송 일시"
+                },
+                {
+                    "column_name": "send_result",
+                    "column_view_name": "발송 결과",
+                    "options": {
+                        "select_item_valtext": "sent,발송됨\nfailed,실패"
+                    }
+                },
+                {
+                    "column_name": "send_error",
+                    "column_view_name": "발송 오류"
                 }
             ]
         },
@@ -513,6 +524,11 @@
             "menu_type": "system",
             "menu_name": "template",
             "title": "템플릿"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "trash",
+            "title": "휴지통"
         },
         {
             "menu_type": "parent_node",

@@ -32,7 +32,7 @@ trait OldAdminMenuTrait
             DB::table($table)->where('id', $parent->id)->delete();
         }
         // the menus a site of 7.1 did not have on its first menu
-        DB::table($table)->whereIn('menu_name', ['notify', 'cell_style_preset', 'operation_log'])->where('menu_type', 'system')->delete();
+        DB::table($table)->whereIn('menu_name', ['notify', 'cell_style_preset', 'operation_log', 'trash'])->where('menu_type', 'system')->delete();
 
         $groupware = DB::table($table)->where('menu_type', 'parent_node')->where('menu_name', 'groupware')->first();
         if (isset($groupware)) {

@@ -400,13 +400,14 @@ class UserApiKeys
      * Not an UPDATE of the key every call (a busy client writes the same row again and
      * again): at most once in EXMENT_API_KEY_TOUCH_SECONDS a key and a cache store. The uses
      * in between are counted in the cache and written with the next write; the pages read
-     * them with usageOf(), so they show the same as when every call writes. 0: every call.
+     * them with usageOf(), so they show the same as when every call writes. 0 (default): every
+     * call. Lost when the cache is emptied before they are written (see config/exment.php).
      */
     public static function touch(UserApiKey $key, Request $request): void
     {
         $now = Carbon::now();
         $ip = substr((string)$request->ip(), 0, 64);
-        $seconds = intval(config('exment.api_key_touch_seconds', 300));
+        $seconds = intval(config('exment.api_key_touch_seconds', 0));
         if ($seconds <= 0) {
             static::writeUse($key, $now, $ip, 1);
             return;

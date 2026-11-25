@@ -174,8 +174,11 @@ class RoleGroup extends ModelBase
 
         // delete event
         static::deleting(function ($model) {
+            // the history of the changes (ISS02840): all it had, and the group, removed
+            $before = \Exceedone\Exment\Services\LogManagement\PermissionChanges::snapshot($model->id);
             $model->role_group_permissions()->delete();
             $model->role_group_user_organizations()->delete();
+            \Exceedone\Exment\Services\LogManagement\PermissionChanges::record($model->id, $before, null);
         });
 
         if (config('exment.sort_role_group_by_order', false)) {
