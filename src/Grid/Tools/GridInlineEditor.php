@@ -442,6 +442,11 @@ HTML;
             return false;
         }
 
+        // The save sets the value (#2182) - see isSetBySaving().
+        if (static::isSetBySaving($custom_column)) {
+            return false;
+        }
+
         // A calc formula reads it - see isCalcInput().
         if (static::isCalcInput($custom_column)) {
             return false;
@@ -696,8 +701,29 @@ HTML;
             return false;
         }
 
+        // The save sets the value: the edit page shows it as text (#2182).
+        if (static::isSetBySaving($custom_column)) {
+            return false;
+        }
+
         $columns = static::getFormEditableColumns(static::getRecordForm($custom_table, $custom_value));
         return array_key_exists($custom_column->id, $columns);
+    }
+
+    /**
+     * A date or a date and time with "Register the run time on save" or "on
+     * creation": the save puts the time in (Date::saving()), so a value typed
+     * in a list is lost, and the edit page shows the value as text (#2182).
+     *
+     * @param CustomColumn $custom_column
+     * @return bool
+     */
+    public static function isSetBySaving($custom_column): bool
+    {
+        if (!in_array($custom_column->column_type, [ColumnType::DATE, ColumnType::DATETIME], true)) {
+            return false;
+        }
+        return boolval($custom_column->getOption('datetime_now_saving')) || boolval($custom_column->getOption('datetime_now_creating'));
     }
 
     /**
@@ -738,6 +764,9 @@ HTML;
             if (static::$listInitOnly[$custom_column]) {
                 return false;
             }
+        }
+        if (static::isSetBySaving($custom_column)) {
+            return false;
         }
         return array_key_exists($custom_column->id, $columns);
     }
