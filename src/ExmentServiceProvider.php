@@ -327,6 +327,9 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::boot();
 
+        // again: a provider registered after Exment (an application) may have added its file
+        Services\OperatorConfig::apply();
+
         // a site not installed yet without APP_KEY: made before the cookies need it
         if (!$this->app->runningInConsole()) {
             Services\Installer\AppKey::ensure();
@@ -504,6 +507,9 @@ class ExmentServiceProvider extends ServiceProvider
                 \Exceedone\Exment\Exceptions\Handler::class
             );
         }
+
+        // the settings the operator of the server decides, over the config of the site (ISS02861)
+        Services\OperatorConfig::apply();
     }
 
     // @phpstan-ignore-next-line
