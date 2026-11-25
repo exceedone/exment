@@ -5147,4 +5147,10 @@ return [
         'message_public_form_script' => '데모 사이트이므로 공개 폼의 사용자 정의 CSS와 JavaScript는 저장되지 않습니다.',
         'message_system_admin' => '데모 사이트이므로 시스템 관리자는 변경되지 않습니다.',
     ],
+    // the names of tables, columns, views and menus in the other languages (7.3, ISS02859)
+    'name_locales' => [
+        'header' => '다른 언어의 이름',
+        'help' => '이 언어들을 선택한 사용자에게 표시하는 %s입니다. 비어 있으면 위의 이름을 그대로 표시합니다.',
+        'name_in' => '%s 이름',
+    ],
 ];

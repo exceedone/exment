@@ -205,6 +205,8 @@ class McpTools
             $rows[] = [
                 'table' => $custom_table->table_name,
                 'label' => $custom_table->table_view_name,
+                // the names in the other languages, as the site gave them (7.3)
+                'name_locales' => $custom_table->name_locales,
                 'description' => $custom_table->description,
             ];
         }
@@ -221,6 +223,7 @@ class McpTools
             $row = [
                 'column' => $column->column_name,
                 'label' => $column->column_view_name,
+                'name_locales' => $column->name_locales,
                 'type' => $column->column_type,
                 'required' => boolval($column->getOption('required')),
             ];
@@ -236,7 +239,7 @@ class McpTools
             }
             $columns[] = $row;
         }
-        return ['table' => $custom_table->table_name, 'label' => $custom_table->table_view_name, 'columns' => $columns];
+        return ['table' => $custom_table->table_name, 'label' => $custom_table->table_view_name, 'name_locales' => $custom_table->name_locales, 'columns' => $columns];
     }
 
     /**

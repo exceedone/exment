@@ -5147,4 +5147,10 @@ return [
         'message_public_form_script' => 'Dies ist eine Demo-Website: Benutzerdefiniertes CSS und JavaScript öffentlicher Formulare werden nicht gespeichert.',
         'message_system_admin' => 'Dies ist eine Demo-Website: Die Systemadministratoren werden nicht geändert.',
     ],
+    // the names of tables, columns, views and menus in the other languages (7.3, ISS02859)
+    'name_locales' => [
+        'header' => 'Namen in anderen Sprachen',
+        'help' => '%s für Benutzer, die eine dieser Sprachen gewählt haben. Leer: der Name oben, wie er ist.',
+        'name_in' => 'Name auf %s',
+    ],
 ];

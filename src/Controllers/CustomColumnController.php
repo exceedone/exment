@@ -396,6 +396,9 @@ class CustomColumnController extends AdminControllerTableBase
             }
             // Form options area -- End
             $form->html('</div>')->plain();
+
+            // the name in the other languages (ISS02859)
+            \Exceedone\Exment\Services\NameLocales::addFields($form, exmtrans("custom_column.column_view_name"));
         })->disableHeader();
 
         $form->number('order', exmtrans("custom_column.order"))->rules("integer")

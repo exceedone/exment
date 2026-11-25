@@ -41,11 +41,29 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     use Traits\TemplateTrait;
     use Traits\TemplateColumnRefTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\NameLocalesTrait;
+
+    /** the names in the other languages (ISS02859): read by the API, written by the form */
+    protected $appends = ['name_locales'];
 
     //protected $appends = ['view_calendar_target', 'pager_count'];
     //protected $appends = ['pager_count', 'condition_join'];
     protected $guarded = ['id', 'suuid'];
     protected $casts = ['options' => 'json', 'custom_options' => 'json'];
+
+    /**
+     * The name in the language of the user, when one is given for it (ISS02859): the
+     * stored name otherwise, and always on the pages and in the code that edit or export it
+     * (NameLocales).
+     *
+     * @param mixed $value the stored name
+     * @return mixed
+     */
+    public function getViewViewNameAttribute($value)
+    {
+        $options = $this->getAttributeValue('options');
+        return \Exceedone\Exment\Services\NameLocales::pick(is_array($options) ? $options : null, $value);
+    }
     //protected $with = ['custom_table', 'custom_view_columns'];
 
 
@@ -62,7 +80,7 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count'],
+        'excepts' => ['custom_table', 'target_view_name', 'view_calendar_target', 'pager_count', 'name_locales'],
         'uniqueKeys' => ['suuid'],
         'langs' => [
             'keys' => ['suuid'],

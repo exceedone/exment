@@ -39,9 +39,24 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
     use Traits\DatabaseJsonOptionTrait;
     use Traits\TemplateTrait;
     use Traits\UniqueKeyCustomColumnTrait;
+    use Traits\NameLocalesTrait;
 
-    protected $appends = ['required', 'index_enabled', 'unique'];
+    protected $appends = ['required', 'index_enabled', 'unique', 'name_locales'];
     protected $casts = ['options' => 'json'];
+
+    /**
+     * The name in the language of the user, when one is given for it (ISS02859): the
+     * stored name otherwise, and always on the pages and in the code that edit or export it
+     * (NameLocales).
+     *
+     * @param mixed $value the stored name
+     * @return mixed
+     */
+    public function getColumnViewNameAttribute($value)
+    {
+        $options = $this->getAttributeValue('options');
+        return \Exceedone\Exment\Services\NameLocales::pick(is_array($options) ? $options : null, $value);
+    }
     protected $guarded = ['id', 'suuid'];
     // protected $with = ['custom_table'];
 
@@ -62,7 +77,7 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['suuid', 'required', 'index_enabled', 'unique', 'custom_table'],
+        'excepts' => ['suuid', 'required', 'index_enabled', 'unique', 'custom_table', 'name_locales'],
         'uniqueKeys' => [
             'export' => [
                 'custom_table.table_name', 'column_name'
