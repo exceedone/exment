@@ -263,6 +263,26 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
     }
 
     /**
+     * The page of the user setting, with the user's own login history under the form (ISS00104).
+     *
+     * @return \ExmentAdminCore\Admin\Layout\Content
+     */
+    public function getSetting(\ExmentAdminCore\Admin\Layout\Content $content)
+    {
+        $content = parent::getSetting($content);
+        try {
+            $box = \Exceedone\Exment\Services\LogManagement\LoginHistory::box();
+        } catch (\Throwable $e) {
+            \Log::warning('Exment: the login history was not shown: ' . get_class($e));
+            $box = null;
+        }
+        if (isset($box)) {
+            $content->row($box);
+        }
+        return $content;
+    }
+
+    /**
      * Model-form for user setting.
      *
      * @return Form

@@ -2,6 +2,9 @@
 
 namespace Exceedone\Exment\Form\Navbar;
 
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Model\Workflow;
+use Exceedone\Exment\Model\WorkflowTable;
 use Illuminate\Contracts\Support\Renderable;
 
 /**
@@ -44,9 +47,27 @@ class WorkflowTaskNav implements Renderable
         return max((int)$interval, static::MIN_INTERVAL);
     }
 
+    /**
+     * The site uses a workflow: one that is set up, and a table it is active on.
+     * Once per request (every page renders the navbar).
+     */
+    public static function used(): bool
+    {
+        return boolval(System::requestSession('workflow_task_nav_used', function () {
+            if (!Workflow::hasSettingCompleted()) {
+                return false;
+            }
+            return WorkflowTable::where('active_flg', true)->exists();
+        }));
+    }
+
     public function render()
     {
         if (!boolval(config('exment.workflow_task_navbar', true))) {
+            return '';
+        }
+        // a site that does not use a workflow: no icon, and no polling (#2178)
+        if (!static::used()) {
             return '';
         }
 
