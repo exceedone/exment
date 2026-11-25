@@ -57,9 +57,56 @@ Illuminate\Support\Facades\Event::listen(Illuminate\Database\Events\QueryExecute
 
 $bootMs = (hrtime(true) - $t0) / 1e6;
 $mem0 = memory_get_usage(true);
+// APIBENCH_PROFILE=<file>: a sampling profile of the handling (the pecl extension excimer),
+// every 0.5 ms; <file> gets the frames that take the most time (inclusive and self)
+$profiler = null;
+if (($profileFile = getenv('APIBENCH_PROFILE')) && class_exists('ExcimerProfiler')) {
+    $profiler = new ExcimerProfiler();
+    $profiler->setPeriod(0.0005);
+    $profiler->setEventType(EXCIMER_REAL);
+    $profiler->start();
+}
 $t1 = hrtime(true);
 $response = $kernel->handle($request);
 $ms = (hrtime(true) - $t1) / 1e6;
+if (isset($profiler)) {
+    $profiler->stop();
+    $incl = [];
+    $self = [];
+    $total = 0;
+    foreach (explode("
+", trim($profiler->getLog()->formatCollapsed())) as $line) {
+        if (!preg_match('/^(.*) (\d+)$/', $line, $m)) {
+            continue;
+        }
+        $frames = explode(';', $m[1]);
+        $n = intval($m[2]);
+        $total += $n;
+        foreach (array_unique($frames) as $f) {
+            $incl[$f] = ($incl[$f] ?? 0) + $n;
+        }
+        $last = end($frames);
+        $self[$last] = ($self[$last] ?? 0) + $n;
+    }
+    arsort($incl);
+    arsort($self);
+    $out = "samples $total ({$method} {$path})
+
+# inclusive
+";
+    foreach (array_slice($incl, 0, 60, true) as $f => $n) {
+        $out .= sprintf("%5.1f%%  %s
+", 100 * $n / max(1, $total), $f);
+    }
+    $out .= "
+# self
+";
+    foreach (array_slice($self, 0, 30, true) as $f => $n) {
+        $out .= sprintf("%5.1f%%  %s
+", 100 * $n / max(1, $total), $f);
+    }
+    file_put_contents($profileFile, $out);
+}
 $content = (string)$response->getContent();
 $kernel->terminate($request, $response);
 
