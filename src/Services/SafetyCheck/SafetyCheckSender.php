@@ -2,11 +2,16 @@
 
 namespace Exceedone\Exment\Services\SafetyCheck;
 
+use Exceedone\Exment\Enums\JoinedOrgFilterType;
 use Exceedone\Exment\Enums\MailKeyName;
 use Exceedone\Exment\Enums\SystemTableName;
+use Exceedone\Exment\Enums\ViewKindType;
+use Exceedone\Exment\Enums\ViewType;
 use Exceedone\Exment\Jobs\LineSendJob;
+use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LineAccountLink;
 use Exceedone\Exment\Model\System;
@@ -59,7 +64,9 @@ class SafetyCheckSender
             $existingByUser[(int) array_get($row->value, 'user')] = $row;
         }
 
-        $userIds = getModelName(SystemTableName::USER)::query()->pluck('id')->all();
+        // who is asked: the users of the 送信対象 settings (everyone when they are empty)
+        $userIds = static::targetUserIds();
+        $isTarget = array_fill_keys($userIds, true);
 
         $linkedMap = LineAccountLink::whereIn('user_id', $userIds)
             ->whereNotNull('line_user_id')
@@ -100,6 +107,10 @@ class SafetyCheckSender
 
         $targets = [];
         foreach ($existingByUser as $userId => $answerRow) {
+            // e.g. a user excluded after the first send: the row stays, nothing more is sent
+            if (!isset($isTarget[$userId])) {
+                continue;
+            }
             if ($onlyUnanswered && array_get($answerRow->value, 'answer_status') !== SafetyCheckDefine::ANSWER_NOT_ANSWERED) {
                 continue;
             }
@@ -247,6 +258,170 @@ class SafetyCheckSender
         }
 
         return $result;
+    }
+
+    /**
+     * The ids of the users a safety check is sent to, by the 送信対象 settings:
+     * all users, of the organizations (and their child organizations) when set,
+     * shown by the view when set, without the excluded users.
+     * The manual send and the earthquake auto send both use it.
+     *
+     * @return array<int, int>
+     */
+    public static function targetUserIds(): array
+    {
+        $dbTable = getDBTableName(SystemTableName::USER);
+        $query = getModelName(SystemTableName::USER)::query();
+
+        $orgIds = static::targetOrganizationIds();
+        if (!is_null($orgIds)) {
+            $pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+            $query->whereIn("$dbTable.id", function ($sub) use ($pivot, $orgIds) {
+                $sub->select('child_id')->from($pivot)->whereIn('parent_id', $orgIds);
+            });
+        }
+
+        $view = static::targetView();
+        if ($view) {
+            $view->filterModel($query);
+        }
+
+        $excluded = static::excludedUserIds();
+        if (count($excluded) > 0) {
+            $query->whereNotIn("$dbTable.id", $excluded);
+        }
+
+        $ids = [];
+        foreach ($query->pluck("$dbTable.id")->all() as $id) {
+            $ids[(int) $id] = (int) $id;
+        }
+        return array_values($ids);
+    }
+
+    /**
+     * The ids of the target organizations with their child organizations, or null
+     * when every user is a target: nothing set, organizations not used, or none of
+     * the set organizations left (sending to more people is safer than to nobody).
+     *
+     * @return array<int, int>|null
+     */
+    public static function targetOrganizationIds(): ?array
+    {
+        $ids = static::settingIds(System::safety_check_target_organizations());
+        if (count($ids) === 0 || !System::organization_available()) {
+            return null;
+        }
+
+        $result = [];
+        foreach (getModelName(SystemTableName::ORGANIZATION)::query()->whereIn('id', $ids)->get() as $organization) {
+            // the organization and its children ("upper" gives the children)
+            /** @var mixed $organization the organization model (OrganizationTrait) */
+            $organizationIds = $organization->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_UPPER);
+            foreach ((array) $organizationIds as $id) {
+                $result[(int) $id] = (int) $id;
+            }
+        }
+        if (count($result) === 0) {
+            Log::warning('safety check target organizations not found; sending to every user', ['organization_ids' => $ids]);
+            return null;
+        }
+        return array_values($result);
+    }
+
+    /**
+     * The view of the user table whose users are the targets, or null when not set
+     * (or the view is gone: then the view does not narrow the targets).
+     */
+    public static function targetView(): ?CustomView
+    {
+        // an empty select is saved as 0
+        $viewId = intval(System::safety_check_target_view());
+        if ($viewId <= 0) {
+            return null;
+        }
+        $userTable = CustomTable::getEloquent(SystemTableName::USER);
+        /** @var CustomView|null $view */
+        $view = CustomView::query()->where('id', $viewId)->first();
+        if (!$view || !$userTable || (int) $view->custom_table_id !== (int) $userTable->id || $view->view_kind_type == ViewKindType::AGGREGATE) {
+            Log::warning('safety check target view not found; not filtering by a view', ['view_id' => $viewId]);
+            return null;
+        }
+        return $view;
+    }
+
+    /**
+     * The views that can be chosen as 送信対象のビュー: the shared views of the user table
+     * that list users (not the aggregate ones).
+     *
+     * @return array<int|string, string> id => name
+     */
+    public static function targetViewOptions(): array
+    {
+        $userTable = CustomTable::getEloquent(SystemTableName::USER);
+        if (!$userTable) {
+            return [];
+        }
+        $options = [];
+        foreach (CustomView::query()
+            ->where('custom_table_id', $userTable->id)
+            ->where('view_type', ViewType::SYSTEM)
+            ->where('view_kind_type', '<>', ViewKindType::AGGREGATE)
+            ->orderBy('id')
+            ->get() as $view) {
+            /** @var CustomView $view */
+            $options[$view->id] = strval($view->view_view_name);
+        }
+        return $options;
+    }
+
+    /**
+     * @return array<int, int>
+     */
+    public static function excludedUserIds(): array
+    {
+        return static::settingIds(System::safety_check_excluded_users());
+    }
+
+    /**
+     * For the 新規送信 form: how many users are asked, and by which settings.
+     *
+     * @return array{count:int, settings:string}
+     */
+    public static function targetSummary(): array
+    {
+        $settings = [];
+        $orgIds = static::settingIds(System::safety_check_target_organizations());
+        if (count($orgIds) > 0 && System::organization_available()) {
+            $settings[] = exmtrans('safety.target_by_organizations', ['count' => count($orgIds)]);
+        }
+        $view = static::targetView();
+        if ($view) {
+            $settings[] = exmtrans('safety.target_by_view', ['name' => $view->view_view_name]);
+        }
+        $excluded = static::excludedUserIds();
+        if (count($excluded) > 0) {
+            $settings[] = exmtrans('safety.target_excluded', ['count' => count($excluded)]);
+        }
+        return [
+            'count' => count(static::targetUserIds()),
+            'settings' => count($settings) > 0 ? implode(exmtrans('common.separate_word'), $settings) : exmtrans('safety.target_all_users'),
+        ];
+    }
+
+    /**
+     * @param mixed $value the value of an array setting
+     * @return array<int, int>
+     */
+    protected static function settingIds($value): array
+    {
+        $values = is_array($value) ? $value : stringToArray($value);
+        $ids = [];
+        foreach ($values as $id) {
+            if (is_numeric($id)) {
+                $ids[(int) $id] = (int) $id;
+            }
+        }
+        return array_values($ids);
     }
 
     /**
