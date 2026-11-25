@@ -31,8 +31,8 @@ use Exceedone\Exment\Model\System;
  *
  * The config lists the columns the editor knows how to open:
  *
- *   - Select and SelectValtext (single value, no free input) and Yesno
- *     -> a picker
+ *   - Select and SelectValtext (single value, no free input), Yesno and
+ *     Boolean -> a picker
  *   - Text, Email, Url -> a text input
  *   - Integer, Decimal, Currency -> a number input; skipped when the
  *     column is computed by a calc formula, because a hand-typed value
@@ -84,6 +84,15 @@ class GridInlineEditor extends AbstractTool
      */
     public const LOCKED_MARKER = '<span class="exm-cell-locked" hidden></span>';
 
+    /**
+     * Body key an inline edit of one cell carries, on top of
+     * SCREEN_WRITE_KEY. Its value is the suuid of the view the grid shows
+     * (or 1 without one). ApiDataController refuses the write when the
+     * system setting or that view turned inline edit off (#2163). Bulk edit,
+     * "Set me as" and a kanban move do not send it.
+     */
+    public const INLINE_EDIT_KEY = '_grid_inline';
+
     /** @var CustomTable */
     protected $custom_table;
 
@@ -128,6 +137,27 @@ class GridInlineEditor extends AbstractTool
         return $custom_table instanceof CustomTable
             && $custom_table->enableEdit(true) === true
             && !self::isTrashedScope($custom_table);
+    }
+
+    /**
+     * Whether the settings allow editing a cell in place (#2163): the system
+     * setting "grid_inline_edit_available" and, when given, the view's own
+     * "inline_edit_enabled". The view can only turn it off further. Both are
+     * on by default.
+     *
+     * Separate from isEditableGrid() on purpose: that one also decides bulk
+     * edit, which these settings leave alone.
+     *
+     * @param CustomView|null $custom_view
+     * @return bool
+     */
+    public static function isInlineEditEnabled(?CustomView $custom_view = null): bool
+    {
+        if (!boolval(System::grid_inline_edit_available())) {
+            return false;
+        }
+
+        return !isset($custom_view) || boolval($custom_view->inline_edit_enabled);
     }
 
     /**
@@ -299,6 +329,18 @@ HTML;
             ];
         }
 
+        if ($type === ColumnType::BOOLEAN) {
+            // The two choices of the column, as its edit form switch offers
+            // them (#2183). Empty is not a state either: Boolean::saving()
+            // stores the second value for it.
+            return [
+                'type' => 'select',
+                'choices' => static::booleanChoices($custom_column),
+                'required' => true,
+                'label' => (string)$custom_column->column_view_name,
+            ];
+        }
+
         if (in_array($type, [ColumnType::TEXT, ColumnType::EMAIL, ColumnType::URL], true)) {
             $meta = [
                 'type' => 'text',
@@ -463,7 +505,7 @@ HTML;
             return !empty($options);
         }
 
-        if ($type === ColumnType::YESNO) {
+        if ($type === ColumnType::YESNO || $type === ColumnType::BOOLEAN) {
             return true;
         }
 
@@ -994,6 +1036,27 @@ HTML;
         }
 
         $type = $custom_view_column->column_item->getCustomColumn()->column_type;
-        return in_array($type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT, ColumnType::YESNO], true);
+        return in_array($type, [ColumnType::SELECT, ColumnType::SELECT_VALTEXT, ColumnType::YESNO, ColumnType::BOOLEAN], true);
+    }
+
+    /**
+     * The two choices of a "2値の選択" (boolean) column: the first value and
+     * its label, then the second.
+     *
+     * @param mixed $custom_column
+     * @return array<int, array{v: string, l: string}>
+     */
+    public static function booleanChoices($custom_column): array
+    {
+        return [
+            [
+                'v' => (string)$custom_column->getOption('true_value'),
+                'l' => (string)$custom_column->getOption('true_label'),
+            ],
+            [
+                'v' => (string)$custom_column->getOption('false_value'),
+                'l' => (string)$custom_column->getOption('false_label'),
+            ],
+        ];
     }
 }
