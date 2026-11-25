@@ -386,10 +386,12 @@ class McpServerTest extends ApiTestBase
         ];
         $this->assertSame(McpGuide::MEMBER_TOOLS, array_keys($memberArgs));
         $this->assertSame(array_keys(McpGuide::TOOL_SCOPES), array_merge(array_keys($args), array_keys($memberArgs)));
+        /** @var array<string, array<string, mixed>> $toolArgs */
+        $toolArgs = array_merge($args, $memberArgs);
         $all = UserApiKeys::readOnlyScopes();
         foreach (McpGuide::TOOL_SCOPES as $tool => $scope) {
             $token = $this->getUser1AccessToken(array_values(array_diff($all, [$scope])));
-            $denied = $this->tool($token, $tool, $args[$tool] ?? $memberArgs[$tool]);
+            $denied = $this->tool($token, $tool, $toolArgs[$tool] ?? []);
             $this->assertTrue($denied['isError'], "$tool without $scope");
             $this->assertStringContainsString('"' . $scope . '"', $denied['content'][0]['text'], "$tool names $scope");
         }
