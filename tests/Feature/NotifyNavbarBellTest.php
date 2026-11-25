@@ -64,7 +64,7 @@ class NotifyNavbarBellTest extends FeatureTestBase
     public function testTheUnreadOnesFirstThenTheReadOnesOfTheLastDays(): void
     {
         $unreadNew = $this->notification('unread new', false, 0);
-        $unreadOld = $this->notification('unread old', false, 20);
+        $this->notification('unread old', false, 20);
         $readLately = $this->notification('read lately', true, 2);
         $this->notification('read long ago', true, ApiController::NOTIFY_PAGE_READ_DAYS + 3);
         $this->notification('of somebody else', false, 0, LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_USER1)->base_user_id);
@@ -75,7 +75,6 @@ class NotifyNavbarBellTest extends FeatureTestBase
         $this->assertSame([false, false, true], array_column($bell['items'], 'read'));
         $this->assertSame(admin_urls('notify_navbar', $unreadNew->id), $bell['items'][0]['href']);
         $this->assertSame(admin_urls('notify_navbar', $readLately->id), $bell['items'][2]['href']);
-        $this->assertNotNull($unreadOld);
     }
 
     public function testAtMostTwentyAreListed(): void
