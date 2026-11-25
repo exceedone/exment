@@ -120,6 +120,9 @@ class Define
         'password_expiration_days' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
         'first_change_password' => ['type' => 'boolean', 'group' => 'login', 'default' => false],
         'password_history_cnt' => ['type' => 'int', 'default' => '0', 'group' => 'login'],
+        // a notice of a login from a new IP address (ISS00104)
+        'login_notify_new_ip' => ['type' => 'boolean', 'default' => '0', 'group' => 'login'],
+        'login_notify_new_ip_mail' => ['type' => 'boolean', 'default' => '0', 'group' => 'login'],
 
         'login_background_color' => ['type' => 'string', 'default' => '#d2d6de', 'group' => 'login'],
         'login_page_image' => ['type' => 'file', 'move' => 'system', 'group' => 'login'],
@@ -177,6 +180,10 @@ class Define
         'safety_check_max_bulletin_age_minutes' => ['type' => 'int', 'default' => '10', 'group' => 'safety_check'],
         'safety_check_resend_throttle_minutes' => ['type' => 'int', 'default' => '5', 'group' => 'safety_check'],
         'safety_check_answer_url_expire_days' => ['type' => 'int', 'default' => '7', 'group' => 'safety_check'],
+        // 送信対象 (GitHub #2180): empty is every user
+        'safety_check_target_organizations' => ['type' => 'array', 'default' => null, 'group' => 'safety_check'],
+        'safety_check_target_view' => ['type' => 'int', 'default' => null, 'group' => 'safety_check'],
+        'safety_check_excluded_users' => ['type' => 'array', 'default' => null, 'group' => 'safety_check'],
         'safety_check_last_feed_time' => ['type' => 'datetime'],
         // Comments written before this time ('Y-m-d H:i:s') are shown as the plain text they were
         // written as; later ones are shown as Markdown. Set once, by the migration that brings

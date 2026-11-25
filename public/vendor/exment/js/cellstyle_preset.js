@@ -424,9 +424,10 @@ var Exment;
             var $previews = $('[data-cellstyle-preview]').not('.exm-preset-bound');
             var $vcolors = $('[data-cellstyle-valuecolors]').not('.exm-preset-bound');
             var $icons = $('[data-cellstyle-iconpicker]').not('.exm-preset-bound');
+            var $colors = $('[data-cellstyle-colorpicker]').not('.exm-preset-bound');
             var $editors = $('[data-preset-modal]').not('.exm-preset-bound');
 
-            if (!$pickers.length && !$previews.length && !$vcolors.length && !$icons.length && !$editors.length) {
+            if (!$pickers.length && !$previews.length && !$vcolors.length && !$icons.length && !$colors.length && !$editors.length) {
                 return;
             }
 
@@ -446,6 +447,10 @@ var Exment;
 
             $icons.addClass('exm-preset-bound').each(function () {
                 CellStylePresetEvent.bindIconPicker($(this));
+            });
+
+            $colors.addClass('exm-preset-bound').each(function () {
+                CellStylePresetEvent.bindColorPicker($(this));
             });
 
             var endpoint = CellStylePresetEvent.endpoint();
@@ -855,6 +860,31 @@ var Exment;
          * text field stays underneath - it is still what gets posted, and an
          * icon outside the list below can still be written by hand.
          */
+        static bindColorPicker($input) {
+            var title = String($input.data('cellstyle-colorclear') || '');
+            var color = CellStylePresetEvent.color($input.val());
+            if (color && color.length === 4) {
+                color = '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+            }
+
+            // The same markup as the editor modal, so its handlers (swatch ->
+            // text, text -> swatch, clear) serve this field as well. The
+            // text stays the value; the swatch is a native input, which keeps
+            // the typed hex exactly and never rounds it.
+            var $box = $('<div>', { 'class': 'exm-preset-color' });
+            var $swatch = $('<input>', {
+                'type': 'color', 'class': 'exm-preset-color-swatch', 'tabindex': '-1',
+                'value': color || '#3c8dbc'
+            });
+            var $clear = $('<button>', {
+                'type': 'button', 'class': 'btn btn-default exm-preset-color-clear',
+                'title': title, 'html': '&times;'
+            });
+
+            $input.addClass('exm-preset-field').after($box);
+            $box.append($swatch).append($input).append($clear);
+        }
+
         static bindIconPicker($input) {
             var labels = $input.data('cellstyle-iconlabels') || {};
 

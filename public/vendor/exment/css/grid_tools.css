@@ -222,6 +222,20 @@
   white-space: nowrap;
 }
 
+/* Separator between the values of a multi-value column drawn as shapes
+   (tag, pill, badge, dot, lvl, avatar - #2159). The shapes already tell the
+   values apart, so the word is not shown; it stays in the markup because the
+   grouping and the "filter in this page" read the text of the cell. The
+   empty box is the gap between two shapes. */
+.exm-cell-sep {
+  display: inline-block;
+  width: 4px;
+  overflow: hidden;
+  font-size: 0;
+  line-height: 0;
+  vertical-align: middle;
+}
+
 .exm-cell-tag,
 .exm-cell-pill {
   display: inline-block;
