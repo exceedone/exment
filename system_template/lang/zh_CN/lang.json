@@ -586,6 +586,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "log_management",
+            "title": "日志管理"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "维护模式"
         }

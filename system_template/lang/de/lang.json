@@ -586,6 +586,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "log_management",
+            "title": "Protokollverwaltung"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Wartungsmodus"
         }

@@ -353,8 +353,9 @@ class ExmentServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
             \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
         });
-        // the record of the logins of the pages (ISS02839)
+        // the record of the logins of the pages, and the settings of the application log (ISS02839)
         \Exceedone\Exment\Services\LogManagement\LoginRecorder::register();
+        \Exceedone\Exment\Services\LogManagement\LogSettings::apply();
 
         // Perf: publishes() only feeds the `vendor:publish` console command; running it on
         // every web request is pure waste (matches open-admin-core's console-guarded publishing).
