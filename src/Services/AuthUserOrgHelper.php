@@ -347,19 +347,137 @@ class AuthUserOrgHelper
             return [];
         }
 
-        // get organization and ids
-        $orgsArray = static::getOrganizationTreeArray();
-
         if (!isset($targetUserId)) {
             $targetUserId = \Exment::getUserId();
         }
-
-        $results = [];
-        foreach ($orgsArray as $org) {
-            static::setJoinedOrganization($results, $org, $filterType, $targetUserId);
+        if (is_nullorempty($targetUserId)) {
+            return [];
         }
 
-        return collect($results)->pluck('id')->toArray();
+        // asked for each check of a permission: once for a request (ISS02880)
+        $key = Define::SYSTEM_KEY_SESSION_ORGANIZATION_TREE . '_ids_' . strval(JoinedOrgFilterType::getEnum($filterType, JoinedOrgFilterType::ALL)) . '_' . strval($targetUserId);
+        return System::requestSession($key, function () use ($filterType, $targetUserId) {
+            return static::organizationIdsOf($filterType, $targetUserId);
+        });
+    }
+
+    /**
+     * The ids of the organizations of a user, and of the ones above or below them: the same
+     * ids in the same order as the tree of all the organizations (getOrganizationTreeArray and
+     * setJoinedOrganization), from the links of the organizations (id and parent) and the
+     * organizations of this user only. The whole tree copies every parent and child, with their
+     * users, into each organization: a third of a small API call (ISS02880).
+     *
+     * @param mixed $filterType
+     * @param mixed $targetUserId
+     * @return array<int, int>
+     */
+    protected static function organizationIdsOf($filterType, $targetUserId): array
+    {
+        [$orgs, $idIndex, $childrenIndex] = static::getOrganizationLinks();
+        if (count($orgs) === 0) {
+            return [];
+        }
+
+        // the organizations of the user (a user that is not deleted, as the "users" of the tree)
+        $userModelname = getModelName(SystemTableName::USER);
+        $userTable = getDBTableName(SystemTableName::USER);
+        $pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+        $joined = [];
+        foreach ($userModelname::withoutGlobalScope(CustomValueModelScope::class)
+            ->join($pivot, "$pivot.child_id", '=', "$userTable.id")
+            ->where("$userTable.id", $targetUserId)
+            ->toBase()
+            ->pluck("$pivot.parent_id") as $orgId) {
+            $joined[(string)$orgId] = true;
+        }
+        if (count($joined) === 0) {
+            return [];
+        }
+
+        $downer = JoinedOrgFilterType::isGetDowner($filterType);
+        $upper = JoinedOrgFilterType::isGetUpper($filterType);
+        $results = [];
+        foreach ($orgs as $position => $org) {
+            if (!isset($joined[(string)$org['id']])) {
+                continue;
+            }
+            $results[] = $org['id'];
+            // (as setJoinedOrganization: "downer" adds the parents, "upper" the children)
+            if ($downer) {
+                $target = $org;
+                $visited = [];
+                while (isset($target['parent']) && $org['id'] != $target['parent']) {
+                    $parentPosition = $idIndex[(string)$target['parent']] ?? null;
+                    if (is_null($parentPosition) || isset($visited[$parentPosition])) {
+                        break;
+                    }
+                    $visited[$parentPosition] = true;
+                    $target = $orgs[$parentPosition];
+                    $results[] = $target['id'];
+                }
+            }
+            if ($upper) {
+                $visited = [];
+                static::childIds($results, $org['id'], $org['id'], $orgs, $childrenIndex, $visited);
+            }
+        }
+        return $results;
+    }
+
+    /**
+     * The children of an organization and their children, in the order of children().
+     *
+     * @param array<int, int> $results
+     * @param int $rootId
+     * @param int $targetId
+     * @param array<int, array{id: int, parent: string|null}> $orgs
+     * @param array<string, array<int>> $childrenIndex
+     * @param array<int, bool> $visited
+     */
+    protected static function childIds(array &$results, $rootId, $targetId, array $orgs, array $childrenIndex, array &$visited): void
+    {
+        foreach ($childrenIndex[(string)$targetId] ?? [] as $position) {
+            $child = $orgs[$position];
+            if ($rootId == $child['id'] || isset($visited[$position])) {
+                continue;
+            }
+            $visited[$position] = true;
+            $results[] = $child['id'];
+            static::childIds($results, $rootId, $child['id'], $orgs, $childrenIndex, $visited);
+        }
+    }
+
+    /**
+     * The organizations as [id, parent] in the order of the tree, with the indexes: id => first
+     * position, parent id => the positions of the children. Once for a request.
+     *
+     * @return array{0: array<int, array{id: int, parent: string|null}>, 1: array<string, int>, 2: array<string, array<int>>}
+     */
+    protected static function getOrganizationLinks(): array
+    {
+        return System::requestSession(Define::SYSTEM_KEY_SESSION_ORGANIZATION_TREE . '_links', function () {
+            $modelname = getModelName(SystemTableName::ORGANIZATION);
+            $indexName = $modelname::getParentOrgIndexName();
+
+            $orgs = [];
+            foreach ($modelname::withoutGlobalScopes([CustomValueModelScope::class])->toBase()->get(['id', $indexName]) as $row) {
+                $row = (array)$row;
+                $parent = $row[$indexName] ?? null;
+                $orgs[] = ['id' => (int)$row['id'], 'parent' => is_scalar($parent) ? (string)$parent : null];
+            }
+            $idIndex = [];
+            $childrenIndex = [];
+            foreach ($orgs as $i => $o) {
+                if (!array_key_exists((string)$o['id'], $idIndex)) {
+                    $idIndex[(string)$o['id']] = $i;
+                }
+                if (isset($o['parent'])) {
+                    $childrenIndex[$o['parent']][] = $i;
+                }
+            }
+            return [$orgs, $idIndex, $childrenIndex];
+        });
     }
 
     /**
