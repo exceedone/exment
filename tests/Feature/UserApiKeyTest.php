@@ -123,9 +123,71 @@ class UserApiKeyTest extends ApiTestBase
         $this->getWithKey($plain, ['me'])->assertStatus(200)->assertJsonFragment(['id' => 2]);
 
         $key->refresh();
-        $this->assertSame(1 + 1, $key->use_count);
-        $this->assertNotNull($key->last_used_at);
-        $this->assertSame('127.0.0.1', $key->last_used_ip);
+        $usage = UserApiKeys::usageOf($key);
+        $this->assertSame(1 + 1, $usage['use_count']);
+        $this->assertNotNull($usage['last_used_at']);
+        $this->assertSame('127.0.0.1', $usage['last_used_ip']);
+    }
+
+    /**
+     * The use of a key is written at most once in EXMENT_API_KEY_TOUCH_SECONDS; the pages
+     * show the same as when every call writes (ISS02885).
+     */
+    public function testUseIsWrittenAtMostOnceInAWhile(): void
+    {
+        $start = Carbon::now()->startOfMinute();
+        Carbon::setTestNow($start);
+        try {
+            // every call writes: what the pages must show
+            config(['exment.api_key_touch_seconds' => 0]);
+            [$every, $everyPlain] = $this->makeKey();
+            config(['exment.api_key_touch_seconds' => 300]);
+            [$key, $plain] = $this->makeKey();
+
+            $writes = 0;
+            \DB::listen(function ($query) use (&$writes, $key) {
+                if (stripos($query->sql, 'update') === 0 && str_contains($query->sql, 'use_count') && in_array($key->id, $query->bindings, true)) {
+                    $writes++;
+                }
+            });
+
+            foreach ([0, 10, 20, 299] as $i => $second) {
+                Carbon::setTestNow($start->copy()->addSeconds($second));
+                config(['exment.api_key_touch_seconds' => 0]);
+                $this->getWithKey($everyPlain, ['me'])->assertStatus(200);
+                config(['exment.api_key_touch_seconds' => 300]);
+                $this->getWithKey($plain, ['me'])->assertStatus(200);
+
+                $this->assertSameUsage($every, $key);
+            }
+            // the first call writes, the three after it only count
+            $this->assertSame(1, $writes);
+            $this->assertSame(1, $key->refresh()->use_count);
+
+            // after the time, the next call writes them all
+            Carbon::setTestNow($start->copy()->addSeconds(301));
+            config(['exment.api_key_touch_seconds' => 0]);
+            $this->getWithKey($everyPlain, ['me'])->assertStatus(200);
+            config(['exment.api_key_touch_seconds' => 300]);
+            $this->getWithKey($plain, ['me'])->assertStatus(200);
+            $this->assertSame(2, $writes);
+            $this->assertSame(5, $key->refresh()->use_count);
+            $this->assertSameUsage($every, $key);
+        } finally {
+            Carbon::setTestNow();
+        }
+    }
+
+    /**
+     * The use as the pages show it is the same for both keys.
+     */
+    protected function assertSameUsage(UserApiKey $every, UserApiKey $key): void
+    {
+        $a = UserApiKeys::usageOf($every->refresh());
+        $b = UserApiKeys::usageOf($key->refresh());
+        $this->assertSame($a['use_count'], $b['use_count']);
+        $this->assertSame($a['last_used_ip'], $b['last_used_ip']);
+        $this->assertSame($a['last_used_at']?->format('Y-m-d H:i:s'), $b['last_used_at']?->format('Y-m-d H:i:s'));
     }
 
     public function testTheKeyIsKeptOnlyAsAHash(): void
