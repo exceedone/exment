@@ -713,6 +713,8 @@ return [
                 'explain' => 'Der Schlüssel für die Verschlüsselung und die Signierung der Sitzung. Jede Website benötigt einen eigenen.',
                 'warning' => 'APP_KEY fehlt oder ist noch ein Beispielwert.',
                 'fix' => 'Führen Sie php artisan key:generate auf dem Server aus. Auf einer bereits genutzten Website macht ein neuer Schlüssel verschlüsselt gespeicherte Werte (Passwort des Mailservers...) unlesbar: Legen Sie diese erneut fest.',
+                'shipped_warning' => 'APP_KEY ist noch der Schlüssel aus dem Download-ZIP.',
+                'shipped_fix' => 'Führen Sie php artisan key:generate auf dem Server aus. Danach werden alle abgemeldet und melden sich erneut an. Verschlüsselt gespeicherte Werte (Passwort des Mailservers...) werden unlesbar: Legen Sie diese erneut fest.',
             ],
             'app_env' => [
                 'label' => 'Umgebung (APP_ENV)',
