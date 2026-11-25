@@ -1397,6 +1397,14 @@ return [
     'mcp_calls_per_minute' => env('EXMENT_MCP_CALLS_PER_MINUTE', 60),
 
     /*
+    | When the notifications of a saved record are made (ISS02906): queue (by the queue worker),
+    | after_response (after the answer is sent, in the same process) or sync (while the save waits,
+    | as before 7.3). Not set: queue when QUEUE_CONNECTION is not sync, else after_response in a
+    | request and sync in a command.
+    */
+    'notify_mode' => env('EXMENT_NOTIFY_MODE', 'auto'),
+
+    /*
     |--------------------------------------------------------------------------
     | Show Select field with group option
     |--------------------------------------------------------------------------
