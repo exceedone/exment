@@ -15,6 +15,28 @@
 
     <div class="callout callout-info"><p>{{ exmtrans('api_key.help') }}</p></div>
 
+    {{-- The MCP server (ISS02879): the settings of Claude Code / Claude Desktop. With the key
+         only on the answer that made it (shown once, as the key). --}}
+    <div class="box card exm-api-key-mcp">
+        <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('api_key.mcp.header') }}</h3></div>
+        <div class="box-body">
+            @if (!$mcp['allowed'])
+                <div class="callout callout-warning"><p>{{ exmtrans('api_key.mcp.off') }}</p></div>
+            @endif
+            <p>{{ exmtrans('api_key.mcp.help') }}</p>
+            <p><strong>{{ exmtrans('api_key.mcp.url') }}</strong> <code>{{ $mcp['url'] }}</code></p>
+            @if (!$mcp['for_new_key'])
+                <p class="text-muted">{{ exmtrans('api_key.mcp.placeholder_help', implode(', ', $mcp['scopes'])) }}</p>
+            @else
+                <p><strong>{{ exmtrans('api_key.mcp.with_key') }}</strong></p>
+            @endif
+            <p style="margin-bottom:2px"><strong>Claude Code</strong></p>
+            <textarea class="form-control" rows="2" readonly onfocus="this.select()" style="font-family:monospace">{{ $mcp['configs']['claude_code'] }}</textarea>
+            <p style="margin:10px 0 2px"><strong>Claude Desktop</strong> <span class="text-muted">{{ exmtrans('api_key.mcp.desktop_help') }}</span></p>
+            <textarea class="form-control" rows="11" readonly onfocus="this.select()" style="font-family:monospace">{{ $mcp['configs']['claude_desktop'] }}</textarea>
+        </div>
+    </div>
+
     <div class="box card">
         <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('api_key.my_keys') }}</h3></div>
         <div class="box-body">
@@ -37,13 +59,14 @@
                     <label class="col-sm-2 control-label">{{ exmtrans('api_key.scopes') }}</label>
                     <div class="col-sm-8">
                         <label class="radio-inline"><input type="radio" name="scope_type" value="read_only" {{ ($old['scope_type'] ?? 'read_only') !== 'custom' ? 'checked' : '' }}> {{ exmtrans('api_key.read_only') }}</label>
+                        <label class="radio-inline"><input type="radio" name="scope_type" value="mcp" {{ ($old['scope_type'] ?? '') === 'mcp' ? 'checked' : '' }}> {{ exmtrans('api_key.mcp.scope_type') }}</label>
                         <label class="radio-inline"><input type="radio" name="scope_type" value="custom" {{ ($old['scope_type'] ?? '') === 'custom' ? 'checked' : '' }}> {{ exmtrans('api_key.custom_scopes') }}</label>
                         <div style="margin-top:4px">
                         @foreach ($scopes as $scope)
                             <label class="checkbox-inline" style="margin-left:0;margin-right:10px"><input type="checkbox" name="scopes[]" value="{{ $scope }}" {{ in_array($scope, (array)($old['scopes'] ?? []), true) ? 'checked' : '' }}> {{ $scope }}</label>
                         @endforeach
                         </div>
-                        <span class="help-block">{{ exmtrans('api_key.scopes_help', implode(', ', $read_only_scopes)) }}</span>
+                        <span class="help-block">{{ exmtrans('api_key.scopes_help', implode(', ', $read_only_scopes)) }} {{ exmtrans('api_key.mcp.scope_type_help', implode(', ', $mcp['scopes'])) }}</span>
                     </div>
                 </div>
                 <div class="form-group">
