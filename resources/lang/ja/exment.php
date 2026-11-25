@@ -5413,6 +5413,8 @@ IPアドレス: :ip
         'setting' => [
             'login_log_days' => 'ログインの記録を残す日数',
             'permission_change_days' => '役割グループの変更の履歴を残す日数',
+            'data_access_days' => 'データの読み書きを残す日数',
+            'data_access_daily_days' => 'データの読み書きの日ごとの数を残す日数',
             'app_log_days' => 'アプリのログ（日ごとのファイル）を残す日数',
             'days_help' => '空のとき :default 日。0 のとき、消すまで残します。',
             'app_level' => 'アプリのログの重さ',
@@ -5445,6 +5447,8 @@ IPアドレス: :ip
             'operation_log' => '操作の記録',
             'login_log' => 'ログインの記録',
             'permission_change' => '役割グループの変更の履歴',
+            'data_access' => 'データの読み書き',
+            'data_access_daily' => 'データの読み書き（日ごとの数）',
             'app_log' => 'アプリのログ',
         ],
     ],

@@ -216,6 +216,17 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
+        // who listed or exported the table (ISS02905): one row a list, not one a record shown
+        if (!$modalframe) {
+            \Exceedone\Exment\Services\LogManagement\DataAccessLogs::listed(
+                $this->custom_table,
+                isset($this->custom_view) ? intval($this->custom_view->id) : null,
+                !is_nullorempty($request->get(Exporter::$queryName)) && !GridBase::isImportTemplateRequest($request)
+                    ? \Exceedone\Exment\Model\DataAccessLog::KIND_EXPORT
+                    : \Exceedone\Exment\Model\DataAccessLog::KIND_LIST
+            );
+        }
+
         if (!$modalframe || $modal) {
             Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
                 'is_modal' => $modal,
@@ -846,6 +857,9 @@ class CustomValueController extends AdminControllerTableBase
         if (($response = $this->firstFlow($request, CustomValuePageType::SHOW, $id)) instanceof Response) {
             return $response;
         }
+
+        // who read it (ISS02905)
+        \Exceedone\Exment\Services\LogManagement\DataAccessLogs::read($this->custom_table, $id);
 
         $custom_value = $this->custom_table->getValueModel($id);
 
