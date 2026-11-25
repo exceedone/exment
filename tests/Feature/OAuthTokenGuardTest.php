@@ -62,7 +62,8 @@ class OAuthTokenGuardTest extends ApiTestBase
         // the right password is refused too until the time is over
         $response = $this->getPasswordToken('admin', 'adminadmin');
         $this->assertNotSame(200, $response->getStatusCode());
-        $this->assertSame(exmtrans('login.throttle', 60), $response->json('message'));
+        // league/oauth2-server 9 (Passport 13) answers the text in "error_description" only (8 copied it to "message")
+        $this->assertSame(exmtrans('login.throttle', 60), $response->json('error_description') ?? $response->json('message'));
     }
 
     public function testTheRightPasswordGivesAToken(): void

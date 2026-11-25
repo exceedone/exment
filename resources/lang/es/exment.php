@@ -4499,6 +4499,8 @@ return [
         'help' => [
             'redirect' => 'Introduzca la URL a la que se redirigirá después de la autenticación.',
             'client_secret' => 'Si desea mostrar la clave, haga clic en el icono de la izquierda.',
+            'client_secret_once' => 'El secreto del cliente solo se muestra ahora, justo después de crearlo. Cópielo: no podrá volver a mostrarse una vez que salga de esta página.',
+            'client_secret_hidden' => 'El secreto del cliente se guarda con hash y no se puede mostrar. Si lo pierde, cree un cliente nuevo.',
             'api_key' => 'Clave de API utilizada para la autenticación.',
             'executed_user' => 'La API se ejecuta como este usuario.',
         ],

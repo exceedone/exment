@@ -85,10 +85,18 @@ class ApiKeyGrant extends AbstractGrant
         if ($login_user instanceof UserEntityInterface === false) {
             $this->getEmitter()->emit(new RequestEvent(RequestEvent::USER_AUTHENTICATION_FAILED, $request));
 
-            throw OAuthServerException::invalidCredentials();
+            throw static::invalidCredentials();
         }
 
         return $login_user;
+    }
+
+    /**
+     * league/oauth2-server 9 answers wrong credentials with 400; keep v7's 401 (as PasswordGrant).
+     */
+    protected static function invalidCredentials(): OAuthServerException
+    {
+        return new OAuthServerException('The user credentials were incorrect.', 6, 'invalid_grant', 401);
     }
 
     /**
@@ -110,12 +118,12 @@ class ApiKeyGrant extends AbstractGrant
         $api_key = ApiKey::where('key', $api_key)->first();
         // @phpstan-ignore-next-line
         if (is_null($api_key) || is_null($api_key->client)) {
-            throw OAuthServerException::invalidCredentials();
+            throw static::invalidCredentials();
         }
         // the key is of the client that asks for the token (its id and secret
         // were checked); a key of another client is not taken
         if (isset($client) && !isMatchString($api_key->client_id, $client->getIdentifier())) {
-            throw OAuthServerException::invalidCredentials();
+            throw static::invalidCredentials();
         }
 
         // this "user_id" is user table's id. not login user tbale's id.

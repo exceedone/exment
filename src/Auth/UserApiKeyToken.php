@@ -26,7 +26,7 @@ class UserApiKeyToken extends TransientToken
      * @param string $scope
      * @return bool
      */
-    public function can($scope)
+    public function can(string $scope): bool
     {
         return in_array($scope, (array)$this->key->scopes, true);
     }
@@ -35,7 +35,7 @@ class UserApiKeyToken extends TransientToken
      * @param string $scope
      * @return bool
      */
-    public function cant($scope)
+    public function cant(string $scope): bool
     {
         return !$this->can($scope);
     }

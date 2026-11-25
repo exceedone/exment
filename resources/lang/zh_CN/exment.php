@@ -4499,6 +4499,8 @@ return [
         'help' => [
             'redirect' => '请输入认证后重定向的 URL。',
             'client_secret' => '如需显示密钥，请点击左侧图标。',
+            'client_secret_once' => '客户端密钥仅在创建后立即于此页面显示。请务必复制保存，离开此页面后将无法再次显示。',
+            'client_secret_hidden' => '客户端密钥以哈希方式保存，无法显示。如遗失，请创建新的客户端。',
             'api_key' => '用于认证的 API 密钥。',
             'executed_user' => 'API 将以此用户身份执行。',
         ],

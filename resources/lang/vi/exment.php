@@ -4499,6 +4499,8 @@ return [
         'help' => [
             'redirect' => 'Vui lòng nhập URL sẽ chuyển hướng đến sau khi xác thực.',
             'client_secret' => 'Nếu muốn hiển thị khóa, vui lòng nhấp vào biểu tượng bên trái.',
+            'client_secret_once' => 'Client Secret chỉ hiển thị trên màn hình này ngay sau khi tạo. Hãy sao chép lại: sau khi rời trang sẽ không thể hiển thị lại.',
+            'client_secret_hidden' => 'Client Secret được lưu dưới dạng mã hóa nên không thể hiển thị. Nếu bị mất, vui lòng tạo client mới.',
             'api_key' => 'Khóa API dùng để xác thực.',
             'executed_user' => 'API sẽ được thực hiện với tư cách người dùng này.',
         ],

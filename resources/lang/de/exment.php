@@ -4499,6 +4499,8 @@ return [
         'help' => [
             'redirect' => 'Geben Sie die URL ein, zu der nach der Authentifizierung weitergeleitet wird.',
             'client_secret' => 'Klicken Sie auf das Symbol links, um den Schlüssel anzuzeigen.',
+            'client_secret_once' => 'Das Client-Secret wird nur jetzt, direkt nach der Erstellung, angezeigt. Kopieren Sie es: Nach dem Verlassen dieser Seite kann es nicht erneut angezeigt werden.',
+            'client_secret_hidden' => 'Das Client-Secret wird gehasht gespeichert und kann nicht angezeigt werden. Falls es verloren geht, erstellen Sie einen neuen Client.',
             'api_key' => 'Für die Authentifizierung verwendeter API-Schlüssel.',
             'executed_user' => 'Die API wird als dieser Benutzer ausgeführt.',
         ],
