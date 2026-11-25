@@ -409,7 +409,9 @@ class McpServerTest extends ApiTestBase
      */
     public function testSearchReadsOnWithTheCursor(): void
     {
-        $key = $this->key();
+        // the administrator: the search with words as Api2Test::testDataQueryWithPage (more than 3 pages)
+        $this->setFeatures([Features::MCP => ['enabled' => true, 'role_groups' => null], Features::API_KEYS => ['enabled' => true, 'role_groups' => null]]);
+        $key = $this->key(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
         config(['exment.mcp_max_rows' => 100]);
 
         foreach ([['table' => 'custom_value_edit'], ['table' => 'custom_value_access_all', 'q' => 'index']] as $args) {
