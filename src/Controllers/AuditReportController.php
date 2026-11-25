@@ -4,26 +4,32 @@ namespace Exceedone\Exment\Controllers;
 
 use Carbon\Carbon;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Model\AuditReportFile;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\AuditReport\AuditReport;
+use Exceedone\Exment\Services\AuditReport\AuditReportStore;
 use Exceedone\Exment\Services\LogManagement\LogPrivacy;
 use Exceedone\Exment\Services\LogManagement\LogSettings;
 use ExmentAdminCore\Admin\Auth\Database\OperationLog as OperationLogModel;
 use ExmentAdminCore\Admin\Layout\Content;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 
 /**
  * The IT audit report (ISS02840), from the page of the log management: the accounts, the
- * administrators, the logins, the API keys and what is given outside, for a period; on the page,
- * as CSV (a section) and as PDF (all). The system administrators and the role groups with "Audit".
- * A CSV or a PDF made is kept in the operation log.
+ * administrators, the role groups, the logins, the API keys and what is given outside, for a
+ * period; on the page, as CSV (a section) and as PDF (all, its SHA-256 recorded). The reports the
+ * job makes each month or quarter, and the check of a PDF against the reports made. The system
+ * administrators and the role groups with "Audit"; the settings, the system administrators. A CSV
+ * or a PDF given is kept in the operation log.
  */
 class AuditReportController extends AdminControllerBase
 {
     /** The rows of a section on the page; the CSV has all of them. */
     public const PAGE_ROWS = 500;
 
-    /** The rows of a section in the PDF. */
-    public const PDF_ROWS = 2000;
+    /** The made reports listed on the page. */
+    public const FILE_ROWS = 50;
 
     public function __construct()
     {
@@ -35,6 +41,12 @@ class AuditReportController extends AdminControllerBase
         if (!Permission::canAudit()) {
             abort(403);
         }
+    }
+
+    protected static function isSystem(): bool
+    {
+        $user = \Exment::user();
+        return isset($user) && boolval($user->hasPermission(Permission::SYSTEM));
     }
 
     /**
@@ -50,14 +62,29 @@ class AuditReportController extends AdminControllerBase
         $content->row(view('exment::log_management.audit', [
             'report' => $report,
             'sections' => $report->sections(),
-            'since' => $report->loginLogSince(),
+            'loginLogNote' => AuditReportStore::loginLogNote($report),
             'ipMode' => LogPrivacy::ipMode(),
             'pageRows' => static::PAGE_ROWS,
+            'isSystem' => static::isSystem(),
+            'schedule' => AuditReportStore::schedule(),
+            'schedules' => AuditReportStore::SCHEDULES,
+            'mail' => boolval(System::audit_report_mail()),
+            'files' => AuditReportFile::tableExists() ? AuditReportFile::query()->orderByDesc('id')->limit(static::FILE_ROWS)->get() : collect(),
             'url' => admin_urls('log_management', 'audit'),
             'logUrl' => admin_url('log_management'),
+            'fileUrl' => admin_urls('log_management', 'audit', 'files'),
+            'settingUrl' => admin_urls('log_management', 'audit', 'setting'),
+            'verifyUrl' => admin_urls('log_management', 'audit', 'verify'),
             'pdfUrl' => admin_urls_query('log_management', 'audit.pdf', $query),
             'csvUrl' => function (string $section) use ($query): string {
                 return admin_urls_query('log_management', 'audit', $section . '.csv', $query);
+            },
+            'userName' => function ($userId): string {
+                if (is_nullorempty($userId)) {
+                    return strval(exmtrans('audit_report.made_by_job'));
+                }
+                $user = getModelName(\Exceedone\Exment\Enums\SystemTableName::USER)::withTrashed()->find($userId);
+                return isset($user) ? trim(strval(array_get($user->value ?? [], 'user_code')) . ' ' . strval(array_get($user->value ?? [], 'user_name'))) : '#' . strval($userId);
             },
         ]));
         return $content;
@@ -95,7 +122,7 @@ class AuditReportController extends AdminControllerBase
     }
 
     /**
-     * The whole report as PDF.
+     * The whole report as PDF; its SHA-256 is recorded (and given in a header).
      *
      * @return \Illuminate\Http\Response
      */
@@ -104,14 +131,81 @@ class AuditReportController extends AdminControllerBase
         static::denyUnlessAudit();
         $report = $this->report($request);
         $this->logExport($request);
-        $body = $this->makePdf($report);
+        [$body] = AuditReportStore::make($report, AuditReportFile::SOURCE_PAGE, \Exment::user());
         $name = 'audit_report_' . $report->from()->format('Ymd') . '-' . $report->to()->format('Ymd') . '.pdf';
 
         return response($body, 200, [
             'Content-Type' => 'application/pdf',
             'Content-Disposition' => 'attachment; filename="' . $name . '"',
             'X-Content-Type-Options' => 'nosniff',
+            'X-Content-SHA256' => hash('sha256', $body),
         ]);
+    }
+
+    /**
+     * A report the job made, kept on the server.
+     *
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse
+     */
+    public function file(Request $request, string $id)
+    {
+        static::denyUnlessAudit();
+        $record = AuditReportFile::tableExists() ? AuditReportFile::query()->find($id) : null;
+        $path = $record instanceof AuditReportFile ? AuditReportStore::path($record) : null;
+        if (is_null($path)) {
+            abort(404);
+        }
+        $this->logExport($request);
+        return response()->download($path, basename($path), ['Content-Type' => 'application/pdf', 'X-Content-Type-Options' => 'nosniff']);
+    }
+
+    /**
+     * Check a PDF against the reports made: the same SHA-256, the file was not changed.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function verify(Request $request)
+    {
+        static::denyUnlessAudit();
+        $file = $request->file('report');
+        if (!$file instanceof UploadedFile || !$file->isValid()) {
+            admin_toastr(exmtrans('audit_report.verify_none'), 'error');
+            return redirect()->to(admin_urls('log_management', 'audit'));
+        }
+        $record = AuditReportStore::findByHash(strval(hash_file('sha256', strval($file->getRealPath()))));
+        if (isset($record)) {
+            admin_toastr(exmtrans('audit_report.verify_ok', [
+                'from' => $record->period_from->format('Y-m-d'),
+                'to' => $record->period_to->format('Y-m-d'),
+                'made_at' => optional($record->created_at)->format('Y-m-d H:i'),
+            ]));
+        } else {
+            admin_toastr(exmtrans('audit_report.verify_ng'), 'error');
+        }
+        return redirect()->to(admin_urls('log_management', 'audit'));
+    }
+
+    /**
+     * The settings of the reports the job makes (system administrators).
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function postSetting(Request $request)
+    {
+        if (!static::isSystem()) {
+            abort(403);
+        }
+        $validator = \Validator::make($request->all(), [
+            'audit_report_schedule' => 'required|in:' . implode(',', AuditReportStore::SCHEDULES),
+        ]);
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
+        }
+        System::audit_report_schedule(strval($request->get('audit_report_schedule')));
+        System::audit_report_mail(boolval($request->get('audit_report_mail')));
+        System::clearCache();
+        admin_toastr(trans('admin.save_succeeded'));
+        return redirect()->to(admin_urls('log_management', 'audit'));
     }
 
     /**
@@ -120,82 +214,6 @@ class AuditReportController extends AdminControllerBase
     public static function csvCell(string $value): string
     {
         return preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'" . $value : $value;
-    }
-
-    protected function makePdf(AuditReport $report): string
-    {
-        $pdf = new \TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
-        $pdf->SetCreator('Exment');
-        $pdf->SetTitle(strval(exmtrans('audit_report.header')));
-        $pdf->setPrintHeader(false);
-        $pdf->setPrintFooter(true);
-        $pdf->SetMargins(10, 10, 10);
-        $pdf->SetAutoPageBreak(true, 12);
-        $pdf->SetFont(static::pdfFont(), '', 8);
-        $pdf->AddPage();
-
-        $user = \Exment::user();
-        $html = '<h1>' . e(exmtrans('audit_report.header')) . '</h1>'
-            . '<p>' . e(exmtrans('audit_report.period')) . ': ' . e($report->from()->format('Y-m-d')) . ' - ' . e($report->to()->format('Y-m-d'))
-            . '<br>' . e(exmtrans('audit_report.made_at')) . ': ' . e(Carbon::now()->format('Y-m-d H:i'))
-            . (isset($user) ? '<br>' . e(exmtrans('audit_report.made_by')) . ': ' . e(strval($user->user_code)) . ' ' . e(strval($user->user_name)) : '')
-            . '<br>' . e(static::loginLogNote($report))
-            . '</p>';
-        $pdf->writeHTML($html);
-
-        foreach ($report->sections() as $section) {
-            $html = '<h2>' . e($section['title']) . '</h2>';
-            if (isset($section['note'])) {
-                $html .= '<p>' . e($section['note']) . '</p>';
-            }
-            if (count($section['rows']) === 0) {
-                $html .= '<p>' . e(exmtrans('audit_report.none')) . '</p>';
-                $pdf->writeHTML($html);
-                continue;
-            }
-            $html .= '<table border="0.3" cellpadding="2"><thead><tr style="background-color:#eeeeee;">';
-            foreach ($section['columns'] as $label) {
-                $html .= '<th>' . e($label) . '</th>';
-            }
-            $html .= '</tr></thead><tbody>';
-            foreach (array_slice($section['rows'], 0, static::PDF_ROWS) as $row) {
-                $html .= '<tr nobr="true">';
-                foreach ($row as $cell) {
-                    $html .= '<td>' . e($cell) . '</td>';
-                }
-                $html .= '</tr>';
-            }
-            $html .= '</tbody></table>';
-            if (count($section['rows']) > static::PDF_ROWS) {
-                $html .= '<p>' . e(exmtrans('audit_report.more_in_csv', ['count' => static::PDF_ROWS, 'total' => count($section['rows'])])) . '</p>';
-            }
-            $pdf->writeHTML($html);
-        }
-        return strval($pdf->Output('', 'S'));
-    }
-
-    /**
-     * A font of TCPDF with the letters of the language (and the Latin ones).
-     */
-    protected static function pdfFont(): string
-    {
-        switch (\App::getLocale()) {
-            case 'vi':
-                return 'dejavusans';
-            case 'ko':
-                return 'cid0kr';
-            case 'zh_CN':
-                return 'cid0cs';
-        }
-        return 'cid0jp';
-    }
-
-    public static function loginLogNote(AuditReport $report): string
-    {
-        $since = $report->loginLogSince();
-        return isset($since)
-            ? strval(exmtrans('audit_report.login_log_since', ['date' => $since->format('Y-m-d')]))
-            : strval(exmtrans('audit_report.login_log_none'));
     }
 
     protected function report(Request $request): AuditReport
@@ -234,7 +252,7 @@ class AuditReportController extends AdminControllerBase
     }
 
     /**
-     * Keep a CSV or a PDF made in the operation log, also when it keeps only the changes.
+     * Keep a CSV or a PDF given in the operation log, also when it keeps only the changes.
      */
     protected function logExport(Request $request): void
     {
