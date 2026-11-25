@@ -439,6 +439,15 @@ class ApiDataController extends AdminControllerTableBase
             return abortJson(403, $code);
         }
 
+        // An inline edit of one cell, when the system setting or the view
+        // turned inline edit off (#2163). Only the list hides the editor
+        // otherwise; this keeps a page drawn before the change, or a hand-made
+        // request of the same shape, from writing anyway.
+        if ($screenWrite && $request->has(GridInlineEditor::INLINE_EDIT_KEY)
+            && !GridInlineEditor::isInlineEditEnabled($this->findInlineEditView($request->get(GridInlineEditor::INLINE_EDIT_KEY)))) {
+            return abortJson(403, exmtrans('common.grid_inline_disabled'), ErrorCode::PERMISSION_DENY());
+        }
+
         if ($screenWrite && ($response = $this->validateScreenWrite($request, $custom_value)) instanceof Response) {
             return $response;
         }
@@ -447,6 +456,26 @@ class ApiDataController extends AdminControllerTableBase
         }
 
         return $this->saveData($request, $custom_value);
+    }
+
+    /**
+     * The view an inline edit names (GridInlineEditor::INLINE_EDIT_KEY), when
+     * it is a view of this table. Anything else is read as no view: then only
+     * the system setting decides.
+     *
+     * @param mixed $view_suuid
+     * @return CustomView|null
+     */
+    protected function findInlineEditView($view_suuid): ?CustomView
+    {
+        if (!is_string($view_suuid) || is_nullorempty($view_suuid)) {
+            return null;
+        }
+        $custom_view = CustomView::findBySuuid($view_suuid);
+        if (!isset($custom_view) || $custom_view->custom_table_id != $this->custom_table->id) {
+            return null;
+        }
+        return $custom_view;
     }
 
     /**

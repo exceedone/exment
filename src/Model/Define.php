@@ -84,6 +84,8 @@ class Define
         'allowed_locales' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
         // the language of the browser for a user who has not chosen one (ISS02835). On by default
         'locale_from_browser' => ['type' => 'boolean', 'default' => '1', 'group' => 'advanced'],
+        // inline edit of the data list (#2163). On by default, as before
+        'grid_inline_edit_available' => ['type' => 'boolean', 'default' => '1', 'group' => 'advanced'],
 
         // name is "flg", but array is OK.
         'grid_filter_disable_flg' => ['type' => 'array', 'default' => 'comment', 'group' => 'advanced'] ,

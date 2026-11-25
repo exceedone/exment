@@ -242,6 +242,10 @@ class SystemController extends AdminControllerBase
             })
             ->help(exmtrans("system.help.grid_filter_disable_flg"));
 
+        $form->switchbool('grid_inline_edit_available', exmtrans("system.grid_inline_edit_available"))
+            ->default(1)
+            ->help(exmtrans("system.help.grid_inline_edit_available"));
+
         $form->select('system_values_pos', exmtrans("system.system_values_pos"))
             ->default(ShowPositionType::TOP)
             ->disableClear()

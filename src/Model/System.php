@@ -50,6 +50,7 @@ use Cache;
  * @method static array|void header_user_info($arg = null)
  * @method static array<int, string>|void allowed_locales($arg = null)
  * @method static bool|void locale_from_browser($arg = null)
+ * @method static bool|void grid_inline_edit_available($arg = null)
  * @method static boolean|void complex_password($arg = null)
  * @method static int|void password_expiration_days($arg = null)
  * @method static boolean|void first_change_password($arg = null)

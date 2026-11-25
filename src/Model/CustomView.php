@@ -2028,6 +2028,28 @@ class CustomView extends ModelBase implements Interfaces\TemplateImporterInterfa
     }
 
 
+    /**
+     * Whether the data list of this view allows inline edit (#2163). A view
+     * saved before the setting existed has no value: on, as before.
+     *
+     * @return bool
+     */
+    public function getInlineEditEnabledAttribute()
+    {
+        $val = $this->getOption('inline_edit_enabled');
+        return is_null($val) || boolval($val);
+    }
+
+
+    // @phpstan-ignore-next-line
+    public function setInlineEditEnabledAttribute($val)
+    {
+        $this->setOption('inline_edit_enabled', $val);
+
+        return $this;
+    }
+
+
     // @phpstan-ignore-next-line
     public function getHeaderOptions()
     {
