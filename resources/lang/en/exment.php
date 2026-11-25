@@ -789,6 +789,16 @@ return [
                 'warning' => 'There is a newer version.',
                 'fix' => 'Update Exment from "Version" in the system setting, and the official plugins from Feature management.',
             ],
+            'supported_versions' => [
+                'label' => 'Versions of PHP and the database',
+                'explain' => 'PHP and the database get security fixes only for a time. Use versions that still get them: PHP 8.3 or later, MySQL 8.0, MariaDB 10.11 or SQL Server 2016 or later.',
+                'php_until' => 'fixes until :date',
+                'php_ended' => 'The security support of PHP :version ended on :date.',
+                'php_ending' => 'The security support of PHP :version ends on :date.',
+                'database_old' => ':database :version is older than the recommended version (:recommended or later).',
+                'warning' => 'The security support of PHP :version ends on :date.',
+                'fix' => 'Update PHP to 8.3 or later (on a rental server, the PHP version in its control panel). Update the database to the recommended version. Exment keeps working until then.',
+            ],
             'session_cookie' => [
                 'label' => 'The session cookie',
                 'explain' => 'The sign-in cookie: not readable by JavaScript, not sent with requests from other sites, and on https sent only over https.',
