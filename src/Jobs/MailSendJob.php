@@ -169,6 +169,10 @@ class MailSendJob extends Notification implements ShouldQueue
             return '';
         }
         $message = trim(preg_replace('/\s+/u', ' ', $exception->getMessage()) ?? '');
+        // the text of the mail server may hold the addresses: hidden as in the application log (ISS02839)
+        if (!\Exceedone\Exment\Services\LogManagement\LogPrivacy::storeInput()) {
+            $message = \Exceedone\Exment\Services\LogManagement\LogPrivacy::maskText($message);
+        }
         $text = class_basename($exception) . ($message === '' ? '' : ': ' . $message);
         return mb_strimwidth($text, 0, static::ERROR_REASON_LENGTH, '...');
     }

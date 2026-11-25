@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\LogManagement;
 use Carbon\Carbon;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\OperationLog;
+use Exceedone\Exment\Model\PermissionChangeLog;
 use Exceedone\Exment\Model\System;
 
 /**
@@ -36,6 +37,12 @@ class LogCatalog
 
     /** The days the login records are kept when nothing is set. */
     public const DEFAULT_LOGIN_LOG_DAYS = 365;
+
+    /** The columns of the history of the changes of the role groups in their archive. */
+    public const PERMISSION_CHANGE_COLUMNS = ['id', 'created_at', 'role_group_id', 'role_group_name', 'change', 'kind', 'role_type', 'target_type', 'target_id', 'permission', 'changed_user_id', 'source'];
+
+    /** The days the history of the changes of the role groups is kept when nothing is set (5 years). */
+    public const DEFAULT_PERMISSION_CHANGE_DAYS = 1825;
 
     /** The days the daily files of the application log are kept when nothing is set. */
     public const DEFAULT_APP_LOG_DAYS = 90;
@@ -183,6 +190,46 @@ class LogCatalog
                 },
                 'count' => function () {
                     return LoginLog::tableExists() ? LoginLog::query()->count() : 0;
+                },
+            ],
+            // the history of the changes of the role groups (ISS02840)
+            'permission_change' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
+                'label' => 'exment::exment.log_management.types.permission_change',
+                'location' => 'database',
+                'retention' => function () {
+                    return static::days(System::log_retention_permission_change(), static::DEFAULT_PERMISSION_CHANGE_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    if (!PermissionChangeLog::tableExists()) {
+                        return 0;
+                    }
+                    $deleted = 0;
+                    do {
+                        $rows = PermissionChangeLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->get();
+                        $ids = $rows->pluck('id')->all();
+                        if (!empty($ids)) {
+                            if (LogArchiver::enabled()) {
+                                LogArchiver::rows('permission_change', static::PERMISSION_CHANGE_COLUMNS, $rows->map(function ($row) {
+                                    return array_map(function ($column) use ($row) {
+                                        return $column === 'created_at' ? optional($row->created_at)->format('Y-m-d H:i:s') : $row->{$column};
+                                    }, static::PERMISSION_CHANGE_COLUMNS);
+                                })->all(), function ($row) {
+                                    return substr(strval($row[1]), 0, 7);
+                                });
+                            }
+                            $deleted += PermissionChangeLog::query()->whereIn('id', $ids)->delete();
+                        }
+                    } while (count($ids) === 1000);
+                    return $deleted;
+                },
+                'count' => function () {
+                    return PermissionChangeLog::tableExists() ? PermissionChangeLog::query()->count() : 0;
                 },
             ],
             // the files of the application log, one a day (laravel-YYYY-MM-DD.log of Laravel's
