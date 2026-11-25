@@ -733,6 +733,8 @@ return [
                 'explain' => 'The key for encryption and for signing the session. Each site needs its own.',
                 'warning' => 'APP_KEY is missing or still a sample value.',
                 'fix' => 'Run php artisan key:generate on the server. On a site already in use, a new key makes the values saved encrypted (the password of the mail server...) unreadable: set them again.',
+                'shipped_warning' => 'APP_KEY is the one shipped in the download zip.',
+                'shipped_fix' => 'Run php artisan key:generate on the server. Everyone is then logged out and signs in again. The values saved encrypted (the password of the mail server...) become unreadable: set them again.',
             ],
             'app_env' => [
                 'label' => 'Environment (APP_ENV)',
