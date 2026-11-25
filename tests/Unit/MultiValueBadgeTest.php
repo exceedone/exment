@@ -110,7 +110,8 @@ class MultiValueBadgeTest extends UnitTestBase
             $this->assertStringContainsString(GridCellStyle::separatorHtml($word), $html, "{$style}: the separator is put in its hidden span.");
             $this->assertSame(1, substr_count($html, 'class="' . GridCellStyle::SEPARATOR_CLASS . '"'), "{$style}: one separator between two values.");
             // grouping and "filter in this page" read the text of the cell
-            $this->assertStringContainsString('foo' . $word . 'bar', $this->textContent($html), "{$style}: the text of the cell keeps the separator.");
+            // (an avatar puts the initial of each value before it: "ffoo、bbar")
+            $this->assertMatchesRegularExpression('/foo' . preg_quote($word, '/') . '(b)?bar/u', $this->textContent($html), "{$style}: the text of the cell keeps the separator.");
         }
     }
 
