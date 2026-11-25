@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\LogManagement\LogArchiver;
 use Exceedone\Exment\Services\LogManagement\LogCatalog;
 use Exceedone\Exment\Services\ScheduledJobs\ScheduledJobs;
 use Exceedone\Exment\Tests\TestDefine;
@@ -131,6 +132,63 @@ class LogManagementTest extends UnitTestBase
         $this->assertSame('TestAgent/1.0', $rows[3]->user_agent);
         foreach ($rows as $row) {
             $this->assertStringNotContainsString('secret', strval(json_encode($row->toArray())), 'no password is kept');
+        }
+    }
+
+    /**
+     * Part 3: the old logs go in a gzip file a month before they are deleted, the file grows when
+     * the month gets more, and the archives older than the years kept are deleted.
+     */
+    public function testTheArchive(): void
+    {
+        $root = storage_path('app/' . LogArchiver::ROOT);
+        $before = glob($root . '/*/*.gz') ?: [];
+        System::log_archive_enabled(true);
+        System::log_archive_driver(LogArchiver::DRIVER_LOCAL);
+        System::log_retention_login_log(10);
+        System::clearCache();
+        try {
+            $now = Carbon::now();
+            $first = $now->copy()->subDays(40);
+            LoginLog::create(['result' => LoginLog::RESULT_FAILURE, 'login_name' => 'archive-test-one', 'created_at' => $first]);
+            LogCatalog::prune($now);
+            $path = $root . '/login_log/login_log-' . $first->format('Y-m') . '.csv.gz';
+            $this->assertFileExists($path);
+            $this->files[] = $path;
+            if (DIRECTORY_SEPARATOR === '/') {
+                $this->assertSame('600', substr(sprintf('%o', fileperms($path)), -3), 'readable by the owner only');
+            }
+
+            // the same month again: one more gzip member, read as one file
+            LoginLog::create(['result' => LoginLog::RESULT_SUCCESS, 'login_name' => 'archive-test-two', 'created_at' => $first]);
+            LogCatalog::prune($now);
+            $text = implode('', gzfile($path) ?: []);
+            $this->assertStringContainsString('archive-test-one', $text);
+            $this->assertStringContainsString('archive-test-two', $text);
+            $this->assertSame(1, substr_count($text, 'created_at,result'), 'the header once');
+            $this->assertArrayHasKey(LogArchiver::ROOT . '/login_log/login_log-' . $first->format('Y-m') . '.csv.gz', LogArchiver::files());
+            $this->assertTrue(LogCatalog::types()['login_log']['archive']);
+
+            // the daily file of the application log: in the archive of its month, then deleted
+            $log = storage_path('logs/archivetest-2001-02-03.log');
+            file_put_contents($log, 'archived line');
+            $this->files[] = $log;
+            LogCatalog::prune($now);
+            $this->assertFileDoesNotExist($log);
+            $appArchive = $root . '/app_log/app_log-2001-02.log.gz';
+            $this->files[] = $appArchive;
+            $this->assertStringContainsString('archived line', implode('', gzfile($appArchive) ?: []));
+
+            // kept 1 year: the archive of 2001 goes
+            System::log_archive_years(1);
+            System::clearCache();
+            $this->assertGreaterThanOrEqual(1, LogArchiver::prune($now));
+            $this->assertFileDoesNotExist($appArchive);
+            $this->assertFileExists($path, 'a recent month stays');
+        } finally {
+            foreach (array_diff(glob($root . '/*/*.gz') ?: [], $before) as $made) {
+                @unlink($made);
+            }
         }
     }
 

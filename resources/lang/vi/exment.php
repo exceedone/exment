@@ -5004,6 +5004,18 @@ return [
     ],
     // ISS02839
     'log_management' => [
+        'archive' => [
+            'header' => 'Lưu trữ',
+            'enabled' => 'Gom log cũ vào một tệp gzip mỗi tháng trước khi xóa',
+            'enabled_help' => 'Nhật ký đăng nhập, nhật ký thao tác và các tệp log ứng dụng theo ngày. Tắt: xóa mà không lưu trữ (như trước).',
+            'driver' => 'Nơi lưu trữ',
+            'driver_local' => 'Máy chủ này (storage/app/log_archive, chỉ chủ sở hữu đọc được)',
+            'driver_backup' => 'Cùng nơi với bản sao lưu (S3 nếu bản sao lưu ở S3)',
+            'years' => 'Số năm giữ lưu trữ',
+            'years_help' => 'Để trống hoặc 0: giữ đến khi xóa.',
+            'help' => 'Chỉ quản trị viên hệ thống được tải xuống: có thể chứa thông tin cá nhân.',
+            'none' => 'Không có lưu trữ.',
+        ],
         'header' => 'Quản lý log',
         'description' => 'Log của trang: thời gian lưu từng loại, dung lượng, nhật ký đăng nhập và các tệp log ứng dụng.',
         'types_header' => 'Các loại log',

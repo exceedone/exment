@@ -75,6 +75,27 @@
                 </div>
             </div>
             <div class="form-group">
+                <div class="col-sm-offset-3 col-sm-9">
+                    <label><input type="checkbox" name="log_archive_enabled" value="1" @if($settings['log_archive_enabled']) checked @endif> {{ exmtrans('log_management.archive.enabled') }}</label>
+                    <p class="help-block">{{ exmtrans('log_management.archive.enabled_help') }}</p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label" for="log_archive_driver">{{ exmtrans('log_management.archive.driver') }}</label>
+                <div class="col-sm-3">
+                    <select class="form-control" id="log_archive_driver" name="log_archive_driver">
+                        @foreach($drivers as $driver)
+                            <option value="{{ $driver }}" @if($settings['log_archive_driver'] === $driver) selected @endif>{{ exmtrans('log_management.archive.driver_' . $driver) }}</option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-3 control-label" for="log_archive_years">{{ exmtrans('log_management.archive.years') }}</label>
+                <div class="col-sm-3"><input type="number" min="0" class="form-control" id="log_archive_years" name="log_archive_years" value="{{ old('log_archive_years', $settings['log_archive_years']) }}"></div>
+                <div class="col-sm-6 help-block">{{ exmtrans('log_management.archive.years_help') }}</div>
+            </div>
+            <div class="form-group">
                 <label class="col-sm-3 control-label" for="operation_log_scope">{{ exmtrans('log_management.setting.operation_log_scope') }}</label>
                 <div class="col-sm-3">
                     <select class="form-control" id="operation_log_scope" name="operation_log_scope">
@@ -163,6 +184,30 @@
                 </tr>
             @empty
                 <tr><td class="text-muted">{{ exmtrans('log_management.no_files') }}</td></tr>
+            @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
+@endif
+
+@if($isSystem)
+<div class="box box-default" id="log-management-archives">
+    <div class="box-header with-border">
+        <h3 class="box-title">{{ exmtrans('log_management.archive.header') }}</h3>
+    </div>
+    <div class="box-body">
+        <p class="text-muted small">{{ exmtrans('log_management.archive.help') }}</p>
+        <table class="table table-condensed">
+            <tbody>
+            @forelse($archives as $path => $archive)
+                <tr>
+                    <td><a href="{{ $archiveUrl }}/{{ $archive['kind'] }}/{{ rawurlencode(basename($path)) }}" data-pjax="false" target="_blank">{{ basename($path) }}</a></td>
+                    <td>{{ $archive['month'] }}</td>
+                    <td>{{ $bytes($archive['size']) }}</td>
+                </tr>
+            @empty
+                <tr><td class="text-muted">{{ exmtrans('log_management.archive.none') }}</td></tr>
             @endforelse
             </tbody>
         </table>
