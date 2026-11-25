@@ -3648,6 +3648,7 @@ return [
             'kanban_moved' => '已将 %s 移动到“%s”',
             'kanban_inline_saved' => '已保存 %s',
             'kanban_view_saved' => '已保存视图“%s”。该视图已作为您的个人视图创建，可从视图列表中打开。',
+            'kanban_view_saved_system' => '已保存视图“%s”。该视图已作为系统视图创建，可从视图列表中打开。',
             'kanban_blank_filtered' => '没有符合筛选条件的卡片。请更改条件或重置。',
             'kanban_created' => '已添加 %s',
             'kanban_assigned' => '已更改 %s 条记录的负责人',

@@ -3648,6 +3648,7 @@ return [
             'kanban_moved' => '%s se ha movido a "%s"',
             'kanban_inline_saved' => '%s guardado',
             'kanban_view_saved' => 'Se ha guardado la vista "%s". Se ha creado como vista propia y puede abrirse desde la lista de vistas.',
+            'kanban_view_saved_system' => 'Se ha guardado la vista "%s". Se ha creado como vista del sistema y puede abrirse desde la lista de vistas.',
             'kanban_blank_filtered' => 'Ninguna tarjeta coincide con el filtro. Cámbielo o restablezca el tablero.',
             'kanban_created' => '%s añadido',
             'kanban_assigned' => 'Se ha cambiado el responsable de %s registros',

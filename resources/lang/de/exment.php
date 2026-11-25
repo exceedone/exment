@@ -3648,6 +3648,7 @@ return [
             'kanban_moved' => '%s nach „%s“ verschoben',
             'kanban_inline_saved' => '%s gespeichert',
             'kanban_view_saved' => 'Die Ansicht „%s“ wurde gespeichert. Sie wurde als Ihre persönliche Ansicht erstellt und kann über die Ansichtsliste geöffnet werden.',
+            'kanban_view_saved_system' => 'Die Ansicht „%s“ wurde gespeichert. Sie wurde als Systemansicht erstellt und kann über die Ansichtsliste geöffnet werden.',
             'kanban_blank_filtered' => 'Keine Karte entspricht dem Filter. Ändern Sie ihn oder setzen Sie die Tafel zurück.',
             'kanban_created' => '%s hinzugefügt',
             'kanban_assigned' => 'Bearbeiter von %s Datensätzen geändert',
