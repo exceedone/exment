@@ -149,11 +149,62 @@ $(function () {
         } catch (ex) {}
     }
 
-    // keywords already asked of the server, so typing does not ask twice
-    var searched = {};
-    // per keyword: did the server have to stop before the end of a column?
-    var searchCapped = {};
-    var searchTimer = null;
+
+    // The filters the cards on the board were read with, as sent to the
+    // server ('' for none). A board read per column holds the first slice of
+    // every column only, so its filters are run on the server: every read
+    // carries them, the counts come back for the filtered board, and "load
+    // more" goes on from there (#2185).
+    var loadedSig = '';
+    var refilterTimer = null;
+    var refilterXhr = null;
+    function serverFilters() { return D.col_count > 0 && !!D.more_url; }
+    function stateSig() {
+        if (!filtersActive()) { return ''; }
+        var st = currentState();
+        return JSON.stringify({ filters: st.filters, keyword: st.keyword, only: st.only });
+    }
+    function stateParam() { return loadedSig ? { state: loadedSig } : {}; }
+    // what is drawn is narrowed by a filter the server has not run yet: the
+    // figures from the server then describe some other board
+    function filteredHere() {
+        return filtersActive() && !(serverFilters() && stateSig() === loadedSig);
+    }
+    // Draw the cards on hand at once, then read the board again under the new
+    // filters. Typing waits a moment, so a word asks once rather than per key.
+    function refilter(delay) {
+        render();
+        if (!serverFilters()) { return; }
+        if (refilterTimer) { window.clearTimeout(refilterTimer); refilterTimer = null; }
+        if (stateSig() === loadedSig) { return; }
+        refilterTimer = window.setTimeout(function () {
+            refilterTimer = null;
+            var want = stateSig();
+            if (want === loadedSig) { return; }
+            if (refilterXhr) { refilterXhr.abort(); }
+            var $box = $(root).find('.kb-search, .kb-f-keyword').addClass('kb-searching');
+            refilterXhr = $.getJSON(D.more_url, $.extend({ view: D.view_suuid, reload: 1 },
+                want ? { state: want } : {}, EMB))
+                .done(function (res) {
+                    // changed again while this was on its way: the next read is coming
+                    if (want !== stateSig()) { return; }
+                    D.cards = (res && res.cards) || [];
+                    D.col_stats = (res && res.flat) || {};
+                    D.col_stats_lane = (res && res.lanes) || {};
+                    loadedSig = want;
+                    initColSeq();
+                    render();
+                })
+                .fail(function (xhr) {
+                    if (xhr.statusText === 'abort') { return; }
+                    toast(errorMessage(xhr), 'fa-exclamation-triangle', 'danger');
+                })
+                .always(function () {
+                    refilterXhr = null;
+                    $box.removeClass('kb-searching');
+                });
+        }, delay || 0);
+    }
     var dragId = null;
 
     // a card field already showing the assignee makes the footer avatar a
@@ -753,14 +804,14 @@ $(function () {
         var stats = D.col_stats || {};
         var laneStats = D.col_stats_lane || {};
         var colMode = colModeNow();
-        var fromDb = colMode && !filtersActive();
+        var fromDb = colMode && !filteredHere();
         // How full each board column is, straight from the table. Unlike the
         // paging and the per-cell figures, this survives a lane switch: the sql
         // figures follow the board columns of the configured grouping, and a
         // swimlane only rearranges the same records inside them. Set aside
         // while a filter is on - the badge would then contradict the cards
         // drawn under it.
-        var loadDb = D.col_count > 0 && groupBy === D.group_column && !filtersActive();
+        var loadDb = D.col_count > 0 && groupBy === D.group_column && !filteredHere();
 
         var lanes = [];
         if (!swimBy) {
@@ -977,11 +1028,6 @@ $(function () {
                 msgs.push(fmt(L.partial, fmtNum(D.cards.length, GROUPED), fmtNum(whole, GROUPED)));
             }
         }
-        // a column that ran out of room kept its first slice and dropped the
-        // rest, so the board is answering a narrower question than it was asked
-        if (searchCapped[keyword]) {
-            msgs.push(fmt(L.search_capped, fmtNum(D.col_count, GROUPED)));
-        }
 
         if (!msgs.length) {
             $box.empty().hide();
@@ -1000,7 +1046,7 @@ $(function () {
     function renderBlank(count) {
         var $box = $(root).find('.kb-blank');
         if (!$box.length) { return; }
-        if (count > 0 || !D.cards.length || !filtersActive()) {
+        if (count > 0 || (!D.cards.length && !loadedSig) || !filtersActive()) {
             $box.empty().hide();
             return;
         }
@@ -1022,7 +1068,7 @@ $(function () {
         // same sql pass that fed the column heads answers this too. A swimlane
         // makes no difference here - it rearranges the same records, and these
         // are totals over all of them.
-        var fromDb = D.col_count > 0 && groupBy === D.group_column && !filtersActive();
+        var fromDb = D.col_count > 0 && groupBy === D.group_column && !filteredHere();
         if (fromDb) {
             $.each(D.col_stats || {}, function (key, st) {
                 if (D.done_keys.indexOf(key) >= 0) {
@@ -1093,44 +1139,6 @@ $(function () {
                 cellSeq[ck] = (cellSeq[ck] || 0) + 1;
             }
         });
-    }
-
-    // The board holds the first slice of every column, so filtering it here can
-    // only ever find what already arrived. When it is loaded per column, go and
-    // fetch the matches sitting further down as well - they are merged into the
-    // same card list and the usual filter decides what to draw.
-    function searchServer() {
-        if (searchTimer) { window.clearTimeout(searchTimer); searchTimer = null; }
-        if (!(D.col_count > 0) || !D.more_url) { return; }
-        var q = keyword;
-        if (q.length < 2 || searched[q]) { return; }
-
-        searchTimer = window.setTimeout(function () {
-            searchTimer = null;
-            if (q !== keyword || searched[q]) { return; }
-            searched[q] = true;
-
-            var $box = $(root).find('.kb-search, .kb-f-keyword').addClass('kb-searching');
-            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, q: q }, EMB))
-                .done(function (res) {
-                    var seen = {}, added = 0;
-                    $.each(D.cards, function (i, c) { seen[c.id] = true; });
-                    $.each((res && res.cards) || [], function (i, c) {
-                        if (!seen[c.id]) { D.cards.push(c); added++; }
-                    });
-                    searchCapped[q] = !!(res && res.has_more);
-                    if (added > 0) {
-                        render();
-                        toast(fmt(L.search_more, added), 'fa-search');
-                    } else {
-                        // nothing new to draw, but the answer was still short
-                        renderPartial();
-                    }
-                })
-                // let the same keyword ask again; otherwise it stays half found
-                .fail(function () { delete searched[q]; })
-                .always(function () { $box.removeClass('kb-searching'); });
-        }, 400);
     }
 
     /* ---------------------------------------------------------- bulk ----- */
@@ -1320,9 +1328,11 @@ $(function () {
             // enough apart can still be in the air together, and the older
             // totals must not land on top of the newer ones
             var gen = ++statsGen;
-            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, stats: 1 }, EMB))
+            var sig = loadedSig;
+            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, stats: 1 }, stateParam(), EMB))
                 .done(function (res) {
-                    if (!res || gen !== statsGen) { return; }
+                    // figures of a board filtered another way than the one on screen
+                    if (!res || gen !== statsGen || sig !== loadedSig) { return; }
                     D.col_stats = res.flat || {};
                     D.col_stats_lane = res.lanes || {};
                     render();
@@ -2899,7 +2909,7 @@ $(function () {
         onlyMine = !!on;
         syncMineBtn();
         savePrefs();
-        render();
+        refilter();
     }
 
     function buildFilterPanel() {
@@ -2970,12 +2980,11 @@ $(function () {
         $root.on('input', '.kb-search, .kb-f-keyword', function () {
             keyword = $(this).val().trim();
             $root.find('.kb-search, .kb-f-keyword').not(this).val(keyword);
-            render();
-            searchServer();
+            refilter(400);
         });
         $root.on('change', '.kb-f-select', function () {
             filters[$(this).data('name')] = $(this).val();
-            render();
+            refilter();
         });
         $root.on('change', '.kb-f-groupby', function () {
             groupBy = $(this).val();
@@ -2996,10 +3005,10 @@ $(function () {
             buildFilterPanel();
             render();
         });
-        $root.on('change', '.kb-f-over', function () { onlyOver = this.checked; render(); });
-        $root.on('change', '.kb-f-unassigned', function () { onlyUnassigned = this.checked; render(); });
-        $root.on('change', '.kb-f-blocked', function () { onlyBlocked = this.checked; render(); });
-        $root.on('change', '.kb-f-expedite', function () { onlyExpedite = this.checked; render(); });
+        $root.on('change', '.kb-f-over', function () { onlyOver = this.checked; refilter(); });
+        $root.on('change', '.kb-f-unassigned', function () { onlyUnassigned = this.checked; refilter(); });
+        $root.on('change', '.kb-f-blocked', function () { onlyBlocked = this.checked; refilter(); });
+        $root.on('change', '.kb-f-expedite', function () { onlyExpedite = this.checked; refilter(); });
 
         // The one filter worth a button of its own: on a shared board it is
         // the first thing anyone does. Kept in step with the checkbox in the
@@ -3012,12 +3021,12 @@ $(function () {
             onlyMine = false; onlyBlocked = false; onlyExpedite = false;
             groupBy = D.group_column;
             swimBy = (D.swimlane_column && D.swimlane_column !== D.group_column) ? D.swimlane_column : '';
-            if (searchTimer) { window.clearTimeout(searchTimer); searchTimer = null; }
+            if (refilterTimer) { window.clearTimeout(refilterTimer); refilterTimer = null; }
             savePrefs();
             buildFilterPanel();
             syncMineBtn();
             $root.find('.kb-search').val('');
-            render();
+            refilter();
         });
 
         // Folding is layout, not a filter: reset leaves it alone, and it
@@ -3041,8 +3050,12 @@ $(function () {
             var offset = parseInt($btn.attr('data-offset'), 10) || 0;
             $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin"></i>');
 
-            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, key: key, offset: offset, lane: lane }, EMB))
+            var sig = loadedSig;
+            $.getJSON(D.more_url, $.extend({ view: D.view_suuid, key: key, offset: offset, lane: lane }, stateParam(), EMB))
                 .done(function (res) {
+                    // the board was read again under other filters meanwhile:
+                    // this slice belongs to a board that is no longer there
+                    if (sig !== loadedSig) { return; }
                     var cards = (res && res.cards) || [];
                     var seen = {};
                     $.each(D.cards, function (i, c) { seen[c.id] = true; });
@@ -3300,6 +3313,6 @@ $(function () {
     syncMineBtn();
     // the toolbar box is not part of the panel, so it is filled in here
     $(root).find('.kb-search').val(keyword);
-    render();
+    refilter();
 });
 </script>
