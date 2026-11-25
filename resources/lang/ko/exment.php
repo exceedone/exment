@@ -720,6 +720,8 @@ return [
                 'explain' => '암호화와 세션 서명에 사용하는 키입니다. 사이트마다 고유한 값이 필요합니다.',
                 'warning' => 'APP_KEY가 없거나 샘플 값 그대로입니다.',
                 'fix' => '서버에서 php artisan key:generate를 실행하십시오. 이미 사용 중인 사이트에서 키를 변경하면 암호화하여 저장한 값(메일 서버 비밀번호 등)을 읽을 수 없게 됩니다. 이 경우 다시 설정하십시오.',
+                'shipped_warning' => 'APP_KEY가 다운로드한 zip에 포함된 값 그대로입니다.',
+                'shipped_fix' => '서버에서 php artisan key:generate를 실행하십시오. 그러면 모든 사용자가 로그아웃되어 다시 로그인해야 합니다. 암호화하여 저장한 값(메일 서버 비밀번호 등)은 읽을 수 없게 되므로 다시 설정하십시오.',
             ],
             'app_env' => [
                 'label' => '실행 환경(APP_ENV)',
@@ -1493,6 +1495,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => '알 수 없음',
+        'login_location_separator' => ', ',
         '2factor' => '2단계 인증',
         'login' => '인증',
         'submit_verify_code' => '인증 코드 전송',
@@ -2315,6 +2319,8 @@ return [
         'changedata_column' => '링크 열 선택',
         'changedata_column_then' => '의 값을 복사',
         'default_flg' => '기본 폼',
+        'check_missing_required' => '이 양식에 없는 필수 열도 확인',
+        'check_missing_required_help' => '켜면, 이 양식에 없는 필수 열이 비어 있을 때 이 양식에서 새 데이터를 저장하지 않습니다. 끄면 그 열은 빈 채로 저장됩니다(공개 양식 등 일부 열만 있는 양식).',
         'field_showing_type' => '필드 유형',
         'form_column_view_name' => '필드 표시명',
         'image_aslink' => '이미지를 링크로 표시',
@@ -2371,6 +2377,7 @@ return [
             'lazy_load_enabled' => '편집 화면이 열린 후 이 자식 테이블을 자동으로 읽어 들입니다. 기존 데이터를 편집할 때 표 형식으로 표시되는 1:N 블록에서 사용할 수 있습니다. 읽기가 끝날 때까지 저장할 수 없습니다. 표 형식을 해제하고 폼을 저장하면 이 설정도 해제됩니다.',
         ],
         'message' => [
+            'missing_required_empty' => '저장하지 않았습니다. 필수 열 :names이(가) 이 양식에 없고 값이 없습니다. 양식에 추가하거나 "이 양식에 없는 필수 열도 확인"을 끄십시오.',
             'no_exists_column' => '필수 항목이 설정되지 않았습니다.',
             'confirm_required' => '필수 항목이 설정되지 않았습니다. 이대로 저장하시겠습니까?',
             'image_need_delete' => '※ 이미지를 교체하려면 열을 한 번 삭제한 후 다시 추가하십시오.',

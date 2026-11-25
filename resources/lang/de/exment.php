@@ -720,6 +720,8 @@ return [
                 'explain' => 'Der Schlüssel für die Verschlüsselung und die Signierung der Sitzung. Jede Website benötigt einen eigenen.',
                 'warning' => 'APP_KEY fehlt oder ist noch ein Beispielwert.',
                 'fix' => 'Führen Sie php artisan key:generate auf dem Server aus. Auf einer bereits genutzten Website macht ein neuer Schlüssel verschlüsselt gespeicherte Werte (Passwort des Mailservers...) unlesbar: Legen Sie diese erneut fest.',
+                'shipped_warning' => 'APP_KEY ist noch der Schlüssel aus dem Download-ZIP.',
+                'shipped_fix' => 'Führen Sie php artisan key:generate auf dem Server aus. Danach werden alle abgemeldet und melden sich erneut an. Verschlüsselt gespeicherte Werte (Passwort des Mailservers...) werden unlesbar: Legen Sie diese erneut fest.',
             ],
             'app_env' => [
                 'label' => 'Umgebung (APP_ENV)',
@@ -1493,6 +1495,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => 'Unbekannt',
+        'login_location_separator' => ', ',
         '2factor' => 'Zwei-Faktor-Authentifizierung',
         'login' => 'Authentifizierung',
         'submit_verify_code' => 'Authentifizierungscode senden',
@@ -2315,6 +2319,8 @@ return [
         'changedata_column' => 'Verknüpfungsspalte auswählen',
         'changedata_column_then' => 'den Wert dieser Spalte kopieren',
         'default_flg' => 'Standardformular',
+        'check_missing_required' => 'Pflichtspalten prüfen, die nicht im Formular sind',
+        'check_missing_required_help' => 'Ein: Ein neuer Datensatz aus diesem Formular wird nicht gespeichert, solange eine Pflichtspalte, die das Formular nicht enthält, leer ist. Aus: Er wird mit diesen Spalten leer gespeichert (ein Formular mit einem Teil der Spalten, z. B. ein öffentliches Formular).',
         'field_showing_type' => 'Feldtyp',
         'form_column_view_name' => 'Anzeigename des Felds',
         'image_aslink' => 'Bild als Link anzeigen',
@@ -2371,6 +2377,7 @@ return [
             'lazy_load_enabled' => 'Lädt diese untergeordnete Tabelle automatisch, nachdem die Bearbeitungsseite geöffnet wurde. Verfügbar für 1:N-Blöcke in Tabellenform beim Bearbeiten vorhandener Daten. Speichern ist erst nach Abschluss des Ladevorgangs möglich. Wird die Tabellenform deaktiviert, wird auch diese Einstellung beim Speichern des Formulars ausgeschaltet.',
         ],
         'message' => [
+            'missing_required_empty' => 'Nicht gespeichert: Die Pflichtspalten :names sind nicht in diesem Formular und haben keinen Wert. Fügen Sie sie dem Formular hinzu oder schalten Sie „Pflichtspalten prüfen, die nicht im Formular sind“ aus.',
             'no_exists_column' => 'Pflichtfelder sind nicht festgelegt.',
             'confirm_required' => 'Pflichtfelder sind nicht festgelegt. Möchten Sie trotzdem speichern?',
             'image_need_delete' => '* Um das Bild zu ersetzen, löschen Sie die Spalte einmal und fügen Sie sie dann erneut hinzu.',

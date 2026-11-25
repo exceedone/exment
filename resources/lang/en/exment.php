@@ -740,6 +740,8 @@ return [
                 'explain' => 'The key for encryption and for signing the session. Each site needs its own.',
                 'warning' => 'APP_KEY is missing or still a sample value.',
                 'fix' => 'Run php artisan key:generate on the server. On a site already in use, a new key makes the values saved encrypted (the password of the mail server...) unreadable: set them again.',
+                'shipped_warning' => 'APP_KEY is the one shipped in the download zip.',
+                'shipped_fix' => 'Run php artisan key:generate on the server. Everyone is then logged out and signs in again. The values saved encrypted (the password of the mail server...) become unreadable: set them again.',
             ],
             'app_env' => [
                 'label' => 'Environment (APP_ENV)',
@@ -1564,6 +1566,8 @@ return [
     ],
 
     '2factor' => [
+        'login_unknown' => 'Unknown',
+        'login_location_separator' => ', ',
         '2factor' => 'Two-Step Authentication',
         'login' => 'Authentication',
         'submit_verify_code' => 'Authentication code transmission',
@@ -2412,6 +2416,8 @@ return [
         'changedata_column' => 'Select Link Column',
         'changedata_column_then' => 'Copy this column',
         'default_flg' => 'Default Form',
+        'check_missing_required' => 'Check the required columns not on this form',
+        'check_missing_required_help' => 'On: a new record made with this form is not saved while a required column the form does not have is empty. Off: it is saved with those columns empty (a form of a part of the columns, such as a public form).',
         'field_showing_type' => 'Field Type',
         'form_column_view_name' => 'Field Display Name',
         'image_aslink' => 'Display image as a link',
@@ -2475,6 +2481,7 @@ return [
         ],
 
         'message' => [
+            'missing_required_empty' => 'Not saved: the required columns :names are not on this form and have no value. Add them to the form, or turn off "Check the required columns not on this form".',
             'no_exists_column' => 'Required items have not been set.',
             'confirm_required' => 'Required items are not set. Are you sure you want to save it as it is?',
             'image_need_delete' => '* When replacing the image, delete the column once and then add it again.',

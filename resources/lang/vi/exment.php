@@ -720,6 +720,8 @@ return [
                 'explain' => 'Khóa dùng để mã hóa và ký phiên làm việc. Mỗi trang web cần có khóa riêng.',
                 'warning' => 'APP_KEY chưa có hoặc vẫn là giá trị mẫu.',
                 'fix' => 'Vui lòng chạy php artisan key:generate trên máy chủ. Với trang web đang được sử dụng, khóa mới sẽ khiến các giá trị đã lưu ở dạng mã hóa (mật khẩu máy chủ email...) không đọc được: khi đó vui lòng thiết lập lại.',
+                'shipped_warning' => 'APP_KEY vẫn là khóa có sẵn trong tệp zip tải về.',
+                'shipped_fix' => 'Vui lòng chạy php artisan key:generate trên máy chủ. Sau đó mọi người sẽ bị đăng xuất và phải đăng nhập lại. Các giá trị đã lưu ở dạng mã hóa (mật khẩu máy chủ email...) sẽ không đọc được: vui lòng thiết lập lại.',
             ],
             'app_env' => [
                 'label' => 'Môi trường (APP_ENV)',
@@ -1493,6 +1495,8 @@ return [
         ],
     ],
     '2factor' => [
+        'login_unknown' => 'Không rõ',
+        'login_location_separator' => ', ',
         '2factor' => 'Xác thực hai yếu tố',
         'login' => 'Xác thực',
         'submit_verify_code' => 'Gửi mã xác thực',
@@ -2315,6 +2319,8 @@ return [
         'changedata_column' => 'Chọn cột liên kết',
         'changedata_column_then' => 'Sao chép giá trị của cột này',
         'default_flg' => 'Biểu mẫu mặc định',
+        'check_missing_required' => 'Kiểm tra cả cột bắt buộc không có trong form này',
+        'check_missing_required_help' => 'Bật: bản ghi mới tạo bằng form này sẽ không được lưu khi cột bắt buộc không có trong form còn trống. Tắt: được lưu với các cột đó trống (form chỉ có một phần cột, như form công khai).',
         'field_showing_type' => 'Loại trường',
         'form_column_view_name' => 'Tên hiển thị của trường',
         'image_aslink' => 'Hiển thị hình ảnh dạng liên kết',
@@ -2371,6 +2377,7 @@ return [
             'lazy_load_enabled' => 'Tự động tải bảng con này sau khi trang chỉnh sửa mở ra. Có thể dùng cho khối 1:N hiển thị dạng bảng khi chỉnh sửa dữ liệu đã có. Không thể lưu cho đến khi tải xong. Nếu bỏ dạng bảng và lưu biểu mẫu, cài đặt này cũng sẽ bị tắt.',
         ],
         'message' => [
+            'missing_required_empty' => 'Chưa lưu: các cột bắt buộc :names không có trong form này và chưa có giá trị. Hãy thêm vào form, hoặc tắt "Kiểm tra cả cột bắt buộc không có trong form này".',
             'no_exists_column' => 'Chưa đặt các mục bắt buộc.',
             'confirm_required' => 'Chưa đặt các mục bắt buộc. Bạn có chắc muốn lưu như hiện tại không?',
             'image_need_delete' => '* Khi thay hình ảnh, vui lòng xóa cột một lần rồi thêm lại.',
