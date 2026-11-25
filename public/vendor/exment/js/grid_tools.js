@@ -3852,9 +3852,15 @@
     };
     function close() {
       document.removeEventListener('keydown', onKey);
+      if (window.$) window.$(document).off('pjax:send.exmPeek');
       if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
     }
     document.addEventListener('keydown', onKey);
+    // "Open the whole record" goes by pjax, which leaves what is outside
+    // #pjax-container: close when the page changes (#2181). Not on a click
+    // of the link itself - pjax only follows a link still in the document,
+    // and a new tab (ctrl / middle click) keeps the preview.
+    if (window.$) window.$(document).one('pjax:send.exmPeek', close);
     overlay.addEventListener('click', function (ev) {
       // Only the backdrop itself - a click that started inside the panel
       // must not close the record the user is reading.

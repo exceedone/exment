@@ -104,9 +104,10 @@ class CellStylePresetSettingController extends AdminControllerBase
      * Make a form builder.
      *
      * The same fields the modal editor offers, as a plain setting form. The
-     * colors are text fields on purpose: the bundled color picker rounds a
-     * hex value on its way through HSB, which would rewrite a saved color
-     * one shade off every time the form is opened.
+     * colors stay text fields, so a saved value is kept exactly and an empty
+     * one stays empty. cellstyle_preset.js adds a native color swatch and a
+     * clear button beside each (the bundled color field rounds a hex value
+     * through HSB and cannot be empty).
      *
      * @param mixed $id
      * @return Form
@@ -135,7 +136,12 @@ class CellStylePresetSettingController extends AdminControllerBase
             foreach (['grid_color', 'grid_bg_color', 'grid_border_color'] as $color_key) {
                 $form->text($color_key, exmtrans('custom_column.options.' . $color_key))
                     ->rules($color_rule)
-                    ->attribute(['placeholder' => '#3c8dbc'])
+                    ->attribute([
+                        'placeholder' => '#3c8dbc',
+                        'maxlength' => 7,
+                        'data-cellstyle-colorpicker' => '1',
+                        'data-cellstyle-colorclear' => exmtrans('cell_style_preset.clear_color'),
+                    ])
                     ->help(exmtrans('custom_column.help.' . $color_key));
             }
 

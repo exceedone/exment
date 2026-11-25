@@ -147,7 +147,8 @@ class McpGuide
             $user = $login ? $login->base_user : null;
             $out[] = [
                 'user' => $user ? strval($user->getLabel()) : ('#' . $row->user_id),
-                'last_at' => strval($row->last_at),
+                // in the time zone of the user, as the other lists (ISS02894)
+                'last_at' => strval(\Exceedone\Exment\Services\UserTimezone::display($row->last_at) ?? ''),
                 'calls' => intval($row->calls),
             ];
         }

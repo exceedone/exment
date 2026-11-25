@@ -1284,6 +1284,20 @@ class CustomValueController extends AdminControllerTableBase
             $grid_item->setEmbedRelation($request->get('embed_ptype'), $request->get('embed_pid'));
         }
 
+        // The filters on screen. A board read per column holds the first
+        // slice of each column only, so the filters are run here, on every
+        // read below - the cards, the next slice, the figures (#2185).
+        $state = $request->get('state');
+        if (is_string($state) && $state !== '') {
+            $decoded = json_decode($state, true);
+            if (is_array($decoded)) {
+                $grid_item->setBoardState($decoded);
+            }
+        }
+        if ($request->get('reload')) {
+            return response()->json($grid_item->filteredBoard());
+        }
+
         // the board asks for its figures again after it has written a record,
         // so the totals it shows describe the table as it is now
         if ($request->get('stats')) {

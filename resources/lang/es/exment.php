@@ -1413,6 +1413,19 @@ return [
         'mapping_setting' => 'Configuración de asignación',
         'update_user_info' => 'Actualizar datos del usuario',
         'show_default_login_provider' => 'Mostrar inicio de sesión predeterminado',
+        'new_ip_header' => 'Inicios de sesión desde un lugar nuevo',
+        'login_notify_new_ip' => 'Avisar al usuario de un inicio de sesión desde una dirección IP nueva',
+        'login_notify_new_ip_mail' => 'Enviar también un correo',
+        'new_ip_subject' => 'Inicio de sesión desde una dirección IP nueva',
+        'new_ip_body' => "Se inició sesión en su cuenta desde una dirección IP que no se usó para iniciar sesión en los últimos :days días.
+
+Fecha y hora: :datetime
+Dirección IP: :ip
+Navegador: :browser
+
+Si no fue usted, cambie su contraseña y avise a los administradores.",
+        'history_header' => 'Mi historial de inicios de sesión',
+        'history_help' => 'Los últimos :count inicios de sesión en su cuenta.',
         'sso_redirect_force' => 'Redirigir al inicio de sesión SSO',
         'sso_setting' => 'Configuración de SSO',
         'sso_accept_mail_domain' => 'Dominios permitidos',
@@ -1469,6 +1482,8 @@ return [
             'login_button_font_color' => 'Introduzca el color del texto del botón de inicio de sesión.',
             'login_button_font_color_hover' => 'Introduzca el color del texto del botón de inicio de sesión (al pasar el ratón).',
             'show_default_login_provider' => 'Si es SÍ, se muestra el formulario de inicio de sesión con el ID y la contraseña de Exment.',
+            'login_notify_new_ip' => 'Tras un inicio de sesión, el usuario recibe una notificación cuando la dirección IP no se usó en un inicio de sesión del mismo usuario en los últimos :days días. El primer inicio de sesión de un usuario no se avisa.',
+            'login_notify_new_ip_mail' => 'Enviar también el aviso a la dirección de correo del usuario.',
             'sso_redirect_force' => 'Si es SÍ, no se muestra la página de inicio de sesión de Exment y se redirige directamente a la página de inicio de sesión SSO. *Solo es efectivo cuando hay un único proveedor SSO.',
             'sso_jit' => 'Si es SÍ y el usuario que inicia sesión no existe en Exment, se usa la información de inicio de sesión para crear un nuevo usuario de Exment. Si es NO, debe crear el usuario en Exment con antelación.',
             'update_user_info' => 'Si es SÍ, se actualizan los datos del usuario de Exment al iniciar sesión.',
@@ -3513,7 +3528,7 @@ return [
             'kanban_source' => 'De dónde proceden las columnas del tablero Kanban.<br/>*A partir de una columna de opciones: sus opciones se convierten en las columnas.<br/>*A partir del flujo de trabajo: los estados del flujo de trabajo aplicado a esta tabla se convierten en las columnas. Al arrastrar una tarjeta se abre la acción del flujo de trabajo que lleva a ese estado, por lo que se rechaza cualquier movimiento que el flujo de trabajo no permita.',
             'kanban_wip_enforce' => 'Qué ocurre cuando se suelta una tarjeta en una columna que ya está en su límite WIP.<br/>"Permitirlo" mantiene el comportamiento anterior: el encabezado se vuelve rojo y la tarjeta se mueve igualmente.<br/>"Preguntar antes" muestra una confirmación y mueve la tarjeta solo si usted acepta.<br/>"No permitirlo" atenúa en gris la columna llena durante el arrastre y rechaza la operación.<br/>*Las columnas sin límite WIP nunca se ven afectadas.<br/>*Las tarjetas que coinciden con "Valores considerados como urgentes" están exentas de esta regla (en Kanban, las urgencias pueden superar el límite), pero se siguen contando, por lo que la columna sigue mostrándose por encima de su límite.',
             'kanban_policies' => 'Una regla que se muestra en el encabezado de la columna; pase el cursor sobre la marca para leerla.<br/>Ejemplo: en la columna "En pruebas" escriba "todos los elementos de la hoja de pruebas aprobados antes de avanzar" y la condición de salida será visible para todo el equipo.<br/>*La columna de destino se elige entre los valores de la tabla (o los estados del flujo de trabajo).<br/>*Se ignora cualquier configuración que no coincida con las columnas que se muestran actualmente.',
-            'kanban_wips' => 'Número máximo de tarjetas que puede contener una columna. La columna de destino se elige entre los valores de la tabla (o los estados del flujo de trabajo), nunca se escribe a mano.<br/>*Una columna que supera su límite muestra el encabezado en rojo.<br/>*Se ignora cualquier configuración que no coincida con las columnas que se muestran actualmente.',
+            'kanban_wips' => 'Número máximo de tarjetas que puede contener una columna. La columna de destino se elige entre los valores de la tabla (o los estados del flujo de trabajo), nunca se escribe a mano.<br/>*Una columna que supera su límite muestra el encabezado en rojo.<br/>*Se ignora cualquier configuración que no coincida con las columnas que se muestran actualmente.<br/>*Un número de tarjetas va de 1 a 999. Con «Contar el límite WIP con (columna numérica)», introduzca el límite de la suma de esa columna (puede ser mayor que 999).',
             'kanban_done_keys' => 'Columnas del tablero que significan "terminado", elegidas entre los valores de la tabla.<br/>*Esos registros detienen la cuenta atrás de la fecha límite y se cuentan como "Terminados" en la barra de resumen.<br/>*En un tablero de flujo de trabajo, todo estado marcado como completado ya se considera terminado, por lo que no hace falta configurar nada aquí.<br/>*Se ignora cualquier configuración que no coincida con las columnas que se muestran actualmente.',
             'kanban_title_column' => 'Columna que se muestra como título en negrita dentro de la tarjeta.<br/>*Si se configura, el nombre visible del registro se muestra como enlace en la parte superior de la tarjeta.<br/>*Si no se configura, el propio nombre visible del registro se convierte en el título.',
             'kanban_assignee_column' => 'Columna que contiene el responsable.<br/>*Se muestra con un avatar en la parte inferior de la tarjeta; las tarjetas sin valor muestran "Sin asignar".<br/>*También la usan la barra de resumen, el filtro "Solo sin asignar" y la asignación masiva.<br/>*<b>Si se deja vacía</b>, el tablero no tiene avatar, ni indicador "Sin asignar", ni filtro "Solo sin asignar", ni asignación masiva, ni edición del responsable en la tarjeta, ni asignación automática. El botón "Míos" también desaparece, salvo que se indique una columna en "Columna que usa el botón "Míos"".',
@@ -4744,6 +4759,7 @@ return [
         'status_safe' => 'Estoy bien',
         'status_minor_injury' => 'Herida leve',
         'status_need_help' => 'Necesito ayuda',
+        'status_not_answered' => 'Sin respuesta', 'channel_line' => 'LINE', 'channel_mail' => 'Correo',
         'flex_note' => 'Envíe cualquier detalle adicional como mensaje',
         'drill_prefix' => '[Simulacro] ',
         'answer_done' => 'Se ha registrado «:status». Si tiene detalles adicionales, envíelos como mensaje.',

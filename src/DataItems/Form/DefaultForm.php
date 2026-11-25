@@ -518,8 +518,11 @@ EOT;
                     foreach ($empty as $column) {
                         $message = $message->merge(['value.' . $column->column_name => [$text]]);
                     }
-                    // the columns are not on the form: said at the top of the page
-                    admin_error(exmtrans('error.header'), $text);
+                    // the columns are not on the form: said at the top of the page (its message is HTML)
+                    $html = exmtrans('custom_form.message.missing_required_empty', ['names' => $empty->map(function ($column) {
+                        return esc_html(strval($column->column_view_name));
+                    })->implode(esc_html(exmtrans('custom_form.name_separator')))]);
+                    admin_error(exmtrans('error.header'), $html);
                 }
             }
 

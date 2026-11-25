@@ -166,7 +166,7 @@ class TeamsWorkflowSender extends SenderBase
             return;
         }
         try {
-            $response = Http::timeout(15)->connectTimeout(5)->asJson()->post($url, $this->payload());
+            $response = Http::timeout(15)->connectTimeout(5)->withoutRedirecting()->asJson()->post($url, $this->payload());
             $this->status = $response->status();
             if (!$response->successful()) {
                 // the address is a secret: only its host is written

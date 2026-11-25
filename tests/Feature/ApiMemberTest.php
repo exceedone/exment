@@ -182,6 +182,33 @@ class ApiMemberTest extends ApiTestBase
         $this->callApi($user2Token, 'POST', 'role_group/' . TestDefine::TESTDATA_ROLEGROUP_GENERAL . '/members', ['user' => [$user2]])->assertOk();
     }
 
+    public function testTheUsersOfAnOrganizationInAGroupOfTheSystemAdministrators(): void
+    {
+        $delegated = $this->delegatedGroup();
+        $user2 = $this->userId(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $admin = $this->getAdminAccessToken(static::SCOPES);
+        $this->callApi($admin, 'POST', "role_group/{$delegated->id}/members", ['user' => [$user2]])->assertOk();
+        $user2Token = $this->getUser2AccessToken(static::SCOPES);
+        $org = intval(TestDefine::TESTDATA_ORGANIZATION_DEV);
+
+        // an organization of no such group: the delegated user may change its users
+        $this->callApi($user2Token, 'POST', "organization/$org/users", ['users' => [$user2]])->assertOk();
+        $this->callApi($user2Token, 'DELETE', "organization/$org/users", ['users' => [$user2]])->assertOk();
+
+        // in a group of the system administrators: only they change its users
+        $system = $this->systemGroup();
+        $this->callApi($admin, 'POST', "role_group/{$system->id}/members", ['organization' => [$org]])->assertOk();
+        System::clearCache();
+        $this->callApi($user2Token, 'POST', "organization/$org/users", ['users' => [$user2]])->assertForbidden();
+        $this->callApi($user2Token, 'DELETE', "organization/$org/users", ['users' => [$user2]])->assertForbidden();
+        $users = $this->callApi($admin, 'GET', "organization/$org/users")->assertOk();
+        $this->assertNotContains($user2, $this->idsOf($users, 'users'), 'not added');
+
+        // the system administrators: yes
+        $this->callApi($admin, 'POST', "organization/$org/users", ['users' => [$user2]])->assertOk();
+        $this->callApi($admin, 'DELETE', "organization/$org/users", ['users' => [$user2]])->assertOk();
+    }
+
     public function testRefused(): void
     {
         $org = TestDefine::TESTDATA_ORGANIZATION_DEV;
