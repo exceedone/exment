@@ -1056,6 +1056,25 @@ var Exment;
         static get DATE_INPUT_SELECTOR() {
             return '[data-add-date], input[data-column_type="date"]';
         }
+        static get DATE_PICKER_ICONS() {
+            return {
+                time: 'fa fa-clock-o',
+                date: 'fa fa-calendar',
+                up: 'fa fa-chevron-up',
+                down: 'fa fa-chevron-down',
+                previous: 'fa fa-chevron-left',
+                next: 'fa fa-chevron-right',
+                today: 'fa fa-calendar-check-o',
+                clear: 'fa fa-trash',
+                close: 'fa fa-times'
+            };
+        }
+        /**
+         * Whether the iCheck plugin is loaded. admin-core 2.0 drops it; then checkboxes stay native.
+         */
+        static hasICheck() {
+            return !!$.fn && typeof $.fn.iCheck === 'function';
+        }
         /**
          * Element the datetimepicker is bound to: the .input-group.date wrapper when present, else the element itself.
          */
@@ -1092,8 +1111,10 @@ var Exment;
             if ($parent.css('position') === 'static') {
                 $parent.css('position', 'relative');
             }
+            // Font Awesome icons, the same set admin-core's Date field passes: the picker's default icons
+            // are glyphicons, and no glyphicon font is loaded, so its arrows were blank.
             CommonEvent.datePickerTarget($el)
-                .datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true, "widgetParent": $parent })
+                .datetimepicker({ "useCurrent": false, "format": "YYYY-MM-DD", "locale": "ja", "allowInputToggle": true, "widgetParent": $parent, "icons": CommonEvent.DATE_PICKER_ICONS })
                 .addClass('added-datepicker');
             return CommonEvent.findDatePicker($el);
         }
@@ -1290,7 +1311,10 @@ var Exment;
                 });
             }
             $('[data-add-icheck]').not('.added-icheck').each(function (index, elem) {
-                $(elem).iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
+                // without iCheck the checkbox stays a native one
+                if (CommonEvent.hasICheck()) {
+                    $(elem).iCheck({ checkboxClass: 'icheckbox_minimal-blue' });
+                }
                 $(elem).addClass('added-icheck');
             });
         }
