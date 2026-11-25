@@ -10,6 +10,8 @@ use Exceedone\Exment\Enums\RoleType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\UserSetting as UserSettingEnum;
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\DataAccessDaily;
+use Exceedone\Exment\Model\DataAccessLog;
 use Exceedone\Exment\Model\FileShareLink;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\LoginUser;
@@ -22,7 +24,9 @@ use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\UserApiKey;
 use Exceedone\Exment\Model\UserSetting;
 use Exceedone\Exment\Services\AuthUserOrgHelper;
+use Exceedone\Exment\Services\LogManagement\DataAccessLogs;
 use Exceedone\Exment\Services\LogManagement\LogCatalog;
+use Exceedone\Exment\Services\LogManagement\LogSettings;
 use Exceedone\Exment\Services\SystemRequire\Security\SecurityCheck;
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Illuminate\Support\Facades\Schema;
@@ -36,7 +40,20 @@ use Illuminate\Support\Facades\Schema;
  */
 class AuditReport
 {
-    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'security', 'log_retention'];
+    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'data_access', 'data_access_heavy', 'security', 'log_retention'];
+
+    /** A user reads unusually much: more than HEAVY_FACTOR times the median of the users, and HEAVY_MIN times or more. */
+    public const HEAVY_FACTOR = 10;
+    public const HEAVY_MIN = 100;
+
+    /** @var int|null the table of the sections of the data (ISS02905) */
+    protected $dataTableId = null;
+
+    /** @var int|null the user of the sections of the data (base user id) */
+    protected $dataUserId = null;
+
+    /** @var array<int, array{user: int|null, table: int, kind: string, count: int}>|null */
+    protected $dataCounts = null;
 
     /** Days without a login after which an account is "not used" (the default). */
     public const DEFAULT_INACTIVE_DAYS = 90;
@@ -129,8 +146,12 @@ class AuditReport
             $columns[$column] = static::text('column.' . $column);
         }
         $note = \Lang::has('exment::exment.audit_report.note.' . $key)
-            ? static::text('note.' . $key, ['days' => $this->inactiveDays, 'count' => static::FAILURES_LISTED, 'long' => static::LONG_KEY_DAYS])
+            ? static::text('note.' . $key, ['days' => $this->inactiveDays, 'count' => static::FAILURES_LISTED, 'long' => static::LONG_KEY_DAYS, 'factor' => static::HEAVY_FACTOR, 'min' => static::HEAVY_MIN])
             : null;
+        // the reads are not recorded when the operation log keeps the changes only (ISS02905)
+        if (in_array($key, ['data_access', 'data_access_heavy'], true) && !LogSettings::logsMethod('GET')) {
+            $note = trim(strval($note) . ' ' . static::text('note.reads_not_recorded'));
+        }
         return [
             'key' => $key,
             'title' => static::text('section.' . $key),
@@ -184,6 +205,10 @@ class AuditReport
                 return ['kind', 'workspace', 'target', 'created_user', 'created_at', 'expires_at', 'password', 'download', 'access', 'last_accessed', 'state', 'marks'];
             case 'public_forms':
                 return ['table', 'form', 'state', 'period', 'proxy_user', 'created_at'];
+            case 'data_access':
+                return ['table', 'user_code', 'user_name', 'read', 'list', 'export', 'create', 'update', 'delete', 'restore'];
+            case 'data_access_heavy':
+                return ['user_code', 'user_name', 'reads', 'median', 'times'];
             case 'security':
                 return ['item', 'result', 'detail'];
             case 'log_retention':
@@ -193,6 +218,155 @@ class AuditReport
     }
 
     // the sections ---------------------------------------------------------------------------
+
+    /**
+     * The sections of the data: only a table, only a user (null: all).
+     */
+    public function filterData(?int $tableId, ?int $userId): self
+    {
+        $this->dataTableId = $tableId;
+        $this->dataUserId = $userId;
+        $this->dataCounts = null;
+        return $this;
+    }
+
+    /**
+     * @return array{table: int|null, user: int|null}
+     */
+    public function dataFilter(): array
+    {
+        return ['table' => $this->dataTableId, 'user' => $this->dataUserId];
+    }
+
+    /**
+     * The reads and the writes of the period (ISS02905): the counts of each day, and the rows of
+     * the days not counted yet. Not the rows one by one: the report stays quick.
+     *
+     * @return array<int, array{user: int|null, table: int, kind: string, count: int}>
+     */
+    protected function dataCounts(): array
+    {
+        if (isset($this->dataCounts)) {
+            return $this->dataCounts;
+        }
+        $this->dataCounts = [];
+        if (!DataAccessLog::tableExists()) {
+            return $this->dataCounts;
+        }
+        $filter = function ($query) {
+            if (isset($this->dataTableId)) {
+                $query->where('custom_table_id', $this->dataTableId);
+            }
+            if (isset($this->dataUserId)) {
+                $query->where('base_user_id', $this->dataUserId);
+            }
+            return $query;
+        };
+        $counted = DataAccessLogs::summarizedUntil();
+        // the raw rows from the day after the last day counted
+        $rawFrom = $this->from->copy();
+        if (isset($counted) && $counted->gte($this->from)) {
+            $daily = $filter(DataAccessDaily::query())
+                ->where('date', '>=', $this->from->format('Y-m-d'))
+                ->where('date', '<=', ($counted->lt($this->until) ? $counted : $this->until->copy()->subDay())->format('Y-m-d'))
+                ->selectRaw('base_user_id, custom_table_id, kind, sum(count) as total')
+                ->groupBy('base_user_id', 'custom_table_id', 'kind')
+                ->get();
+            foreach ($daily as $row) {
+                $this->addCount($row->base_user_id, intval($row->custom_table_id), strval($row->kind), intval($row->total));
+            }
+            $rawFrom = $counted->copy()->addDay();
+        }
+        if ($rawFrom->lt($this->until)) {
+            $raw = $filter(DataAccessLog::query())
+                ->where('created_at', '>=', $rawFrom)
+                ->where('created_at', '<', $this->until)
+                ->selectRaw('base_user_id, custom_table_id, kind, count(*) as total')
+                ->groupBy('base_user_id', 'custom_table_id', 'kind')
+                ->get();
+            foreach ($raw as $row) {
+                $this->addCount($row->base_user_id, intval($row->custom_table_id), strval($row->kind), intval($row->total));
+            }
+        }
+        return $this->dataCounts;
+    }
+
+    /**
+     * @param mixed $userId
+     */
+    protected function addCount($userId, int $tableId, string $kind, int $count): void
+    {
+        $this->dataCounts[] = ['user' => is_null($userId) ? null : intval($userId), 'table' => $tableId, 'kind' => $kind, 'count' => $count];
+    }
+
+    /**
+     * The reads and the writes of each table by each user.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsDataAccess(): array
+    {
+        $kinds = ['read', 'list', 'export', 'create', 'update', 'delete', 'restore'];
+        $cells = [];
+        foreach ($this->dataCounts() as $count) {
+            $key = $count['table'] . '|' . strval($count['user']);
+            if (!isset($cells[$key])) {
+                $cells[$key] = ['table' => $count['table'], 'user' => $count['user'], 'total' => 0] + array_fill_keys($kinds, 0);
+            }
+            $kind = $count['kind'] === DataAccessLog::KIND_FORCE_DELETE ? DataAccessLog::KIND_DELETE : $count['kind'];
+            if (isset($cells[$key][$kind])) {
+                $cells[$key][$kind] += $count['count'];
+                $cells[$key]['total'] += $count['count'];
+            }
+        }
+        usort($cells, function ($a, $b) {
+            return $b['total'] <=> $a['total'];
+        });
+        $rows = [];
+        foreach (array_slice($cells, 0, static::MAX_LOG_ROWS) as $cell) {
+            $table = CustomTable::getEloquent($cell['table']);
+            [$code, $name] = is_null($cell['user']) ? ['', static::text('made_by_job')] : $this->userOf($cell['user']);
+            $row = [isset($table) ? strval($table->table_view_name) : '#' . $cell['table'], $code, $name];
+            foreach ($kinds as $kind) {
+                $row[] = number_format($cell[$kind]);
+            }
+            $rows[] = $row;
+        }
+        return $rows;
+    }
+
+    /**
+     * The users who read unusually much in the period (many reads at once may be a leak).
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsDataAccessHeavy(): array
+    {
+        $reads = [];
+        foreach ($this->dataCounts() as $count) {
+            if (is_null($count['user']) || !in_array($count['kind'], DataAccessLog::READS, true)) {
+                continue;
+            }
+            $reads[$count['user']] = ($reads[$count['user']] ?? 0) + $count['count'];
+        }
+        if (count($reads) === 0) {
+            return [];
+        }
+        $sorted = array_values($reads);
+        sort($sorted);
+        $middle = intdiv(count($sorted), 2);
+        $median = count($sorted) % 2 === 1 ? $sorted[$middle] : ($sorted[$middle - 1] + $sorted[$middle]) / 2;
+        arsort($reads);
+        $rows = [];
+        foreach ($reads as $userId => $total) {
+            if ($total < static::HEAVY_MIN || $total <= static::HEAVY_FACTOR * $median) {
+                continue;
+            }
+            [$code, $name] = $this->userOf($userId);
+            $rows[] = [$code, $name, number_format($total), number_format($median, 1), $median > 0 ? number_format($total / $median, 1) : '-'];
+        }
+        return $rows;
+    }
 
     /**
      * @return array<int, array<int, string>>
