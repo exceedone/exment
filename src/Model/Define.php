@@ -164,6 +164,8 @@ class Define
 
         'system_line_channel_token' => ['type' => 'password', 'config' => 'exment.line.channel_access_token', 'group' => 'notify'],
         'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
+        // the address of the Teams workflow (ISS02863): a secret, never shown again
+        'system_teams_workflow_url' => ['type' => 'password', 'group' => 'notify'],
         'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
 
         'safety_check_auto_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'notify'],
@@ -198,6 +200,16 @@ class Define
         'operation_log_automatic_hour' => ['group' => 'operation_log'],
         'operation_log_automatic_minute' => ['group' => 'operation_log'],
         'operation_log_automatic_executed' => ['type' => 'datetime'],
+        // the days the logs are kept (ISS02839, Services\LogManagement\LogCatalog); empty: the default
+        'log_retention_login_log' => ['type' => 'int', 'group' => 'log_management'],
+        'log_retention_app_log' => ['type' => 'int', 'group' => 'log_management'],
+        'log_app_level' => ['group' => 'log_management'],
+        'log_app_daily' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'operation_log_scope' => ['default' => 'all', 'group' => 'log_management'],
+        // the archive of the old logs before they are deleted (part 3)
+        'log_archive_enabled' => ['type' => 'boolean', 'default' => '0', 'group' => 'log_management'],
+        'log_archive_driver' => ['default' => 'local', 'group' => 'log_management'],
+        'log_archive_years' => ['type' => 'int', 'group' => 'log_management'],
 
         // 2factor ----------------------------------
         'login_use_2factor' => ['type' => 'boolean', 'default' => '0', 'group' => '2factor'],
@@ -365,6 +377,10 @@ class Define
         'security_check' => [
             'uri' => 'security_check',
             'icon' => 'fa-shield',
+        ],
+        'log_management' => [
+            'uri' => 'log_management',
+            'icon' => 'fa-archive',
         ],
         'scheduled_jobs' => [
             'uri' => 'scheduled_jobs',
@@ -540,10 +556,12 @@ class Define
         'sqlsrv' => 'SQLServer',
     ];
 
+    // min: the install stops below it. recommended: the versions that still get fixes from their
+    // makers (the security check and exment:update say so below it; ISS00216)
     public const DATABASE_VERSION = [
-        'mysql' => ['min' => '5.7.8'],
-        'mariadb' => ['min' => '10.2.7'],
-        'sqlsrv' => ['min' => '13.0.0.0'],
+        'mysql' => ['min' => '5.7.8', 'recommended' => '8.0'],
+        'mariadb' => ['min' => '10.2.7', 'recommended' => '10.11'],
+        'sqlsrv' => ['min' => '13.0.0.0', 'recommended' => '13.0'],
     ];
 
     /**
@@ -626,6 +644,7 @@ class Define
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
         ['uri'=> 'scheduled_jobs', 'help_uri'=> 'scheduled_jobs'],
+        ['uri'=> 'log_management', 'help_uri'=> 'log_management'],
         ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
     ];

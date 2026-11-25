@@ -206,10 +206,10 @@ class McpServerTest extends ApiTestBase
         $this->setFeatures([Features::MCP => ['enabled' => true, 'role_groups' => null], Features::API_KEYS => ['enabled' => true, 'role_groups' => null]]);
         $user2 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2);
         $table = CustomTable::getEloquent('custom_value_edit');
-        $all = \DB::table(getDBTableName($table))->whereNull('deleted_at')->pluck('id')->map('intval')->all();
+        $all = \DB::table(getDBTableName($table))->whereNull('deleted_at')->pluck('id')->map(fn ($v) => intval($v))->all();
         $this->be($user2);
         System::clearRequestSession();
-        $visible = $table->getValueQuery()->pluck('id')->map('intval')->all();
+        $visible = $table->getValueQuery()->pluck('id')->map(fn ($v) => intval($v))->all();
         $hidden = array_values(array_diff($all, $visible));
         $this->assertNotEmpty($hidden, 'user2 cannot see some records of custom_value_edit');
         \Auth::logout();

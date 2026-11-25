@@ -241,6 +241,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('security_check/fix', 'SecurityCheckController@fix');
             // the scheduled jobs (ISS02832)
             $router->get('scheduled_jobs', 'ScheduledJobController@index');
+            // the log management (ISS02839)
+            $router->get('log_management', 'LogManagementController@index');
+            $router->post('log_management/setting', 'LogManagementController@postSetting');
+            $router->get('log_management/logins.csv', 'LogManagementController@loginsCsv');
+            $router->get('log_management/files/{name}', 'LogManagementController@file')->where('name', '[A-Za-z0-9._-]+');
+            $router->get('log_management/archives/{kind}/{name}', 'LogManagementController@archive')->where(['kind' => '[a-z0-9_]+', 'name' => '[A-Za-z0-9._-]+']);
             $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
             // temporary raises of the API rate limit (ISS00442)
             $router->get('api_rate_raises', 'ApiRateRaiseController@index');
@@ -825,6 +831,16 @@ class RouteServiceProvider extends ServiceProvider
 
                     // User, Organization --------------------------------------------------
                     $router->get("user_organization/select", 'ApiController@userOrganizationSelect')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+
+                    // the users of an organization, the role groups and their members (ISS00335)
+                    $router->get("organization/{id}/users", 'ApiMemberController@organizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE));
+                    $router->post("organization/{id}/users", 'ApiMemberController@addOrganizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_WRITE));
+                    $router->delete("organization/{id}/users", 'ApiMemberController@removeOrganizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_WRITE));
+                    $router->get("user/{id}/organizations", 'ApiMemberController@userOrganizations')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE));
+                    $router->get("role_group", 'ApiMemberController@roleGroups')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE));
+                    $router->get("role_group/{id}", 'ApiMemberController@roleGroup')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE));
+                    $router->post("role_group/{id}/members", 'ApiMemberController@addRoleGroupMembers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_WRITE));
+                    $router->delete("role_group/{id}/members", 'ApiMemberController@removeRoleGroupMembers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_WRITE));
 
                     // Workflow --------------------------------------------------
                     $router->get("wf/workflow", 'ApiWorkflowController@getList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));

@@ -242,7 +242,7 @@ class CustomNotifyController extends AdminControllerTableBase
 
         $form->hasManyJson('action_settings', exmtrans("notify.action_settings"), function ($form) use ($notify, $custom_table) {
             $form->select('notify_action', exmtrans("notify.notify_action"))
-            ->options(NotifyAction::transKeyArray("notify.notify_action_options"))
+            ->options(NotifyAction::selectOptions())
             ->required()
             ->disableClear()
             ->attribute([

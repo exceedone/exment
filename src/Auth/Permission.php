@@ -314,6 +314,12 @@ class Permission
                     return array_key_exists('system', $this->permission_details);
                 }
                 return false;
+            // the log management: the system administrators, and Audit to read (ISS02839)
+            case "log_management":
+                if ($this->role_type == RoleType::SYSTEM) {
+                    return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::AUDIT], $this->permission_details);
+                }
+                return false;
                 ///// each permissions
             case "plugin":
                 if ($this->role_type == RoleType::SYSTEM) {
