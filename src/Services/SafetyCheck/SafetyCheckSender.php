@@ -291,11 +291,11 @@ class SafetyCheckSender
             $query->whereNotIn("$dbTable.id", $excluded);
         }
 
-        return collect($query->pluck("$dbTable.id")->all())
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values()
-            ->all();
+        $ids = [];
+        foreach ($query->pluck("$dbTable.id")->all() as $id) {
+            $ids[(int) $id] = (int) $id;
+        }
+        return array_values($ids);
     }
 
     /**
@@ -316,7 +316,8 @@ class SafetyCheckSender
         foreach (getModelName(SystemTableName::ORGANIZATION)::query()->whereIn('id', $ids)->get() as $organization) {
             // the organization and its children ("upper" gives the children)
             /** @var mixed $organization the organization model (OrganizationTrait) */
-            foreach ((array) $organization->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_UPPER) as $id) {
+            $organizationIds = $organization->getOrganizationIdsForQuery(JoinedOrgFilterType::ONLY_UPPER);
+            foreach ((array) $organizationIds as $id) {
                 $result[(int) $id] = (int) $id;
             }
         }
