@@ -51,10 +51,6 @@ class SystemItem implements ItemInterface
     }
 
     /**
-     * get column name
-     */
-    // @phpstan-ignore-next-line
-    /**
      * The text of a value of this column in a "filtered" chip of a list (#2162): the user names of
      * created_user / updated_user (the filter sends their ids). Null: the chip finds it itself.
      *
@@ -76,6 +72,10 @@ class SystemItem implements ItemInterface
         return count($names) > 0 ? implode(', ', $names) : null;
     }
 
+    /**
+     * get column name
+     */
+    // @phpstan-ignore-next-line
     public function name()
     {
         return $this->column_name;
