@@ -5337,7 +5337,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'store_input_help' => 'Aus (empfohlen): Das Vorgangsprotokoll behält die Schlüssel des Gesendeten (Seiten, API, MCP) mit den Werten als ***, und das Anwendungsprotokoll maskiert E-Mail-Adressen und die Werte in SQL. Ein: Die Werte bleiben wie bisher erhalten (Passwörter, Token und geheime Schlüssel werden weiterhin maskiert).',
             'ip_mode' => 'IP-Adresse in den Protokollen',
             'ip_keep' => 'Unverändert',
-            'ip_truncate' => 'Gekürzt (IPv4 /24, IPv6 /48)',
+            'ip_truncate' => 'Gekürzt (IPv4 /24, IPv6 /64)',
             'ip_hash' => 'Gehasht (dieselbe Adresse ergibt denselben Text)',
             'ip_help' => 'Die Anmeldeprotokolle und das Vorgangsprotokoll. Prüfungen benötigen die Adresse meist unverändert.',
             'archive_encrypt' => 'Archiv mit APP_KEY verschlüsseln',

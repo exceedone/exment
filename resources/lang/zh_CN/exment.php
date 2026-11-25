@@ -5337,7 +5337,7 @@ IP 地址: :ip
             'store_input_help' => '关闭（推荐）：操作记录只保留所发送内容的键，值为 ***（画面、API、MCP），应用日志会隐藏邮箱地址和 SQL 中的值。开启：与以前一样保留值（密码、令牌和密钥仍会隐藏）。',
             'ip_mode' => '日志中的 IP 地址',
             'ip_keep' => '原样',
-            'ip_truncate' => '缩短（IPv4 /24、IPv6 /48）',
+            'ip_truncate' => '缩短（IPv4 /24、IPv6 /64）',
             'ip_hash' => '哈希（相同地址得到相同文本）',
             'ip_help' => '登录记录和操作记录。审计通常需要原样的地址。',
             'archive_encrypt' => '用 APP_KEY 加密归档',

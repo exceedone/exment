@@ -5337,7 +5337,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'store_input_help' => 'Tắt (khuyến nghị): nhật ký thao tác chỉ giữ các khóa của nội dung đã gửi (màn hình, API, MCP), giá trị là ***, và log ứng dụng che địa chỉ email và giá trị trong SQL. Bật: giữ giá trị như trước (mật khẩu, token và khóa bí mật vẫn bị che).',
             'ip_mode' => 'Địa chỉ IP trong log',
             'ip_keep' => 'Giữ nguyên',
-            'ip_truncate' => 'Rút gọn (IPv4 /24, IPv6 /48)',
+            'ip_truncate' => 'Rút gọn (IPv4 /24, IPv6 /64)',
             'ip_hash' => 'Băm (cùng địa chỉ cho cùng chuỗi)',
             'ip_help' => 'Nhật ký đăng nhập và nhật ký thao tác. Kiểm toán thường cần địa chỉ nguyên vẹn.',
             'archive_encrypt' => 'Mã hóa lưu trữ bằng APP_KEY',

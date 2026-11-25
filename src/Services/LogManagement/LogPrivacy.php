@@ -12,7 +12,7 @@ use Exceedone\Exment\Model\System;
  *   of what was sent, its values as "***". On: the values as before, with the wider mask of
  *   maskSecrets() too. While it is off, the application log masks mail addresses and the quoted
  *   values of SQL in its messages (LogPrivacyTap)
- * - log_ip_mode: keep (default: the audits need it) / truncate (IPv4 /24, IPv6 /48) / hash (an HMAC
+ * - log_ip_mode: keep (default: the audits need it) / truncate (IPv4 /24, IPv6 /64) / hash (an HMAC
  *   with APP_KEY: the same address gives the same text, so a new address is still seen)
  * - mail_log_no_body (off by default): the mail send log keeps no body
  */
@@ -76,7 +76,13 @@ class LogPrivacy
                 if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
                     $packed = inet_pton(strval($ip));
                     if ($packed !== false) {
-                        return strval(inet_ntop(substr($packed, 0, 6) . str_repeat("\0", 10))) . '/48';
+                        // an IPv4-mapped address (::ffff:192.0.2.7) is the IPv4 address: /24
+                        if (substr($packed, 0, 12) === str_repeat("\0", 10) . "\xff\xff") {
+                            return preg_replace('/\.\d+$/', '.0', strval(inet_ntop(substr($packed, 12))));
+                        }
+                        // the network of the client (a home or an office has a /64), without
+                        // the part that tells its devices apart (ISS02909)
+                        return strval(inet_ntop(substr($packed, 0, 8) . str_repeat("\0", 8))) . '/64';
                     }
                 }
                 return static::MASK;
