@@ -22,18 +22,20 @@ class ApiViewDataTextTest extends ApiTestBase
         $token = $this->getAdminAccessToken([ApiScope::VALUE_READ]);
         $custom_table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $this->assertNotNull($custom_table);
-        $this->assertNotEmpty($custom_table->getSelectTableColumns(), 'the table has columns that select a record');
+        $this->assertGreaterThan(0, $custom_table->getSelectTableColumns()->count(), 'the table has columns that select a record');
 
         $views = CustomView::where('custom_table_id', $custom_table->id)
             ->whereIn('view_kind_type', [ViewKindType::DEFAULT, ViewKindType::ALLDATA])->get();
-        $this->assertNotEmpty($views);
+        $this->assertGreaterThan(0, $views->count());
 
+        /** @var array<int, string> $queries */
         $queries = [];
         \DB::listen(function ($query) use (&$queries) {
             $queries[] = $query->sql;
         });
         foreach ($views as $custom_view) {
             System::clearRequestSession();
+            /** @var array<int, string> $queries */
             $queries = [];
             \Auth::forgetGuards();
             $response = $this->withHeaders(['Authorization' => "Bearer $token"])
@@ -42,8 +44,10 @@ class ApiViewDataTextTest extends ApiTestBase
             $data = $response->json('data');
             $this->assertIsArray($data);
 
-            // no query once a cell: none runs more than a few times
-            $repeated = array_filter(array_count_values($queries), fn ($n) => $n > 3);
+            // no query once a cell: none runs once a row or more (a query once a column that
+            // selects a record, such as the table it selects, may run a few times)
+            $perRow = max(5, count($data));
+            $repeated = array_filter(array_count_values($queries), fn ($n) => $n >= $perRow);
             $this->assertEmpty($repeated, "view {$custom_view->view_view_name}: " . json_encode($repeated));
 
             // the same page, each cell reading its record itself
@@ -52,7 +56,7 @@ class ApiViewDataTextTest extends ApiTestBase
             $items = $custom_view->getDataPaginate(['maxCount' => 20, 'executeSearch' => false, 'isApi' => true])->items();
             System::clearRequestSession();
             list($headers, $bodies, $styles, $classes, $columnItems) = $custom_view->convertDataTable($items, ['appendLink' => false, 'valueType' => ValueType::TEXT]);
-            $apiNames = collect($columnItems)->map(fn ($item) => $item->apiName())->toArray();
+            $apiNames = array_map(fn ($item) => $item->apiName(), (array) $columnItems);
             $expected = array_map(fn ($body) => array_combine($apiNames, $body), $bodies);
 
             $this->assertSame(
