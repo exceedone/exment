@@ -65,11 +65,14 @@
 
   <script>
     $(function () {
-      $('input').iCheck({
-        checkboxClass: 'icheckbox_square-blue',
-        radioClass: 'iradio_square-blue',
-        increaseArea: '20%' // optional
-      });
+      // admin-core 2.0 no longer ships iCheck; then the inputs stay native
+      if ($.fn.iCheck) {
+        $('input').iCheck({
+          checkboxClass: 'icheckbox_square-blue',
+          radioClass: 'iradio_square-blue',
+          increaseArea: '20%' // optional
+        });
+      }
 
       $("form").submit(function (ev) {
         if($(ev.target).hasClass('check_has_warning') && pBool($('#has_warning').val())){
