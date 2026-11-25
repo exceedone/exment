@@ -889,6 +889,13 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $show_item->setOptionBoxes($row);
             });
+            // who read and who changed it, for the users with Audit (ISS02905)
+            $box = AuditReportController::recordAccessBox($this->custom_table, intval($id));
+            if (isset($box)) {
+                $content->row(function ($row) use ($box) {
+                    $row->column(12, $box);
+                });
+            }
             $this->appendBackToListButton();
         }
 
