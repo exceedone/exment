@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Feature;
 use Carbon\Carbon;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\RoleType;
+use Exceedone\Exment\Model\AuditReportFile;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\PasswordHistory;
@@ -14,6 +15,8 @@ use Exceedone\Exment\Model\RoleGroupUserOrganization;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\UserApiKey;
 use Exceedone\Exment\Services\AuditReport\AuditReport;
+use Exceedone\Exment\Services\AuditReport\AuditReportStore;
+use Illuminate\Http\UploadedFile;
 use Exceedone\Exment\Services\LogManagement\LogSettings;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
@@ -280,13 +283,27 @@ class AuditReportTest extends FeatureTestBase
     public function testWhoSeesIt(): void
     {
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        // as ajax: the error page of a permission ends the process on a page request
+        // as ajax: the page of "no permission" ends the process on a page request; to ajax it is
+        // a 403 with the same message
         $ajax = ['X-Requested-With' => 'XMLHttpRequest'];
-        $page = $this->get(admin_urls('log_management', 'audit'), $ajax);
-        $this->assertNotSame(200, $page->getStatusCode());
-        $page->assertDontSee(exmtrans('audit_report.section.users'));
-        $this->assertNotSame(200, $this->get(admin_urls('log_management', 'audit.pdf'), $ajax)->getStatusCode());
-        $this->assertNotSame(200, $this->get(admin_urls('log_management', 'audit', 'users.csv'), $ajax)->getStatusCode());
+        $denied = function (\Illuminate\Testing\TestResponse $response, string $what): void {
+            $response->assertStatus(403);
+            $response->assertSee(trans('admin.deny'), false);
+            $response->assertDontSee(exmtrans('audit_report.section.users'), false);
+            $this->assertStringNotContainsString('%PDF', strval($response->getContent()), $what);
+        };
+        $record = AuditReportFile::create(['period_from' => '2020-01-01', 'period_to' => '2020-03-31', 'source' => AuditReportFile::SOURCE_SCHEDULE, 'sha256' => str_repeat('a', 64), 'size' => 0, 'created_at' => Carbon::now()]);
+        $reports = AuditReportFile::query()->count();
+
+        $denied($this->get(admin_urls('log_management', 'audit'), $ajax), 'the page');
+        $denied($this->get(admin_urls('log_management', 'audit.pdf'), $ajax), 'the PDF');
+        $denied($this->get(admin_urls('log_management', 'audit', 'users.csv'), $ajax), 'a CSV');
+        $denied($this->get(admin_urls('log_management', 'audit', 'files', $record->id), $ajax), 'a file of the job');
+        $denied($this->post(admin_urls('log_management', 'audit', 'verify'), ['report' => UploadedFile::fake()->createWithContent('report.pdf', 'x')], $ajax), 'the check');
+        $denied($this->post(admin_urls('log_management', 'audit', 'setting'), ['audit_report_schedule' => AuditReportStore::SCHEDULE_MONTHLY], $ajax), 'the settings');
+        System::clearCache();
+        $this->assertSame(AuditReportStore::SCHEDULE_OFF, AuditReportStore::schedule(), 'the setting is not changed');
+        $this->assertSame($reports, AuditReportFile::query()->count(), 'no PDF made');
 
         // Audit through a role group
         $user2 = $this->login(TestDefine::TESTDATA_USER_LOGINID_USER2);
