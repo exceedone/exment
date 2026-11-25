@@ -713,6 +713,8 @@ return [
                 'explain' => 'La clave para el cifrado y para firmar la sesión. Cada sitio necesita la suya propia.',
                 'warning' => 'APP_KEY no existe o sigue siendo un valor de ejemplo.',
                 'fix' => 'Ejecute php artisan key:generate en el servidor. En un sitio que ya está en uso, una clave nueva hace que los valores guardados cifrados (la contraseña del servidor de correo...) no se puedan leer: vuelva a configurarlos.',
+                'shipped_warning' => 'APP_KEY sigue siendo la clave incluida en el zip de descarga.',
+                'shipped_fix' => 'Ejecute php artisan key:generate en el servidor. Después se cerrará la sesión de todos y tendrán que volver a iniciarla. Los valores guardados cifrados (la contraseña del servidor de correo...) no se podrán leer: vuelva a configurarlos.',
             ],
             'app_env' => [
                 'label' => 'Entorno (APP_ENV)',
