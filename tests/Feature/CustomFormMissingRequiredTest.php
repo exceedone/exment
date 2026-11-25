@@ -119,5 +119,11 @@ class CustomFormMissingRequiredTest extends FeatureTestBase
         $response = $post('refused');
         $this->assertSame($before, $count(), 'not saved while the required column is empty');
         $response->assertSessionHasErrors('value.title');
+        // the message at the top of the page is HTML: the name of the column is text in it
+        $error = session('error');
+        $this->assertNotNull($error);
+        $message = strval(array_get($error->get('message'), 0));
+        $this->assertStringContainsString('件名&lt;b&gt;', $message);
+        $this->assertStringNotContainsString('件名<b>', $message);
     }
 }
