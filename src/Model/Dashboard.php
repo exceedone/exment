@@ -27,6 +27,10 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
 {
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonOptionTrait;
+    use Traits\NameLocalesTrait;
+
+    /** the names in the other languages (ISS02859): read by the API, written by the form */
+    protected $appends = ['name_locales'];
     use Traits\DefaultFlgTrait;
     use Traits\TemplateTrait {
         getTemplateExportItems as protected templateExportItems;
@@ -37,10 +41,23 @@ class Dashboard extends ModelBase implements Interfaces\TemplateImporterInterfac
     protected $guarded = ['id'];
     protected $casts = ['options' => 'json'];
 
+    /**
+     * The name in the language of the user, when one is given for it (ISS02859, phase 2):
+     * the stored name otherwise, and always on the pages that edit it (NameLocales).
+     *
+     * @param mixed $value the stored name
+     * @return mixed
+     */
+    public function getDashboardViewNameAttribute($value)
+    {
+        $options = $this->getAttributeValue('options');
+        return \Exceedone\Exment\Services\NameLocales::pick(is_array($options) ? $options : null, $value);
+    }
+
 
     // @phpstan-ignore-next-line
     public static $templateItems = [
-        'excepts' => ['suuid'],
+        'excepts' => ['suuid', 'name_locales'],
         'uniqueKeys' => ['dashboard_name'],
         'langs' => [
             'keys' => ['dashboard_name'],

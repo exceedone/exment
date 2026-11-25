@@ -869,12 +869,9 @@ class KanbanGrid extends GridBase
             $raw = $record->getValue($labels_column);
         }
 
+        // every value of a multiple column (an array or a Collection), not only the first (#2164)
         $labels = [];
-        foreach (is_array($raw) ? $raw : [$raw] as $value) {
-            $key = static::normalizeKey($value);
-            if ($key === '') {
-                continue;
-            }
+        foreach (static::normalizeKeys($raw) as $key) {
             $labels[] = ['key' => $key, 'label' => array_get($labels_options, $key, $key)];
         }
 

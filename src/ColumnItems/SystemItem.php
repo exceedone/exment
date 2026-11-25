@@ -51,6 +51,28 @@ class SystemItem implements ItemInterface
     }
 
     /**
+     * The text of a value of this column in a "filtered" chip of a list (#2162): the user names of
+     * created_user / updated_user (the filter sends their ids). Null: the chip finds it itself.
+     *
+     * @param mixed $value
+     */
+    public function chipText($value): ?string
+    {
+        if (!in_array($this->column_name, [SystemColumn::CREATED_USER, SystemColumn::UPDATED_USER], true)) {
+            return null;
+        }
+        $names = [];
+        foreach ((array) $value as $id) {
+            if (is_nullorempty($id) || !is_scalar($id)) {
+                continue;
+            }
+            $name = getUserName(strval($id));
+            $names[] = is_nullorempty($name) ? strval($id) : strval($name);
+        }
+        return count($names) > 0 ? implode(', ', $names) : null;
+    }
+
+    /**
      * get column name
      */
     // @phpstan-ignore-next-line

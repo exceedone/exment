@@ -78,6 +78,13 @@
                         <label class="control-label" style="padding-right:15px;">{{ exmtrans('custom_form.form_block_name') }}</label>
                         <input type="text" name="{{ $custom_form_block['header_name'] }}[form_block_view_name]" value="{{ $custom_form_block['form_block_view_name'] }}" class="form-control" style="width:400px;" />
                     </div>
+                    {{-- the name in the other languages (ISS02859) --}}
+                    @foreach (\Exceedone\Exment\Services\NameLocales::locales() as $nameLocale)
+                    <div class="form-group d-flex align-items-center">
+                        <input type="text" name="{{ $custom_form_block['header_name'] }}[name_locales][{{ $nameLocale }}]" value="{{ array_get($custom_form_block, 'name_locales.' . $nameLocale) }}" class="form-control input-sm" style="width:160px;" maxlength="256"
+                            placeholder="{{ \Exceedone\Exment\Services\NameLocales::localeName($nameLocale) }}" title="{{ exmtrans('name_locales.name_in', \Exceedone\Exment\Services\NameLocales::localeName($nameLocale)) }}" />
+                    </div>
+                    @endforeach
                     {{-- select hasmany or hasmanytable --}}
                     @if($custom_form_block['form_block_type'] != '0')
                     <div class="form-group d-flex align-items-center">

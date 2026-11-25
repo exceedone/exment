@@ -24,7 +24,18 @@ class McpGuide
         'get_data' => ApiScope::VALUE_READ,
         'list_attachments' => ApiScope::VALUE_READ,
         'get_workflow_status' => ApiScope::WORKFLOW_READ,
+        // the members (ISS00335): also the feature api_members and the permission of the role groups
+        'list_organization_users' => ApiScope::USER_ORG_READ,
+        'list_user_organizations' => ApiScope::USER_ORG_READ,
+        'list_role_groups' => ApiScope::ROLE_GROUP_READ,
+        'get_role_group' => ApiScope::ROLE_GROUP_READ,
     ];
+
+    /**
+     * The tools of the members: for the administrators of the role groups only, so a key "for
+     * MCP" (scopes()) does not get their scopes; such a user adds them to a key.
+     */
+    public const MEMBER_TOOLS = ['list_organization_users', 'list_user_organizations', 'list_role_groups', 'get_role_group'];
 
     /** The name the settings give the server in Claude. */
     public const SERVER_NAME = 'exment';
@@ -36,7 +47,7 @@ class McpGuide
      */
     public static function scopes(): array
     {
-        return array_values(array_unique(array_values(static::TOOL_SCOPES)));
+        return array_values(array_unique(array_values(array_diff_key(static::TOOL_SCOPES, array_flip(static::MEMBER_TOOLS)))));
     }
 
     /** The address of the MCP server of this site. */

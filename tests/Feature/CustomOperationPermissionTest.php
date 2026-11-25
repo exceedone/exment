@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Tests\Feature;
 use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\CustomOperationType;
 use Exceedone\Exment\Enums\ErrorCode;
+use Exceedone\Exment\Enums\FormActionType;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomOperation;
 use Exceedone\Exment\Model\CustomOperationColumn;
@@ -188,7 +189,71 @@ class CustomOperationPermissionTest extends FeatureTestBase
         }
     }
 
+    /**
+     * #2171: "Disable on screen" (edit) of the table hides the [Edit] button of the record's page,
+     * not the buttons of the data update settings: they are shown and run, as on v4, for the
+     * users who may edit the record.
+     */
+    public function testDisabledEditOnScreenKeepsTheOperationButton(): void
+    {
+        $operation = $this->operation(static::TABLE_EDIT);
+        $record = $this->record(static::TABLE_EDIT, 'before');
+        $edit = admin_urls('data', static::TABLE_EDIT, $record->id, 'edit');
+
+        $this->actAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertStringContainsString($edit, $this->show(static::TABLE_EDIT, $record));
+
+        $this->disableEditOnScreen(static::TABLE_EDIT);
+        $content = $this->show(static::TABLE_EDIT, $record);
+        $this->assertStringNotContainsString($edit, $content);
+        $this->assertStringContainsString('menu_button_' . $operation->suuid, $content);
+
+        $this->click($operation, static::TABLE_EDIT, $record)
+            ->assertStatus(200)
+            ->assertJson(['result' => true]);
+        $this->assertSame(static::UPDATED, $this->stored($record)->getValue('text'));
+    }
+
+    /**
+     * #2171: with "Disable on screen", a user who may only read the record still has no button,
+     * and the request is refused.
+     */
+    public function testDisabledEditOnScreenStillRefusesAUserWhoMayOnlyRead(): void
+    {
+        $operation = $this->operation(static::TABLE_VIEW);
+        $record = $this->record(static::TABLE_VIEW, 'before');
+        $this->disableEditOnScreen(static::TABLE_VIEW);
+
+        $this->actAs(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        $this->assertStringNotContainsString('menu_button_' . $operation->suuid, $this->show(static::TABLE_VIEW, $record));
+        $this->click($operation, static::TABLE_VIEW, $record)
+            ->assertStatus(400)
+            ->assertJson(['result' => false, 'swaltext' => ErrorCode::PERMISSION_DENY()->getMessage()]);
+        $this->assertSame('before', $this->stored($record)->getValue('text'));
+    }
+
     // helpers ----------------------------------------------------
+
+    protected function disableEditOnScreen(string $table_name): void
+    {
+        $table = $this->table($table_name);
+        $table->setOption('form_action_disable_flg', [FormActionType::EDIT]);
+        $table->save();
+        System::clearCache();
+        System::clearRequestSession();
+        $this->assertTrue($this->table($table_name)->formActionDisable(FormActionType::EDIT));
+    }
+
+    /**
+     * The record's page.
+     */
+    protected function show(string $table_name, CustomValue $record): string
+    {
+        $response = $this->get(admin_urls('data', $table_name, $record->id));
+        $response->assertStatus(200);
+
+        return (string) $response->getContent();
+    }
 
     /**
      * Log in and forget what the previous user read.

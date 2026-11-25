@@ -279,6 +279,8 @@ class DashboardController extends AdminControllerBase
         $form->text('dashboard_view_name', exmtrans("dashboard.dashboard_view_name"))
             ->required()
             ->rules("max:40");
+        // the name in the other languages (ISS02859)
+        \Exceedone\Exment\Services\NameLocales::addEmbeds($form, exmtrans("dashboard.dashboard_view_name"));
 
         if (!System::userdashboard_available()) {
             $form->internal('dashboard_type')->default(DashboardType::SYSTEM);

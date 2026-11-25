@@ -7,6 +7,7 @@ use ExmentAdminCore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Controllers;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\BackButton;
 
 /**
  * Middleware as Bootstrap.
@@ -23,8 +24,25 @@ class Bootstrap
     public function handle(Request $request, \Closure $next)
     {
         $this->setCssJs($request, $next);
+        $this->setBackButton($request);
 
         return $next($request);
+    }
+
+    /**
+     * The "back" button at the left of the page title (ISS00363). On pjax requests as well:
+     * a pjax page has a new title, and the destination is of that page.
+     *
+     * @param Request $request
+     * @return void
+     */
+    protected function setBackButton(Request $request)
+    {
+        $url = BackButton::destinationForRequest($request);
+        if (is_null($url)) {
+            return;
+        }
+        BackButton::append($url, exmtrans('common.back'));
     }
 
     /**
