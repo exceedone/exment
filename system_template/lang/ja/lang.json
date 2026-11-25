@@ -289,6 +289,17 @@
                 {
                     "column_name": "send_datetime",
                     "column_view_name": "送信日時"
+                },
+                {
+                    "column_name": "send_result",
+                    "column_view_name": "送信結果",
+                    "options": {
+                        "select_item_valtext": "sent,送信済み\nfailed,失敗"
+                    }
+                },
+                {
+                    "column_name": "send_error",
+                    "column_view_name": "送信エラー"
                 }
             ]
         },
@@ -553,6 +564,16 @@
             "menu_type": "system",
             "menu_name": "system",
             "title": "システム設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "安否確認設定"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "全文検索設定"
         },
         {
             "menu_type": "system",

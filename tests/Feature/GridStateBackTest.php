@@ -15,7 +15,7 @@ use Illuminate\Testing\TestResponse;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * ISS00363: the data list is remembered in the session, per table, as the user last saw it
+ * ISS00363: the data list is remembered for the session, per table, as the user last saw it
  * (the view, the filter, the sort, the page, ...). "Back to the list" on a record and the
  * redirect after a save go back to it, not to the first page of the default view.
  *
@@ -28,6 +28,9 @@ class GridStateBackTest extends FeatureTestBase
 
     protected const TABLE_A = TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL;
     protected const TABLE_B = TestDefine::TESTDATA_TABLE_NAME_VIEW;
+
+    /** @var string|null the id of the session of the requests of a test */
+    protected $sessionId = null;
 
     protected function setUp(): void
     {
@@ -65,8 +68,23 @@ class GridStateBackTest extends FeatureTestBase
             $route->flushController();
         }
         System::clearRequestSession();
+        $response = parent::call($method, $uri, $parameters, $cookies, $files, $server, $content);
+        $this->sessionId = strval(session()->getId());
+        return $response;
+    }
 
-        return parent::call($method, $uri, $parameters, $cookies, $files, $server, $content);
+    /**
+     * The session cookie of the request before, as a browser sends it: the requests of a test are
+     * of one session (get() and the others make the cookies before they call call()).
+     *
+     * @return array<string, mixed>
+     */
+    protected function prepareCookiesForRequest()
+    {
+        if (isset($this->sessionId)) {
+            $this->defaultCookies[strval(config('session.cookie'))] = $this->sessionId;
+        }
+        return parent::prepareCookiesForRequest();
     }
 
     protected function table(string $table_name): CustomTable
@@ -211,6 +229,37 @@ class GridStateBackTest extends FeatureTestBase
 
         // without the filter: the plain url, as before
         $this->assertSame(admin_url('data/' . static::TABLE_A), $table->getGridUrl());
+    }
+
+    /**
+     * A request that began before the list was opened (a box of the dashboard) writes back the
+     * whole session when it ends, without the list: the list stays remembered.
+     */
+    public function testARequestThatEndsLaterDoesNotDropTheList(): void
+    {
+        $this->get(admin_url('data/' . static::TABLE_A))->assertOk();
+        // the session as that earlier request read it
+        $stale = session()->all();
+
+        $view = $this->viewSuuid(static::TABLE_A);
+        $this->openList(static::TABLE_A, $view, 2);
+        $id = session()->getId();
+
+        // it ends now and writes its session back
+        session()->replace($stale);
+        session()->save();
+        $this->assertSame($id, session()->getId());
+
+        $url = $this->table(static::TABLE_A)->getGridUrl(true);
+        $this->assertSame('2', $this->queryOf($url)['page'] ?? null, 'still remembered');
+        $record = $this->record(static::TABLE_A);
+        $this->get(admin_urls('data', static::TABLE_A, $record->id))
+            ->assertOk()
+            ->assertSee(BackButton::jsString($url), false);
+
+        // another session (a new login): not its list
+        session()->setId(str_repeat('a', 40));
+        $this->assertSame(admin_url('data/' . static::TABLE_A), $this->table(static::TABLE_A)->getGridUrl(true));
     }
 
     public function testSaveGridParameterRemembersInTheSession(): void

@@ -571,6 +571,24 @@
                         "index_enabled": "1",
                         "freeword_search": "1"
                     }
+                },
+                {
+                    "column_name": "send_result",
+                    "column_view_name": "Send result",
+                    "column_type": "select_valtext",
+                    "system_flg": "1",
+                    "options": {
+                        "index_enabled": "1",
+                        "select_item_valtext": "sent,Sent\nfailed,Failed"
+                    }
+                },
+                {
+                    "column_name": "send_error",
+                    "column_view_name": "Send error",
+                    "column_type": "text",
+                    "system_flg": "1",
+                    "options": {
+                    }
                 }
             ]
         },
@@ -790,6 +808,18 @@
                             "form_column_type": "0",
                             "options": null,
                             "form_column_target_name": "send_datetime"
+                        },
+                        {
+                            "suuid": "Rk7sQm2VnT4bWx9LpE3a",
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "send_result"
+                        },
+                        {
+                            "suuid": "Hc5uYd8JfN2gKs6ZqW1e",
+                            "form_column_type": "0",
+                            "options": null,
+                            "form_column_target_name": "send_error"
                         }
                     ],
                     "form_block_target_table_name": "mail_send_log"
@@ -1542,13 +1572,29 @@
         {
             "order": "2",
             "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "Safety Check Settings",
+            "parent_name": "admin",
+            "menu_target_name": "safety_check_setting"
+        },
+        {
+            "order": "3",
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "Full-text Search Settings",
+            "parent_name": "admin",
+            "menu_target_name": "meili_setting"
+        },
+        {
+            "order": "4",
+            "menu_type": "system",
             "menu_name": "feature",
             "title": "Feature Management",
             "parent_name": "admin",
             "menu_target_name": "feature"
         },
         {
-            "order": "3",
+            "order": "5",
             "menu_type": "system",
             "menu_name": "plugin",
             "title": "Plugin",
@@ -1556,7 +1602,7 @@
             "menu_target_name": "plugin"
         },
         {
-            "order": "4",
+            "order": "6",
             "menu_type": "system",
             "menu_name": "backup",
             "title": "Backup",
@@ -1564,7 +1610,7 @@
             "menu_target_name": "backup"
         },
         {
-            "order": "5",
+            "order": "7",
             "menu_type": "system",
             "menu_name": "tuning",
             "title": "Tuning",
@@ -1572,7 +1618,7 @@
             "menu_target_name": "tuning"
         },
         {
-            "order": "6",
+            "order": "8",
             "menu_type": "system",
             "menu_name": "security_check",
             "title": "Security Check",
@@ -1580,7 +1626,7 @@
             "menu_target_name": "security_check"
         },
         {
-            "order": "7",
+            "order": "9",
             "menu_type": "system",
             "menu_name": "scheduled_jobs",
             "title": "Scheduled Jobs",
@@ -1588,7 +1634,7 @@
             "menu_target_name": "scheduled_jobs"
         },
         {
-            "order": "8",
+            "order": "10",
             "menu_type": "system",
             "menu_name": "log_management",
             "title": "Log Management",
@@ -1596,7 +1642,7 @@
             "menu_target_name": "log_management"
         },
         {
-            "order": "9",
+            "order": "11",
             "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Maintenance Mode",

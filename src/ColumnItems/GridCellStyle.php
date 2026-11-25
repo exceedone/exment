@@ -98,6 +98,28 @@ class GridCellStyle
      */
     protected const MARKED_STYLES = [self::STYLE_DOT, self::STYLE_LVL];
 
+    /**
+     * Styles that draw every value as a shape of its own. The values of a
+     * multi-value column are already told apart by their shapes, so the
+     * separator between them is hidden and a margin takes its place (#2159).
+     */
+    public const BLOCK_STYLES = [
+        self::STYLE_TAG,
+        self::STYLE_PILL,
+        self::STYLE_BADGE,
+        self::STYLE_DOT,
+        self::STYLE_LVL,
+        self::STYLE_AVATAR,
+    ];
+
+    /**
+     * Class of the separator between two values drawn as shapes. It stays in
+     * the markup and is only hidden by css, so the text of the cell - which
+     * the grouping and the "filter in this page" of the list take as the key -
+     * is still "value1、value2".
+     */
+    public const SEPARATOR_CLASS = 'exm-cell-sep';
+
     /** @var \Exceedone\Exment\Model\CustomColumn|null null: a preset alone (fromPreset) */
     protected $custom_column;
 
@@ -335,6 +357,35 @@ class GridCellStyle
         }
 
         return $options;
+    }
+
+    /**
+     * Whether this styler draws every value as a shape of its own.
+     */
+    public function isBlockStyle(): bool
+    {
+        return static::isBlockStyleName($this->style);
+    }
+
+    /**
+     * Whether a grid_style draws every value as a shape of its own.
+     *
+     * @param mixed $style
+     */
+    public static function isBlockStyleName($style): bool
+    {
+        return is_string($style) && in_array($style, static::BLOCK_STYLES, true);
+    }
+
+    /**
+     * The separator between two values drawn as shapes: kept in the markup
+     * for the text of the cell, hidden on the screen.
+     *
+     * @param string $word
+     */
+    public static function separatorHtml(string $word): string
+    {
+        return '<span class="' . static::SEPARATOR_CLASS . '">' . e($word) . '</span>';
     }
 
     /**

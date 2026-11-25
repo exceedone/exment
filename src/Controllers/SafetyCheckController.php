@@ -50,7 +50,7 @@ class SafetyCheckController extends AdminControllerBase
             return $content->withError(exmtrans('safety.menu_title'), exmtrans('safety.message_not_installed'));
         }
         return $content
-            ->body(view('exment::safety.index'))
+            ->body(view('exment::safety.index', ['targetSummary' => SafetyCheckSender::targetSummary()]))
             ->body($this->grid());
     }
 

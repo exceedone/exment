@@ -289,6 +289,17 @@
                 {
                     "column_name": "send_datetime",
                     "column_view_name": "발송 일시"
+                },
+                {
+                    "column_name": "send_result",
+                    "column_view_name": "발송 결과",
+                    "options": {
+                        "select_item_valtext": "sent,발송됨\nfailed,실패"
+                    }
+                },
+                {
+                    "column_name": "send_error",
+                    "column_view_name": "발송 오류"
                 }
             ]
         },
@@ -553,6 +564,16 @@
             "menu_type": "system",
             "menu_name": "system",
             "title": "시스템 설정"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "안부 확인 설정"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "전문 검색 설정"
         },
         {
             "menu_type": "system",
