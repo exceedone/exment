@@ -60,6 +60,7 @@ class Email
 
         if (!Auth2factorService::verifyCode('email', $verify_code, true)) {
             $this->incrementLoginAttempts($request);
+            \Exceedone\Exment\Services\LogManagement\LoginRecorder::twoFactorFailed($loginuser);
 
             // error
             return back()->withInput()->withErrors([

@@ -109,6 +109,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\WorkflowClearCommand::class,
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
+        \Exceedone\Exment\Console\LogMaintenanceCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
         \Exceedone\Exment\Console\MaintenanceCommand::class,
@@ -355,6 +356,9 @@ class ExmentServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
             \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
         });
+        // the record of the logins of the pages, and the settings of the application log (ISS02839)
+        \Exceedone\Exment\Services\LogManagement\LoginRecorder::register();
+        \Exceedone\Exment\Services\LogManagement\LogSettings::apply();
 
         // Perf: publishes() only feeds the `vendor:publish` console command; running it on
         // every web request is pure waste (matches open-admin-core's console-guarded publishing).
@@ -658,6 +662,9 @@ class ExmentServiceProvider extends ServiceProvider
         foreach (\Exceedone\Exment\Services\CoreExtensions::schedules() as $register) {
             $register($schedule);
         }
+
+        // the logs older than they are kept (ISS02839)
+        $schedule->command('exment:log-maintenance')->dailyAt('03:40')->withoutOverlapping(60);
 
         // maintenance mode: the planned start and end (never skipped in a maintenance)
         $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);

@@ -56,6 +56,18 @@ class LogOperation extends BaseLogOperation
     }
 
     /**
+     * The methods kept: as the config says, and as the log management says (ISS02839: only the
+     * requests that change something, when it is chosen).
+     *
+     * @param string $method
+     * @return bool
+     */
+    protected function inAllowedMethods($method)
+    {
+        return \Exceedone\Exment\Services\LogManagement\LogSettings::logsMethod(strval($method)) && parent::inAllowedMethods($method);
+    }
+
+    /**
      * Determine if the request has a URI that should pass through CSRF verification.
      *
      * @param \Illuminate\Http\Request $request
@@ -171,6 +183,9 @@ class LogOperation extends BaseLogOperation
             // follower, the secret authenticates the webhook.
             'system_line_channel_token',
             'system_line_channel_secret',
+            // the address of the Teams workflow: whoever has it can post to the chats
+            'system_teams_workflow_url',
+            'system_teams_workflow_url_new',
         ];
     }
 
