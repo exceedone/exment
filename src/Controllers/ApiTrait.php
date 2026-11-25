@@ -68,6 +68,32 @@ trait ApiTrait
      * @param Request $request
      * @return \Illuminate\Config\Repository|\Illuminate\Contracts\Foundation\Application|mixed|\Symfony\Component\HttpFoundation\Response|null
      */
+    /**
+     * Whether the list is read without counting all of it (total=0, ISS02885): no COUNT(*) of
+     * the whole table, so a big table answers sooner. The answer has no total, last_page and
+     * last_page_url; next_page_url is null on the last page.
+     */
+    protected function withoutTotal(Request $request): bool
+    {
+        if (!$request->has('total')) {
+            return false;
+        }
+        return in_array(strtolower(strval($request->get('total'))), ['0', 'false'], true);
+    }
+
+    /**
+     * A page of the query: with the total, or without it (withoutTotal()).
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model>|\Illuminate\Database\Query\Builder|\Illuminate\Database\Eloquent\Relations\Relation<\Illuminate\Database\Eloquent\Model> $query
+     * @param int|string $count
+     * @return \Illuminate\Pagination\AbstractPaginator
+     */
+    protected function paginateOf($query, Request $request, $count)
+    {
+        // @phpstan-ignore-next-line
+        return $this->withoutTotal($request) ? $query->simplePaginate($count) : $query->paginate($count);
+    }
+
     protected function getCount(Request $request)
     {
         // get and check query parameter
