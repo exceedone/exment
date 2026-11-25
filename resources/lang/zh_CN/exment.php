@@ -713,6 +713,8 @@ return [
                 'explain' => '用于加密和会话签名的密钥。每个网站都需要单独生成。',
                 'warning' => 'APP_KEY 不存在或仍为示例值。',
                 'fix' => '请在服务器上运行 php artisan key:generate。对于已在使用中的网站，更换密钥后，加密保存的值（邮件服务器的密码等）将无法读取，届时请重新设置。',
+                'shipped_warning' => 'APP_KEY 仍是下载的 zip 中自带的值。',
+                'shipped_fix' => '请在服务器上运行 php artisan key:generate。之后所有用户都会退出登录，需要重新登录。加密保存的值（邮件服务器的密码等）将无法读取，请重新设置。',
             ],
             'app_env' => [
                 'label' => '运行环境（APP_ENV）',
