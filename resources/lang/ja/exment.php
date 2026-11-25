@@ -186,6 +186,7 @@ return [
         'english' => '英語',
         'japanese' => '日本語',
         'back_button' => '戻る',
+        'back' => '戻る',
 
         'message' => [
             'confirm_execute' => '%sを実行します。\r\nよろしいですか？',
