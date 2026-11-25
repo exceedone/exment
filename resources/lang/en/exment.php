@@ -4160,6 +4160,8 @@ If it was not you, change your password and tell the administrators.",
 
     'mail_template' => [
         'disable_body' => '(For security reasons, the body is hidden)',
+        'send_failed_subject' => 'A mail could not be sent',
+        'send_failed_body' => 'A mail could not be sent. See the result in the mail send log.',
     ],
 
     'template' =>[

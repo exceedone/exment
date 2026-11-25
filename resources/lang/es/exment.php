@@ -4136,6 +4136,8 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
     ],
     'mail_template' => [
         'disable_body' => '(Por motivos de seguridad, el cuerpo está oculto)',
+        'send_failed_subject' => 'No se pudo enviar un correo',
+        'send_failed_body' => 'No se pudo enviar un correo. Consulte el resultado en el historial de envío de correos.',
     ],
     'template' => [
         'header' => 'Plantilla',
