@@ -150,7 +150,7 @@ class LogWriterTest extends UnitTestBase
 
     public function testByTheQueue(): void
     {
-        Queue::fake();
+        $queue = Queue::fake();
         config(['exment.log_write_mode' => LogWriter::MODE_QUEUE, 'queue.default' => 'database']);
         $before = OperationLog::query()->count();
         LogWriter::begin();
@@ -158,7 +158,7 @@ class LogWriterTest extends UnitTestBase
         LogWriter::end();
         $this->assertSame($before, OperationLog::query()->count(), 'sent to the queue');
 
-        $jobs = Queue::pushed(WriteLogsJob::class);
+        $jobs = $queue->pushed(WriteLogsJob::class);
         $this->assertCount(1, $jobs);
         /** @var WriteLogsJob $job */
         $job = $jobs->first();
