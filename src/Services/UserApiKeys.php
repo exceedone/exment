@@ -388,14 +388,93 @@ class UserApiKeys
             return $refuse('table', $key);
         }
 
-        UserApiKey::where('id', $key->id)->update([
-            'last_used_at' => Carbon::now(),
-            'last_used_ip' => substr((string)$request->ip(), 0, 64),
-            'use_count' => \DB::raw('use_count + 1'),
-        ]);
+        static::touch($key, $request);
 
         $login_user->withAccessToken(new UserApiKeyToken($key));
         return $login_user;
+    }
+
+    /**
+     * Note a use of the key: when, from where, how many times.
+     *
+     * Not an UPDATE of the key every call (a busy client writes the same row again and
+     * again): at most once in EXMENT_API_KEY_TOUCH_SECONDS a key and a cache store. The uses
+     * in between are counted in the cache and written with the next write; the pages read
+     * them with usageOf(), so they show the same as when every call writes. 0 (default): every
+     * call. Lost when the cache is emptied before they are written (see config/exment.php).
+     */
+    public static function touch(UserApiKey $key, Request $request): void
+    {
+        $now = Carbon::now();
+        $ip = substr((string)$request->ip(), 0, 64);
+        $seconds = intval(config('exment.api_key_touch_seconds', 0));
+        if ($seconds <= 0) {
+            static::writeUse($key, $now, $ip, 1);
+            return;
+        }
+
+        $base = static::useCacheKey($key);
+        try {
+            $cache = \Cache::store();
+            if ($cache->add($base . ':lock', 1, $seconds)) {
+                $pending = intval($cache->pull($base . ':count', 0));
+                $cache->forget($base . ':last');
+                static::writeUse($key, $now, $ip, 1 + $pending);
+                return;
+            }
+            // a store that does not make a missing number on increment (database) gets it here
+            $cache->add($base . ':count', 0);
+            $cache->increment($base . ':count');
+            $cache->forever($base . ':last', ['at' => $now->getTimestamp(), 'ip' => $ip]);
+        } catch (\Throwable $e) {
+            // no cache: as before
+            static::writeUse($key, $now, $ip, 1);
+        }
+    }
+
+    /**
+     * When the key was used last, from where, and how many times: the row and the uses in the
+     * cache not written yet (touch()).
+     *
+     * @return array{last_used_at: Carbon|null, last_used_ip: string|null, use_count: int}
+     */
+    public static function usageOf(UserApiKey $key): array
+    {
+        $usage = [
+            'last_used_at' => $key->last_used_at,
+            'last_used_ip' => $key->last_used_ip,
+            'use_count' => intval($key->use_count),
+        ];
+        try {
+            $cache = \Cache::store();
+            $base = static::useCacheKey($key);
+            $usage['use_count'] += intval($cache->get($base . ':count', 0));
+            $last = $cache->get($base . ':last');
+            if (is_array($last) && isset($last['at'])) {
+                $at = Carbon::createFromTimestamp(intval($last['at']))->setTimezone(Carbon::now()->getTimezone());
+                if (!isset($usage['last_used_at']) || $at->greaterThan($usage['last_used_at'])) {
+                    $usage['last_used_at'] = $at;
+                    $usage['last_used_ip'] = isset($last['ip']) ? strval($last['ip']) : $usage['last_used_ip'];
+                }
+            }
+        } catch (\Throwable $e) {
+            // the row only
+        }
+        return $usage;
+    }
+
+    protected static function useCacheKey(UserApiKey $key): string
+    {
+        return 'exment-apikey-use:' . static::siteHash() . ':' . $key->id;
+    }
+
+    protected static function writeUse(UserApiKey $key, Carbon $at, string $ip, int $count): void
+    {
+        UserApiKey::where('id', $key->id)->update([
+            'last_used_at' => $at,
+            'last_used_ip' => $ip,
+            'use_count' => \DB::raw('use_count + ' . max(1, $count)),
+        ]);
     }
 
     /**

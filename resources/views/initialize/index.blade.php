@@ -19,15 +19,12 @@
     <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/sweetalert2/dist/sweetalert2.css") }}">
     <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/nestable/nestable.css") }}">
     <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.css") }}">
-    <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/bootstrap3-editable/css/bootstrap-editable.css") }}">
     <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/google-fonts/fonts.css") }}">
 
     <!-- REQUIRED JS SCRIPTS -->
     <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-3.7.1.min.js") }}"></script>
     <!-- Bootstrap 5 JS (No jQuery dependency) -->
     <script src="{{ admin_asset ("/vendor/open-admin/open-admin/js/bootstrap.bundle.min.js") }}" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="{{ admin_asset ("/vendor/open-admin/AdminLTE/plugins/slimScroll/jquery.slimscroll.min.js") }}"></script>
-    <script src="{{ admin_asset ("/vendor/open-admin/jquery-pjax/jquery.pjax.js") }}"></script>
     <script src="{{ admin_asset ("/vendor/open-admin/nprogress/nprogress.js") }}"></script>
 </head>
 
@@ -58,7 +55,6 @@
 <script src="{{ admin_asset ("/vendor/open-admin/toastr/build/toastr.min.js") }}"></script>
 <script src="{{ admin_asset ("/vendor/open-admin/sweetalert2/dist/sweetalert2.min.js") }}"></script>
 {!! Admin::js() !!}
-<script src="{{ admin_asset ("/vendor/open-admin/open-admin/open-admin.js") }}"></script>
 
 </body>
 </html>

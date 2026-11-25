@@ -289,6 +289,17 @@
                 {
                     "column_name": "send_datetime",
                     "column_view_name": "发送日期"
+                },
+                {
+                    "column_name": "send_result",
+                    "column_view_name": "发送结果",
+                    "options": {
+                        "select_item_valtext": "sent,已发送\nfailed,失败"
+                    }
+                },
+                {
+                    "column_name": "send_error",
+                    "column_view_name": "发送错误"
                 }
             ]
         },
@@ -553,6 +564,16 @@
             "menu_type": "system",
             "menu_name": "system",
             "title": "系统设置"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "安全确认设置"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "全文搜索设置"
         },
         {
             "menu_type": "system",

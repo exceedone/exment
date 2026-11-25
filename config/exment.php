@@ -1376,6 +1376,17 @@ return [
     'api_key_max_per_user' => env('EXMENT_API_KEY_MAX_PER_USER', 10),
 
     /*
+    | How often the use of a key (when, from where, how many times) is written on the key: at
+    | most once in this many seconds a key. The uses in between are counted in the cache and
+    | written with the next write; the pages of the keys show them already. 0 (default): every
+    | call, as always.
+    | Only for a cache in memory (Redis, Memcached) and many calls: with the cache in files it is
+    | not faster (measured), and the uses not written yet are lost when the cache is emptied
+    | (cache:clear, a deploy), so the count is then about, not exact.
+    */
+    'api_key_touch_seconds' => env('EXMENT_API_KEY_TOUCH_SECONDS', 0),
+
+    /*
     |--------------------------------------------------------------------------
     | MCP server (api/mcp)
     |--------------------------------------------------------------------------

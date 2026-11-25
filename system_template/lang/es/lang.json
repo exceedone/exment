@@ -289,6 +289,17 @@
                 {
                     "column_name": "send_datetime",
                     "column_view_name": "Fecha de envío"
+                },
+                {
+                    "column_name": "send_result",
+                    "column_view_name": "Resultado del envío",
+                    "options": {
+                        "select_item_valtext": "sent,Enviado\nfailed,Fallido"
+                    }
+                },
+                {
+                    "column_name": "send_error",
+                    "column_view_name": "Error de envío"
                 }
             ]
         },
@@ -553,6 +564,16 @@
             "menu_type": "system",
             "menu_name": "system",
             "title": "Configuración del sistema"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "safety_check_setting",
+            "title": "Configuración de la confirmación de seguridad"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "meili_setting",
+            "title": "Configuración de la búsqueda de texto completo"
         },
         {
             "menu_type": "system",

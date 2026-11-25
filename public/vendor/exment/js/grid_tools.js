@@ -2933,11 +2933,16 @@
       // waited behind another one of the same record has to send the
       // updated_at that save left on the row, not the one from before it.
       var row = findRowById(id) || closest(td, 'tr');
+      var body = screenWriteBody(row, values);
+      // Marks the write as an inline edit of this view, so the server can
+      // refuse it when the settings turned inline edit off
+      // (GridInlineEditor::INLINE_EDIT_KEY).
+      body[INLINE_EDIT_KEY] = cfg.cellView || 1;
       return fetch(updateUrl, {
         method: 'PUT',
         credentials: 'same-origin',
         headers: headers,
-        body: JSON.stringify(screenWriteBody(row, values))
+        body: JSON.stringify(body)
       });
     }).then(function (r) {
       if (!r.ok) {
@@ -3585,6 +3590,9 @@
   // applies: the form's view only / read only / hidden / internal columns,
   // its required columns, and the "cannot change from display" switch.
   var SCREEN_WRITE_KEY = '_grid_edit';
+  // Added by the inline edit of one cell only (GridInlineEditor::
+  // INLINE_EDIT_KEY): the view of the grid, for the inline edit settings.
+  var INLINE_EDIT_KEY = '_grid_inline';
   // The row's updated_at as the page was drawn (DefaultGrid puts it on the
   // <tr>): the edit lock the edit form also sends.
   var UPDATED_AT_ATTR = 'data-exm-updated-at';

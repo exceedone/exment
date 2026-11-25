@@ -70,6 +70,23 @@
                     <span class="help-block text-danger">{{ $message }}</span>
                     @enderror
                 </div>
+                {{-- the number column the rows are kept in order by (#1595) --}}
+                @php
+                    $sortColumnId = "custom_form_block_{$custom_form_block['id']}__options__sort_column_";
+                    $sortColumn = strval(\Illuminate\Support\Arr::get($custom_form_block, 'sort_column'));
+                @endphp
+                <div class="form-group mb-3 d-flex align-items-center">
+                    <label for="{{ $sortColumnId }}" class="control-label" style="padding-right:15px;">{{ exmtrans('custom_form.sort_column') }}</label>
+                    <select name="{{ $custom_form_block['header_name'] }}[options][sort_column]" id="{{ $sortColumnId }}" class="form-control input-sm" style="width:260px;">
+                        <option value=""></option>
+                        @foreach (\Illuminate\Support\Arr::get($custom_form_block, 'sort_columns', []) as $sortName => $sortLabel)
+                        <option value="{{ $sortName }}" {{ $sortColumn === strval($sortName) ? 'selected' : '' }}>{{ $sortLabel }}</option>
+                        @endforeach
+                    </select>
+                    <i class="fa fa-info-circle ms-2"
+                       data-help-text="{{exmtrans('custom_form.help.sort_column')}}"
+                       data-help-title="{{exmtrans('custom_form.sort_column')}}"></i>
+                </div>
                 @endif
             </div>
             <div class="form-inline col-12 pt-3">

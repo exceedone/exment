@@ -600,6 +600,13 @@ HTML;
                 ->options(exmtrans('custom_table.custom_column_multi.gridrow_select_options'))
             ;
 
+            // the related tables the related search shows, and their order (#1570)
+            if (isset($custom_table)) {
+                $form->relationSearchList(\Exceedone\Exment\Services\Search\RelationSearchSetting::OPTION_NAME, exmtrans('custom_table.relation_search_label'))
+                    ->customTable($custom_table)
+                    ->help(exmtrans('custom_table.help.relation_search_label'));
+            }
+
             if (boolval(config('exment.expart_mode', false))) {
                 $form->text('table_label_format', exmtrans("custom_table.custom_column_multi.table_label_format"))
                 ->rules("max:200")
