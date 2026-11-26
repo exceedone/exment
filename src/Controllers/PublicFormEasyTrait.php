@@ -6,6 +6,7 @@ use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Services\PublicFormService;
 use ExmentAdminCore\Admin\Layout\Content;
@@ -79,8 +80,8 @@ trait PublicFormEasyTrait
             'action' => admin_urls('formpublic', $this->custom_table->table_name, 'easy'),
             'detail_url' => admin_urls('formpublic', $this->custom_table->table_name, 'create'),
             'columns' => $this->easyColumns(),
-            'users' => $this->easyUsers(),
-            'default_users' => [strval(\Exment::getUserId())],
+            'users_ajax' => CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl(),
+            'default_users' => $this->easyUsers([\Exment::getUserId()]),
             'email_columns' => $emails,
             'default_email' => array_key_first($emails),
             'complete_text' => exmtrans('custom_form_public.easy.complete_sample'),
@@ -119,7 +120,7 @@ trait PublicFormEasyTrait
             return $back;
         }
         $emailColumn = strval($request->get('notify_user_column'));
-        $users = array_values(array_intersect(array_keys($this->easyUsers()), array_map('strval', (array) $request->get('notify_admin_users', []))));
+        $users = array_keys($this->easyUsers((array) $request->get('notify_admin_users', [])));
 
         $publicForm = PublicFormService::ensure($this->custom_table, static::$easyOwnerPrefix . make_uuid(), $columns, [
             'view_name' => $name,
@@ -172,11 +173,18 @@ trait PublicFormEasyTrait
     }
 
     /**
-     * @return array<string, string> the users who may be told of each submission: id => name
+     * The users of these ids that are (the others are dropped): id => name.
+     *
+     * @param array<mixed> $ids
+     * @return array<string, string>
      */
-    protected function easyUsers(): array
+    protected function easyUsers(array $ids): array
     {
-        return getModelName(SystemTableName::USER)::query()->limit(500)->get()->mapWithKeys(function ($user) {
+        $ids = array_values(array_filter(array_map('intval', $ids)));
+        if (count($ids) == 0) {
+            return [];
+        }
+        return getModelName(SystemTableName::USER)::query()->whereIn('id', $ids)->get()->mapWithKeys(function ($user) {
             return [strval($user->id) => strval($user->getLabel())];
         })->toArray();
     }

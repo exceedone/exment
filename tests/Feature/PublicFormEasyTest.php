@@ -53,6 +53,9 @@ class PublicFormEasyTest extends FeatureTestBase
         $this->assertStringContainsString('value="text"', $page);
         $this->assertStringContainsString(e(exmtrans('custom_form_public.easy.warning_users')), $page);
         $this->assertStringContainsString('name="notify_user_column"', $page);
+        // the user picker of Exment, the user who opens it chosen
+        $this->assertStringContainsString('class="form-control easy-notify"', $page);
+        $this->assertStringContainsString('<option value="' . \Exment::getUserId() . '" selected>', $page);
         // the name of the form is the name of the table (not the last field)
         $this->assertStringContainsString('name="public_form_view_name" class="form-control" maxlength="40" value="' . e(CustomTable::getEloquent($this->tableName())->table_view_name) . '"', $page);
     }

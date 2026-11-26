@@ -2865,6 +2865,7 @@ IPアドレス: :ip
             'always_required' => 'テーブルで必須',
             'step_notice' => 'お知らせと、送ったあとの文',
             'notify_admin_users' => '送られたら知らせる人',
+            'find_user' => '名前で探す',
             'more' => 'くわしく',
             'name' => 'フォームの名前',
             'notify_user_column' => '送った人に受付のメールを送る',

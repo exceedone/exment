@@ -2755,6 +2755,7 @@ IP 地址: :ip
             'always_required' => '表中为必填',
             'step_notice' => '通知和提交后的文字',
             'notify_admin_users' => '提交时通知这些人',
+            'find_user' => '按名称查找',
             'more' => '更多设置',
             'name' => '表单名称',
             'notify_user_column' => '向提交者发送受理邮件',

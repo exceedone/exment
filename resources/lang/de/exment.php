@@ -2755,6 +2755,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'always_required' => 'Pflicht in der Tabelle',
             'step_notice' => 'Benachrichtigung und Text nach dem Senden',
             'notify_admin_users' => 'Diese Personen bei jeder Einsendung benachrichtigen',
+            'find_user' => 'Nach Namen suchen',
             'more' => 'Weitere Einstellungen',
             'name' => 'Name des Formulars',
             'notify_user_column' => 'Eingangsbestätigung an den Absender senden',

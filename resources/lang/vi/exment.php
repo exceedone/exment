@@ -2755,6 +2755,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'always_required' => 'bắt buộc trong bảng',
             'step_notice' => 'Thông báo và câu sau khi gửi',
             'notify_admin_users' => 'Báo cho những người này mỗi lần có gửi',
+            'find_user' => 'Tìm theo tên',
             'more' => 'Cài đặt thêm',
             'name' => 'Tên biểu mẫu',
             'notify_user_column' => 'Gửi email xác nhận cho người gửi',

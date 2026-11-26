@@ -9,7 +9,7 @@
     {{-- 1. the fields --}}
     <h4 style="margin-top:16px"><span class="badge bg-primary">1</span> {{ exmtrans('custom_form_public.easy.step_fields') }}</h4>
     <p class="text-muted">{{ exmtrans('custom_form_public.easy.step_fields_help') }}</p>
-    <table class="table table-sm" style="max-width:760px">
+    <table class="table table-sm" style="width:100%;max-width:760px;table-layout:auto">
         <thead>
             <tr>
                 <th style="width:90px">{{ exmtrans('custom_form_public.easy.col_show') }}</th>
@@ -22,7 +22,7 @@
             <tr data-column="{{ $columnName }}">
                 <td><input type="checkbox" name="columns[]" value="{{ $columnName }}" class="easy-show" @if($column['checked']) checked @endif @if($column['table_required']) checked onclick="return false;" @endif></td>
                 <td><input type="checkbox" name="required[]" value="{{ $columnName }}" class="easy-required" @if($column['table_required']) checked onclick="return false;" @endif></td>
-                <td>
+                <td style="white-space:normal;word-break:break-word">
                     {{ $column['label'] }}
                     @if($column['table_required'])<span class="text-muted small">（{{ exmtrans('custom_form_public.easy.always_required') }}）</span>@endif
                     @if($column['warning'])
@@ -38,9 +38,10 @@
     <h4 style="margin-top:16px"><span class="badge bg-primary">2</span> {{ exmtrans('custom_form_public.easy.step_notice') }}</h4>
     <div class="form-group" style="max-width:760px">
         <label class="fw-bold">{{ exmtrans('custom_form_public.easy.notify_admin_users') }}</label>
-        <select name="notify_admin_users[]" multiple class="form-control easy-notify" size="4">
-            @foreach($users as $id => $label)
-            <option value="{{ $id }}" @if(in_array((string) $id, $default_users, true)) selected @endif>{{ $label }}</option>
+        {{-- the user picker of Exment (search by name, chosen ones as chips) --}}
+        <select name="notify_admin_users[]" multiple class="form-control easy-notify" style="width:100%" data-ajax="{{ $users_ajax }}" data-placeholder="{{ exmtrans('custom_form_public.easy.find_user') }}">
+            @foreach($default_users as $id => $label)
+            <option value="{{ $id }}" selected>{{ $label }}</option>
             @endforeach
         </select>
         <p class="text-muted small">{{ exmtrans('custom_form_public.easy.help.notify_admin_users') }}</p>
@@ -89,6 +90,8 @@
 </form>
 <script>
 (function () {
+  // jQuery (select2) comes at the end of the page: on a full load, after it; by pjax, now
+  var init = function () {
     var form = document.getElementById('public-form-easy');
     if (!form) { return; }
     // "must be filled" ticks "show"; "show" off clears "must be filled"
@@ -100,7 +103,28 @@
     // nobody to tell: said at once
     var notify = form.querySelector('.easy-notify'), warn = form.querySelector('.easy-no-notice');
     var check = function () { warn.style.display = notify.selectedOptions.length ? 'none' : ''; };
-    notify.addEventListener('change', check);
+    if (window.jQuery && jQuery.fn.select2) {
+        jQuery(notify).select2({
+            ajax: {
+                url: notify.dataset.ajax,
+                dataType: 'json',
+                delay: 250,
+                data: function (params) { return { q: params.term, page: params.page }; },
+                processResults: function (data, params) {
+                    params.page = params.page || 1;
+                    return { results: jQuery.map(data.data || [], function (d) { return { id: d.id, text: d.text }; }), pagination: { more: !!data.next_page_url } };
+                },
+                cache: true
+            },
+            placeholder: notify.dataset.placeholder,
+            minimumInputLength: 1,
+            width: '100%'
+        }).on('change', check);
+    } else {
+        notify.addEventListener('change', check);
+    }
     check();
+  };
+  if (document.readyState === 'loading') { document.addEventListener('DOMContentLoaded', init); } else { init(); }
 })();
 </script>

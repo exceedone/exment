@@ -2755,6 +2755,7 @@ IP 주소: :ip
             'always_required' => '테이블에서 필수',
             'step_notice' => '알림과 보낸 뒤의 문장',
             'notify_admin_users' => '보내졌을 때 알릴 사람',
+            'find_user' => '이름으로 찾기',
             'more' => '자세히',
             'name' => '폼 이름',
             'notify_user_column' => '보낸 사람에게 접수 메일 보내기',
