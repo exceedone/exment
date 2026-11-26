@@ -238,6 +238,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('safety_check_setting', 'SafetyCheckSettingController@post');
             $router->get('meili_setting', 'MeiliSettingController@index');
             $router->post('meili_setting', 'MeiliSettingController@post');
+            // mail with OAuth 2.0 (ISS02913)
+            $router->get('mail_oauth_setting', 'MailOAuthSettingController@index');
+            $router->post('mail_oauth_setting', 'MailOAuthSettingController@post');
+            $router->get('mail_oauth_setting/google', 'MailOAuthSettingController@connectGoogle');
+            $router->get('mail_oauth_setting/google/callback', 'MailOAuthSettingController@googleCallback');
 
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');

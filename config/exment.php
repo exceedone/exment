@@ -1679,6 +1679,8 @@ return [
             // the address of the Teams workflow (ISS02863)
             'system_teams_workflow_url',
             'system_teams_workflow_url_new',
+            // the application of the mail with OAuth 2.0 (ISS02913)
+            'system_mail_oauth_client_secret',
             // Plugin DB connection password
             'custom_password',
             // Plugin CRUD page auth (key / id+password)
@@ -1693,6 +1695,8 @@ return [
          * which therefore must not go into "mask_columns".
          */
         'mask_columns_by_uri' => [
+            // the answer of Google when the mailbox is connected (ISS02913): the code is a credential
+            'mail_oauth_setting/*' => ['code', 'state'],
             // API client setting screens (admin/api_setting*). "id" IS the oauth
             // client_id and "secret" the client secret (posted by the edit form /
             // grid filter). "client_api_key" is the real api key, posted nested as

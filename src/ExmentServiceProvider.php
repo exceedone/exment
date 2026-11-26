@@ -503,6 +503,11 @@ class ExmentServiceProvider extends ServiceProvider
             return new \Exceedone\Exment\Services\Line\LineMessagingClient();
         });
 
+        // mail with OAuth 2.0 (ISS02913): the mailer MailOAuth::applyConfig() sets
+        \Illuminate\Support\Facades\Mail::extend(\Exceedone\Exment\Services\MailOAuth\MailOAuth::MAILER, function (array $config) {
+            return \Exceedone\Exment\Services\MailOAuth\MailOAuth::transport($config);
+        });
+
         // guard provider
         Auth::extend('publicformtoken', function ($app, $name, array $config) {
             return tap($this->makeGuard($config), function ($guard) {

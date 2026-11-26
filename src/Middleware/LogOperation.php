@@ -196,6 +196,8 @@ class LogOperation extends BaseLogOperation
             // the address of the Teams workflow: whoever has it can post to the chats
             'system_teams_workflow_url',
             'system_teams_workflow_url_new',
+            // the application of the mail with OAuth (ISS02913)
+            'system_mail_oauth_client_secret',
         ];
     }
 

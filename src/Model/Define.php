@@ -165,6 +165,14 @@ class Define
         'system_mail_from' => ['default' => 'no-reply@hogehoge.com', 'group' => 'notify'],
         'system_mail_from_view_name' => ['group' => 'notify'],
         'system_mail_body_type' => ['default' => 'html', 'group' => 'notify'],
+        // mail with OAuth 2.0 (ISS02913, Services\MailOAuth): microsoft, google, or none (the password)
+        'system_mail_auth' => ['group' => 'mail_oauth'],
+        'system_mail_oauth_tenant' => ['group' => 'mail_oauth'],
+        'system_mail_oauth_client_id' => ['group' => 'mail_oauth'],
+        'system_mail_oauth_client_secret' => ['type' => 'password', 'group' => 'mail_oauth'],
+        // set by connecting the mailbox (Google), not by the setting page
+        'system_mail_oauth_refresh_token' => ['type' => 'password', 'group' => 'mail_oauth_state'],
+        'system_mail_oauth_connected_at' => ['group' => 'mail_oauth_state'],
 
         'system_slack_user_column' => ['group' => 'notify'],
 

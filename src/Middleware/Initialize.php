@@ -596,6 +596,9 @@ class Initialize
                 if (!is_nullorempty(System::system_mail_host()) && Config::get('mail.default') === 'log') {
                     Config::set('mail.default', 'smtp');
                 }
+
+                // mail with OAuth 2.0 (ISS02913): its own mailer, when it is used
+                \Exceedone\Exment\Services\MailOAuth\MailOAuth::applyConfig();
             }
 
             // Google reCAPTCHA ----------------------------------------------------

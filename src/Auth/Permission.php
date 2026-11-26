@@ -301,6 +301,7 @@ class Permission
             // the settings once on the detail page of the system settings (#2157)
             case "safety_check_setting":
             case "meili_setting":
+            case "mail_oauth_setting":
             case "backup":
             case "login_setting":
             case "database":
