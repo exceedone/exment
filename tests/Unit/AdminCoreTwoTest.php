@@ -35,6 +35,8 @@ class AdminCoreTwoTest extends UnitTestBase
         foreach (['resources/views/install/layout.blade.php', 'resources/views/auth/layout.blade.php'] as $path) {
             $this->assertStringNotContainsString('plugins/iCheck/', $this->read($path), $path);
             $this->assertStringNotContainsString('.iCheck(', $this->read($path), $path);
+            // admin-core 2.1 has no bootstrap5-editable (x-editable): nothing on the login pages edits in place
+            $this->assertStringNotContainsString('bootstrap5-editable', $this->read($path), $path);
         }
     }
 
