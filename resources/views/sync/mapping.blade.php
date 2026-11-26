@@ -47,6 +47,28 @@
                 <label class="col-sm-2 control-label" for="sync-mapping-name">{{ exmtrans('sync.name') }}</label>
                 <div class="col-sm-8"><input type="text" class="form-control" id="sync-mapping-name" name="name" maxlength="100" required value="{{ $mapping->name ?: $objectLabel }}"></div>
             </div>
+            @foreach($connectorFields as $field => $def)
+                @php $value = strval(old('connector_' . $field, array_get($mapping->options ?? [], 'connector.' . $field, ''))); @endphp
+                <div class="form-group">
+                    <label class="col-sm-2 control-label" for="sync-connector-{{ $field }}">{{ array_get($def, 'label', $field) }}</label>
+                    <div class="col-sm-5">
+                        @if(array_get($def, 'type') === 'select')
+                            <select class="form-control" id="sync-connector-{{ $field }}" name="connector_{{ $field }}">
+                                <option value=""></option>
+                                @foreach((array)array_get($def, 'options', []) as $optionValue => $optionLabel)
+                                    <option value="{{ $optionValue }}" @if($value === strval($optionValue)) selected @endif>{{ $optionLabel }}</option>
+                                @endforeach
+                            </select>
+                        @else
+                            <input type="text" class="form-control" id="sync-connector-{{ $field }}" name="connector_{{ $field }}" value="{{ $value }}">
+                        @endif
+                        @if(!is_nullorempty(array_get($def, 'help')))
+                            <p class="help-block">{{ array_get($def, 'help') }}</p>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+            @if(!$writesItself)
             <div class="form-group">
                 <label class="col-sm-2 control-label">{{ exmtrans('sync.fields') }}</label>
                 <div class="col-sm-8">
@@ -72,6 +94,7 @@
                     </table>
                 </div>
             </div>
+            @endif
             <div class="form-group">
                 <label class="col-sm-2 control-label">{{ exmtrans('sync.direction') }}</label>
                 <div class="col-sm-8"><p class="form-control-static">{{ exmtrans('sync.direction_import') }}</p></div>
