@@ -251,7 +251,8 @@ class BackupController extends AdminControllerBase
         }
         BackupRuns::operationLog($run, 'download');
 
-        $name = sprintf('backup-%s-%s.log', $run->kind, ($run->started_at ?? $run->created_at)->format('YmdHis') ?? $run->uuid);
+        $at = $run->started_at ?? $run->created_at;
+        $name = sprintf('backup-%s-%s.log', $run->kind, isset($at) ? $at->format('YmdHis') : $run->uuid);
 
         return response($log, 200, [
             'Content-Type' => 'text/plain; charset=UTF-8',

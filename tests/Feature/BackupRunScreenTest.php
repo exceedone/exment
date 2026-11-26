@@ -69,7 +69,7 @@ class BackupRunScreenTest extends FeatureTestBase
         $page->assertSee(admin_urls('backup', 'runs', $done->uuid), false);
         $page->assertSee(admin_urls('backup', 'runs', $done->uuid, 'log'), false);
         // the run going on is given to the script, which polls it
-        $page->assertSee(json_encode($active->uuid), false);
+        $page->assertSee(strval(json_encode($active->uuid)), false);
         $page->assertSee(exmtrans('backup.run.statuses.succeeded'));
         $progress->releaseLock();
     }
