@@ -20,7 +20,12 @@
             <tbody>
             @foreach($types as $type)
                 <tr data-log-type="{{ $type['key'] }}">
-                    <td>{{ trans($type['label']) }}</td>
+                    <td>
+                        {{ trans($type['label']) }}
+                        @if($type['key'] === 'browser_log')
+                            <a href="{{ admin_urls('log_management', 'browser') }}" class="small">{{ exmtrans('browser_log.open') }}</a>
+                        @endif
+                    </td>
                     <td>
                         @if(is_null($type['retention_days']))
                             {{ exmtrans('log_management.kept') }}

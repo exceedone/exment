@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\LogManagement;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Model\BrowserLog;
 use Exceedone\Exment\Model\DataAccessDaily;
 use Exceedone\Exment\Model\DataAccessLog;
 use Exceedone\Exment\Model\LoginLog;
@@ -335,6 +336,46 @@ class LogCatalog
                 },
                 'count' => function () {
                     return count(glob(storage_path('logs') . '/*.log') ?: []);
+                },
+            ],
+            // the log of the browsers (ISS02904)
+            'browser_log' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
+                'label' => 'exment::exment.log_management.types.browser_log',
+                'location' => 'database',
+                'retention' => function () {
+                    return static::days(System::log_retention_browser_log(), BrowserLogs::DEFAULT_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    if (!BrowserLog::tableExists()) {
+                        return 0;
+                    }
+                    $deleted = 0;
+                    do {
+                        $rows = BrowserLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->get();
+                        $ids = $rows->pluck('id')->all();
+                        if (!empty($ids)) {
+                            if (LogArchiver::enabled()) {
+                                LogArchiver::rows('browser_log', BrowserLogs::COLUMNS, $rows->map(function ($row) {
+                                    return array_map(function ($column) use ($row) {
+                                        return $column === 'created_at' ? optional($row->created_at)->format('Y-m-d H:i:s') : $row->{$column};
+                                    }, BrowserLogs::COLUMNS);
+                                })->all(), function ($row) {
+                                    return substr(strval($row[array_search('created_at', BrowserLogs::COLUMNS, true)]), 0, 7);
+                                });
+                            }
+                            $deleted += BrowserLog::query()->whereIn('id', $ids)->delete();
+                        }
+                    } while (count($ids) === 1000);
+                    return $deleted;
+                },
+                'count' => function () {
+                    return BrowserLog::tableExists() ? BrowserLog::query()->count() : 0;
                 },
             ],
         ];
