@@ -391,7 +391,8 @@ class ExmentServiceProvider extends ServiceProvider
                 'name' => 'formpublic',
                 'href' => $webFormPage,
                 'icon' => 'fa-globe',
-                'roles' => [\Exceedone\Exment\Enums\Permission::EDIT_CUSTOM_FORM_PUBLIC],
+                // already a list of permissions
+                'roles' => \Exceedone\Exment\Enums\Permission::EDIT_CUSTOM_FORM_PUBLIC,
                 'exmtrans' => 'custom_form_public.easy.menu',
                 'description' => 'custom_form_public.easy.menu_description',
                 'visible' => function ($table) {

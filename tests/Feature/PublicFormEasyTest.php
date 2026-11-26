@@ -126,6 +126,17 @@ class PublicFormEasyTest extends FeatureTestBase
         $this->assertSame(['text'], $names);
     }
 
+    public function testAUserWhoMayOnlyViewOpensARecord(): void
+    {
+        // the menu of the table (with "Create a web form") on the page of a record, for a user who may
+        // only view the data: not an error
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
+        $value = $table->getValueModel()->query()->firstOrFail();
+        $this->get(admin_url('data/' . $table->table_name . '/' . $value->id), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        $this->get(admin_url('data/' . $table->table_name), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+    }
+
     public function testATagsPageOfAnotherTableIsRefused(): void
     {
         $other = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_VIEW);
