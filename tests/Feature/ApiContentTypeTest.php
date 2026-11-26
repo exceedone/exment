@@ -40,6 +40,9 @@ class ApiContentTypeTest extends ApiTestBase
         return $this->call($method, $uri, $parameters, [], $files, $this->transformHeadersToServerVars($server), $body);
     }
 
+    /**
+     * @param \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response> $response
+     */
     protected function json415(\Illuminate\Testing\TestResponse $response): void
     {
         $response->assertStatus(415);
