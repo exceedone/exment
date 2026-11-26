@@ -5183,6 +5183,14 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
     ],
     // ISS02839
     'audit_report' => [
+        'permission_list' => [
+            'system_admin' => 'Systemadministrator',
+            'no_permission_setting' => 'Berechtigungen nicht verwendet',
+            'all_tables' => '(alle Tabellen)',
+            'all_user_editable_flg' => 'Alle Benutzer können bearbeiten',
+            'all_user_viewable_flg' => 'Alle Benutzer können anzeigen',
+            'all_user_accessable_flg' => 'Alle Benutzer können referenzieren',
+        ],
         'filter_table' => 'Tabelle (Name)',
         'filter_user' => 'Benutzer (Code)',
         'data_kind' => [
@@ -5281,6 +5289,9 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'result_other' => 'Nicht geprüft',
         ],
         'section' => [
+            'user_table_access' => 'Berechtigungen der Benutzer für die Tabellen',
+            'table_access' => 'Wer jede Tabelle lesen und ändern darf',
+            'administrator_changes' => 'Änderungen der Administratoren im letzten Monat',
             'data_access' => 'Lesen und Schreiben der Daten',
             'data_access_heavy' => 'Benutzer, die ungewöhnlich viel lesen',
             'security' => 'Sicherheitsstatus',
@@ -5300,6 +5311,9 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'log_retention' => 'Aufbewahrungsdauer der Protokolle',
         ],
         'note' => [
+            'user_table_access' => 'Für jeden Benutzer: die Tabellen, deren Daten er lesen oder ändern darf, die stärkste Berechtigung und die Rollengruppen, von denen sie stammt (über eine Organisation: "Organisation → Rollengruppe"), im aktuellen Stand. Eine Berechtigung für alle Tabellen ist eine Zeile.',
+            'table_access' => 'Für jede Tabelle: wie viele Benutzer ihre Daten ändern und lesen dürfen, nach Berechtigung, und ihre Einstellungen für alle Benutzer, im aktuellen Stand.',
+            'administrator_changes' => 'Im Monat bis zum Ende des Berichts: die Änderungen der Systemberechtigungen und der Mitglieder der Rollengruppen, die eine solche haben.',
             'data_access' => 'Wer die Datensätze jeder Tabelle im Zeitraum gelesen, aufgelistet, exportiert, erstellt, geändert, gelöscht oder wiederhergestellt hat, über die Seiten, die API oder MCP. Eine Liste wird einmal gezählt, nicht einmal pro angezeigtem Datensatz; ein erneutes Lesen innerhalb weniger Minuten wird einmal gezählt. Gelesene Werte werden nicht gespeichert.',
             'data_access_heavy' => 'Die Benutzer, die im Zeitraum :min Mal oder öfter gelesen haben und mehr als :factor Mal so oft wie der Median der lesenden Benutzer.',
             'reads_not_recorded' => 'Das Lesen wird nicht aufgezeichnet: Das Vorgangsprotokoll behält nur die Änderungen (Protokollverwaltung).',
@@ -5316,6 +5330,13 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'public_forms' => 'Seiten, an die jeder mit der URL senden kann.',
         ],
         'column' => [
+            'permission' => 'Berechtigung',
+            'can_edit' => 'Darf ändern',
+            'sources' => 'Von',
+            'editors' => 'Darf ändern',
+            'viewers' => 'Darf lesen',
+            'all_users' => 'Für alle Benutzer',
+            'by_permission' => 'Nach Berechtigung',
             'read' => 'Gelesen',
             'list' => 'Liste',
             'export' => 'Export',

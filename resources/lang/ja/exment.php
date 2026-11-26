@@ -5210,6 +5210,14 @@ IPアドレス: :ip
 
     // ISS02839
     'audit_report' => [
+        'permission_list' => [
+            'system_admin' => 'システム管理者',
+            'no_permission_setting' => '権限を使っていない',
+            'all_tables' => '（すべてのテーブル）',
+            'all_user_editable_flg' => 'すべてのユーザーが編集できる',
+            'all_user_viewable_flg' => 'すべてのユーザーが閲覧できる',
+            'all_user_accessable_flg' => 'すべてのユーザーが参照できる',
+        ],
         'filter_table' => 'テーブル（名前）',
         'filter_user' => 'ユーザー（コード）',
         'data_kind' => [
@@ -5308,6 +5316,9 @@ IPアドレス: :ip
             'result_other' => '確かめていない',
         ],
         'section' => [
+            'user_table_access' => 'ユーザーごとのテーブルの権限',
+            'table_access' => 'テーブルごとの、見られる人・変えられる人',
+            'administrator_changes' => 'この 1 か月の管理者の変更',
             'data_access' => 'データの読み書き',
             'data_access_heavy' => 'いつもより多く読んだユーザー',
             'security' => 'セキュリティの状態',
@@ -5327,6 +5338,9 @@ IPアドレス: :ip
             'log_retention' => 'ログの保存期間',
         ],
         'note' => [
+            'user_table_access' => 'ユーザーごとに、データを見られる・変えられるテーブルと、いちばん強い権限、どの役割グループから来たか（組織から来たときは「組織 → 役割グループ」）。今の状態です。すべてのテーブルに効く権限は 1 行にまとめます。',
+            'table_access' => 'テーブルごとに、データを変えられる人・見られる人の数と、権限ごとの数、「すべてのユーザー」の設定。今の状態です。',
+            'administrator_changes' => 'レポートの終わりの日までの 1 か月の、システムの権限の変更と、システムの権限を持つ役割グループのメンバーの変更。',
             'data_access' => '期間の中で、だれが、どのテーブルのデータを、読んだ・一覧で見た・出力した・作った・変えた・削除した・もとにもどしたか（画面・API・MCP）。一覧は 1 回で 1 つ（出た行ごとには数えません）。数分のうちにもう一度読んだときは 1 回と数えます。読んだ値は残しません。',
             'data_access_heavy' => '期間の中で読んだ回数が :min 回以上で、読んだユーザーの中央値の :factor 倍より多いユーザー。',
             'reads_not_recorded' => '読んだことは記録していません。ログの管理で、操作ログは「変えたことだけ」を残す設定です。',
@@ -5343,6 +5357,13 @@ IPアドレス: :ip
             'public_forms' => 'URL を知っていればだれでも送れるページです。',
         ],
         'column' => [
+            'permission' => '権限',
+            'can_edit' => '変えられる',
+            'sources' => 'どこから',
+            'editors' => '変えられる人',
+            'viewers' => '見られる人',
+            'all_users' => 'すべてのユーザー',
+            'by_permission' => '権限ごと',
             'read' => '読む',
             'list' => '一覧',
             'export' => '出力',
