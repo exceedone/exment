@@ -160,14 +160,12 @@
                             </marker>
                         </defs>
                         @foreach ($diagram['edges'] as $edge)
-                            <path d="{{ $edge['d'] }}" class="exm-studio-edge exm-studio-edge-{{ $edge['type'] }}" marker-end="url(#exm-studio-arrow)" @if ($edge['type'] === 'many_to_many') marker-start="url(#exm-studio-arrow)" @endif>
-                                @if ($edge['label'] !== '')<title>{{ $edge['label'] }}</title>@endif
-                            </path>
+                            <path d="{{ $edge['d'] }}" class="exm-studio-edge exm-studio-edge-{{ $edge['type'] }}" marker-end="url(#exm-studio-arrow)" @if ($edge['type'] === 'many_to_many') marker-start="url(#exm-studio-arrow)" @endif @if ($edge['label'] !== '') data-exm-studio-title="{{ $edge['label'] }}" @endif></path>
                         @endforeach
                         @foreach ($diagram['nodes'] as $node)
                             <g class="exm-studio-node">
                                 <rect x="{{ $node['x'] }}" y="{{ $node['y'] }}" width="{{ $diagram_box['width'] }}" height="{{ $diagram_box['height'] }}" rx="4"/>
-                                <text x="{{ $node['x'] + intdiv($diagram_box['width'], 2) }}" y="{{ $node['y'] + intdiv($diagram_box['height'], 2) }}" text-anchor="middle" dominant-baseline="central">{{ \Illuminate\Support\Str::limit($node['name'], 22) }}<title>{{ $node['name'] }}</title></text>
+                                <text x="{{ $node['x'] + intdiv($diagram_box['width'], 2) }}" y="{{ $node['y'] + intdiv($diagram_box['height'], 2) }}" text-anchor="middle" dominant-baseline="central" data-exm-studio-title="{{ $node['name'] }}">{{ \Illuminate\Support\Str::limit($node['name'], 22) }}</text>
                             </g>
                         @endforeach
                     </svg>
@@ -218,6 +216,15 @@
 </style>
 
 <script>
+// The tooltips of the diagram: added here, not written in the HTML, because pjax
+// takes the last <title> of the answer as the page's title (#2268).
+(function () {
+    document.querySelectorAll('.exm-studio-diagram [data-exm-studio-title]').forEach(function (el) {
+        var title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+        title.textContent = el.getAttribute('data-exm-studio-title');
+        el.appendChild(title);
+    });
+})();
 (function () {
     var input = document.querySelector('.exm-studio-filter');
     if (!input) { return; }

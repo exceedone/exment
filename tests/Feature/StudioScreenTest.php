@@ -84,6 +84,22 @@ class StudioScreenTest extends FeatureTestBase
         $this->assertNull($cards['child_table']['view_create_url']);
     }
 
+    /**
+     * The diagram's tooltips are not <title> elements in the HTML: pjax takes the last
+     * <title> of the answer as the page's title (#2268). They are data attributes the
+     * page's script turns into SVG titles.
+     */
+    public function testTheDiagramHasNoTitleElementInTheHtml(): void
+    {
+        $response = $this->openStudio(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $response->assertOk();
+        $html = (string) $response->getContent();
+        $start = strpos($html, 'exm-studio-diagram');
+        $this->assertNotFalse($start, 'the diagram is drawn');
+        $this->assertStringNotContainsString('<title', substr($html, (int) $start, (int) strpos($html, '</svg>', (int) $start) - (int) $start));
+        $this->assertStringContainsString('data-exm-studio-title="' . e(CustomTable::getEloquent('parent_table')?->table_view_name) . '"', $html);
+    }
+
     public function testAUserSeesOnlyTheTablesTheyMaySet(): void
     {
         $checked = 0;
