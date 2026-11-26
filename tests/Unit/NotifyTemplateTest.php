@@ -33,6 +33,15 @@ class NotifyTemplateTest extends UnitTestBase
      * transaction of the test on MySQL, so its table and notification stayed: the next run on the
      * same database found two. Deleting the table deletes its notifications too.
      */
+    protected function tearDown(): void
+    {
+        // and what this run made (it was committed with the table)
+        foreach (['notify_template_test', 'notify_template_lang'] as $table_name) {
+            $this->removeLeftovers($table_name);
+        }
+        parent::tearDown();
+    }
+
     protected function removeLeftovers(string $table_name): void
     {
         foreach (CustomTable::where('table_name', $table_name)->get() as $table) {
