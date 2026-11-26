@@ -114,6 +114,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
         \Exceedone\Exment\Console\TuningDataCommand::class,
         \Exceedone\Exment\Console\DataKeyCommand::class,
+        \Exceedone\Exment\Console\SyncCommand::class,
         \Exceedone\Exment\Console\EncryptColumnCommand::class,
         \Exceedone\Exment\Console\AuditReportCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
@@ -687,6 +688,11 @@ class ExmentServiceProvider extends ServiceProvider
         foreach (\Exceedone\Exment\Services\CoreExtensions::schedules() as $register) {
             $register($schedule);
         }
+
+        // the data sync (ISS00113): the mappings whose time has come, while the feature is used
+        $schedule->command('exment:sync')->everyFiveMinutes()->withoutOverlapping(30)->when(function () {
+            return \Exceedone\Exment\Services\Sync\SyncEngine::enabled();
+        });
 
         // the logs older than they are kept (ISS02839)
         $schedule->command('exment:log-maintenance')->dailyAt('03:40')->withoutOverlapping(60);

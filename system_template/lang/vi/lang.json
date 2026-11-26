@@ -612,6 +612,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "sync",
+            "title": "Đồng bộ dữ liệu"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "log_management",
             "title": "Quản lý log"
         },

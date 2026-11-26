@@ -450,6 +450,11 @@ class Define
             'uri' => 'scheduled_jobs',
             'icon' => 'fa-clock-o',
         ],
+        // the data sync (ISS00113)
+        'sync' => [
+            'uri' => 'sync',
+            'icon' => 'fa-refresh',
+        ],
         'maintenance' => [
             'uri' => 'maintenance',
             'icon' => 'fa-wrench',
@@ -719,6 +724,7 @@ class Define
         ['uri'=> 'tuning', 'help_uri'=> 'tuning'],
         ['uri'=> 'security_check', 'help_uri'=> 'security_check'],
         ['uri'=> 'scheduled_jobs', 'help_uri'=> 'scheduled_jobs'],
+        ['uri'=> 'sync', 'help_uri'=> 'sync'],
         ['uri'=> 'log_management', 'help_uri'=> 'log_management'],
         ['uri'=> 'feature', 'help_uri'=> 'feature'],
         ['uri'=> '/', 'help_uri'=> 'dashboard'],
