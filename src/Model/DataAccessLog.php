@@ -20,6 +20,9 @@ use Illuminate\Support\Facades\Schema;
  */
 class DataAccessLog extends Model
 {
+    // on the connection of the logs when one is set (ISS02905)
+    use Traits\UsesLogConnection;
+
     public const KIND_READ = 'read';
     public const KIND_LIST = 'list';
     public const KIND_EXPORT = 'export';
@@ -57,7 +60,7 @@ class DataAccessLog extends Model
     {
         if (!isset(static::$tableExists)) {
             try {
-                static::$tableExists = Schema::hasTable('data_access_logs');
+                static::$tableExists = \Exceedone\Exment\Services\LogManagement\LogConnection::schema()->hasTable('data_access_logs');
             } catch (\Throwable $e) {
                 static::$tableExists = false;
             }

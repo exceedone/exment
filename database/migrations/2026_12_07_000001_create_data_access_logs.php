@@ -16,8 +16,8 @@ return new class extends Migration
      */
     public function up()
     {
-        if (!Schema::hasTable('data_access_logs')) {
-            Schema::create('data_access_logs', function (Blueprint $table) {
+        if (!Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->hasTable('data_access_logs')) {
+            Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->create('data_access_logs', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->integer('base_user_id')->unsigned()->nullable();
                 $table->integer('custom_table_id')->unsigned();
@@ -37,8 +37,8 @@ return new class extends Migration
                 $table->index(['base_user_id', 'created_at']);
             });
         }
-        if (!Schema::hasTable('data_access_daily')) {
-            Schema::create('data_access_daily', function (Blueprint $table) {
+        if (!Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->hasTable('data_access_daily')) {
+            Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->create('data_access_daily', function (Blueprint $table) {
                 $table->bigIncrements('id');
                 $table->date('date');
                 $table->integer('base_user_id')->unsigned()->nullable();
@@ -58,7 +58,7 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('data_access_daily');
-        Schema::dropIfExists('data_access_logs');
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->dropIfExists('data_access_daily');
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->dropIfExists('data_access_logs');
     }
 };

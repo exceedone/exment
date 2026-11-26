@@ -15,10 +15,10 @@ return new class extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('login_logs')) {
+        if (Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->hasTable('login_logs')) {
             return;
         }
-        Schema::create('login_logs', function (Blueprint $table) {
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->create('login_logs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('login_user_id')->unsigned()->nullable();
             $table->integer('base_user_id')->unsigned()->nullable();
@@ -47,6 +47,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('login_logs');
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->dropIfExists('login_logs');
     }
 };
