@@ -1493,7 +1493,7 @@ return [
         ],
         'run' => [
             'screen' => [
-                'used_space' => '备份 :count 个・合计 :size',
+                'used_space' => '备份 :count 个，合计 :size',
                 'free_space' => '可用 :size',
                 'free_space_low' => '存放备份的磁盘可用空间不足（剩余 :size）。请删除不需要的备份。',
                 'backup_first_option' => '备份当前数据（推荐）',

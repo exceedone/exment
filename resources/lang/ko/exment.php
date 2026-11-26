@@ -1493,7 +1493,7 @@ return [
         ],
         'run' => [
             'screen' => [
-                'used_space' => '백업 :count개・합계 :size',
+                'used_space' => '백업 :count개 · 합계 :size',
                 'free_space' => '여유 :size',
                 'free_space_low' => '백업을 두는 디스크의 여유 공간이 부족합니다(남은 공간 :size). 필요 없는 백업을 삭제해 주세요.',
                 'backup_first_option' => '현재 데이터를 백업하기(권장)',
