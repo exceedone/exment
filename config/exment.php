@@ -718,6 +718,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | IPv6 prefix of the rate limits
+    |--------------------------------------------------------------------------
+    |
+    | The rate limits and the login lockouts count an IPv6 address as its network of this
+    | prefix (a client has a /64 and can take a new address in it for every try). 128 counts
+    | each address.
+    |
+    */
+    'ipv6_limit_prefix' => env('EXMENT_IPV6_LIMIT_PREFIX', 64),
+
+    /*
+    |--------------------------------------------------------------------------
     | session Expire On Close
     |--------------------------------------------------------------------------
     |
@@ -1416,6 +1428,14 @@ return [
     'mcp_search_seconds' => env('EXMENT_MCP_SEARCH_SECONDS', 0),
 
     /*
+    | When the notifications of a saved record are made (ISS02906): queue (by the queue worker),
+    | after_response (after the answer is sent, in the same process) or sync (while the save waits,
+    | as before 7.3). Not set: queue when QUEUE_CONNECTION is not sync, else after_response in a
+    | request and sync in a command.
+    */
+    'notify_mode' => env('EXMENT_NOTIFY_MODE', 'auto'),
+
+    /*
     |--------------------------------------------------------------------------
     | Show Select field with group option
     |--------------------------------------------------------------------------
@@ -1537,6 +1557,10 @@ return [
     // (comma separated), e.g. "localhost,chat.internal"
     'notify_webhook_allow_hosts' => env('EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS', ''),
 
+    // the seconds between the tries of a JSON webhook (ISS02912) when there is no queue worker
+    // (QUEUE_CONNECTION=sync); a worker waits 60 and 300 seconds (JsonWebhookJob::$backoff)
+    'notify_webhook_retry_seconds' => [1, 2],
+
     /*
     |--------------------------------------------------------------------------
     | X-Frame-Options of the admin pages
@@ -1602,6 +1626,20 @@ return [
     */
     'api_max_rate_limit_ceiling' => env('EXMENT_API_MAX_RATE_LIMIT_CEILING'),
     'api_rate_raise_max_hours' => env('EXMENT_API_RATE_RAISE_MAX_HOURS', 24),
+
+    /*
+    |--------------------------------------------------------------------------
+    | The rate limit in points (ISS02885 #5, Services\ApiCost)
+    |--------------------------------------------------------------------------
+    | A heavy call counts more than a light one: a list of records 1 + 1 for every 50 rows,
+    | a search 1 more, a view list 2 + 1 for every 50 rows, children / parents 1 more each,
+    | total=0 1 less; MCP search_data 1 + 1 for every 50 rows of its limit, q 1 more. The
+    | limits per minute (api_max_rate_limit, its raises, mcp_calls_per_minute) are read as
+    | points.
+    | false (default): every call is 1, as before. true: in points. log: limited as before,
+    |   the points counted beside, and a client over the limit in points is logged.
+    */
+    'api_rate_cost' => env('EXMENT_API_RATE_COST', false),
 
     /*
     |--------------------------------------------------------------------------

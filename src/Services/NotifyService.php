@@ -342,6 +342,11 @@ class NotifyService
         })) {
             $targets->push(exmtrans('notify.notify_action_options.microsoft_teams'));
         }
+        if (count(array_filter((array)$this->notify->action_settings, function ($action_setting) {
+            return isMatchString(NotifyAction::WEBHOOK, array_get($action_setting, 'notify_action'));
+        })) > 0) {
+            $targets->push(exmtrans('notify.notify_action_options.webhook'));
+        }
 
         return $targets->implode(exmtrans("common.separate_word"));
     }
@@ -464,6 +469,10 @@ class NotifyService
 
                 case NotifyAction::TEAMS_PERSONAL:
                     static::notifyTeamsPersonal($params);
+                    break;
+
+                case NotifyAction::WEBHOOK:
+                    static::notifyJsonWebhook($params, (array)$action_setting);
                     break;
             }
             // call notified trigger operations
@@ -859,6 +868,41 @@ class NotifyService
     }
 
 
+
+    /**
+     * The record as JSON to the URL of the action (ISS02912), with the subject and the body of
+     * the mail template.
+     *
+     * @param array<string, mixed> $params
+     * @param array<string, mixed> $action_setting
+     * @return \Exceedone\Exment\Jobs\JsonWebhookJob|null
+     */
+    public static function notifyJsonWebhook(array $params, array $action_setting)
+    {
+        $params = array_merge([
+            'notify' => null,
+            'mail_template' => null,
+            'prms' => [],
+            'custom_value' => null,
+            'custom_table' => null,
+            'subject' => null,
+            'body' => null,
+            'replaceOptions' => [],
+        ], $params);
+        static::replaceSubjectBody($params);
+        $subject = static::replaceWord($params['subject'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+        $body = static::replaceWord($params['body'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+
+        return \Exceedone\Exment\Services\Notify\JsonWebhook::send(
+            $params['notify'] instanceof Notify ? $params['notify'] : null,
+            $action_setting,
+            $params['custom_value'] instanceof CustomValue ? $params['custom_value'] : null,
+            $params['custom_table'] instanceof CustomTable ? $params['custom_table'] : null,
+            (array)$params['prms'],
+            is_null($subject) ? null : strval($subject),
+            is_null($body) ? null : strval($body)
+        );
+    }
 
     /**
      * replace subject and body from mail template

@@ -135,7 +135,33 @@ trait NotifyTrait
             /** @phpstan-ignore-next-line */
             ->help(exmtrans("notify.help.webhook_url", getManualUrl('notify_webhook')))
             ->attribute([
-                'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS]])
+                'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::SLACK, NotifyAction::MICROSOFT_TEAMS, NotifyAction::WEBHOOK]])
+            ]);
+
+        // a JSON webhook (ISS02912): the columns sent, and the secret of the signature
+        /** @phpstan-ignore-next-line */
+        $form->multipleSelect('webhook_columns', exmtrans('notify.webhook_columns'))
+            ->options(function ($val) use ($custom_table) {
+                if (!isset($custom_table)) {
+                    return [];
+                }
+                return $custom_table->custom_columns_cache->mapWithKeys(function ($column) {
+                    return [$column->id => $column->column_view_name];
+                });
+            })
+            /** @phpstan-ignore-next-line */
+            ->help(exmtrans('notify.help.webhook_columns'))
+            ->attribute([
+                'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::WEBHOOK]])
+            ]);
+
+        /** @phpstan-ignore-next-line */
+        $form->password('webhook_secret', exmtrans('notify.webhook_secret'))
+            ->rules(['nullable', 'max:1000'])
+            /** @phpstan-ignore-next-line */
+            ->help(exmtrans('notify.help.webhook_secret', getManualUrl('notify_webhook')))
+            ->attribute([
+                'data-filter' => json_encode(['key' => 'notify_action', 'value' => [NotifyAction::WEBHOOK]])
             ]);
 
         /** @phpstan-ignore-next-line */

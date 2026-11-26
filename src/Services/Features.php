@@ -53,6 +53,7 @@ class Features
     public const SAFETY_CHECK = 'safety_check';
     public const DATA_MAINTENANCE = 'data_maintenance';
     public const TEAMS_NOTIFY = 'teams_notify';
+    public const WEBHOOK_NOTIFY = 'webhook_notify';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -195,6 +196,14 @@ class Features
             'label' => 'exment::exment.feature.features.teams_notify',
             'description' => 'exment::exment.feature.features.teams_notify_help',
             'manual' => 'notify_teams',
+            'who' => false,
+        ]);
+        // a notification as JSON to any URL (ISS02912): the data leaves the site, so it is off until
+        // a system administrator turns it on
+        $core[static::WEBHOOK_NOTIFY] = static::definition([
+            'label' => 'exment::exment.feature.features.webhook_notify',
+            'description' => 'exment::exment.feature.features.webhook_notify_help',
+            'manual' => 'notify_webhook',
             'who' => false,
         ]);
         // the trash (Services\Trash, ISS00334): the deleted rows of all the tables on one page. Off
