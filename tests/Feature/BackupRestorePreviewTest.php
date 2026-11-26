@@ -68,7 +68,7 @@ class BackupRestorePreviewTest extends FeatureTestBase
             'storage/app/plugins/Sample/config.json' => '{}',
             'storage/app/plugins/Sample/Plugin.php' => '<?php',
             '.env' => 'APP_LOCALE=ja',
-            Define::BACKUP_VERSION_FILE => json_encode(['exment' => 'v7.0.0', 'laravel' => '11.0.0']),
+            Define::BACKUP_VERSION_FILE => strval(json_encode(['exment' => 'v7.0.0', 'laravel' => '11.0.0'])),
         ]);
 
         $preview = (new Restore())->preview($this->key);
