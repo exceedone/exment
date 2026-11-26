@@ -64,7 +64,9 @@ class ThrottleRequests extends BaseThrottleRequests
         if (ApiCost::mode() === ApiCost::MODE_LOG) {
             // limited as before; the points are only counted beside, and logged when over
             foreach ($limits as $limit) {
-                ApiCost::logOverLimit($limit->key, $points, intval($limit->maxAttempts), intval($limit->decaySeconds), 'An API client ' . ApiCost::whoOf($request));
+                ApiCost::logOverLimit($limit->key, $points, intval($limit->maxAttempts), intval($limit->decaySeconds), function () use ($request) {
+                    return 'An API client ' . ApiCost::whoOf($request);
+                });
             }
             return parent::handleRequest($request, $next, $limits);
         }

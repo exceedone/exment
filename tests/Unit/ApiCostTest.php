@@ -141,6 +141,29 @@ class ApiCostTest extends UnitTestBase
         $this->assertSame('1', $response->headers->get('X-RateLimit-Remaining'));
     }
 
+    /**
+     * A log line of an API key says its user and the key: the key signs in after the limiter, so
+     * it is found by its hash.
+     */
+    public function testTheLogLineOfAnApiKeySaysItsUserAndKey(): void
+    {
+        \DB::beginTransaction();
+        try {
+            [$key, $plain] = \Exceedone\Exment\Services\UserApiKeys::create(1, 'api cost log', [\Exceedone\Exment\Enums\ApiScope::ME]);
+            $request = $this->apiRequest('dataList', [], $this->ip(51));
+            $request->headers->set('Authorization', 'Bearer ' . $plain);
+            $this->assertSame('(user 1, API key ' . intval($key->id) . ')', ApiCost::whoOf($request));
+
+            // an unknown key, or none: the address
+            $request->headers->set('Authorization', 'Bearer exk_unknown0000000000000000000000000000');
+            $this->assertStringStartsWith('(from ', ApiCost::whoOf($request));
+            $request->headers->remove('Authorization');
+            $this->assertStringStartsWith('(from ', ApiCost::whoOf($request));
+        } finally {
+            \DB::rollBack();
+        }
+    }
+
     public function testLogModeLogsAndDoesNotRefuse(): void
     {
         config(['exment.api_max_rate_limit' => 5, 'exment.api_rate_cost' => 'log']);

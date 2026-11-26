@@ -184,13 +184,24 @@ class ApiCost
         if (isset($user)) {
             return '(user ' . intval($user->base_user_id ?? $user->id) . ')';
         }
+        // an API key signs in after the limiter: found by the hash of the bearer, as it signs in
+        $bearer = $request->bearerToken();
+        if (UserApiKeys::looksLikeKey($bearer)) {
+            $key = \Exceedone\Exment\Model\UserApiKey::where('key_hash', UserApiKeys::hash((string)$bearer))->first(['id', 'user_id']);
+            if (isset($key)) {
+                return '(user ' . intval($key->user_id) . ', API key ' . intval($key->id) . ')';
+            }
+        }
         return '(from ' . strval(\Exceedone\Exment\Services\LogManagement\LogPrivacy::ip(IpAddress::limiterKey($request->ip()))) . ')';
     }
 
     /**
      * Log mode: count the points beside the limit, and log a client over it, once a minute.
      */
-    public static function logOverLimit(string $key, int $points, int $maxPoints, int $decaySeconds, string $what): void
+    /**
+     * @param string|\Closure(): string $what who is over: a closure is called only when a line is written
+     */
+    public static function logOverLimit(string $key, int $points, int $maxPoints, int $decaySeconds, $what): void
     {
         $shadow = 'api-cost-log:' . $key;
         $used = RateLimiter::increment($shadow, $decaySeconds, $points);
@@ -198,6 +209,7 @@ class ApiCost
             return;
         }
         RateLimiter::attempt('api-cost-logged:' . $key, 1, function () use ($used, $maxPoints, $what) {
+            $what = $what instanceof \Closure ? strval($what()) : $what;
             Log::warning("[Exment] {$what} is over its rate limit in points ({$used} / {$maxPoints} a minute). Not refused: EXMENT_API_RATE_COST=log.");
         }, $decaySeconds);
     }
