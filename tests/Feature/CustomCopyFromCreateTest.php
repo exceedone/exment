@@ -196,6 +196,44 @@ class CustomCopyFromCreateTest extends FeatureTestBase
         $this->assertSame(exmtrans('custom_copy.copy_from.button'), CustomCopy::getCreateLabel($copy, false));
     }
 
+    /**
+     * Two settings that copy from the same table: the button label of each (#2274); the
+     * default label "コピー" or none keeps the table's name; another table keeps its name.
+     */
+    public function testTwoSettingsFromTheSameTableUseTheirButtonLabels(): void
+    {
+        $a = $this->copy(static::FROM, static::TO, true);
+        $b = $this->copy(static::FROM, static::TO, true);
+        $a->setOption('label', 'from A');
+        $b->setOption('label', 'from A, the other way');
+        $from_name = $this->table(static::FROM)->table_view_name;
+        $copies = [$a, $b];
+
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', 'from A'), CustomCopy::getCreateLabel($a, true, $copies));
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', 'from A, the other way'), CustomCopy::getCreateLabel($b, true, $copies));
+        // without the list, as before
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($a, true));
+
+        // the default label, or none: the table's name
+        $b->setOption('label', exmtrans('common.copy'));
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($b, true, $copies));
+        $b->setOption('label', '');
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($b, true, $copies));
+
+        // another table's setting on the same form: each its table's name
+        $other = $this->copy(static::TO, static::FROM, true);
+        $other->setOption('label', 'other');
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $this->table(static::TO)->table_view_name), CustomCopy::getCreateLabel($other, true, [$a, $other]));
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($a, true, [$a, $other]));
+
+        // "copy-from table name" and "label" picked: as before
+        $a->setOption('create_label_type', CustomCopy::CREATE_LABEL_TABLE);
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', $from_name), CustomCopy::getCreateLabel($a, true, $copies));
+        $a->setOption('create_label_type', CustomCopy::CREATE_LABEL_LABEL);
+        $a->setOption('create_label', 'typed');
+        $this->assertSame(exmtrans('custom_copy.copy_from.button_table', 'typed'), CustomCopy::getCreateLabel($a, true, $copies));
+    }
+
     public function testANewSettingCanStartWithTheColumnsOfTheSameNamePaired(): void
     {
         $from = $this->table(static::FROM);

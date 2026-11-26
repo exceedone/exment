@@ -1668,6 +1668,40 @@ return [
     */
     'data_encryption_keys' => env('DATA_ENCRYPTION_KEYS', ''),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Where the keys of the encrypted columns come from (ISS02929, Encryption\KeyProviders)
+    |--------------------------------------------------------------------------
+    | env (default): DATA_ENCRYPTION_KEYS above, as before.
+    | aws_kms: EXMENT_DATA_KEY_WRAPPED="k2:<base64 CiphertextBlob>,k1:..." (data keys wrapped by
+    |   the KMS key EXMENT_DATA_KEY_KMS_KEY_ID; exment:data-key generate makes one), opened with
+    |   kms:Decrypt by the role of the server; the encryption context has app, key_id and
+    |   EXMENT_DATA_KEY_CONTEXT as "site" (the tenant on SaaS). The AWS SDK: composer require
+    |   aws/aws-sdk-php.
+    | aws_secrets_manager: the secret EXMENT_DATA_KEY_SECRET_ID holds "k2:...,k1:..." (or
+    |   {"keys": "..."}).
+    | vault: EXMENT_DATA_KEY_WRAPPED="k2:vault:v1:...", opened with the Transit key
+    |   EXMENT_DATA_KEY_VAULT_KEY of EXMENT_DATA_KEY_VAULT_ADDR; the token DATA_KEY_VAULT_TOKEN, or
+    |   AppRole (EXMENT_DATA_KEY_VAULT_ROLE_ID, DATA_KEY_VAULT_SECRET_ID). The token and the secret
+    |   id are not named EXMENT_*, so a backup does not keep them.
+    | The keys read are kept in memory only (the request; APCu, encrypted with APP_KEY, for
+    | data_key_cache_seconds when APCu is there).
+    */
+    'data_key_provider' => env('EXMENT_DATA_KEY_PROVIDER', 'env'),
+    'data_key_wrapped' => env('EXMENT_DATA_KEY_WRAPPED', ''),
+    'data_key_context' => env('EXMENT_DATA_KEY_CONTEXT', ''),
+    'data_key_kms_key_id' => env('EXMENT_DATA_KEY_KMS_KEY_ID', ''),
+    'data_key_aws_region' => env('EXMENT_DATA_KEY_AWS_REGION', env('AWS_DEFAULT_REGION', '')),
+    'data_key_secret_id' => env('EXMENT_DATA_KEY_SECRET_ID', ''),
+    'data_key_vault_addr' => env('EXMENT_DATA_KEY_VAULT_ADDR', ''),
+    'data_key_vault_mount' => env('EXMENT_DATA_KEY_VAULT_MOUNT', 'transit'),
+    'data_key_vault_key' => env('EXMENT_DATA_KEY_VAULT_KEY', ''),
+    'data_key_vault_namespace' => env('EXMENT_DATA_KEY_VAULT_NAMESPACE', ''),
+    'data_key_vault_role_id' => env('EXMENT_DATA_KEY_VAULT_ROLE_ID', ''),
+    'data_key_vault_token' => env('DATA_KEY_VAULT_TOKEN', ''),
+    'data_key_vault_secret_id' => env('DATA_KEY_VAULT_SECRET_ID', ''),
+    'data_key_cache_seconds' => env('EXMENT_DATA_KEY_CACHE_SECONDS', 300),
+
     // the seconds a value shown with the "show" button stays shown before it is masked again
     'encrypted_reveal_seconds' => env('EXMENT_ENCRYPTED_REVEAL_SECONDS', 30),
 

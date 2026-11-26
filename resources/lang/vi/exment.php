@@ -825,6 +825,12 @@ return [
                 'explain' => 'Không gửi Webhook thông báo tới các địa chỉ thuộc mạng nội bộ của máy chủ. Những trang có chủ ý gửi vào mạng nội bộ thì giữ nguyên.',
                 'warning' => 'Chưa chặn Webhook gửi tới mạng nội bộ.',
             ],
+            'data_key' => [
+                'label' => 'Nơi đặt khóa mã hóa',
+                'explain' => 'Khi khóa của các cột được mã hóa nằm trong dịch vụ khóa (AWS KMS, Secrets Manager, Vault), kiểm tra xem hiện có đọc được từ đó không. Khi khóa nằm trong .env (mặc định), không có gì để kiểm tra.',
+                'warning' => 'Có thể dùng dịch vụ khóa nhưng chưa có khóa nào (php artisan exment:data-key generate).',
+                'ng' => 'Không đọc được khóa từ dịch vụ khóa (:provider). Hiện không thể đọc hay lưu các cột được mã hóa. Lý do: :reason',
+            ],
             'version' => [
                 'label' => 'Phiên bản của Exment và plugin',
                 'explain' => 'Luôn cập nhật Exment và các plugin chính thức lên phiên bản mới. Plugin có bản sửa lỗi bảo mật cần được cập nhật ngay.',
@@ -1471,6 +1477,7 @@ return [
         'mapping_user_column' => 'Cột tìm kiếm tài khoản',
         'mapping_setting' => 'Cài đặt ánh xạ',
         'update_user_info' => 'Cập nhật thông tin người dùng',
+        'get_avatar' => 'Lấy ảnh đại diện từ IdP',
         'show_default_login_provider' => 'Hiển thị đăng nhập mặc định',
         'new_ip_header' => 'Đăng nhập từ nơi mới',
         'login_notify_new_ip' => 'Thông báo cho người dùng khi đăng nhập từ địa chỉ IP mới',
@@ -1546,6 +1553,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'sso_redirect_force' => 'Nếu chọn YES, trang đăng nhập của Exment sẽ không hiển thị mà chuyển hướng thẳng đến trang đăng nhập SSO. *Chỉ có hiệu lực khi chỉ có một nhà cung cấp SSO.',
             'sso_jit' => 'Nếu chọn YES, khi người dùng đăng nhập chưa tồn tại trong Exment, hệ thống sẽ dùng thông tin đăng nhập để tạo mới người dùng Exment. Nếu chọn NO, cần tạo người dùng trong Exment trước.',
             'update_user_info' => 'Nếu chọn YES, thông tin người dùng Exment sẽ được cập nhật khi đăng nhập.',
+            'get_avatar' => 'Nếu chọn YES, ảnh đại diện (ảnh hồ sơ) sẽ được lấy từ IdP khi đăng nhập (lần đăng nhập đầu tiên và khi "Cập nhật thông tin người dùng" là YES). Nếu chọn NO, ảnh sẽ không được lấy và ảnh đại diện đã đặt trong Exment được giữ nguyên.',
             'mapping_user_column' => 'Cài đặt cột nào trong tài khoản lấy được từ SSO sẽ được dùng để tìm tài khoản Exment.',
             'sso_accept_mail_domain' => 'Nếu muốn chỉ định tên miền được phép đăng nhập, vui lòng nhập vào đây. Nếu có nhiều tên miền, vui lòng nhập mỗi tên miền trên một dòng.',
             'jit_rolegroups' => 'Vui lòng nhập nếu muốn gán nhóm vai trò mặc định khi tạo người dùng mới.',
@@ -4048,7 +4056,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'help' => [
             'to_custom_table_view_name' => 'Vui lòng chọn bảng đích.',
             'use_on_create' => 'Khi bật, biểu mẫu tạo mới của bảng đích sẽ có nút "Sao chép dữ liệu". Với nút này, người dùng tìm trong danh sách của bảng này, chọn một bản ghi và bắt đầu nhập từ các giá trị của bản ghi đó. Dữ liệu chưa được lưu cho đến khi người dùng nhấn lưu.',
-            'create_label_type' => 'Nội dung hiển thị trong ngoặc của nút "Sao chép dữ liệu". Tự động: "Sao chép dữ liệu" ("Sao chép dữ liệu (tên bảng nguồn)" khi có từ hai cài đặt trở lên đặt nút này trên cùng một bảng). Tên bảng nguồn: luôn là "Sao chép dữ liệu (tên bảng nguồn)". Nhãn: "Sao chép dữ liệu (nhãn bên dưới)".',
+            'create_label_type' => 'Nội dung hiển thị trong ngoặc của nút "Sao chép dữ liệu". Tự động: "Sao chép dữ liệu" ("Sao chép dữ liệu (tên bảng nguồn)" khi có từ hai cài đặt trở lên đặt nút này trên cùng một bảng; "Sao chép dữ liệu (nhãn ở trên)" khi có từ hai cài đặt trở lên sao chép từ cùng một bảng nguồn). Tên bảng nguồn: luôn là "Sao chép dữ liệu (tên bảng nguồn)". Nhãn: "Sao chép dữ liệu (nhãn bên dưới)".',
             'create_label' => 'Văn bản trong ngoặc. Ví dụ, nhập "Năm trước" sẽ thành "Sao chép dữ liệu (Năm trước)".',
             'child_copy' => 'Sao chép cùng lúc dữ liệu của bảng con liên kết với dữ liệu đích. Các cài đặt sao chép dữ liệu giữa các bảng con đã đăng ký trước (không có cài đặt hộp thoại nhập) sẽ được hiển thị làm lựa chọn.',
         ],
@@ -5239,6 +5247,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
     'encrypted' => [
         'reveal' => 'Hiện',
         'unreadable' => '(không đọc được: không có khóa)',
+        'unavailable' => '(hiện không đọc được: không kết nối được dịch vụ khóa)',
+        'unavailable_save' => 'Hiện không đọc được khóa của cột được mã hóa (không kết nối được dịch vụ khóa). Vui lòng lưu lại sau.',
         'form_help' => 'Giá trị này được lưu ở dạng mã hóa. Để trống thì giữ nguyên giá trị hiện tại. Chỉ nhập giá trị mới khi muốn thay đổi.',
         'masked_input' => 'Giá trị bị che (****1234) chỉ được nhận là "không đổi" khi nó trùng với dạng che của giá trị hiện tại. Để thay đổi, hãy nhập toàn bộ giá trị mới.',
         'masked_form' => 'Giá trị này trông như giá trị bị che. Hãy nhập toàn bộ giá trị, hoặc để trống để giữ giá trị hiện tại.',

@@ -50,6 +50,11 @@ class EncryptedValue
         $id = DataKeys::currentId();
         $encrypter = isset($id) ? DataKeys::encrypter($id) : null;
         if (!isset($id, $encrypter)) {
+            // the service of the keys not reached (ISS02929): never saved as plain text
+            $unavailable = DataKeys::unavailable();
+            if (isset($unavailable)) {
+                throw new \RuntimeException(strval(exmtrans('encrypted.unavailable_save')));
+            }
             throw new \RuntimeException('No key to encrypt the column with: set DATA_ENCRYPTION_KEYS (php artisan exment:data-key generate).');
         }
         return static::PREFIX . $id . ':' . $encrypter->encryptString($plain);
