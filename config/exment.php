@@ -1617,6 +1617,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The rate limit in points (ISS02885 #5, Services\ApiCost)
+    |--------------------------------------------------------------------------
+    | A heavy call counts more than a light one: a list of records 1 + 1 for every 50 rows,
+    | a search 1 more, a view list 2 + 1 for every 50 rows, children / parents 1 more each,
+    | total=0 1 less; MCP search_data 1 + 1 for every 50 rows of its limit, q 1 more. The
+    | limits per minute (api_max_rate_limit, its raises, mcp_calls_per_minute) are read as
+    | points.
+    | false (default): every call is 1, as before. true: in points. log: limited as before,
+    |   the points counted beside, and a client over the limit in points is logged.
+    */
+    'api_rate_cost' => env('EXMENT_API_RATE_COST', false),
+
+    /*
+    |--------------------------------------------------------------------------
     | The files of the application log (ISS02839)
     |--------------------------------------------------------------------------
     | The mode of a new file of the application log (octal): 0640, the owner writes, its group
