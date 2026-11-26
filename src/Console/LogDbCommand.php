@@ -24,6 +24,7 @@ class LogDbCommand extends Command
         '2026_12_06_000000_create_permission_change_logs.php',
         '2026_12_07_000000_create_browser_logs.php',
         '2026_12_07_000001_create_data_access_logs.php',
+        '2026_12_08_000000_create_mcp_logs.php',
     ];
 
     public const CHUNK = 1000;

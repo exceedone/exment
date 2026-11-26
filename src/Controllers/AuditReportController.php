@@ -103,7 +103,7 @@ class AuditReportController extends AdminControllerBase
     public function csv(Request $request, string $section)
     {
         static::denyUnlessAudit();
-        if (!in_array($section, AuditReport::SECTIONS, true)) {
+        if (!in_array($section, AuditReport::sectionKeys(), true)) {
             abort(404);
         }
         $report = $this->report($request);

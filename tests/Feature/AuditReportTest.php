@@ -256,7 +256,7 @@ class AuditReportTest extends FeatureTestBase
         $this->get(admin_url('log_management'))->assertOk()->assertSee(admin_urls('log_management', 'audit'), false);
 
         $page = $this->get(admin_urls_query('log_management', 'audit', $query))->assertOk();
-        foreach (AuditReport::SECTIONS as $section) {
+        foreach (AuditReport::sectionKeys() as $section) {
             $page->assertSee(exmtrans('audit_report.section.' . $section));
         }
         $page->assertSee('value="2020-04-01"', false);

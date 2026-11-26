@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Services\ApiCost;
+use Exceedone\Exment\Services\LogManagement\McpLogs;
 use Exceedone\Exment\Services\Mcp\McpServer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -34,15 +35,23 @@ class McpController extends AdminControllerBase
      */
     protected function answer(Request $request)
     {
+        $startedAt = microtime(true);
         $user = \Exment::user();
         if (!isset($user)) {
+            // not kept: anyone could fill the log
             return response()->json(McpServer::error(null, -32001, 'Not signed in.'), 401);
         }
+        $userId = isset($user->base_user_id) ? intval($user->base_user_id) : null;
+        // the log of the MCP calls (ISS02915): a refusal, with its reason
+        $refuse = function ($message, array $error, int $status, string $reason) use ($userId, $startedAt, $request) {
+            McpLogs::record($userId, $message, $error, $startedAt, $request->ip(), $reason);
+            return response()->json($error, $status);
+        };
 
         // the version the client speaks, after initialize: one this server knows
         $version = $request->header('MCP-Protocol-Version');
         if (isset($version) && !in_array($version, McpServer::PROTOCOL_VERSIONS, true)) {
-            return response()->json(McpServer::error(null, -32600, 'Unsupported MCP-Protocol-Version.'), 400);
+            return $refuse(null, McpServer::error(null, -32600, 'Unsupported MCP-Protocol-Version.'), 400, 'unsupported_version');
         }
 
         // calls per minute of a user; in points when exment.api_rate_cost is on (ISS02885 #5)
@@ -53,7 +62,7 @@ class McpController extends AdminControllerBase
         $mode = ApiCost::mode();
         $points = $mode === ApiCost::MODE_ON && $parsed ? ApiCost::ofMcpMessage($message) : 1;
         if (RateLimiter::attempts($limiterKey) + $points > $perMinute) {
-            return response()->json(McpServer::error(null, -32000, 'Too many calls: try again later.'), 429)
+            return $refuse($parsed ? $message : null, McpServer::error(null, -32000, 'Too many calls: try again later.'), 429, 'rate_limited')
                 ->header('Retry-After', strval(RateLimiter::availableIn($limiterKey)));
         }
         RateLimiter::increment($limiterKey, 60, $points);
@@ -62,7 +71,7 @@ class McpController extends AdminControllerBase
         }
 
         if (!$parsed) {
-            return response()->json(McpServer::error(null, -32700, 'Parse error.'), 400);
+            return $refuse(null, McpServer::error(null, -32700, 'Parse error.'), 400, 'parse_error');
         }
 
         $answer = (new McpServer($user, $request->ip()))->handle($message);
@@ -70,7 +79,9 @@ class McpController extends AdminControllerBase
             // a notification
             return response('', 202);
         }
-        return response()->json($answer, 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        $response = response()->json($answer, 200, [], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        McpLogs::record($userId, $message, $answer, $startedAt, $request->ip(), null, strlen(strval($response->getContent())));
+        return $response;
     }
 
     /**

@@ -223,6 +223,14 @@ class Features
             'description' => 'exment::exment.feature.features.browser_log_help',
             'manual' => 'log_management',
         ]);
+        // the log of the MCP calls (Services\LogManagement\McpLogs, ISS02915): off until it is turned
+        // on; read by the system administrators and the role groups with "Audit"
+        $core[\Exceedone\Exment\Services\LogManagement\McpLogs::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.mcp_log',
+            'description' => 'exment::exment.feature.features.mcp_log_help',
+            'manual' => 'log_management',
+            'who' => false,
+        ]);
         // mail with OAuth 2.0 (ISS02913): Microsoft 365, Google; off until a system administrator
         // turns it on and sets the application
         $core[static::MAIL_OAUTH] = static::definition([

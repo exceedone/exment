@@ -30,6 +30,12 @@ class RouteServiceProvider extends ServiceProvider
     {
         RateLimiter::for('api', function (Request $request) {
             $rate_limit = ApiRateRaises::base();
+            // too many: the answer as before, and an MCP call is kept in the MCP log (ISS02915)
+            $tooMany = function (?int $userId) {
+                return function (Request $request, array $headers) use ($userId) {
+                    return \Exceedone\Exment\Services\LogManagement\McpLogs::throttled($request, $userId, $headers);
+                };
+            };
             // an API key of a user: not through the OAuth guard (Passport empties the Authorization
             // header of a bearer that is not its token, and the key would never sign in after it)
             $bearer = $request->bearerToken();
@@ -38,8 +44,8 @@ class RouteServiceProvider extends ServiceProvider
                 $per_minute = ApiRateRaises::perMinute($rate_limit, ApiRateRaises::userOfApiKey((string)$bearer));
                 // by the IP (a new random key each time, or many keys, do not get more) and by the key
                 return [
-                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip())),
-                    Limit::perMinute($per_minute)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
+                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip()))->response($tooMany(null)),
+                    Limit::perMinute($per_minute)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer))->response($tooMany(null)),
                 ];
             }
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
@@ -47,7 +53,8 @@ class RouteServiceProvider extends ServiceProvider
             $token = $login_user instanceof \Exceedone\Exment\Model\LoginUser ? $login_user->token() : null;
             $client_id = $token instanceof \Laravel\Passport\Token ? $token->client_id : null;
             $per_minute = ApiRateRaises::perMinute($rate_limit, $login_user?->base_user_id, $client_id);
-            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip()));
+            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip()))
+                ->response($tooMany(isset($login_user->base_user_id) ? intval($login_user->base_user_id) : null));
         });
     }
     /**
@@ -258,6 +265,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('log_management/logins.csv', 'LogManagementController@loginsCsv');
             $router->get('log_management/browser', 'BrowserLogController@index');
             $router->post('log_management/browser/setting', 'BrowserLogController@postSetting');
+            // the log of the MCP calls (ISS02915)
+            $router->get('log_management/mcp', 'McpLogController@index');
+            $router->post('log_management/mcp/setting', 'McpLogController@postSetting');
             $router->get('log_management/files/{name}', 'LogManagementController@file')->where('name', '[A-Za-z0-9._-]+');
             $router->get('log_management/archives/{kind}/{name}', 'LogManagementController@archive')->where(['kind' => '[a-z0-9_]+', 'name' => '[A-Za-z0-9._-]+']);
             // the IT audit report (ISS02840)
