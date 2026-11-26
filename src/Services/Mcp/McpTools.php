@@ -6,6 +6,8 @@ use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\DataAccessLog;
+use Exceedone\Exment\Services\LogManagement\DataAccessLogs;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MemberDirectory;
 use Exceedone\Exment\Services\UserApiKeys;
@@ -152,10 +154,19 @@ class McpTools
                     return $this->answer($this->getTable($this->table($args)));
                 case 'search_data':
                     $this->needScope(ApiScope::VALUE_READ);
-                    return $this->answer($this->searchData($this->table($args), $args));
+                    $table = $this->table($args);
+                    // who listed the data (ISS02905)
+                    DataAccessLogs::from(DataAccessLog::VIA_MCP, function () use ($table) {
+                        DataAccessLogs::listed($table);
+                    });
+                    return $this->answer($this->searchData($table, $args));
                 case 'get_data':
                     $this->needScope(ApiScope::VALUE_READ);
-                    return $this->answer($this->row($this->record($args)));
+                    $record = $this->record($args);
+                    DataAccessLogs::from(DataAccessLog::VIA_MCP, function () use ($record) {
+                        DataAccessLogs::read($record->custom_table, $record->id);
+                    });
+                    return $this->answer($this->row($record));
                 case 'list_attachments':
                     $this->needScope(ApiScope::VALUE_READ);
                     return $this->answer($this->attachments($this->record($args)));

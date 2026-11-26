@@ -251,6 +251,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('log_management', 'LogManagementController@index');
             $router->post('log_management/setting', 'LogManagementController@postSetting');
             $router->get('log_management/logins.csv', 'LogManagementController@loginsCsv');
+            $router->get('log_management/browser', 'BrowserLogController@index');
+            $router->post('log_management/browser/setting', 'BrowserLogController@postSetting');
             $router->get('log_management/files/{name}', 'LogManagementController@file')->where('name', '[A-Za-z0-9._-]+');
             $router->get('log_management/archives/{kind}/{name}', 'LogManagementController@archive')->where(['kind' => '[a-z0-9_]+', 'name' => '[A-Za-z0-9._-]+']);
             // the IT audit report (ISS02840)
@@ -258,6 +260,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('log_management/audit.pdf', 'AuditReportController@pdf');
             $router->get('log_management/audit/{section}.csv', 'AuditReportController@csv')->where('section', '[a-z_]+');
             $router->get('log_management/audit/files/{id}', 'AuditReportController@file')->where('id', '[0-9]+');
+            $router->get('log_management/audit/record', 'AuditReportController@record');
             $router->post('log_management/audit/verify', 'AuditReportController@verify');
             $router->post('log_management/audit/setting', 'AuditReportController@postSetting');
             $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
@@ -602,6 +605,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
 
             $router->get('webapi/mention/users', 'MentionController@users');
+            // the log of the browsers (ISS02904): at most a sending a second a user
+            $router->post('webapi/browser_log', 'BrowserLogController@store')->middleware('throttle:60,1');
 
             $router->get("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@presets');
             $router->get("webapi/{tableKey}/cellstylepreset/modal", 'CellStylePresetController@modal');
