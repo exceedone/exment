@@ -208,6 +208,16 @@ class Features
             'manual' => 'notify_webhook',
             'who' => false,
         ]);
+        // the data sync with other services (ISS00113): the system administrators only, off until
+        // it is turned on
+        $core[Sync\SyncEngine::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.data_sync',
+            'description' => 'exment::exment.feature.features.data_sync_help',
+            'endpoints' => ['sync'],
+            'menu' => 'sync',
+            'manual' => 'sync',
+            'who' => false,
+        ]);
         // notifications to LINE WORKS (ISS00114): the data leaves the site, so it is off until a
         // system administrator turns it on (and sets the app)
         $core[static::LINE_WORKS_NOTIFY] = static::definition([

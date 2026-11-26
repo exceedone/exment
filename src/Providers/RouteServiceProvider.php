@@ -283,6 +283,20 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('api_rate_raises', 'ApiRateRaiseController@index');
             $router->post('api_rate_raises', 'ApiRateRaiseController@store');
             $router->post('api_rate_raises/{id}/delete', 'ApiRateRaiseController@delete');
+            // the data sync (ISS00113)
+            $router->get('sync', 'SyncController@index');
+            $router->get('sync/connections/create', 'SyncController@connection');
+            $router->post('sync/connections', 'SyncController@saveConnection');
+            $router->get('sync/connections/{id}/edit', 'SyncController@connection');
+            $router->post('sync/connections/{id}', 'SyncController@saveConnection');
+            $router->post('sync/connections/{id}/test', 'SyncController@testConnection');
+            $router->get('sync/mappings/create', 'SyncController@mapping');
+            $router->post('sync/mappings', 'SyncController@saveMapping');
+            $router->get('sync/mappings/{id}/edit', 'SyncController@mapping');
+            $router->post('sync/mappings/{id}', 'SyncController@saveMapping');
+            $router->post('sync/mappings/{id}/run', 'SyncController@run');
+            $router->get('sync/mappings/{id}/links', 'SyncController@links');
+            $router->get('sync/runs/{id}', 'SyncController@showRun');
             // the trash: the deleted rows of all the tables (ISS00334)
             $router->get('trash', 'TrashController@index');
             $router->post('trash/restore', 'TrashController@restore');
