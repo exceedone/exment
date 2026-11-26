@@ -503,9 +503,12 @@ class ExmentServiceProvider extends ServiceProvider
             return new \Exceedone\Exment\Services\Line\LineMessagingClient();
         });
 
-        // mail with OAuth 2.0 (ISS02913): the mailer MailOAuth::applyConfig() sets
-        \Illuminate\Support\Facades\Mail::extend(\Exceedone\Exment\Services\MailOAuth\MailOAuth::MAILER, function (array $config) {
-            return \Exceedone\Exment\Services\MailOAuth\MailOAuth::transport($config);
+        // mail with OAuth 2.0 (ISS02913): the mailer MailOAuth::applyConfig() sets. Added when the
+        // mail manager is made: in register() it is not there yet (MailServiceProvider is deferred)
+        $this->callAfterResolving('mail.manager', function (\Illuminate\Mail\MailManager $manager) {
+            $manager->extend(\Exceedone\Exment\Services\MailOAuth\MailOAuth::MAILER, function (array $config) {
+                return \Exceedone\Exment\Services\MailOAuth\MailOAuth::transport($config);
+            });
         });
 
         // guard provider
