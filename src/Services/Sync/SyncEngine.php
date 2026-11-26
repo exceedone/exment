@@ -113,7 +113,11 @@ class SyncEngine
         $page = $connector->changes($connection, $mapping->remote_object, $run->cursor, $limit);
         $mapper = new FieldMapper();
         foreach ($page->items as $item) {
-            static::item($run, $mapping, $table, $item, $mapper);
+            if ($connector instanceof SyncWriter) {
+                static::written($run, $mapping, $connector, $item);
+            } else {
+                static::item($run, $mapping, $table, $item, $mapper);
+            }
         }
         $run->cursor = $page->cursor;
 
@@ -122,16 +126,63 @@ class SyncEngine
             if (!$run->dry_run && boolval($mapping->option('check_deletes', true)) && static::deletesDue($mapping)) {
                 static::deletes($run, $mapping, $table);
             }
+            // the connector's own end of a run (the parents of the items, its own checks)
+            if ($connector instanceof SyncFinisher) {
+                try {
+                    foreach ($connector->finished($mapping, $run->dry_run, $run->count('errors') === 0) as $note) {
+                        static::error($run, null, strval($note), false);
+                    }
+                } catch (\Throwable $e) {
+                    static::error($run, null, static::safeMessage($e));
+                }
+            }
             static::finish($run, $mapping, $run->count('errors') > 0 ? SyncRun::STATUS_PARTIAL : SyncRun::STATUS_SUCCEEDED, null);
             return true;
         }
         $run->save();
-        if (!$run->dry_run) {
-            // the next run goes on from here, even when this one stops
+        if (!$run->dry_run && $run->count('errors') === 0) {
+            // the next run goes on from here, even when this one stops (never past an item that
+            // failed: the next run reads it again, and the ones written are unchanged by then)
             $mapping->cursor = $run->cursor;
             $mapping->save();
         }
         return false;
+    }
+
+    /**
+     * One item written by its connector (SyncWriter): the link kept by the engine when the
+     * connector gives the record back, an item of the same values not given to it again.
+     */
+    protected static function written(SyncRun $run, SyncMapping $mapping, SyncWriter $writer, RemoteItem $item): void
+    {
+        /** @var SyncLink|null $link */
+        $link = SyncLink::query()->where('sync_mapping_id', $mapping->id)->where('remote_id', $item->id)->first();
+        $hash = $item->hash();
+        if (isset($link) && $link->hash === $hash) {
+            $run->add('unchanged');
+            return;
+        }
+        try {
+            $result = $writer->write($mapping, $item, $run->dry_run);
+        } catch (\Throwable $e) {
+            static::error($run, $item->id, static::safeMessage($e));
+            return;
+        }
+        foreach ($result->notes as $note) {
+            static::error($run, $item->id, strval($note), false);
+        }
+        $run->add($result->kind);
+        if ($run->dry_run || !isset($result->customValueId) || $result->kind === SyncWriteResult::SKIPPED) {
+            return;
+        }
+        $link = $link ?? new SyncLink(['sync_mapping_id' => $mapping->id, 'remote_id' => $item->id]);
+        $link->custom_value_id = $result->customValueId;
+        $link->remote_url = $item->url;
+        $link->remote_updated_at = $item->updatedAt;
+        $link->local_updated_at = Carbon::now();
+        $link->hash = $hash;
+        $link->remote_deleted_at = null;
+        $link->save();
     }
 
     /**
@@ -333,7 +384,10 @@ class SyncEngine
             $mapping->next_run_at = Carbon::now()->addMinutes($wait);
         } else {
             $mapping->failures = 0;
-            $mapping->cursor = $run->cursor;
+            if ($status === SyncRun::STATUS_SUCCEEDED) {
+                // an item that failed is read again by the next run
+                $mapping->cursor = $run->cursor;
+            }
             $mapping->next_run_at = Carbon::now()->addMinutes(max(1, $mapping->interval_minutes));
         }
         $mapping->save();
