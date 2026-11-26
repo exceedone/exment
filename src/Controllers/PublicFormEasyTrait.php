@@ -76,11 +76,14 @@ trait PublicFormEasyTrait
         }
         $this->AdminContent($content);
         $emails = $this->easyEmailColumns();
+        // a site with few users lists them (no search URL), a larger one searches
+        [$userOptions, $usersAjax] = CustomTable::getEloquent(SystemTableName::USER)->getSelectOptionsAndAjaxUrl();
         $content->row(new Box(exmtrans('custom_form_public.easy.header'), view('exment::public-form.easy', [
             'action' => admin_urls('formpublic', $this->custom_table->table_name, 'easy'),
             'detail_url' => admin_urls('formpublic', $this->custom_table->table_name, 'create'),
             'columns' => $this->easyColumns(),
-            'users_ajax' => CustomTable::getEloquent(SystemTableName::USER)->getOptionAjaxUrl(),
+            'users_ajax' => $usersAjax,
+            'user_options' => isset($usersAjax) ? [] : ($userOptions instanceof \Illuminate\Support\Collection ? $userOptions->toArray() : (array) $userOptions),
             'default_users' => $this->easyUsers([\Exment::getUserId()]),
             'email_columns' => $emails,
             'default_email' => array_key_first($emails),

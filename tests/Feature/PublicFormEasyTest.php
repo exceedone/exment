@@ -53,8 +53,18 @@ class PublicFormEasyTest extends FeatureTestBase
         $this->assertStringContainsString('value="text"', $page);
         $this->assertStringContainsString(e(exmtrans('custom_form_public.easy.warning_users')), $page);
         $this->assertStringContainsString('name="notify_user_column"', $page);
-        // the user picker of Exment, the user who opens it chosen
+        // the user picker of Exment, the user who opens it chosen; on this site (few users) the others
+        // are listed, not searched (no search URL: select2 must not search the page)
         $this->assertStringContainsString('class="form-control easy-notify"', $page);
+        $this->assertStringNotContainsString('data-ajax=', $page);
+        $user2 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2);
+        [$options, $url] = CustomTable::getEloquent(\Exceedone\Exment\Enums\SystemTableName::USER)->getSelectOptionsAndAjaxUrl();
+        if (is_null($url)) {
+            $this->assertStringContainsString('data-users-url=""', $page);
+            $this->assertStringContainsString('<option value="' . $user2->base_user_id . '">', $page);
+        } else {
+            $this->assertStringContainsString('data-users-url="' . e($url) . '"', $page);
+        }
         $this->assertStringContainsString('<option value="' . \Exment::getUserId() . '" selected>', $page);
         // the name of the form is the name of the table (not the last field)
         $this->assertStringContainsString('name="public_form_view_name" class="form-control" maxlength="40" value="' . e(CustomTable::getEloquent($this->tableName())->table_view_name) . '"', $page);

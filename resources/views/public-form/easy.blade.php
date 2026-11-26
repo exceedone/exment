@@ -39,9 +39,16 @@
     <div class="form-group" style="max-width:760px">
         <label class="fw-bold">{{ exmtrans('custom_form_public.easy.notify_admin_users') }}</label>
         {{-- the user picker of Exment (search by name, chosen ones as chips) --}}
-        <select name="notify_admin_users[]" multiple class="form-control easy-notify" style="width:100%" data-ajax="{{ $users_ajax }}" data-placeholder="{{ exmtrans('custom_form_public.easy.find_user') }}">
+        {{-- not data-ajax: select2 reads that by itself, also when it is empty --}}
+        <select name="notify_admin_users[]" multiple class="form-control easy-notify" style="width:100%" data-users-url="{{ $users_ajax }}" data-placeholder="{{ exmtrans('custom_form_public.easy.find_user') }}">
             @foreach($default_users as $id => $label)
             <option value="{{ $id }}" selected>{{ $label }}</option>
+            @endforeach
+            {{-- a site with few users: all of them (no search) --}}
+            @foreach($user_options as $id => $label)
+            @if(!array_key_exists((string) $id, $default_users))
+            <option value="{{ $id }}">{{ $label }}</option>
+            @endif
             @endforeach
         </select>
         <p class="text-muted small">{{ exmtrans('custom_form_public.easy.help.notify_admin_users') }}</p>
@@ -103,9 +110,11 @@
     var notify = form.querySelector('.easy-notify'), warn = form.querySelector('.easy-no-notice');
     var check = function () { warn.style.display = notify.selectedOptions.length ? 'none' : ''; };
     if (window.jQuery && jQuery.fn.select2) {
-        jQuery(notify).select2({
-            ajax: {
-                url: notify.dataset.ajax,
+        var config = { placeholder: notify.dataset.placeholder, width: '100%' };
+        if (notify.dataset.usersUrl) {
+            config.minimumInputLength = 1;
+            config.ajax = {
+                url: notify.dataset.usersUrl,
                 dataType: 'json',
                 delay: 250,
                 data: function (params) { return { q: params.term, page: params.page }; },
@@ -114,11 +123,9 @@
                     return { results: jQuery.map(data.data || [], function (d) { return { id: d.id, text: d.text }; }), pagination: { more: !!data.next_page_url } };
                 },
                 cache: true
-            },
-            placeholder: notify.dataset.placeholder,
-            minimumInputLength: 1,
-            width: '100%'
-        }).on('change', check);
+            };
+        }
+        jQuery(notify).select2(config).on('change', check);
     } else {
         notify.addEventListener('change', check);
     }
