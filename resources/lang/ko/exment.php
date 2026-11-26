@@ -3517,6 +3517,10 @@ IP 주소: :ip
         'gantt_progress' => '진행률',
         'gantt_no_bar' => '날짜 미설정',
         'gantt_no_group' => '미분류',
+        'gantt_group_parent' => '상위 데이터(:table)별',
+        'gantt_view_list' => '목록으로 보기',
+        'gantt_view_chart' => '차트로 보기',
+        'gantt_week' => ':date 주',
         'gantt_empty' => '표시할 데이터가 없습니다.',
         'kanban_source' => '칸반 레인 생성 방법',
         'kanban_source_options' => [

@@ -8,6 +8,9 @@
         'empty' => exmtrans('custom_view.gantt_empty'),
         'collapse' => exmtrans('custom_view.kanban_collapse'),
         'expand' => exmtrans('custom_view.kanban_expand'),
+        'view_list' => exmtrans('custom_view.gantt_view_list'),
+        'view_chart' => exmtrans('custom_view.gantt_view_chart'),
+        'week' => exmtrans('custom_view.gantt_week'),
     ];
 @endphp
 <div class="box card p-2 exment-gantt" id="{{ $chartId }}">

@@ -3517,6 +3517,10 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'gantt_progress' => 'Tiến độ',
         'gantt_no_bar' => 'Chưa đặt ngày',
         'gantt_no_group' => 'Chưa phân nhóm',
+        'gantt_group_parent' => 'Theo dữ liệu cha (:table)',
+        'gantt_view_list' => 'Xem dạng danh sách',
+        'gantt_view_chart' => 'Xem dạng biểu đồ',
+        'gantt_week' => 'Tuần :date',
         'gantt_empty' => 'Không có dữ liệu để hiển thị.',
         'kanban_source' => 'Cách tạo các cột của bảng Kanban',
         'kanban_source_options' => [

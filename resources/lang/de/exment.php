@@ -3517,6 +3517,10 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'gantt_progress' => 'Fortschritt',
         'gantt_no_bar' => 'Kein Datum',
         'gantt_no_group' => 'Keine Gruppe',
+        'gantt_group_parent' => 'Nach übergeordnetem Datensatz (:table)',
+        'gantt_view_list' => 'Als Liste anzeigen',
+        'gantt_view_chart' => 'Als Diagramm anzeigen',
+        'gantt_week' => 'Woche vom :date',
         'gantt_empty' => 'Es sind keine Daten zum Anzeigen vorhanden.',
         'kanban_source' => 'Wie die Spalten des Boards gebildet werden',
         'kanban_source_options' => [

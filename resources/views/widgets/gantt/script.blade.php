@@ -274,6 +274,67 @@
     inner.style.width = (LEFT_W + CANVAS_W) + 'px';
     inner.innerHTML = html;
 
+    /* ------------------------------------------------ list (phone) ------ */
+    // A phone has no room for the bars: there the rows read as a list, group
+    // by group, in the order of their due dates, under the week each is due
+    // in (L3). A button switches between the list and the chart, on any width.
+    function weekStart(d) { return addDays(d, -((d.getDay() + 6) % 7)); }
+    function listHtml() {
+        var out = '';
+        (D.groups || []).forEach(function (g) {
+            var rows = (D.rows || []).filter(function (r) { return String(r.group || '') === String(g.key); });
+            if (!rows.length) { return; }
+            rows = rows.slice().sort(function (a, b) {
+                if (!a.end !== !b.end) { return a.end ? -1 : 1; }
+                return String(a.end || '').localeCompare(String(b.end || '')) || String(a.label).localeCompare(String(b.label));
+            });
+            if (hasGroups) {
+                out += '<div class="gt-l-grp"><i class="fa fa-flag-checkered"></i> ' + esc(g.label || '') +
+                    ' <span class="gt-cnt">' + rows.length + '</span>' + (g.due ? ' <span class="gt-due">◆ ' + fmtShort(g.due) + '</span>' : '') + '</div>';
+            }
+            var week = null;
+            rows.forEach(function (r) {
+                var end = parse(r.end);
+                var wk = end ? fmtMD(weekStart(end)) : '';
+                if (wk !== week) {
+                    week = wk;
+                    out += '<div class="gt-l-wk">' + esc(end ? String(L.week).replace(':date', wk) : L.no_bar) + '</div>';
+                }
+                var color = (D.colors && D.colors[r.color]) || '#3c8dbc';
+                var overdue = !!(end && end < today && (r.progress === null || r.progress === undefined || r.progress < 100));
+                var a = r.assignee && D.assignees ? D.assignees[r.assignee] : null;
+                out += '<a class="gt-l-row" href="' + esc(r.url) + '">' +
+                    '<span class="gt-dot" style="background:' + esc(color) + '"></span>' +
+                    '<span class="gt-l-label">' + esc(r.label) + '</span>' +
+                    (r.progress !== null && r.progress !== undefined ? '<span class="gt-l-pg">' + esc(Math.round(r.progress)) + '%</span>' : '') +
+                    (a ? '<span class="gt-av" style="background:' + esc(a.color) + '" title="' + esc(a.name) + '">' + esc(a.initial) + '</span>' : '') +
+                    '<span class="gt-due' + (overdue ? ' gt-overdue' : '') + '">' + (r.end ? fmtShort(r.end) : '—') + '</span></a>';
+            });
+        });
+        return out;
+    }
+    var scrollBox = root.querySelector('.gt-scroll');
+    var listBox = document.createElement('div');
+    listBox.className = 'gt-list';
+    listBox.innerHTML = listHtml();
+    scrollBox.parentNode.insertBefore(listBox, scrollBox.nextSibling);
+    listBox.addEventListener('click', function (ev) {
+        var a = ev.target.closest('.gt-l-row');
+        if (a && window.ppNavigate && window.ppNavigate(a.getAttribute('href'))) { ev.preventDefault(); }
+    });
+    var modeBtn = document.createElement('button');
+    modeBtn.type = 'button';
+    modeBtn.className = 'btn btn-sm btn-default gt-mode';
+    function setMode(asList) {
+        root.classList.toggle('gt-as-list', asList);
+        modeBtn.innerHTML = '<i class="fa ' + (asList ? 'fa-align-left' : 'fa-list') + '"></i> ' + esc(asList ? L.view_chart : L.view_list);
+        modeBtn.setAttribute('aria-pressed', asList ? 'true' : 'false');
+    }
+    modeBtn.addEventListener('click', function () { setMode(!root.classList.contains('gt-as-list')); });
+    var toolLeft = root.querySelector('.gt-toolbar-left');
+    if (toolLeft) { toolLeft.insertBefore(modeBtn, toolLeft.firstChild); }
+    setMode(root.clientWidth > 0 && root.clientWidth < 600);
+
     /* ------------------------------------------------ events ------------ */
     inner.addEventListener('click', function (ev) {
         var bar = ev.target.closest('.gt-bar');

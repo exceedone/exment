@@ -3637,6 +3637,10 @@ IPアドレス: :ip
         'gantt_progress' => '進捗',
         'gantt_no_bar' => '日付未設定',
         'gantt_no_group' => '未分類',
+        'gantt_group_parent' => '親データ（:table）でまとめる',
+        'gantt_view_list' => 'リストで見る',
+        'gantt_view_chart' => 'チャートで見る',
+        'gantt_week' => ':date の週',
         'gantt_empty' => '表示するデータがありません。',
         'kanban_source' => 'カンバンの列の作り方',
         'kanban_source_options' => [
