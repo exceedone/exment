@@ -152,7 +152,41 @@
                 title: "{{exmtrans('backup.message.backup_confirm')}}",
                 text: "{{exmtrans('common.message.execution_takes_time')}}",
                 confirm:"{{trans('admin.confirm')}}",
-                cancel:"{{trans('admin.cancel')}}"
+                cancel:"{{trans('admin.cancel')}}",
+                // the request runs the backup (or gives it to the queue): the progress is polled meanwhile (ISS02943)
+                postEvent: function (data) {
+                    var $button = $('.btn-backup').prop('disabled', true);
+                    $.ajax({ type: 'POST', url: '{{admin_url("backup/save")}}', data: data })
+                        .done(function (response) {
+                            if (response && response.run && window.ExmentBackupProgress) {
+                                window.ExmentBackupProgress.poll(response.run);
+                            }
+                            if (response && response.result === true && response.queued) {
+                                toastr.info(response.message);
+                                return;
+                            }
+                            if (response && response.result === true) {
+                                toastr.success(response.message);
+                                if (window.ExmentBackupProgress) {
+                                    window.ExmentBackupProgress.reloadSoon();
+                                } else {
+                                    $.pjax.reload('#pjax-container');
+                                }
+                            } else if (response) {
+                                toastr.error(response.message || response.toastr);
+                            }
+                        })
+                        .fail(function (response) {
+                            Exment.CommonEvent.CallbackExmentAjax(response);
+                        })
+                        .always(function () {
+                            $button.prop('disabled', false);
+                        });
+                    if (window.ExmentBackupProgress) {
+                        setTimeout(function () { window.ExmentBackupProgress.poll(null); }, 800);
+                    }
+                    return Promise.resolve();
+                }
             });
         });
 
