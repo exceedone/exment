@@ -34,19 +34,11 @@
 /* AdminLTE caps .menu at 200px and lets it scroll. A notification row there is one line
    of small text; a task row is a table badge plus a label plus a status, so five of them
    are taller than the box and the fifth is cut in half by the scroll edge. The dropdown
-   shows a fixed, small number of rows, so it can size to its content instead: the
-   slimScroll heights below were already released for the same reason, and releasing them
-   without the max-height left the clipping in place.
+   shows a fixed, small number of rows, so it can size to its content instead.
    The important is not decoration: laravel-admin prints this file 4th and AdminLTE.min.css
-   30th, both selectors weigh the same, so without it the later sheet simply wins. The
-   slimScroll rule below carries one for exactly this reason. */
+   30th, both selectors weigh the same, so without it the later sheet simply wins. */
 .navbar-workflow-task .dropdown-menu > li .menu {
     max-height: none !important;
-}
-
-.navbar-workflow-task .slimScrollDiv,
-.navbar-workflow-task .slimScrollDiv .menu {
-    height: auto !important;
 }
 
 /* reuse the notify ring keyframes (defined in common.css) */

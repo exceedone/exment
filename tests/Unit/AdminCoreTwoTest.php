@@ -67,6 +67,14 @@ class AdminCoreTwoTest extends UnitTestBase
         $this->assertStringContainsString('.table td:has(> input.grid-row-checkbox)', $css);
     }
 
+    public function testNoSlimScrollRulesAreLeft(): void
+    {
+        // admin-core 2.0 has no slimScroll: the menus of the navbar are not wrapped in its box
+        foreach (['src/Web/scss/common.scss', 'public/vendor/exment/css/common.css', 'public/vendor/exment/css/common.min.css', 'public/vendor/exment/css/workflow_task_navbar.css'] as $path) {
+            $this->assertStringNotContainsString('slimScroll', $this->read($path), $path);
+        }
+    }
+
     public function testTheCiUsesAdminCoreTwo(): void
     {
         foreach (['unittest', 'phpstan', 'coverage', 'check-lang'] as $name) {
