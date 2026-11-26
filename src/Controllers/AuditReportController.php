@@ -284,9 +284,15 @@ class AuditReportController extends AdminControllerBase
         $users = getModelName(SystemTableName::USER)::withTrashed()->whereIn('id', $rows->pluck('base_user_id')->filter()->unique()->all())->get()->keyBy('id');
         return $rows->map(function (DataAccessLog $row) use ($users) {
             $user = is_null($row->base_user_id) ? null : $users->get($row->base_user_id);
+            $kind = strval(exmtrans('audit_report.data_kind.' . $row->kind));
+            // a reveal says which column was shown (ISS00148)
+            if ($row->kind === DataAccessLog::KIND_REVEAL && isset($row->custom_column_id)) {
+                $column = \Exceedone\Exment\Model\CustomColumn::getEloquent($row->custom_column_id);
+                $kind .= isset($column) ? '（' . $column->column_view_name . '）' : '';
+            }
             return [
                 'at' => optional($row->created_at)->format('Y-m-d H:i:s') ?? '',
-                'kind' => strval(exmtrans('audit_report.data_kind.' . $row->kind)),
+                'kind' => $kind,
                 'via' => strval(exmtrans('audit_report.via.' . $row->via)),
                 'user' => is_null($row->base_user_id) ? strval(exmtrans('audit_report.made_by_job'))
                     : (isset($user) ? trim(strval(array_get($user->value ?? [], 'user_code')) . ' ' . strval(array_get($user->value ?? [], 'user_name'))) : '#' . $row->base_user_id),

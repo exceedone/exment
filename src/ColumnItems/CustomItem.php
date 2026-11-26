@@ -7,6 +7,7 @@ use ExmentAdminCore\Admin\Grid;
 use ExmentAdminCore\Admin\Grid\Filter;
 use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Field as ExmentField;
+use Exceedone\Exment\Services\Encryption\EncryptedColumns;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumnMulti;
@@ -145,7 +146,39 @@ abstract class CustomItem implements ItemInterface
     // @phpstan-ignore-next-line
     protected function _text($v)
     {
+        // an encrypted column is shown masked (ISS00148)
+        if ($this->isEncryptedColumn()) {
+            return EncryptedColumns::masked($this->custom_column, $v);
+        }
         return $v;
+    }
+
+    /**
+     * Whether the column is kept encrypted (ISS00148).
+     */
+    public function isEncryptedColumn(): bool
+    {
+        return EncryptedColumns::isEncrypted($this->custom_column ?? null);
+    }
+
+    /**
+     * The masked value, with the button that shows it when the user may (ISS00148).
+     */
+    protected function encryptedHtml(): string
+    {
+        $masked = esc_html(EncryptedColumns::masked($this->custom_column, $this->value));
+        if ($masked === '') {
+            return '';
+        }
+        $table = $this->custom_column->custom_table_cache;
+        if (!isset($this->id) || !isset($table) || !EncryptedColumns::canReveal($table, $this->id)) {
+            return '<span class="exm-encrypted">' . $masked . '</span>';
+        }
+        EncryptedColumns::revealScript();
+        $url = admin_urls('data', $table->table_name, $this->id, 'reveal', $this->custom_column->column_name);
+        return '<span class="exm-encrypted">' . $masked . '</span> '
+            . '<button type="button" class="btn btn-xs btn-outline-secondary exm-encrypted-reveal" data-url="' . esc_html($url) . '"'
+            . ' title="' . esc_html(exmtrans('encrypted.reveal')) . '"><i class="fa fa-eye"></i></button>';
     }
 
     /**
@@ -196,6 +229,9 @@ abstract class CustomItem implements ItemInterface
      */
     public function html()
     {
+        if ($this->isEncryptedColumn()) {
+            return $this->encryptedHtml();
+        }
         $cell_style = $this->getGridCellStyle();
 
         $html = $this->_getMultipleValue(function ($v) use ($cell_style) {
@@ -732,6 +768,21 @@ abstract class CustomItem implements ItemInterface
         $field->attribute(['data-column_type' => $this->custom_column->column_type]);
 
         $field->setElementClass("class_" . $this->uniqueName());
+
+        // an encrypted column (ISS00148): the form never holds its value. The box is empty, its
+        // placeholder the masked value; left empty it keeps the value (EncryptedColumns::encryptForSave)
+        if ($this->isEncryptedColumn()) {
+            $field->customFormat(function () {
+                return '';
+            });
+            if (isset($this->id) && !is_nullorempty($this->value)) {
+                $field->placeholder(EncryptedColumns::masked($this->custom_column, $this->value));
+                $field->removeRule('required');
+                // the browser must not refuse the box left empty either
+                $field->removeAttribute('required');
+                $field->help(exmtrans('encrypted.form_help'));
+            }
+        }
 
         return $field;
     }

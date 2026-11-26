@@ -625,6 +625,10 @@ var Exment;
                 if ($(ev.target).closest('.exm-edit-pen,td.exm-editing').length > 0) {
                     return;
                 }
+                // the "show" button of an encrypted value (ISS00148) shows it in the list
+                if ($(ev.target).closest('.exm-encrypted-reveal').length > 0) {
+                    return;
+                }
                 if ($(ev.target).closest('.popover').length > 0) {
                     return;
                 }

@@ -3897,6 +3897,7 @@ IP 地址: :ip
                 'label' => '导出',
                 'help' => '可以将主数据导出到外部文件。<br />※需要对该数据拥有查看权限。',
             ],
+            'custom_value_reveal' => ['label' => '查看加密的列', 'help' => '可以用「显示」按钮查看加密列的真实值。每次查看都会记录在数据访问记录中。<br />※需要对该数据的查看权限。'],
         ],
         'role_type_option_table' => [
             'custom_table' => [
@@ -3955,6 +3956,7 @@ IP 地址: :ip
                 'label' => '显示已删除数据',
                 'help' => '可以重新显示已逻辑删除的数据。<br />※恢复数据需要对该数据拥有编辑权限。',
             ],
+            'custom_value_reveal' => ['label' => '查看加密的列', 'help' => '可以用「显示」按钮查看加密列的真实值。每次查看都会记录在数据访问记录中。<br />※需要对该数据的查看权限。'],
         ],
         'role_type_option_value' => [
             'custom_value_edit' => [
@@ -5205,6 +5207,11 @@ IP 地址: :ip
         ],
     ],
     // ISS02839
+    'encrypted' => [
+        'reveal' => '显示',
+        'unreadable' => '（无法读取：没有密钥）',
+        'form_help' => '此值已加密保存。保持为空时，保存为当前的值。只有要更改时才输入新值。',
+    ],
     'audit_report' => [
         'api_allowed' => '可以使用',
         'api_not_allowed' => '不能使用',
@@ -5227,6 +5234,7 @@ IP 地址: :ip
             'delete' => '删除',
             'restore' => '恢复',
             'force_delete' => '彻底删除',
+            'reveal' => '显示加密的值',
         ],
         'via' => [
             'page' => '页面',

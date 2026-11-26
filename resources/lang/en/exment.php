@@ -3967,6 +3967,7 @@ If it was not you, change your password and tell the administrators.",
             'custom_value_view_all' => ['label' => 'View data', 'help' => 'You can view the master data.'],
             'custom_value_import' => ['label' => 'Import', 'help' => 'You can import master data from an external file.<br />* Edit permission is required for the data.'],
             'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the master data to an external file.<br />* Browsing authority for the data is required.'],
+            'custom_value_reveal' => ['label' => 'Show encrypted values', 'help' => 'Can see the real value of an encrypted column with the "Show" button. Each time is recorded in the data access log.<br />* Read permission for the data is needed.'],
         ],
         'role_type_option_table' => [
             'custom_table' => ['label' => 'Custom Table', 'help' => 'Users can edit, delete custom tables.'],
@@ -3983,6 +3984,7 @@ If it was not you, change your password and tell the administrators.",
             'custom_value_import' => ['label' => 'Import', 'help' => 'You can import master data from an external file.<br />* Edit permission is required for the data.'],
             'custom_value_export' => ['label' => 'Export', 'help' => 'You can export the master data to an external file.<br />* Browsing authority for the data is required.'],
             'custom_value_view_trashed' => ['label' => 'Show Trashed Data', 'help' => 'Users can restore data that has been deleted. <br /> *To restore data, you need to have edit authority for the data.'],
+            'custom_value_reveal' => ['label' => 'Show encrypted values', 'help' => 'Can see the real value of an encrypted column with the "Show" button. Each time is recorded in the data access log.<br />* Read permission for the data is needed.'],
         ],
         'role_type_option_value' => [
             'custom_value_edit' => ['label' => 'Editor', 'help' => 'Users can edit personnel data in custom tables.'],
@@ -5233,6 +5235,11 @@ If it was not you, change your password and tell the administrators.",
     ],
 
     // ISS02839
+    'encrypted' => [
+        'reveal' => 'Show',
+        'unreadable' => '(cannot be read: no key)',
+        'form_help' => 'This value is stored encrypted. Left empty, it keeps the value it has. Enter a new value only to change it.',
+    ],
     'audit_report' => [
         'api_allowed' => 'May use',
         'api_not_allowed' => 'May not use',
@@ -5255,6 +5262,7 @@ If it was not you, change your password and tell the administrators.",
             'delete' => 'Deleted',
             'restore' => 'Restored',
             'force_delete' => 'Deleted for good',
+            'reveal' => 'Encrypted value shown',
         ],
         'via' => [
             'page' => 'Page',

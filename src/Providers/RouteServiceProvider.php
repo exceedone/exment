@@ -518,6 +518,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("data/{tableKey}/{id}/compareitem", 'CustomValueController@compareitem');
             $router->post("data/{tableKey}/{id}/compare", 'CustomValueController@restoreRevision');
             $router->post("data/{tableKey}/{id}/pluginClick", 'CustomValueController@pluginClick');
+            // the plain value of an encrypted column, shown on purpose and logged (ISS00148)
+            $router->post("data/{tableKey}/{id}/reveal/{column}", 'EncryptedValueController@reveal');
             $router->post("data/{tableKey}/{id}/operationClick", 'CustomValueController@operationClick');
             $router->get("data/{tableKey}/{id}/actionModal", 'CustomValueController@actionModal');
             $router->post("data/{tableKey}/{id}/actionClick", 'CustomValueController@actionClick');

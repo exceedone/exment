@@ -484,6 +484,12 @@ HTML;
             return false;
         }
 
+        // An encrypted column (ISS00148): the list shows it masked, and an editor
+        // would have to show the value it is there to hide.
+        if (\Exceedone\Exment\Services\Encryption\EncryptedColumns::isEncrypted($custom_column)) {
+            return false;
+        }
+
         // The save sets the value (#2182) - see isSetBySaving().
         if (static::isSetBySaving($custom_column)) {
             return false;

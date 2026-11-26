@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\Encryption;
 
 use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomColumn;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
@@ -60,6 +61,78 @@ class EncryptedColumns
     {
         $visible = $column->getOption('encrypted_mask_visible');
         return is_nullorempty($visible) ? 4 : max(0, min(4, intval($visible)));
+    }
+
+    /**
+     * Whether the user of the request may see the plain values of the encrypted columns of a
+     * table (of a record): "Show the encrypted values" of the role groups (a system
+     * administrator may, as for every permission), and the record readable.
+     *
+     * @param mixed $id the record, null: the table
+     */
+    public static function canReveal(CustomTable $table, $id = null): bool
+    {
+        if (!$table->hasPermission([Permission::CUSTOM_VALUE_REVEAL])) {
+            return false;
+        }
+        return !isset($id) || $table->hasPermissionData($id) === true;
+    }
+
+    /**
+     * A value of an encrypted column as it is shown: "****1234". An encrypted text (a revision,
+     * or a value whose key is not here) is decrypted first; one that cannot be is "cannot be read".
+     *
+     * @param mixed $value
+     */
+    public static function masked(CustomColumn $column, $value): string
+    {
+        if (is_nullorempty($value)) {
+            return '';
+        }
+        $value = strval($value);
+        if (EncryptedValue::isEncrypted($value)) {
+            $plain = EncryptedValue::decrypt($value);
+            if (!isset($plain)) {
+                return strval(exmtrans('encrypted.unreadable'));
+            }
+            $value = $plain;
+        }
+        return EncryptedValue::mask($value, static::visible($column));
+    }
+
+    /** @var bool|null set by a test: whether the save is the post of a form (null: from the request) */
+    public static $formPost;
+
+    /** @var bool the script of the buttons was added to the page */
+    protected static $scriptAdded = false;
+
+    /**
+     * The script of the "show" buttons, once a page: the plain value asked for (and logged),
+     * shown for a while, then masked again.
+     */
+    public static function revealScript(): void
+    {
+        if (static::$scriptAdded) {
+            return;
+        }
+        static::$scriptAdded = true;
+        $seconds = max(5, intval(config('exment.encrypted_reveal_seconds', 30))) * 1000;
+        \ExmentAdminCore\Admin\Admin::script(<<<EOT
+$(document).off('click.exmReveal').on('click.exmReveal', '.exm-encrypted-reveal', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var \$btn = $(this), \$text = \$btn.prevAll('.exm-encrypted').first(), masked = \$text.text();
+    if (\$btn.prop('disabled')) { return; }
+    \$btn.prop('disabled', true);
+    $.ajax({ url: \$btn.data('url'), type: 'POST', data: { _token: LA.token } }).done(function (res) {
+        \$text.text(res && res.value != null ? String(res.value) : '');
+        setTimeout(function () { \$text.text(masked); \$btn.prop('disabled', false); }, {$seconds});
+    }).fail(function (xhr) {
+        \$btn.prop('disabled', false);
+        toastr.error((xhr.responseJSON && xhr.responseJSON.message) || 'Error');
+    });
+});
+EOT);
     }
 
     /**
@@ -121,13 +194,21 @@ class EncryptedColumns
         $original = json_decode_ex($model->getRawOriginal('value'), true);
         $original = is_array($original) ? $original : [];
 
+        // the form of a record shows an encrypted value empty: left empty, it stays as it was
+        $keepEmpty = $model->exists && static::isFormPost();
+
         $changed = false;
         foreach ($names as $name) {
             $value = $values[$name] ?? null;
+            $before = $original[$name] ?? null;
+            if ($keepEmpty && is_nullorempty($value) && EncryptedValue::isEncrypted($before)) {
+                $values[$name] = $before;
+                $changed = true;
+                continue;
+            }
             if (!is_string($value) || $value === '' || EncryptedValue::isEncrypted($value)) {
                 continue;
             }
-            $before = $original[$name] ?? null;
             if (EncryptedValue::isEncrypted($before) && !EncryptedValue::needsRotation($before) && EncryptedValue::decrypt($before) === $value) {
                 $values[$name] = $before;
             } else {
@@ -138,6 +219,22 @@ class EncryptedColumns
         if ($changed) {
             $model->setAttribute('value', $values);
         }
+    }
+
+    /**
+     * Whether the request is the post of the form of a record (not the API, not the inline edit
+     * of a list, not a job).
+     */
+    public static function isFormPost(): bool
+    {
+        if (isset(static::$formPost)) {
+            return static::$formPost;
+        }
+        $request = request();
+        if (app()->runningInConsole() || is_null($request->route()) || !in_array($request->method(), ['POST', 'PUT'], true)) {
+            return false;
+        }
+        return !\Exceedone\Exment\Services\UserApiKeys::isApiRoute($request) && $request->has('value');
     }
 
     /**

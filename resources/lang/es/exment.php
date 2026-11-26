@@ -3897,6 +3897,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
                 'label' => 'Exportar',
                 'help' => 'Puede exportar los datos maestros a un archivo externo.<br />* Se requiere permiso de visualización sobre los datos.',
             ],
+            'custom_value_reveal' => ['label' => 'Ver valores cifrados', 'help' => 'Puede ver el valor real de una columna cifrada con el botón «Mostrar». Cada vez queda en el registro de acceso a los datos.<br />* Se necesita permiso de lectura de los datos.'],
         ],
         'role_type_option_table' => [
             'custom_table' => [
@@ -3955,6 +3956,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
                 'label' => 'Mostrar datos eliminados',
                 'help' => 'Los usuarios pueden restaurar datos que se han eliminado.<br />*Para restaurar datos, se requiere permiso de edición sobre los datos.',
             ],
+            'custom_value_reveal' => ['label' => 'Ver valores cifrados', 'help' => 'Puede ver el valor real de una columna cifrada con el botón «Mostrar». Cada vez queda en el registro de acceso a los datos.<br />* Se necesita permiso de lectura de los datos.'],
         ],
         'role_type_option_value' => [
             'custom_value_edit' => [
@@ -5205,6 +5207,11 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
         ],
     ],
     // ISS02839
+    'encrypted' => [
+        'reveal' => 'Mostrar',
+        'unreadable' => '(no se puede leer: sin clave)',
+        'form_help' => 'Este valor se guarda cifrado. Si se deja vacío, conserva el valor actual. Escriba un valor nuevo solo para cambiarlo.',
+    ],
     'audit_report' => [
         'api_allowed' => 'Puede',
         'api_not_allowed' => 'No puede',
@@ -5227,6 +5234,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
             'delete' => 'Eliminado',
             'restore' => 'Restaurado',
             'force_delete' => 'Eliminado definitivamente',
+            'reveal' => 'Valor cifrado mostrado',
         ],
         'via' => [
             'page' => 'Página',
