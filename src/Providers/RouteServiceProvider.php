@@ -738,7 +738,8 @@ class RouteServiceProvider extends ServiceProvider
                 $routes[] = [
                     'type' => 'api',
                     'prefix' => url_join(config('admin.route.prefix'), 'api'),
-                    'middleware' => ['api', 'adminapi'],
+                    // the Content-Type checked strictly when it is set (ISS02915 #5)
+                    'middleware' => ['api', 'adminapi', 'exment.api-content-type'],
                     'addScope' => true,
                     'private' => true,
                     'className' => 'ApiDataController',

@@ -1428,6 +1428,14 @@ return [
     'mcp_search_seconds' => env('EXMENT_MCP_SEARCH_SECONDS', 0),
 
     /*
+    | The Content-Type of the API checked strictly (ISS02915 #5): a POST, PUT or PATCH to api/* and
+    | api/mcp is application/json, or multipart/form-data on the paths below (below the prefix of
+    | the API); else 415 (code 114). Off by default.
+    */
+    'api_strict_content_type' => env('EXMENT_API_STRICT_CONTENT_TYPE', false),
+    'api_strict_content_type_multipart' => ['document/*'],
+
+    /*
     | When the notifications of a saved record are made (ISS02906): queue (by the queue worker),
     | after_response (after the answer is sent, in the same process) or sync (while the save waits,
     | as before 7.3). Not set: queue when QUEUE_CONNECTION is not sync, else after_response in a

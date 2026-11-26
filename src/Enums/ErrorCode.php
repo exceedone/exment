@@ -45,6 +45,8 @@ class ErrorCode extends EnumBase
     public const PLUGIN_NOT_FOUND = '111';
     public const WRONG_VIEW_AND_TABLE = '112';
     public const UNSUPPORTED_VIEW_KIND_TYPE = '113';
+    // the Content-Type is not application/json (exment.api_strict_content_type, ISS02915 #5)
+    public const UNSUPPORTED_CONTENT_TYPE = '114';
     public const WORKFLOW_LOCK = '201';
     public const WORKFLOW_NOSTART = '202';
     public const WORKFLOW_END = '203';

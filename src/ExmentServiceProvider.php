@@ -179,6 +179,8 @@ class ExmentServiceProvider extends ServiceProvider
 
         'admin.demo-mode' => \Exceedone\Exment\Middleware\DemoModeGuard::class,
         'admin.feature' => \Exceedone\Exment\Middleware\FeatureGuard::class,
+        // the Content-Type of the API checked strictly (ISS02915 #5)
+        'exment.api-content-type' => \Exceedone\Exment\Middleware\ApiContentType::class,
         // maintenance mode (Services\MaintenanceMode), with the kind of the pages
         'exment.maintenance' => \Exceedone\Exment\Middleware\MaintenanceGuard::class,
         // the language and the time zone of the user (ISS02835)

@@ -4652,6 +4652,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'plugin_not_found' => 'Không tìm thấy plugin.',
             'wrong_view_and_table' => 'Bảng đối tượng và chế độ xem không khớp nhau.',
             'unsupported_view_kind_type' => 'Loại chế độ xem đã chỉ định không được API hỗ trợ.',
+            'unsupported_content_type' => 'Content-Type phải là application/json (các API nhận tệp cũng chấp nhận multipart/form-data).',
             'not_contains_custom_form' => 'Không thể thực hiện API đã chỉ định trên biểu mẫu này.',
             'one_record_already' => 'Bảng này chỉ cho phép đăng ký một bản ghi.',
             'demo_mode' => 'Không thể sử dụng thao tác này vì đây là môi trường demo.',
