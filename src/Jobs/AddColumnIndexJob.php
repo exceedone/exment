@@ -62,13 +62,12 @@ class AddColumnIndexJob implements ShouldQueue
             if (!isset($column) || boolval($column->index_enabled)) {
                 return;
             }
-            $limit = intval(config('exment.column_index_enabled_count', 20));
-            $count = CustomColumn::where('custom_table_id', $column->custom_table_id)->whereIn('options->index_enabled', [1, '1'])->count();
-            if ($count >= $limit) {
+            if (UnindexedColumnTuning::freeSlots(intval($column->custom_table_id)) <= 0) {
                 Log::warning('[Exment] tuning: the index was not added, the table has all its index columns', ['column' => $this->columnId]);
                 return;
             }
-            $column->index_enabled = true;
+            // stored as the column form stores it ('1'): the counts of the index columns read it so
+            $column->index_enabled = '1';
             $column->save();
             Log::info('[Exment] tuning: the index of a column was added', ['column' => $this->columnId, 'user' => $this->userId]);
         } finally {

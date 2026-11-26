@@ -53,12 +53,44 @@ class UnindexedColumnTuning extends DataTuningBase
     }
 
     /**
+     * How many columns of a table wait for their index.
+     */
+    public static function pendingOf(int $tableId): int
+    {
+        $ids = array_keys(static::pending());
+        if (count($ids) == 0) {
+            return 0;
+        }
+        return CustomColumn::whereIn('id', $ids)->where('custom_table_id', $tableId)->count();
+    }
+
+    /**
      * @param array<int, int> $pending
      */
     public static function setPending(array $pending): void
     {
         System::tuning_index_pending((object) $pending);
         System::clearCache(sprintf(\Exceedone\Exment\Model\Define::SYSTEM_KEY_SESSION_SYSTEM_CONFIG, 'tuning_index_pending'));
+    }
+
+    /**
+     * How many columns of a table have "search index": 1, "1" and true alike. Counted from the
+     * options (a table has some dozens of columns): a JSON true is not found by a query for 1 / "1"
+     * on every database.
+     */
+    public static function indexCount(int $tableId): int
+    {
+        return CustomColumn::where('custom_table_id', $tableId)->get(['id', 'options'])->filter(function ($column) {
+            return boolval($column->getOption('index_enabled', false));
+        })->count();
+    }
+
+    /**
+     * How many more columns of a table may have "search index" (config exment.column_index_enabled_count).
+     */
+    public static function freeSlots(int $tableId): int
+    {
+        return max(0, intval(config('exment.column_index_enabled_count', 20)) - static::indexCount($tableId));
     }
 
     /**
@@ -121,15 +153,14 @@ class UnindexedColumnTuning extends DataTuningBase
      */
     public function getChoices(): ?array
     {
-        $limit = intval(config('exment.column_index_enabled_count', 20));
-        $counts = [];
+        $free = [];
         $choices = [];
         foreach (array_slice($this->columns(), 0, static::SHOWN, true) as $id => $item) {
             $tableId = intval($item['table']->id);
-            if (!isset($counts[$tableId])) {
-                $counts[$tableId] = CustomColumn::where('custom_table_id', $tableId)->whereIn('options->index_enabled', [1, '1'])->count();
+            if (!isset($free[$tableId])) {
+                $free[$tableId] = static::freeSlots($tableId) - static::pendingOf($tableId);
             }
-            if ($counts[$tableId] >= $limit) {
+            if ($free[$tableId] <= 0) {
                 continue;
             }
             $choices[$id] = static::label($item);
@@ -146,13 +177,24 @@ class UnindexedColumnTuning extends DataTuningBase
     public function addIndexes(array $ids): int
     {
         $choices = $this->getChoices() ?? [];
+        $columns = $this->columns();
         $pending = static::pending();
         $started = [];
+        $free = [];
         foreach ($ids as $id) {
             $id = is_numeric($id) ? intval($id) : 0;
-            if (!isset($choices[$id]) || in_array($id, $started, true)) {
+            if (!isset($choices[$id], $columns[$id]) || in_array($id, $started, true)) {
                 continue;
             }
+            // the table has room for so many more (the ones waiting count)
+            $tableId = intval($columns[$id]['table']->id);
+            if (!isset($free[$tableId])) {
+                $free[$tableId] = static::freeSlots($tableId) - static::pendingOf($tableId);
+            }
+            if ($free[$tableId] <= 0) {
+                continue;
+            }
+            $free[$tableId]--;
             $pending[$id] = time();
             $started[] = $id;
         }

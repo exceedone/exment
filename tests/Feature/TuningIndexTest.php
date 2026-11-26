@@ -18,6 +18,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\SystemRequire\Tuning\HeavyViewTuning;
 use Exceedone\Exment\Services\SystemRequire\Tuning\UnindexedColumnTuning;
+use Exceedone\Exment\Services\SystemRequire\Tuning\ViewUsage;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\Bus;
@@ -163,6 +164,48 @@ class TuningIndexTest extends FeatureTestBase
         $this->assertArrayNotHasKey($this->column->id, UnindexedColumnTuning::pending());
         // the table has all its index columns: no choice
         $this->assertSame([], (new UnindexedColumnTuning($this->stats(20000)))->getChoices());
+    }
+
+    public function testNoMoreColumnsThanTheTableCanHave(): void
+    {
+        config(['queue.default' => 'sync']);
+        Bus::fake();
+        // two more columns filtered by the view: three to choose
+        $others = $this->table->custom_columns_cache->filter(function ($column) {
+            return !boolval($column->index_enabled) && !in_array($column->column_type, ViewUsage::NOT_INDEXED_TYPES, true) && $column->id !== $this->column->id;
+        })->take(2)->values();
+        $this->assertCount(2, $others);
+        foreach ($others as $other) {
+            CustomViewFilter::create([
+                'custom_view_id' => $this->view->id, 'view_column_type' => ConditionType::COLUMN, 'view_column_table_id' => $this->table->id,
+                'view_column_target_id' => $other->id, 'view_filter_condition' => FilterOption::EQ, 'view_filter_condition_value_text' => 'x',
+            ]);
+        }
+        System::clearRequestSession();
+        $ids = array_merge([intval($this->column->id)], $others->pluck('id')->map(function ($id) {
+            return intval($id);
+        })->all());
+
+        // room for one more
+        $tableId = intval($this->table->id);
+        config(['exment.column_index_enabled_count' => UnindexedColumnTuning::indexCount($tableId) + 1]);
+        $item = new UnindexedColumnTuning($this->stats(20000));
+        foreach ($ids as $id) {
+            $this->assertArrayHasKey($id, $item->getChoices() ?? []);
+        }
+        $this->assertSame(1, $item->addIndexes($ids));
+        Bus::assertDispatchedTimes(AddColumnIndexJob::class, 1);
+        // the one waiting takes the room: nothing more to choose
+        $this->assertSame([], (new UnindexedColumnTuning($this->stats(20000)))->getChoices());
+        $this->assertSame(0, (new UnindexedColumnTuning($this->stats(20000)))->addIndexes($ids));
+
+        // a column stored with true counts as indexed too (the counts of the form read '1')
+        UnindexedColumnTuning::setPending([]);
+        $before = UnindexedColumnTuning::indexCount($tableId);
+        $options = (array) json_decode(strval(\DB::table('custom_columns')->where('id', $ids[2])->value('options')), true);
+        $options['index_enabled'] = true;
+        \DB::table('custom_columns')->where('id', $ids[2])->update(['options' => json_encode($options)]);
+        $this->assertSame($before + 1, UnindexedColumnTuning::indexCount($tableId));
     }
 
     public function testThePageAndTheButton(): void
