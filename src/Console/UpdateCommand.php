@@ -154,7 +154,10 @@ class UpdateCommand extends Command
     {
         foreach (['cache:clear', 'config:clear', 'route:clear', 'view:clear'] as $command) {
             try {
-                $this->call($command);
+                // cache:clear empties the store: the restart signal of the queue is put back (ISS02908)
+                \Exceedone\Exment\Services\QueueWorker::keepRestartSignal(function () use ($command) {
+                    $this->call($command);
+                });
             } catch (\Exception $ex) {
             }
         }

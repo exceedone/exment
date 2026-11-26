@@ -831,6 +831,13 @@ return [
                 'warning' => '키 서비스는 사용할 수 있지만 아직 키가 없습니다(php artisan exment:data-key generate).',
                 'ng' => '키 서비스(:provider)에서 키를 읽을 수 없습니다. 암호화된 열은 지금 읽을 수도 저장할 수도 없습니다. 이유: :reason',
             ],
+            'queue_worker' => [
+                'label' => '큐 워커',
+                'explain' => 'QUEUE_CONNECTION이 sync가 아닐 때(알림, Webhook, 검색 색인 등을 큐로 실행할 때), 큐 워커(php artisan queue:work)가 동작하는지 확인합니다. 5분마다 작은 작업을 큐에 넣고, 워커가 처리한 시각을 봅니다. sync(기본값)일 때는 확인할 것이 없습니다.',
+                'warning' => '아직 확인하지 않았습니다. 스케줄러(php artisan schedule:run 매분)가 동작하면 약 5분 후에 확인됩니다.',
+                'unknown_state' => '아직 확인하지 않았습니다. 스케줄러(php artisan schedule:run 매분)가 동작하면 약 5분 후에 확인됩니다.',
+                'ng' => '큐 워커가 동작하지 않습니다(:minutes분 전부터 큐의 작업이 처리되지 않았습니다. 마지막 처리: :last). 알림 등이 보내지지 않은 채로 남습니다. 워커를 실행하고, 멈추면 다시 시작하도록 하십시오(Supervisor, systemd 등).',
+            ],
             'version' => [
                 'label' => 'Exment 및 플러그인의 버전',
                 'explain' => 'Exment와 공식 플러그인을 최신 버전으로 유지합니다. 보안 수정이 공개된 플러그인은 즉시 업데이트합니다.',
@@ -5843,6 +5850,7 @@ IP 주소: :ip
             'log_maintenance' => '로그: 오래된 것 삭제',
             'trash_purge' => '휴지통: 오래된 삭제 데이터를 완전히 삭제(아카이브에 보관)',
             'sync' => '데이터 동기화: 시간이 된 할당 실행',
+            'queue_heartbeat' => '큐: 워커가 동작하는지 확인',
             'audit_report' => 'IT 감사 보고서: 월 또는 분기 보고서 만들기',
             'batch' => '플러그인 배치: :name',
         ],
