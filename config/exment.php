@@ -1557,6 +1557,10 @@ return [
     // (comma separated), e.g. "localhost,chat.internal"
     'notify_webhook_allow_hosts' => env('EXMENT_NOTIFY_WEBHOOK_ALLOW_HOSTS', ''),
 
+    // the seconds between the tries of a JSON webhook (ISS02912) when there is no queue worker
+    // (QUEUE_CONNECTION=sync); a worker waits 60 and 300 seconds (JsonWebhookJob::$backoff)
+    'notify_webhook_retry_seconds' => [1, 2],
+
     /*
     |--------------------------------------------------------------------------
     | X-Frame-Options of the admin pages

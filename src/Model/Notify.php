@@ -304,6 +304,8 @@ class Notify extends ModelBase
         $prms = [
             'target_user' => $notifySavedType->getTargetUserName($custom_value),
             'create_or_update' => $notifySavedType->getLabel(),
+            // what was done, for a JSON webhook (created, updated, ...)
+            'saved_type' => strval($notifySavedType->getValue()),
         ];
         $options['prms'] = $prms;
 
@@ -955,6 +957,25 @@ class Notify extends ModelBase
             // set custom_table_id because cannot null.
             if (is_null(array_get($model->attributes, 'custom_table_id'))) {
                 $model->attributes['custom_table_id'] = 0;
+            }
+
+            // the secret of a JSON webhook is kept encrypted (ISS02912)
+            $action_settings = $model->action_settings;
+            if (is_array($action_settings)) {
+                $changed = false;
+                foreach ($action_settings as $index => $action_setting) {
+                    if (!is_array($action_setting) || is_nullorempty($action_setting['webhook_secret'] ?? null)) {
+                        continue;
+                    }
+                    $encrypted = \Exceedone\Exment\Services\Notify\JsonWebhook::encryptSecret(strval($action_setting['webhook_secret']));
+                    if ($encrypted !== $action_setting['webhook_secret']) {
+                        $action_settings[$index]['webhook_secret'] = $encrypted;
+                        $changed = true;
+                    }
+                }
+                if ($changed) {
+                    $model->action_settings = $action_settings;
+                }
             }
         });
     }
