@@ -88,7 +88,7 @@ class LineWorks
             }, $paragraphs));
         }
         $link = is_nullorempty($url) ? '' : "\n\n" . strval($url);
-        $text = Str::limit($text, static::MAX_TEXT - mb_strlen($link), '…') . $link;
+        $text = Str::limit($text, static::MAX_TEXT - mb_strlen($link) - 1, '…') . $link;
         return ['type' => 'text', 'text' => $text];
     }
 
