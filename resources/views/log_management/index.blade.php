@@ -184,7 +184,7 @@
             <input type="text" class="form-control input-sm" name="name" value="{{ $filter['name'] }}" placeholder="{{ exmtrans('log_management.filter.name') }}">
             <select class="form-control input-sm" name="result" aria-label="{{ exmtrans('log_management.column.result') }}">
                 <option value="">{{ exmtrans('log_management.filter.all_results') }}</option>
-                @foreach(['success', 'failure', 'lockout', 'logout'] as $result)
+                @foreach(\Exceedone\Exment\Model\LoginLog::RESULTS as $result)
                     <option value="{{ $result }}" @if($filter['result'] === $result) selected @endif>{{ exmtrans('log_management.result.' . $result) }}</option>
                 @endforeach
             </select>
@@ -209,7 +209,7 @@
                 <tr>
                     <td style="white-space:nowrap">{{ optional($login->created_at)->format('Y/m/d H:i:s') }}</td>
                     <td>
-                        <span class="label {{ $login->result === 'success' ? 'label-success' : ($login->result === 'logout' ? 'label-default' : 'label-danger') }}">{{ exmtrans('log_management.result.' . $login->result) }}</span>
+                        <span class="label {{ $login->result === 'success' ? 'label-success' : ($login->result === 'logout' ? 'label-default' : ($login->result === 'ip_exempt' ? 'label-warning' : 'label-danger')) }}">{{ exmtrans('log_management.result.' . $login->result) }}</span>
                         @if($login->failure_reason) <span class="small">{{ exmtrans('log_management.reason.' . $login->failure_reason) }}</span> @endif
                     </td>
                     <td>{{ $login->login_name }}</td>

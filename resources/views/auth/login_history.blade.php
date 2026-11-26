@@ -15,7 +15,7 @@
             <tr>
                 <td style="white-space:nowrap">{{ optional($login->created_at)->format('Y/m/d H:i:s') }}</td>
                 <td>
-                    <span class="label {{ $login->result === 'success' ? 'label-success' : ($login->result === 'logout' ? 'label-default' : 'label-danger') }}">{{ exmtrans('log_management.result.' . $login->result) }}</span>
+                    <span class="label {{ $login->result === 'success' ? 'label-success' : ($login->result === 'logout' ? 'label-default' : ($login->result === 'ip_exempt' ? 'label-warning' : 'label-danger')) }}">{{ exmtrans('log_management.result.' . $login->result) }}</span>
                     @if($login->failure_reason) <span class="small">{{ exmtrans('log_management.reason.' . $login->failure_reason) }}</span> @endif
                 </td>
                 <td>{{ $login->ip }}</td>

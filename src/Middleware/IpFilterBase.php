@@ -40,10 +40,20 @@ abstract class IpFilterBase
         }
 
         if (!IpAddress::matches($request->ip(), $filters)) {
-            return $this->returnError();
+            return $this->outside($request, $next);
         }
 
         return $next($request);
+    }
+
+    /**
+     * A request from an address out of the filter.
+     *
+     * @return mixed
+     */
+    protected function outside(Request $request, \Closure $next)
+    {
+        return $this->returnError();
     }
 
     /**
