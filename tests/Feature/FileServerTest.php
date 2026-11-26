@@ -518,12 +518,12 @@ class FileServerTest extends FeatureTestBase
         $settings = (string) $this->get(admin_urls('file_server', $ws->id, 'settings'), $headers)->assertOk()->getContent();
         $this->assertStringContainsString('minimumInputLength: 0', $settings);
         $this->assertStringNotContainsString('minimumInputLength: 1', $settings);
-        $this->assertStringContainsString(json_encode(exmtrans('file_server.picker_no_result')), $settings);
+        $this->assertStringContainsString((string) json_encode(exmtrans('file_server.picker_no_result')), $settings);
 
         $show = (string) $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id), $headers)->assertOk()->getContent();
         $this->assertStringContainsString("document.execCommand('copy')", $show);
         $this->assertStringContainsString('copyText(json.url).then(', $show);
-        $this->assertStringContainsString(json_encode(exmtrans('file_server.copy_by_hand')), $show);
+        $this->assertStringContainsString((string) json_encode(exmtrans('file_server.copy_by_hand')), $show);
     }
 
     public function testUploadAndFolderFromThePage(): void

@@ -14,7 +14,13 @@
     var orgs = @json($picker_orgs);
     var levels = @json($levels);
     var entries = @json(array_values($entries));
-    var labels = @json(['user' => exmtrans('file_server.target_user'), 'organization' => exmtrans('file_server.target_organization'), 'remove' => exmtrans('file_server.remove'), 'searching' => exmtrans('file_server.picker_searching'), 'no_result' => exmtrans('file_server.picker_no_result')]);
+    var labels = {
+        user: @json(exmtrans('file_server.target_user')),
+        organization: @json(exmtrans('file_server.target_organization')),
+        remove: @json(exmtrans('file_server.remove')),
+        searching: @json(exmtrans('file_server.picker_searching')),
+        no_result: @json(exmtrans('file_server.picker_no_result'))
+    };
     var rows = el.querySelector('[data-fs-perm-rows]');
 
     function option(value, text, selected) {
