@@ -897,7 +897,9 @@ class Features
         $userId = intval($user->getUserId());
         if (!array_key_exists($userId, static::$userRoleGroups)) {
             $enum = JoinedOrgFilterType::getEnum(System::org_joined_type_role_group(), JoinedOrgFilterType::ALL);
-            $groups = RoleGroup::getHasPermissionRoleGroup($userId, $user->getOrganizationIdsForQuery($enum));
+            // the organizations of this user (the ones of a login user are kept for the user of the
+            // request: the IT audit report asks for every user)
+            $groups = RoleGroup::getHasPermissionRoleGroup($userId, AuthUserOrgHelper::getOrganizationIdsForQuery($enum, $userId));
             static::$userRoleGroups[$userId] = collect($groups)->pluck('id')->map(function ($id) {
                 return intval($id);
             })->all();

@@ -140,6 +140,9 @@ class DemoMode
         'web_ip_filter_exempt_users',
         'web_ip_filter_exempt_organizations',
         'web_ip_filter_exempt_role_groups',
+        'api_allowed_users',
+        'api_allowed_organizations',
+        'api_allowed_role_groups',
         // reCAPTCHA keys
         'recaptcha_type',
         'recaptcha_site_key',

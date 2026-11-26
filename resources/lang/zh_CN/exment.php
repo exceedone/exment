@@ -530,6 +530,10 @@ return [
         'web_ip_filter_exempt_users' => '豁免的用户（网页）',
         'web_ip_filter_exempt_organizations' => '豁免的组织（网页）',
         'web_ip_filter_exempt_role_groups' => '豁免的角色组（网页）',
+        'api_users' => 'API 的用户',
+        'api_allowed_users' => '用户',
+        'api_allowed_organizations' => '组织',
+        'api_allowed_role_groups' => '角色组',
         'publicform' => '公开表单设置',
         'publicform_available' => '使用公开表单',
         'recaptcha_type' => 'Google reCAPTCHA',
@@ -717,6 +721,7 @@ return [
             'web_ip_filter_exempt_users' => '这些用户可以从上面限制之外的 IP 地址使用网页。从这样的地址只显示登录页面，不在豁免范围内的用户会立即被注销。每次使用都会记录在登录日志中。API、API 密钥和 MCP 仍使用各自的限制。',
             'web_ip_filter_exempt_organizations' => '这些组织及其下级组织的用户可以从限制之外的 IP 地址使用网页。',
             'web_ip_filter_exempt_role_groups' => '这些角色组的用户（作为用户或通过组织）可以从限制之外的 IP 地址使用网页。',
+            'api_users' => '可以使用 API 的人：OAuth 访问令牌、API 密钥、MCP 和插件的 API。如果什么都不选，所有用户都可以使用（与以前相同）。系统管理员始终可以使用。被拒绝的调用返回 403（错误代码 302）。',
             'publicform_available' => '选择“是”后，可以使用公开表单，普通用户无需登录即可输入数据。',
             'recaptcha_type' => '如需使用 Google reCAPTCHA，请选择要使用的 Google reCAPTCHA 版本。',
             'recaptcha_site_key' => '如需在公开表单中使用 Google reCAPTCHA，请输入站点密钥。※设置后，请在各公开表单中选择是否使用 Google reCAPTCHA。',
@@ -4654,6 +4659,7 @@ IP 地址: :ip
             'invalid_user' => 'ID:%s 的用户不存在。',
             'invalid_organization' => 'ID:%s 的组织不存在。',
             'disapproval_ip' => '未被允许的 IP 地址。',
+            'api_not_allowed' => '此用户不能使用 API。',
             'already_deleted' => '此数据已被删除。',
             'plugin_not_found' => '找不到插件。',
             'wrong_view_and_table' => '目标表与视图不一致。',
@@ -5192,6 +5198,8 @@ IP 地址: :ip
     ],
     // ISS02839
     'audit_report' => [
+        'api_allowed' => '可以使用',
+        'api_not_allowed' => '不能使用',
         'permission_list' => [
             'system_admin' => '系统管理员',
             'no_permission_setting' => '未使用权限',
@@ -5347,6 +5355,7 @@ IP 地址: :ip
         ],
         'column' => [
             'permission' => '权限',
+            'api' => 'API',
             'can_edit' => '可修改',
             'sources' => '来源',
             'editors' => '可修改的用户',

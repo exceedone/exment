@@ -545,6 +545,10 @@ return [
         'web_ip_filter_exempt_users' => '制限からはずすユーザー（画面）',
         'web_ip_filter_exempt_organizations' => '制限からはずす組織（画面）',
         'web_ip_filter_exempt_role_groups' => '制限からはずす役割グループ（画面）',
+        'api_users' => 'API を使えるユーザー',
+        'api_allowed_users' => 'ユーザー',
+        'api_allowed_organizations' => '組織',
+        'api_allowed_role_groups' => '役割グループ',
         'publicform' => '公開フォーム設定',
         'publicform_available' => '公開フォームを使用する',
         'recaptcha_type' => 'Google reCAPTCHA',
@@ -736,6 +740,7 @@ return [
             'web_ip_filter_exempt_users' => 'このユーザーは、上の制限にない IP アドレスからも画面を使えます。そのようなアドレスからはログインの画面だけが開き、はずす人でないユーザーはすぐにログアウトします。使ったことはログインのログに残ります。API・API キー・MCP は、それぞれの制限のままです。',
             'web_ip_filter_exempt_organizations' => 'この組織と、その下の組織のユーザーは、制限にない IP アドレスからも画面を使えます。',
             'web_ip_filter_exempt_role_groups' => 'この役割グループのユーザー（ユーザーとして、または組織から）は、制限にない IP アドレスからも画面を使えます。',
+            'api_users' => 'API を使える人です。OAuth のアクセストークン・API キー・MCP・プラグインの API に効きます。何も選ばないときは、今までどおりすべてのユーザーが使えます。システム管理者はいつも使えます。使えない人の呼び出しは 403（エラーコード 302）になります。',
             'publicform_available' => 'YESにすることで、ログインしなくても一般ユーザーがデータを入力できる、公開フォームを利用できるようになります。',
             'recaptcha_type' => 'Google reCAPTCHAを使用する場合、使用するGoogle reCAPTCHAのバージョンを選択してください。',
             'recaptcha_site_key' => '公開フォームでGoogle reCAPTCHAを使用する場合、サイトキーを入力してください。※設定後、各公開フォームで、Google reCAPTCHAを使用するかどうかを選択します。',
@@ -4700,6 +4705,7 @@ IPアドレス: :ip
             'invalid_user' => 'ID:%sのユーザーは存在しません。',
             'invalid_organization' => 'ID:%sの組織は存在しません。',
             'disapproval_ip' => '許可されていないIPアドレスです。',
+            'api_not_allowed' => 'このユーザーは API を使えません。',
             'already_deleted' => 'すでに削除されています。',
             'plugin_not_found' => 'プラグインが見つかりませんでした。',
             'wrong_view_and_table' => '対象のテーブルとビューが異なっています。',
@@ -5219,6 +5225,8 @@ IPアドレス: :ip
 
     // ISS02839
     'audit_report' => [
+        'api_allowed' => '使える',
+        'api_not_allowed' => '使えない',
         'permission_list' => [
             'system_admin' => 'システム管理者',
             'no_permission_setting' => '権限を使っていない',
@@ -5374,6 +5382,7 @@ IPアドレス: :ip
         ],
         'column' => [
             'permission' => '権限',
+            'api' => 'API',
             'can_edit' => '変えられる',
             'sources' => 'どこから',
             'editors' => '変えられる人',

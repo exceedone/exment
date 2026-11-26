@@ -403,6 +403,36 @@ class SystemController extends AdminControllerBase
             })
             ->default(System::web_ip_filter_exempt_role_groups());
 
+        // who may use the API (ISS02915): nothing chosen, every user; the system administrators always
+        $form->exmheader(exmtrans('system.api_users'))->hr();
+        $form->descriptionHtml(exmtrans('system.help.api_users'));
+        foreach (['api_allowed_users' => SystemTableName::USER, 'api_allowed_organizations' => SystemTableName::ORGANIZATION] as $key => $tableName) {
+            if ($tableName === SystemTableName::ORGANIZATION && !boolval(System::organization_available())) {
+                continue;
+            }
+            $selected = System::{$key}();
+            $form->multipleSelect($key, exmtrans('system.' . $key))
+                ->ajax(CustomTable::getEloquent($tableName)->getOptionAjaxUrl())
+                ->options(function ($option) use ($tableName, $selected) {
+                    return CustomTable::getEloquent($tableName)->getSelectOptions([
+                        'selected_value' => $selected,
+                    ]);
+                })
+                ->validationOptions(function ($option) use ($tableName, $selected) {
+                    return CustomTable::getEloquent($tableName)->getSelectOptions([
+                        'selected_value' => $selected,
+                        'all' => true,
+                        'notAjax' => true,
+                    ]);
+                })
+                ->default($selected);
+        }
+        $form->multipleSelect('api_allowed_role_groups', exmtrans('system.api_allowed_role_groups'))
+            ->options(function ($option) {
+                return \Exceedone\Exment\Model\RoleGroup::all()->pluck('role_group_view_name', 'id');
+            })
+            ->default(System::api_allowed_role_groups());
+
         \Exceedone\Exment\Services\ScreenExtensions::call('system.advanced', $form);
 
         return $form;

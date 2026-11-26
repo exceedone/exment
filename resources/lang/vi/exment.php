@@ -530,6 +530,10 @@ return [
         'web_ip_filter_exempt_users' => 'Người dùng được miễn (trang web)',
         'web_ip_filter_exempt_organizations' => 'Tổ chức được miễn (trang web)',
         'web_ip_filter_exempt_role_groups' => 'Nhóm vai trò được miễn (trang web)',
+        'api_users' => 'Người dùng API',
+        'api_allowed_users' => 'Người dùng',
+        'api_allowed_organizations' => 'Tổ chức',
+        'api_allowed_role_groups' => 'Nhóm vai trò',
         'publicform' => 'Cài đặt biểu mẫu công khai',
         'publicform_available' => 'Sử dụng biểu mẫu công khai',
         'recaptcha_type' => 'Google reCAPTCHA',
@@ -717,6 +721,7 @@ return [
             'web_ip_filter_exempt_users' => 'Những người dùng này có thể dùng các trang web từ địa chỉ IP ngoài bộ lọc ở trên. Từ địa chỉ như vậy chỉ trang đăng nhập được hiển thị, và người dùng không được miễn sẽ bị đăng xuất ngay. Mỗi lần dùng được ghi vào nhật ký đăng nhập. API, khóa API và MCP giữ bộ lọc riêng của chúng.',
             'web_ip_filter_exempt_organizations' => 'Người dùng của các tổ chức này, và của các tổ chức bên dưới, có thể dùng các trang web từ địa chỉ IP ngoài bộ lọc.',
             'web_ip_filter_exempt_role_groups' => 'Người dùng của các nhóm vai trò này (với tư cách người dùng hoặc qua tổ chức) có thể dùng các trang web từ địa chỉ IP ngoài bộ lọc.',
+            'api_users' => 'Ai có thể dùng API: mã truy cập OAuth, khóa API, MCP và API của plugin. Nếu không chọn gì, mọi người dùng đều có thể (như trước). Quản trị viên hệ thống luôn có thể. Lời gọi bị từ chối nhận 403 với mã lỗi 302.',
             'publicform_available' => 'Khi chọn YES, có thể sử dụng biểu mẫu công khai cho phép người dùng thông thường nhập dữ liệu mà không cần đăng nhập.',
             'recaptcha_type' => 'Nếu sử dụng Google reCAPTCHA, vui lòng chọn phiên bản Google reCAPTCHA muốn sử dụng.',
             'recaptcha_site_key' => 'Nếu muốn sử dụng Google reCAPTCHA trong biểu mẫu công khai, vui lòng nhập khóa trang web. *Sau khi thiết lập, hãy chọn có sử dụng Google reCAPTCHA trong từng biểu mẫu công khai hay không.',
@@ -4654,6 +4659,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'invalid_user' => 'Không tồn tại người dùng có ID:%s.',
             'invalid_organization' => 'Không tồn tại tổ chức có ID:%s.',
             'disapproval_ip' => 'Địa chỉ IP không được phép.',
+            'api_not_allowed' => 'Người dùng này không được dùng API.',
             'already_deleted' => 'Dữ liệu này đã bị xóa.',
             'plugin_not_found' => 'Không tìm thấy plugin.',
             'wrong_view_and_table' => 'Bảng đối tượng và chế độ xem không khớp nhau.',
@@ -5192,6 +5198,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
     ],
     // ISS02839
     'audit_report' => [
+        'api_allowed' => 'Được dùng',
+        'api_not_allowed' => 'Không được dùng',
         'permission_list' => [
             'system_admin' => 'Quản trị viên hệ thống',
             'no_permission_setting' => 'Không dùng quyền',
@@ -5347,6 +5355,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         ],
         'column' => [
             'permission' => 'Quyền',
+            'api' => 'API',
             'can_edit' => 'Có thể thay đổi',
             'sources' => 'Từ',
             'editors' => 'Người có thể thay đổi',

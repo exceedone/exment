@@ -32,6 +32,10 @@ class AuthenticatePluginApi extends \ExmentAdminCore\Admin\Middleware\Authentica
             return abortJson(401, ErrorCode::ACCESS_DENIED());
         }
 
+        if (!AuthenticateApi::allowedUser()) {
+            return AuthenticateApi::refuseUser();
+        }
+
         $user = \Exment::user();
         if (!$user->hasPermissionPlugin($plugin, Permission::PLUGIN_ACCESS)) {
             return abortJson(403, ErrorCode::PERMISSION_DENY());

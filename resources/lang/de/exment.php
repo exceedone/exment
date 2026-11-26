@@ -530,6 +530,10 @@ return [
         'web_ip_filter_exempt_users' => 'Ausgenommene Benutzer (Webseiten)',
         'web_ip_filter_exempt_organizations' => 'Ausgenommene Organisationen (Webseiten)',
         'web_ip_filter_exempt_role_groups' => 'Ausgenommene Rollengruppen (Webseiten)',
+        'api_users' => 'Benutzer der API',
+        'api_allowed_users' => 'Benutzer',
+        'api_allowed_organizations' => 'Organisationen',
+        'api_allowed_role_groups' => 'Rollengruppen',
         'publicform' => 'Einstellungen für öffentliche Formulare',
         'publicform_available' => 'Öffentliche Formulare verwenden',
         'recaptcha_type' => 'Google reCAPTCHA',
@@ -717,6 +721,7 @@ return [
             'web_ip_filter_exempt_users' => 'Diese Benutzer dürfen die Webseiten auch von einer IP-Adresse außerhalb des Filters oben verwenden. Von einer solchen Adresse wird nur die Anmeldeseite gezeigt, und ein nicht ausgenommener Benutzer wird sofort abgemeldet. Jede Nutzung wird im Anmeldeprotokoll festgehalten. Die API, die API-Schlüssel und MCP behalten ihre eigenen Filter.',
             'web_ip_filter_exempt_organizations' => 'Die Benutzer dieser Organisationen und der Organisationen darunter dürfen die Webseiten auch von einer IP-Adresse außerhalb des Filters verwenden.',
             'web_ip_filter_exempt_role_groups' => 'Die Benutzer dieser Rollengruppen (als Benutzer oder über eine Organisation) dürfen die Webseiten auch von einer IP-Adresse außerhalb des Filters verwenden.',
+            'api_users' => 'Wer die API verwenden darf: die OAuth-Zugriffstoken, die API-Schlüssel, MCP und die API der Plugins. Ist nichts ausgewählt, darf es jeder Benutzer (wie bisher). Die Systemadministratoren dürfen es immer. Ein abgelehnter Aufruf erhält 403 mit dem Fehlercode 302.',
             'publicform_available' => 'Bei JA können Sie öffentliche Formulare verwenden, über die allgemeine Benutzer ohne Anmeldung Daten eingeben können.',
             'recaptcha_type' => 'Wenn Sie Google reCAPTCHA verwenden, wählen Sie bitte die gewünschte Version von Google reCAPTCHA.',
             'recaptcha_site_key' => 'Wenn Sie Google reCAPTCHA in öffentlichen Formularen verwenden möchten, geben Sie bitte Ihren Websiteschlüssel ein. * Wählen Sie anschließend in jedem öffentlichen Formular, ob Google reCAPTCHA verwendet werden soll.',
@@ -4654,6 +4659,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'invalid_user' => 'Ein Benutzer mit der ID:%s existiert nicht.',
             'invalid_organization' => 'Eine Organisation mit der ID:%s existiert nicht.',
             'disapproval_ip' => 'Nicht zugelassene IP-Adresse.',
+            'api_not_allowed' => 'Dieser Benutzer darf die API nicht verwenden.',
             'already_deleted' => 'Diese Daten wurden bereits gelöscht.',
             'plugin_not_found' => 'Plugin nicht gefunden.',
             'wrong_view_and_table' => 'Zieltabelle und Ansicht passen nicht zusammen.',
@@ -5192,6 +5198,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
     ],
     // ISS02839
     'audit_report' => [
+        'api_allowed' => 'Darf',
+        'api_not_allowed' => 'Darf nicht',
         'permission_list' => [
             'system_admin' => 'Systemadministrator',
             'no_permission_setting' => 'Berechtigungen nicht verwendet',
@@ -5347,6 +5355,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         ],
         'column' => [
             'permission' => 'Berechtigung',
+            'api' => 'API',
             'can_edit' => 'Darf ändern',
             'sources' => 'Von',
             'editors' => 'Darf ändern',
