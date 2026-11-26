@@ -26,6 +26,15 @@ class LogMaintenanceCommand extends Command
 
     public function handle(): int
     {
+        // the reads and the writes of the data: counted before their rows are deleted (ISS02905)
+        try {
+            $days = \Exceedone\Exment\Services\LogManagement\DataAccessLogs::summarize();
+            if ($days > 0) {
+                $this->info("data_access: {$days} days counted");
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Exment log maintenance: data_access: ' . get_class($e));
+        }
         foreach (LogCatalog::prune() as $key => $count) {
             $this->info("{$key}: {$count} deleted");
         }

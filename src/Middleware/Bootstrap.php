@@ -196,6 +196,13 @@ class Bootstrap
         // @phpstan-ignore-next-line
         Ad::jslast(admin_asset('vendor/exment/js/customscript.js?ver='.$ver));
 
+        // the log of the browser (ISS02904): only for a user who has it, nothing for the others
+        if (\Exceedone\Exment\Services\LogManagement\BrowserLogs::active()) {
+            // @phpstan-ignore-next-line
+            Ad::jslast(admin_asset('vendor/exment/js/browser_log.js?ver='.$ver));
+            Ad::script('if (window.ExmentBrowserLog) { window.ExmentBrowserLog.start(' . json_encode(\Exceedone\Exment\Services\LogManagement\BrowserLogs::scriptConfig(), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES) . '); }');
+        }
+
         // delete object
         $delete_confirm = trans('admin.delete_confirm');
         $confirm = trans('admin.confirm');
