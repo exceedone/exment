@@ -2596,13 +2596,13 @@ parameters:
 		-
 			message: '#^Unable to resolve the template type TKey in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Services/BackupRestore/Backup.php
 
 		-
 			message: '#^Unable to resolve the template type TValue in call to function collect$#'
 			identifier: argument.templateType
-			count: 3
+			count: 2
 			path: vendor/exceedone/exment/src/Services/BackupRestore/Backup.php
 
 		-
