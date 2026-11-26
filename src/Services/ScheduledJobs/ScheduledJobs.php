@@ -38,11 +38,13 @@ class ScheduledJobs
         'exment:log-maintenance' => 'log_maintenance',
         'exment:trash-purge' => 'trash_purge',
         'exment:audit-report' => 'audit_report',
+        'exment:sync' => 'sync',
     ];
 
     /** The feature a job is for: when it is not used, the job does nothing. */
     public const JOB_FEATURES = [
         'exment:safetywatch' => Features::SAFETY_CHECK,
+        'exment:sync' => \Exceedone\Exment\Services\Sync\SyncEngine::FEATURE,
     ];
 
     /** A run of "Run now" still running after this many minutes is not waited for. */
