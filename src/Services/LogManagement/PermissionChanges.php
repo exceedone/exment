@@ -122,11 +122,9 @@ class PermissionChanges
             $row['created_at'] = $now;
         }
         unset($row);
-        try {
-            PermissionChangeLog::query()->insert($rows);
-        } catch (\Throwable $e) {
-            \Log::warning('The change of a role group could not be recorded: ' . $e->getMessage());
-            return 0;
+        // written after the response (ISS02903); a row that cannot be written is kept in a file
+        foreach ($rows as $row) {
+            LogWriter::insert(PermissionChangeLog::class, $row);
         }
         return count($rows);
     }
