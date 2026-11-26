@@ -88,7 +88,7 @@ class DataKeys
             $provider = static::$provider ?? KeyProviders::make();
             $keys = [];
             foreach ($provider->keys() as $id => $raw) {
-                if (static::validId(strval($id)) && is_string($raw) && strlen($raw) === 32) {
+                if (static::validId(strval($id)) && strlen($raw) === 32) {
                     $keys[strval($id)] = $raw;
                 }
             }
