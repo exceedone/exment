@@ -84,9 +84,6 @@ class NotifyLaterTest extends UnitTestBase
      */
     public function testTheBellsWrittenAtOnceAreTheSame(): void
     {
-        $sync = $this->bells(NotifyRunner::SYNC, 'bulk_sync');
-        $later = $this->bells(NotifyRunner::AFTER_RESPONSE, 'bulk_later');
-
         $columns = function (Notify $notify): array {
             return NotifyNavbar::withoutGlobalScopes()->where('notify_id', $notify->id)->orderBy('target_user_id')->get()
                 ->map(function ($bell) {
@@ -97,8 +94,14 @@ class NotifyLaterTest extends UnitTestBase
                     return $row;
                 })->all();
         };
+        $sync = $this->bells(NotifyRunner::SYNC, 'bulk_sync');
+        // before the next save: it notifies with the first notification too (the same table and trigger)
+        $syncColumns = $columns($sync['notify']);
+        $later = $this->bells(NotifyRunner::AFTER_RESPONSE, 'bulk_later');
+
+        $this->assertCount(2, $syncColumns);
         $this->assertCount(2, $columns($later['notify']));
-        $this->assertEquals($columns($sync['notify']), $columns($later['notify']));
+        $this->assertEquals($syncColumns, $columns($later['notify']));
     }
 
     public function testTheShareAndTheDeleteStayAtOnce(): void
