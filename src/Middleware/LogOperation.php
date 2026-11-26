@@ -196,6 +196,11 @@ class LogOperation extends BaseLogOperation
             // the address of the Teams workflow: whoever has it can post to the chats
             'system_teams_workflow_url',
             'system_teams_workflow_url_new',
+            // the LINE WORKS app: whoever has them posts as its bot
+            'system_lineworks_client_secret',
+            'system_lineworks_client_secret_new',
+            'system_lineworks_private_key',
+            'system_lineworks_private_key_new',
             // the application of the mail with OAuth (ISS02913)
             'system_mail_oauth_client_secret',
             // the refresh token of the mailbox (Google): whoever has it sends mail as the mailbox

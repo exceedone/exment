@@ -54,6 +54,7 @@ class Features
     public const DATA_MAINTENANCE = 'data_maintenance';
     public const TEAMS_NOTIFY = 'teams_notify';
     public const WEBHOOK_NOTIFY = 'webhook_notify';
+    public const LINE_WORKS_NOTIFY = 'lineworks_notify';
     public const MAIL_OAUTH = 'mail_oauth';
 
     /** The key of the menu flag of a plugin in the setting. */
@@ -205,6 +206,14 @@ class Features
             'label' => 'exment::exment.feature.features.webhook_notify',
             'description' => 'exment::exment.feature.features.webhook_notify_help',
             'manual' => 'notify_webhook',
+            'who' => false,
+        ]);
+        // notifications to LINE WORKS (ISS00114): the data leaves the site, so it is off until a
+        // system administrator turns it on (and sets the app)
+        $core[static::LINE_WORKS_NOTIFY] = static::definition([
+            'label' => 'exment::exment.feature.features.lineworks_notify',
+            'description' => 'exment::exment.feature.features.lineworks_notify_help',
+            'manual' => 'notify_lineworks',
             'who' => false,
         ]);
         // the trash (Services\Trash, ISS00334): the deleted rows of all the tables on one page. Off

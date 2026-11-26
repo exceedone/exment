@@ -474,6 +474,14 @@ class NotifyService
                 case NotifyAction::WEBHOOK:
                     static::notifyJsonWebhook($params, (array)$action_setting);
                     break;
+
+                case NotifyAction::LINE_WORKS:
+                    static::notifyLineWorks($params, (array)$action_setting);
+                    break;
+
+                case NotifyAction::LINE_WORKS_PERSONAL:
+                    static::notifyLineWorksPersonal($params);
+                    break;
             }
             // call notified trigger operations
             //CustomOperation::operationExecuteEvent(CustomOperationType::NOTIFIED, $custom_value, true);
@@ -530,6 +538,70 @@ class NotifyService
             ]);
             $sender->send();
             return $sender;
+        });
+    }
+
+    /**
+     * A message of the LINE WORKS bot to a channel (ISS00114): the subject and the body of the mail
+     * template, with the link to the data. Nothing while the feature or the app is not set, or
+     * without the id of the channel.
+     *
+     * @param array<string, mixed> $params
+     * @param array<string, mixed> $action_setting
+     */
+    public static function notifyLineWorks(array $params, array $action_setting): ?\Exceedone\Exment\Jobs\LineWorksSendJob
+    {
+        $channel = trim(strval(array_get($action_setting, 'lineworks_channel_id')));
+        if ($channel === '' || !\Exceedone\Exment\Services\LineWorks\LineWorks::enabled()) {
+            return null;
+        }
+        $params = array_merge([
+            'notify' => null, 'mail_template' => null, 'prms' => [], 'custom_value' => null,
+            'subject' => null, 'body' => null, 'replaceOptions' => [], 'url' => null,
+        ], $params);
+        static::replaceSubjectBody($params);
+        $subject = static::replaceWord($params['subject'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+        $body = static::replaceWord($params['body'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+        $custom_value = $params['custom_value'];
+        $url = $params['url'] ?? ($custom_value instanceof CustomValue ? $custom_value->getUrl() : null);
+        return \Exceedone\Exment\Services\LineWorks\LineWorks::send(
+            \Exceedone\Exment\Services\LineWorks\LineWorks::toChannel($channel),
+            \Exceedone\Exment\Services\LineWorks\LineWorks::content(strval($subject), strval($body), is_null($url) ? null : strval($url)),
+            $params['notify'] instanceof Notify ? $params['notify'] : null
+        );
+    }
+
+    /**
+     * A message of the LINE WORKS bot to a person (ISS00114), in the language of the person: the
+     * LINE WORKS id of the user (the column of the system setting, the mail address by default).
+     *
+     * @param array<string, mixed> $params
+     */
+    public static function notifyLineWorksPersonal(array $params = []): ?\Exceedone\Exment\Jobs\LineWorksSendJob
+    {
+        if (!\Exceedone\Exment\Services\LineWorks\LineWorks::enabled()) {
+            return null;
+        }
+        $params = array_merge([
+            'notify' => null, 'mail_template' => null, 'prms' => [], 'user' => null, 'custom_value' => null,
+            'subject' => null, 'body' => null, 'replaceOptions' => [], 'url' => null,
+        ], $params);
+        $user = $params['user'];
+        $userId = \Exceedone\Exment\Services\LineWorks\LineWorks::userIdOf($user instanceof CustomValue ? $user : null);
+        if (!isset($userId)) {
+            return null;
+        }
+        return UserLocale::runAs($user, function () use ($params, $userId) {
+            static::replaceSubjectBody($params);
+            $subject = static::replaceWord($params['subject'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+            $body = static::replaceWord($params['body'], $params['custom_value'], $params['prms'], $params['replaceOptions']);
+            $custom_value = $params['custom_value'];
+            $url = $params['url'] ?? ($custom_value instanceof CustomValue ? $custom_value->getUrl() : null);
+            return \Exceedone\Exment\Services\LineWorks\LineWorks::send(
+                \Exceedone\Exment\Services\LineWorks\LineWorks::toUser($userId),
+                \Exceedone\Exment\Services\LineWorks\LineWorks::content(strval($subject), strval($body), is_null($url) ? null : strval($url)),
+                $params['notify'] instanceof Notify ? $params['notify'] : null
+            );
         });
     }
 
