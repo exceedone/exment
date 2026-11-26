@@ -120,16 +120,17 @@
 
     function fromXhr(xhr, method, url) {
         if (!xhr || !xhr.status) {
-            return;
+            return false;
         }
         var mark = false;
         try { mark = !!xhr.getResponseHeader('X-Exment'); } catch (e) { mark = false; }
         if (!isBlocked(xhr.status, mark)) {
-            return;
+            return false;
         }
         var text = '';
         try { text = typeof xhr.responseText === 'string' ? xhr.responseText : ''; } catch (e) { text = ''; }
         show({status: xhr.status, method: method, path: pathOf(url), headers: headerNames(xhr), text: firstLines(text)});
+        return true;
     }
 
     function watch() {
@@ -139,7 +140,11 @@
                 fromXhr(xhr, settings && settings.type, settings && settings.url);
             });
             $(document).on('pjax:error', function (ev, xhr, textStatus, error, options) {
-                fromXhr(xhr, options && options.type, options && options.url);
+                // jquery-pjax loads the whole address on an error: the firewall's page would replace
+                // this one and the notice with it. Kept here instead.
+                if (fromXhr(xhr, options && options.type, options && options.url)) {
+                    ev.preventDefault();
+                }
             });
         }
         if (window.fetch) {

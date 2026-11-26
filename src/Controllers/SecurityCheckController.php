@@ -38,6 +38,9 @@ class SecurityCheckController extends AdminControllerBase
      * small body with the words firewalls refuse (an URL of localhost, an IP address, a path);
      * this answers that it arrived. An answer without the mark of Exment means something in
      * front refused it. Nothing is kept.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function firewall(Request $request)
     {
