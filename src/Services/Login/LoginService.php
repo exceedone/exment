@@ -540,7 +540,8 @@ class LoginService
         }
 
         // get avatar
-        if (!$hasLoginUser || boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
+        if ((!$hasLoginUser || boolval($custom_login_user->login_setting->getOption('update_user_info')))
+            && static::takesAvatar($custom_login_user->login_setting)) {
             // the provider of the login, given on: "$socialiteProvider = null" here gave always
             // null, and a provider that reads the avatar itself was never asked (ISS02869)
             $avatar = static::getAvatar($custom_login_user, $socialiteProvider);
@@ -551,6 +552,21 @@ class LoginService
 
         $login_user->save();
         return $login_user;
+    }
+
+    /**
+     * Whether the login takes the avatar of the user from the provider: the setting "get_avatar"
+     * of the login, on unless turned off (as before it, #1593).
+     *
+     * @param mixed $login_setting
+     */
+    public static function takesAvatar($login_setting): bool
+    {
+        if (!isset($login_setting)) {
+            return true;
+        }
+        $value = $login_setting->getOption('get_avatar');
+        return $value === null || $value === '' || boolval($value);
     }
 
     /** The largest avatar taken from a provider, in bytes. */

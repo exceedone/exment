@@ -55,13 +55,16 @@ class OAuthAvatarTest extends UnitTestBase
     /**
      * A new user signing in with OAuth (made at the login: sso_jit), with an avatar URL or none.
      */
-    protected function oauthUser(?string $avatar, string $code): OAuthUser
+    /**
+     * @param array<string, string> $options more options of the login setting
+     */
+    protected function oauthUser(?string $avatar, string $code, array $options = []): OAuthUser
     {
         LoginSetting::create([
             'login_view_name' => 'avatar test',
             'login_type' => 'oauth',
             'active_flg' => 1,
-            'options' => ['oauth_provider_type' => 'google', 'mapping_user_column' => 'email', 'sso_jit' => '1', 'update_user_info' => '1'],
+            'options' => array_merge(['oauth_provider_type' => 'google', 'mapping_user_column' => 'email', 'sso_jit' => '1', 'update_user_info' => '1'], $options),
         ]);
         $provider_user = (new SocialiteUser())->map(['id' => $code, 'name' => 'avatar ' . $code, 'email' => $code . '@avatar.foobar.test', 'avatar' => $avatar]);
         $provider_user->setToken('token-' . $code);
@@ -123,6 +126,23 @@ class OAuthAvatarTest extends UnitTestBase
         $this->assertSame('token-avatar_provider', $this->askedToken);
         $this->assertNotNull($login_user->avatar);
         $this->assertTrue(Storage::disk(config('admin.upload.disk', 'admin'))->exists($login_user->avatar));
+    }
+
+    /**
+     * The setting of the login turned off (#1593): the provider is not asked, no avatar.
+     * Not set at all (a setting saved before it): taken, as before.
+     */
+    public function testTheSettingTurnsTheAvatarOff(): void
+    {
+        $user = $this->oauthUser(null, 'avatar_off', ['get_avatar' => '0']);
+        $login_user = LoginService::executeLogin(request(), $user, $this->provider(base64_decode(static::PNG)));
+        $this->assertInstanceOf(LoginUser::class, $login_user);
+        $this->assertNull($this->askedToken);
+        $this->assertNull($login_user->avatar);
+
+        $this->assertTrue(LoginService::takesAvatar(new LoginSetting(['options' => []])));
+        $this->assertTrue(LoginService::takesAvatar(new LoginSetting(['options' => ['get_avatar' => '1']])));
+        $this->assertFalse(LoginService::takesAvatar(new LoginSetting(['options' => ['get_avatar' => '0']])));
     }
 
     public function testWhatIsNotAnImageIsNotTaken(): void
