@@ -78,4 +78,13 @@ class ChartJs4Test extends UnitTestBase
         $this->assertStringContainsString('backgroundColor: base,', $line);
         $this->assertStringContainsString('fill: false,', $line);
     }
+
+    public function testTheLegendOfTheOneSeriesIsTheYItem(): void
+    {
+        // a dataset without a label shows "undefined" in the legend of a bar or line chart
+        $script = $this->script();
+        $dataset = substr($script, (int) strpos($script, 'datasets: [{'));
+        $dataset = substr($dataset, 0, (int) strpos($dataset, 'data: values,'));
+        $this->assertStringContainsString("label: @json(strval(\$chart_axisy ?? '')),", $dataset);
+    }
 }
