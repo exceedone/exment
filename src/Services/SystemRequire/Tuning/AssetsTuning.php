@@ -159,8 +159,9 @@ class AssetsTuning extends TuningBase
             '    ExpiresByType text/css "access plus 7 days"',
             '    ExpiresByType application/javascript "access plus 7 days"',
             '</IfModule>',
-            '# nginx',
-            'location ~* \.(?:css|js|woff2?|png|jpg|svg)$ { expires 7d; add_header Cache-Control "public"; }',
+            '# nginx: a name that is not a file goes on to Exment (the pages of the files of',
+            '# the file server, the files of the plugins, the old addresses of the pages)',
+            'location ~* \.(?:css|js|woff2?|png|jpg|svg)$ { expires 7d; add_header Cache-Control "public"; try_files $uri /index.php?$query_string; }',
         ]);
     }
 }

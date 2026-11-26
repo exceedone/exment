@@ -417,6 +417,13 @@ class TuningServerChecksTest extends UnitTestBase
         $check->headers = false;
         $this->assertNull($check->browserCache(), 'not reachable: not judged');
         $this->assertSame(SystemRequireResult::OK, $check->checkResult());
+
+        // the rule of nginx gives what is not a file to Exment (a page of the file server
+        // named sample.png, the public files of the plugins: GitHub #2290)
+        $check = new Tuning\AssetsTuning();
+        $check->views = [];
+        $check->headers = ['cache-control' => 'no-cache'];
+        $this->assertStringContainsString('try_files $uri /index.php?$query_string;', (string) $check->getFixText());
     }
 
     /**
