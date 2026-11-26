@@ -79,6 +79,12 @@ class SystemRequireList
         Tuning\AssetsTuning::class,
         Tuning\SlowQueryLogTuning::class,
         Tuning\IndexMissingTuning::class,
+        // the data, counted every night (ISS02927)
+        Tuning\TableSizeTuning::class,
+        Tuning\RevisionTuning::class,
+        Tuning\DeletedRowsTuning::class,
+        Tuning\AttachmentTuning::class,
+        Tuning\DatabaseSettingTuning::class,
     ];
 
     // @phpstan-ignore-next-line

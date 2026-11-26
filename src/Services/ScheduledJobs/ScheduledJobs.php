@@ -39,6 +39,7 @@ class ScheduledJobs
         'exment:trash-purge' => 'trash_purge',
         'exment:audit-report' => 'audit_report',
         'exment:sync' => 'sync',
+        'exment:tuning-data' => 'tuning_data',
     ];
 
     /** The feature a job is for: when it is not used, the job does nothing. */

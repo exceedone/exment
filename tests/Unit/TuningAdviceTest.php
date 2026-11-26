@@ -24,7 +24,8 @@ class TuningAdviceTest extends UnitTestBase
     }
 
     /**
-     * Every item answers OK or WARNING (never NG: the advice never blocks the install),
+     * Every item answers OK or WARNING, or "cannot check" for the data not counted yet (ISS02927)
+     * (never NG: the advice never blocks the install),
      * with a label, an explanation, a result text and a message when it is not OK.
      *
      * @return void
@@ -38,7 +39,7 @@ class TuningAdviceTest extends UnitTestBase
         foreach ($list->getItems() as $check) {
             $this->assertInstanceOf(Tuning\TuningBase::class, $check);
             $result = $check->checkResult();
-            $this->assertContains($result, [SystemRequireResult::OK, SystemRequireResult::WARNING], get_class($check));
+            $this->assertContains($result, [SystemRequireResult::OK, SystemRequireResult::WARNING, SystemRequireResult::CANNOT_CHECK], get_class($check));
             $this->assertNotEmpty($check->getLabel());
             $this->assertStringNotContainsString('tuning.item', $check->getLabel(), 'no translation: ' . get_class($check));
             $this->assertStringNotContainsString('tuning.item', $check->getExplain(), 'no translation: ' . get_class($check));

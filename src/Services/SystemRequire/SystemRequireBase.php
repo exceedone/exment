@@ -54,6 +54,8 @@ abstract class SystemRequireBase
                 return $this->getMessageWarning();
             case SystemRequireResult::NG:
                 return $this->getMessageNg();
+            case SystemRequireResult::CANNOT_CHECK:
+                return $this->getMessageCannotCheck();
         }
 
         return null;
@@ -78,6 +80,11 @@ abstract class SystemRequireBase
                     'fontawesome' => 'fa-close',
                     'color' => '#d9534f',
                 ];
+            case SystemRequireResult::CANNOT_CHECK:
+                return [
+                    'fontawesome' => 'fa-question-circle',
+                    'color' => '#777777',
+                ];
         }
         return null;
     }
@@ -92,6 +99,10 @@ abstract class SystemRequireBase
         return null;
     }
     protected function getMessageNg(): ?string
+    {
+        return null;
+    }
+    protected function getMessageCannotCheck(): ?string
     {
         return null;
     }
