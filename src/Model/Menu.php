@@ -365,7 +365,9 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
                 $join->whereRaw("m.menu_target = " . $pluginQuery);
             })
             ->orderByRaw("CASE WHEN m.$orderColumn = 0 THEN 1 ELSE 0 END")
-            ->orderByRaw("m.$orderColumn");
+            ->orderByRaw("m.$orderColumn")
+            // the same order: as they were made (the database may answer the ties in any order)
+            ->orderBy('m.id');
 
             //->map(function ($item, $key) {
             //    return (array) $item;
