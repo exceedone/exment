@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\LogManagement;
 
 use Exceedone\Exment\Enums\LoginType;
+use Exceedone\Exment\Middleware\WebIPFilter;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\LoginSetting;
 use Illuminate\Auth\Events\Failed;
@@ -22,6 +23,11 @@ class LoginRecorder
     {
         Event::listen(Login::class, function (Login $event) {
             if (static::isPages($event->guard)) {
+                // from an address out of the IP filter, a user who is not exempt: refused (ISS02915)
+                if (WebIPFilter::refusesLogin($event->user)) {
+                    static::ipRefused($event->user);
+                    return;
+                }
                 // a login from a new IP address is found before this login is written (ISS00104)
                 $newIp = static::isNewIp($event->user);
                 static::write(LoginLog::RESULT_SUCCESS, $event->user);
@@ -47,7 +53,8 @@ class LoginRecorder
             static::write(LoginLog::RESULT_LOCKOUT, static::lockedUser($event->request));
         });
         Event::listen(Logout::class, function (Logout $event) {
-            if (static::isPages($event->guard)) {
+            // the logout of a refused login: the failure is recorded
+            if (static::isPages($event->guard) && !WebIPFilter::refused()) {
                 static::write(LoginLog::RESULT_LOGOUT, $event->user);
             }
         });

@@ -82,6 +82,8 @@ class IpFilterExemptionTest extends FeatureTestBase
         }
         $this->be($this->user(TestDefine::TESTDATA_USER_LOGINID_USER1));
         $this->assertTrue($this->isFilterPage(strval($this->fromIp(static::OUTSIDE_V4)->get(admin_url(''))->getContent())));
+        // the images of the login page too
+        $this->assertTrue($this->isFilterPage(strval($this->fromIp(static::OUTSIDE_V4)->get(admin_url('auth/file/header'))->getContent())));
         // inside: as before
         $this->assertFalse($this->isFilterPage(strval($this->fromIp('2001:db8::1')->get(admin_url(''))->getContent())));
     }
@@ -95,6 +97,10 @@ class IpFilterExemptionTest extends FeatureTestBase
         // the login page is shown from outside, the other pages before the login go to it
         $this->assertFalse($this->isFilterPage(strval($this->fromIp(static::OUTSIDE_V6)->get(admin_url('auth/login'))->getContent())));
         $this->fromIp(static::OUTSIDE_V6)->get(admin_url(''))->assertRedirect(admin_url('auth/login'));
+        // the images of the login page
+        foreach (['favicon', 'auth/file/background', 'auth/file/header'] as $image) {
+            $this->assertFalse($this->isFilterPage(strval($this->fromIp(static::OUTSIDE_V4)->get(admin_url($image))->getContent())), $image);
+        }
 
         $this->be($user1);
         foreach ([static::OUTSIDE_V4, static::OUTSIDE_V4, static::OUTSIDE_V6] as $ip) {
@@ -120,16 +126,24 @@ class IpFilterExemptionTest extends FeatureTestBase
         $failures = $this->logsOf($user2, LoginLog::RESULT_FAILURE);
         $this->assertSame([LoginLog::REASON_IP_NOT_ALLOWED], $failures->pluck('failure_reason')->all());
 
-        // the login itself from outside: logged out after it
+        // the login itself from outside: refused
+        $successes = $this->logsOf($user2, LoginLog::RESULT_SUCCESS)->count();
+        $logouts = $this->logsOf($user2, LoginLog::RESULT_LOGOUT)->count();
         System::clearRequestSession();
         $request = Request::create(admin_url('auth/login'), 'POST', [], [], [], ['REMOTE_ADDR' => static::OUTSIDE_V6]);
         $request->setLaravelSession(app('session')->driver());
+        // the request of the login (asked by the record of the login)
+        $this->app->instance('request', $request);
         $result = (new WebIPFilter())->handle($request, function () use ($user2) {
             \Auth::guard('admin')->login($user2);
             return 'logged in';
         }, 'login');
         $this->assertNotSame('logged in', $result);
         $this->assertGuest('admin');
+        // a failure, not a success (no notice of a new address) nor a logout
+        $this->assertSame([LoginLog::REASON_IP_NOT_ALLOWED, LoginLog::REASON_IP_NOT_ALLOWED], $this->logsOf($user2, LoginLog::RESULT_FAILURE)->pluck('failure_reason')->all());
+        $this->assertCount($successes, $this->logsOf($user2, LoginLog::RESULT_SUCCESS));
+        $this->assertCount($logouts, $this->logsOf($user2, LoginLog::RESULT_LOGOUT));
 
         // inside: as before
         $this->be($user2);

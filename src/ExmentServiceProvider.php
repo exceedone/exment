@@ -242,7 +242,8 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment not login web page, and simple config, (Almost use image)
         'admin_anonymous_simple' => [
-            'admin.web-ipfilter:strict',
+            // the images of the login page: shown while there are exemptions (ISS02915)
+            'admin.web-ipfilter:assets',
             'admin.initialize',
         ],
         // Exment install page
