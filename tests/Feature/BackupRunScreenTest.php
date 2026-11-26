@@ -55,6 +55,9 @@ class BackupRunScreenTest extends FeatureTestBase
     public function testThePageShowsTheRunGoingOnAndTheHistory(): void
     {
         $done = $this->finishedRun();
+        BackupRuns::ensureLogDirectory();
+        file_put_contents(BackupRuns::logFullPath($done), "log
+");
         $active = BackupRuns::start(BackupRun::KIND_BACKUP, BackupRun::TRIGGER_SCREEN);
         $progress = new RunProgress($active);
         $progress->begin();

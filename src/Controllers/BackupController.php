@@ -111,12 +111,19 @@ class BackupController extends AdminControllerBase
 
     /**
      * Only the system administrators, on every action (the menu and the route permission are
-     * checked before; this is checked again here).
+     * checked before; this is checked again here). On a site where the roles are not used,
+     * Auth\Permission lets everyone in: then the system administrators of the settings only.
      */
     protected static function denyUnlessSystem(): void
     {
         $user = \Exment::user();
-        if (!isset($user) || !$user->hasPermission(Enums\Permission::SYSTEM)) {
+        if (!isset($user)) {
+            abort(403);
+        }
+        $allowed = boolval(System::permission_available())
+            ? boolval($user->hasPermission(Enums\Permission::SYSTEM))
+            : boolval($user->isAdministrator());
+        if (!$allowed) {
             abort(403);
         }
     }
