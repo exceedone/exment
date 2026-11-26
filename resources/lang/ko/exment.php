@@ -5284,6 +5284,7 @@ IP 주소: :ip
         ],
         'section' => [
             'data_access' => '데이터 읽기와 쓰기',
+            'mcp_calls' => 'MCP 호출',
             'data_access_heavy' => '평소보다 많이 읽은 사용자',
             'security' => '보안 상태',
             'role_group_permissions' => '역할 그룹의 권한',
@@ -5303,6 +5304,7 @@ IP 주소: :ip
         ],
         'note' => [
             'data_access' => '기간 중 각 테이블의 레코드를 화면, API, MCP에서 누가 읽고, 목록으로 보고, 내보내고, 만들고, 변경하고, 삭제하고, 복원했는지. 목록은 표시된 레코드마다가 아니라 한 번으로 세며, 몇 분 안에 다시 읽은 것은 한 번으로 셉니다. 읽은 값은 남기지 않습니다.',
+            'mcp_calls' => '기간 중 AI(MCP)의 호출. 사용자별 호출 수·오류·거부 수·사용한 도구(인수는 표시하지 않음). MCP 기록을 사용할 때만 표시됩니다.',
             'data_access_heavy' => '기간 중 읽은 횟수가 :min회 이상이고 읽은 사용자의 중앙값의 :factor배를 넘는 사용자.',
             'reads_not_recorded' => '읽기는 기록하지 않습니다. 조작 기록에는 변경만 남깁니다(로그 관리).',
             'security' => '버전, 보안 점검 항목, 마지막 백업의 현재 상태입니다.',
@@ -5327,6 +5329,12 @@ IP 주소: :ip
             'restore' => '복원',
             'reads' => '읽은 횟수',
             'median' => '사용자의 중앙값',
+            'mcp_calls' => '호출',
+            'mcp_errors' => '오류',
+            'mcp_refused' => '거부',
+            'mcp_tools' => '도구',
+            'first_call' => '처음',
+            'last_call' => '마지막',
             'times' => '중앙값의 배수',
             'item' => '항목',
             'detail' => '내용',

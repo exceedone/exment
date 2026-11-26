@@ -5284,6 +5284,7 @@ IP 地址: :ip
         ],
         'section' => [
             'data_access' => '数据的读取和写入',
+            'mcp_calls' => 'MCP 调用',
             'data_access_heavy' => '读取异常多的用户',
             'security' => '安全状态',
             'role_group_permissions' => '角色组的权限',
@@ -5303,6 +5304,7 @@ IP 地址: :ip
         ],
         'note' => [
             'data_access' => '期间内谁通过页面、API 或 MCP 读取、列出、导出、创建、变更、删除或恢复了各表的记录。列表按一次计算，而不是按显示的每条记录计算；几分钟内再次读取按一次计算。不保存读取的值。',
+            'mcp_calls' => '期间内来自 AI（MCP）的调用，每个用户一行：调用数、错误、被拒绝数和使用的工具（不显示参数）。仅在使用 MCP 记录时显示。',
             'data_access_heavy' => '期间内读取 :min 次或以上，且超过读取用户中位数 :factor 倍的用户。',
             'reads_not_recorded' => '读取不会被记录：操作记录只保留变更（日志管理）。',
             'security' => '版本、安全检查的项目和最近一次备份的当前状态。',
@@ -5327,6 +5329,12 @@ IP 地址: :ip
             'restore' => '恢复',
             'reads' => '读取次数',
             'median' => '用户的中位数',
+            'mcp_calls' => '调用',
+            'mcp_errors' => '错误',
+            'mcp_refused' => '拒绝',
+            'mcp_tools' => '工具',
+            'first_call' => '首次',
+            'last_call' => '最后',
             'times' => '中位数的倍数',
             'item' => '项目',
             'detail' => '详情',

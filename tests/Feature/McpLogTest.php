@@ -184,6 +184,95 @@ class McpLogTest extends ApiTestBase
         $this->assertSame('ping', $rows[3]->method);
     }
 
+    /**
+     * Refused by the limit of the API route (before the controller): kept too, once a minute, and
+     * the client gets a JSON-RPC error.
+     */
+    public function testRefusedByTheLimitOfTheApi(): void
+    {
+        $this->useLog(true);
+        config(['exment.api_max_rate_limit' => 2, 'exment.mcp_calls_per_minute' => 100]);
+        $key = $this->key();
+        $last = $this->last();
+        $ping = (string)json_encode(['jsonrpc' => '2.0', 'id' => 1, 'method' => 'ping']);
+
+        $this->raw($key, $ping)->assertOk();
+        $this->raw($key, $ping)->assertOk();
+        $refused = $this->raw($key, $ping);
+        $refused->assertStatus(429);
+        $this->assertSame(-32000, $refused->json('error.code'));
+        $this->raw($key, $ping)->assertStatus(429);
+
+        $rows = $this->rowsAfter($last);
+        $this->assertSame([McpLog::STATUS_OK, McpLog::STATUS_OK, McpLog::STATUS_REFUSED], $rows->pluck('status')->all());
+        $this->assertSame('rate_limited', $rows[2]->reason);
+        $this->assertSame('ping', $rows[2]->method);
+        $this->assertSame($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), (int)$rows[2]->base_user_id);
+    }
+
+    /**
+     * While the input is kept (log_store_input), the values named token, authorization or
+     * credentials are masked too, at any depth; the others are kept.
+     */
+    public function testTheSecretsAreMaskedWhileTheInputIsKept(): void
+    {
+        $masked = McpLogs::maskGenericSecrets([
+            'table' => 'custom_value_edit',
+            'token' => 'tok-SECRET333',
+            'nested' => ['Authorization' => 'Bearer SECRET444', 'credentials' => 'SECRET555', 'q' => 'kept'],
+        ]);
+        $this->assertSame('custom_value_edit', $masked['table']);
+        $this->assertSame('kept', $masked['nested']['q']);
+        $text = strval(json_encode($masked));
+        foreach (['SECRET333', 'SECRET444', 'SECRET555'] as $secret) {
+            $this->assertStringNotContainsString($secret, $text);
+        }
+    }
+
+    /**
+     * The IT audit report: the MCP calls of the period, a user a row (counts and tools, no
+     * arguments), and its CSV; not there while the MCP log is off.
+     */
+    public function testTheAuditReport(): void
+    {
+        $this->useLog(true);
+        $user1 = $this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $row = function (string $at, ?string $tool, string $status, string $args = '{"table":"x"}') use ($user1): void {
+            McpLog::query()->insert(['base_user_id' => $user1, 'method' => isset($tool) ? 'tools/call' : 'ping', 'tool' => $tool, 'status' => $status, 'args' => $args, 'created_at' => $at]);
+        };
+        $row('2020-05-01 10:00:00', 'search_data', McpLog::STATUS_OK, '{"table":"ARGUMENT7319"}');
+        $row('2020-05-02 11:00:00', 'get_data', McpLog::STATUS_TOOL_ERROR);
+        $row('2020-05-03 12:00:00', 'search_data', McpLog::STATUS_OK);
+        $row('2020-05-04 13:00:00', null, McpLog::STATUS_REFUSED);
+        // out of the period
+        $row('2020-07-01 10:00:00', 'list_tables', McpLog::STATUS_OK);
+
+        $this->assertContains('mcp_calls', \Exceedone\Exment\Services\AuditReport\AuditReport::sectionKeys());
+        $report = new \Exceedone\Exment\Services\AuditReport\AuditReport(\Carbon\Carbon::parse('2020-04-01'), \Carbon\Carbon::parse('2020-06-30'));
+        $section = $report->section('mcp_calls');
+        $this->assertSame(['user_code', 'user_name', 'mcp_calls', 'mcp_errors', 'mcp_refused', 'mcp_tools', 'first_call', 'last_call'], array_keys($section['columns']));
+        $mine = array_values(array_filter($section['rows'], fn ($r) => $r[0] === strval(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1)->user_code)));
+        $this->assertCount(1, $mine);
+        $this->assertSame(['4', '1', '1', 'get_data, search_data', '2020-05-01 10:00', '2020-05-04 13:00'], array_slice($mine[0], 2));
+        $this->assertStringNotContainsString('ARGUMENT7319', strval(json_encode($section)));
+
+        // the CSV (the system administrators and the auditors)
+        \Auth::forgetGuards();
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
+        System::clearRequestSession();
+        $query = ['from' => '2020-04-01', 'to' => '2020-06-30'];
+        $csv = $this->get(admin_urls_query('log_management', 'audit', 'mcp_calls.csv', $query));
+        $csv->assertOk();
+        $content = $csv->streamedContent();
+        $this->assertStringContainsString('get_data, search_data', $content);
+        $this->assertStringNotContainsString('ARGUMENT7319', $content);
+
+        // off: not in the report
+        $this->useLog(false);
+        $this->assertNotContains('mcp_calls', \Exceedone\Exment\Services\AuditReport\AuditReport::sectionKeys());
+        $this->get(admin_urls_query('log_management', 'audit', 'mcp_calls.csv', $query))->assertNotFound();
+    }
+
     public function testThePageIsForTheAuditors(): void
     {
         $this->useLog(true);
@@ -192,7 +281,7 @@ class McpLogTest extends ApiTestBase
         LogWriter::flush();
 
         \Auth::forgetGuards();
-        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN), 'admin');
         System::clearRequestSession();
         $this->get(admin_urls('log_management', 'mcp'))->assertOk()->assertSee('list_tables');
         $this->get(admin_urls_query('log_management', 'mcp', ['tool' => 'search_data']))->assertOk()->assertDontSee('<td class="small">list_tables</td>', false);
@@ -205,7 +294,7 @@ class McpLogTest extends ApiTestBase
         $this->assertSame(30, LogCatalog::types()['mcp_log']['retention_days']);
 
         // not for a user without Audit
-        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1));
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1), 'admin');
         System::clearRequestSession();
         $denied = $this->get(admin_urls('log_management', 'mcp'), ['X-Requested-With' => 'XMLHttpRequest']);
         $denied->assertStatus(403);

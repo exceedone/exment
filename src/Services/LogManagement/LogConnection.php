@@ -14,7 +14,7 @@ namespace Exceedone\Exment\Services\LogManagement;
  */
 class LogConnection
 {
-    public const TABLES = ['login_logs', 'permission_change_logs', 'browser_logs', 'data_access_logs', 'data_access_daily'];
+    public const TABLES = ['login_logs', 'permission_change_logs', 'browser_logs', 'data_access_logs', 'data_access_daily', 'mcp_logs'];
 
     /** The connection of the log tables, null: the default. */
     public static function name(): ?string

@@ -40,7 +40,10 @@ use Illuminate\Support\Facades\Schema;
  */
 class AuditReport
 {
-    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'data_access', 'data_access_heavy', 'security', 'log_retention'];
+    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'data_access', 'data_access_heavy', 'mcp_calls', 'security', 'log_retention'];
+
+    /** The sections shown only while their log is kept: the MCP calls (ISS02915). */
+    public const OPTIONAL_SECTIONS = ['mcp_calls'];
 
     /** A user reads unusually much: more than HEAVY_FACTOR times the median of the users, and HEAVY_MIN times or more. */
     public const HEAVY_FACTOR = 10;
@@ -170,7 +173,22 @@ class AuditReport
     {
         return array_map(function ($key) {
             return $this->section($key);
-        }, static::SECTIONS);
+        }, static::sectionKeys());
+    }
+
+    /**
+     * The sections of the report now: the MCP calls only while the MCP log is used.
+     *
+     * @return array<int, string>
+     */
+    public static function sectionKeys(): array
+    {
+        return array_values(array_filter(static::SECTIONS, function ($key) {
+            if ($key === 'mcp_calls') {
+                return \Exceedone\Exment\Services\LogManagement\McpLogs::active();
+            }
+            return true;
+        }));
     }
 
     /**
@@ -209,6 +227,8 @@ class AuditReport
                 return ['table', 'user_code', 'user_name', 'read', 'list', 'export', 'create', 'update', 'delete', 'restore'];
             case 'data_access_heavy':
                 return ['user_code', 'user_name', 'reads', 'median', 'times'];
+            case 'mcp_calls':
+                return ['user_code', 'user_name', 'mcp_calls', 'mcp_errors', 'mcp_refused', 'mcp_tools', 'first_call', 'last_call'];
             case 'security':
                 return ['item', 'result', 'detail'];
             case 'log_retention':
@@ -636,6 +656,71 @@ class AuditReport
      *
      * @return array<int, array<int, string>>
      */
+    /**
+     * The MCP calls in the period, a user a row (ISS02915): the counts and the tools, never the
+     * arguments. The most calls first.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsMcpCalls(): array
+    {
+        if (!\Exceedone\Exment\Model\McpLog::tableExists()) {
+            return [];
+        }
+        $groups = \Exceedone\Exment\Model\McpLog::query()
+            ->where('created_at', '>=', $this->from)
+            ->where('created_at', '<', $this->until)
+            ->groupBy('base_user_id', 'tool', 'status')
+            ->selectRaw('base_user_id, tool, status, count(*) as calls, min(created_at) as first_at, max(created_at) as last_at')
+            ->get();
+        $users = [];
+        foreach ($groups as $group) {
+            $key = strval($group->base_user_id);
+            if (!isset($users[$key])) {
+                $users[$key] = ['id' => $group->base_user_id, 'calls' => 0, 'errors' => 0, 'refused' => 0, 'tools' => [], 'first' => null, 'last' => null];
+            }
+            $calls = intval($group->getAttribute('calls'));
+            $users[$key]['calls'] += $calls;
+            if (in_array($group->status, [\Exceedone\Exment\Model\McpLog::STATUS_ERROR, \Exceedone\Exment\Model\McpLog::STATUS_TOOL_ERROR], true)) {
+                $users[$key]['errors'] += $calls;
+            } elseif ($group->status === \Exceedone\Exment\Model\McpLog::STATUS_REFUSED) {
+                $users[$key]['refused'] += $calls;
+            }
+            if (!is_nullorempty($group->tool)) {
+                $users[$key]['tools'][strval($group->tool)] = true;
+            }
+            $first = strval($group->getAttribute('first_at'));
+            $last = strval($group->getAttribute('last_at'));
+            if (!isset($users[$key]['first']) || $first < $users[$key]['first']) {
+                $users[$key]['first'] = $first;
+            }
+            if (!isset($users[$key]['last']) || $last > $users[$key]['last']) {
+                $users[$key]['last'] = $last;
+            }
+        }
+        usort($users, function ($a, $b) {
+            return $b['calls'] <=> $a['calls'] ?: strcmp(strval($a['id']), strval($b['id']));
+        });
+
+        $rows = [];
+        foreach ($users as $user) {
+            [$code, $name] = $this->userOf($user['id']);
+            $tools = array_keys($user['tools']);
+            sort($tools);
+            $rows[] = [
+                $code,
+                $name,
+                number_format($user['calls']),
+                number_format($user['errors']),
+                number_format($user['refused']),
+                implode(', ', $tools),
+                $this->date($user['first'], true),
+                $this->date($user['last'], true),
+            ];
+        }
+        return $rows;
+    }
+
     protected function rowsApiKeys(): array
     {
         if (!Schema::hasTable('user_api_keys')) {

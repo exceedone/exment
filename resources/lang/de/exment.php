@@ -5284,6 +5284,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         ],
         'section' => [
             'data_access' => 'Lesen und Schreiben der Daten',
+            'mcp_calls' => 'MCP-Aufrufe',
             'data_access_heavy' => 'Benutzer, die ungewöhnlich viel lesen',
             'security' => 'Sicherheitsstatus',
             'role_group_permissions' => 'Berechtigungen der Rollengruppen',
@@ -5303,6 +5304,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         ],
         'note' => [
             'data_access' => 'Wer die Datensätze jeder Tabelle im Zeitraum gelesen, aufgelistet, exportiert, erstellt, geändert, gelöscht oder wiederhergestellt hat, über die Seiten, die API oder MCP. Eine Liste wird einmal gezählt, nicht einmal pro angezeigtem Datensatz; ein erneutes Lesen innerhalb weniger Minuten wird einmal gezählt. Gelesene Werte werden nicht gespeichert.',
+            'mcp_calls' => 'Die Aufrufe von KI (MCP) im Zeitraum, ein Benutzer pro Zeile: Aufrufe, Fehler, Ablehnungen und verwendete Werkzeuge (keine Argumente). Wird angezeigt, solange das MCP-Protokoll verwendet wird.',
             'data_access_heavy' => 'Die Benutzer, die im Zeitraum :min Mal oder öfter gelesen haben und mehr als :factor Mal so oft wie der Median der lesenden Benutzer.',
             'reads_not_recorded' => 'Das Lesen wird nicht aufgezeichnet: Das Vorgangsprotokoll behält nur die Änderungen (Protokollverwaltung).',
             'security' => 'Die Version, die Punkte der Sicherheitsprüfung und das letzte Backup, wie sie jetzt sind.',
@@ -5327,6 +5329,12 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'restore' => 'Wiederhergestellt',
             'reads' => 'Lesevorgänge',
             'median' => 'Median der Benutzer',
+            'mcp_calls' => 'Aufrufe',
+            'mcp_errors' => 'Fehler',
+            'mcp_refused' => 'Abgelehnt',
+            'mcp_tools' => 'Werkzeuge',
+            'first_call' => 'Erster',
+            'last_call' => 'Letzter',
             'times' => 'Vielfaches des Medians',
             'item' => 'Punkt',
             'detail' => 'Details',

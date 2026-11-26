@@ -5284,6 +5284,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         ],
         'section' => [
             'data_access' => 'Đọc và ghi dữ liệu',
+            'mcp_calls' => 'Các lần gọi MCP',
             'data_access_heavy' => 'Người dùng đọc nhiều bất thường',
             'security' => 'Tình trạng bảo mật',
             'role_group_permissions' => 'Quyền của các nhóm vai trò',
@@ -5303,6 +5304,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         ],
         'note' => [
             'data_access' => 'Ai đã đọc, xem danh sách, xuất, tạo, thay đổi, xóa hoặc khôi phục các bản ghi của từng bảng trong khoảng thời gian, từ các trang, API hoặc MCP. Một danh sách được tính một lần, không tính theo từng bản ghi hiển thị; đọc lại trong vài phút được tính một lần. Không lưu giá trị đã đọc.',
+            'mcp_calls' => 'Các lần gọi từ AI (MCP) trong kỳ, mỗi người dùng một dòng: số lần gọi, lỗi, bị từ chối và công cụ đã dùng (không có tham số). Chỉ hiển thị khi dùng nhật ký MCP.',
             'data_access_heavy' => 'Những người dùng có số lần đọc trong khoảng thời gian từ :min trở lên và nhiều hơn :factor lần trung vị của những người dùng đã đọc.',
             'reads_not_recorded' => 'Việc đọc không được ghi lại: nhật ký thao tác chỉ giữ các thay đổi (quản lý nhật ký).',
             'security' => 'Phiên bản, các mục kiểm tra bảo mật và bản sao lưu gần nhất, theo trạng thái hiện tại.',
@@ -5327,6 +5329,12 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'restore' => 'Đã khôi phục',
             'reads' => 'Lần đọc',
             'median' => 'Trung vị của người dùng',
+            'mcp_calls' => 'Lần gọi',
+            'mcp_errors' => 'Lỗi',
+            'mcp_refused' => 'Từ chối',
+            'mcp_tools' => 'Công cụ',
+            'first_call' => 'Đầu tiên',
+            'last_call' => 'Cuối cùng',
             'times' => 'Số lần so với trung vị',
             'item' => 'Mục',
             'detail' => 'Chi tiết',
