@@ -38,7 +38,8 @@ class RevisionTuning extends DataTuningBase
     {
         $many = $this->many();
         if (count($many) == 0) {
-            return exmtrans('tuning.result_ok');
+            // the most, though it is not too many
+            return static::topCounts($this->tables(), 'revisions');
         }
         return implode(', ', array_map(function ($counts) {
             return $counts['table']->table_view_name . ': ' . number_format(intval($counts['revisions'])) . ' (' . exmtrans('tuning.item.revisions.count', ['count' => $counts['table']->getOption('revision_count', 100)]) . ')';

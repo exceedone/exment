@@ -109,7 +109,11 @@ class TuningDataTest extends FeatureTestBase
         $this->assertSame(ExmentFile::count(), $stats['files']['count']);
         if (DataStats::isMySql()) {
             $this->assertIsInt($counts['data_bytes']);
-            $this->assertIsInt($stats['database']['bytes']);
+            // the whole database, more than the custom tables
+            $custom = array_sum(array_map(function ($table) {
+                return intval($table['data_bytes']) + intval($table['index_bytes']);
+            }, $stats['tables']));
+            $this->assertGreaterThan($custom, $stats['database']['bytes']);
         }
         // the count before is kept for the growth
         DataStats::collect();
@@ -133,7 +137,10 @@ class TuningDataTest extends FeatureTestBase
 
     public function testRevisions(): void
     {
-        $this->assertSame(SystemRequireResult::OK, (new RevisionTuning($this->stats(['revisions' => 1000])))->checkResult());
+        $ok = new RevisionTuning($this->stats(['revisions' => 1000]));
+        $this->assertSame(SystemRequireResult::OK, $ok->checkResult());
+        // the numbers, also when it is OK
+        $this->assertStringContainsString($this->table()->table_view_name . ': 1,000', strval($ok->getResultText()));
         $item = new RevisionTuning($this->stats(['revisions' => RevisionTuning::LIMIT + 1]));
         $this->assertSame(SystemRequireResult::WARNING, $item->checkResult());
         $this->assertSame(admin_urls('table', $this->table()->id, 'edit'), $item->getSettingUrl());
@@ -143,7 +150,9 @@ class TuningDataTest extends FeatureTestBase
     {
         $table = $this->table();
         $many = ['rows' => 20000, 'deleted' => 20000];
-        $this->assertSame(SystemRequireResult::OK, (new DeletedRowsTuning($this->stats(['rows' => 200000, 'deleted' => 20000])))->checkResult(), 'a small share');
+        $small = new DeletedRowsTuning($this->stats(['rows' => 200000, 'deleted' => 20000]));
+        $this->assertSame(SystemRequireResult::OK, $small->checkResult(), 'a small share');
+        $this->assertStringContainsString($this->table()->table_view_name . ': 20,000', strval($small->getResultText()));
         if (!TrashPurge::purgeable($table)) {
             $this->markTestSkipped('the table does not purge');
         }
@@ -178,6 +187,13 @@ class TuningDataTest extends FeatureTestBase
         $item = (new DatabaseSettingTuning($this->stats([], ['database' => ['bytes' => $gb]])))->setBufferPool(2 * $gb);
         $this->assertSame(SystemRequireResult::OK, $item->checkResult());
         $this->assertNull($item->getFixText());
+
+        // read from the database (MySQL, MariaDB)
+        if (DataStats::isMySql()) {
+            $read = (new DatabaseSettingTuning($this->stats([], ['database' => ['bytes' => $gb]])))->bufferPool();
+            $this->assertIsInt($read);
+            $this->assertGreaterThan(0, $read);
+        }
 
         // another database, or not readable
         $item = (new DatabaseSettingTuning($this->stats([], ['database' => ['bytes' => $gb]])))->setBufferPool(null);

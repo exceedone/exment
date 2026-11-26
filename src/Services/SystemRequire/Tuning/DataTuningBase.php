@@ -104,6 +104,27 @@ abstract class DataTuningBase extends TuningBase
         return false;
     }
 
+    /**
+     * The tables with the most of a count ("table: count", the first TOP), or "0".
+     *
+     * @param array<string, array<string, mixed>> $tables
+     */
+    protected static function topCounts(array $tables, string $key, int $top = 3): string
+    {
+        $tables = array_filter($tables, function ($counts) use ($key) {
+            return intval($counts[$key] ?? 0) > 0;
+        });
+        uasort($tables, function ($a, $b) use ($key) {
+            return intval($b[$key]) <=> intval($a[$key]);
+        });
+        if (count($tables) == 0) {
+            return '0';
+        }
+        return implode(', ', array_map(function ($counts) use ($key) {
+            return $counts['table']->table_view_name . ': ' . number_format(intval($counts[$key]));
+        }, array_slice($tables, 0, $top, true)));
+    }
+
     public static function bytes(?int $bytes): string
     {
         if (is_null($bytes)) {

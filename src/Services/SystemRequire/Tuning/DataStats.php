@@ -42,17 +42,17 @@ class DataStats
     public static function collect(): array
     {
         $previous = static::load();
+        $sizes = static::sizes();
         $stats = [
             'time' => time(),
-            'tables' => static::tables($previous),
+            'tables' => static::tables($previous, $sizes),
             'files' => static::files(),
             'database' => ['bytes' => null],
         ];
+        // the whole database: every table of it, the logs, the notifications and the revisions too
         $bytes = null;
-        foreach ($stats['tables'] as $table) {
-            if (is_int($table['data_bytes'])) {
-                $bytes = ($bytes ?? 0) + $table['data_bytes'] + intval($table['index_bytes']);
-            }
+        foreach ($sizes as $size) {
+            $bytes = ($bytes ?? 0) + $size['data'] + $size['index'];
         }
         $stats['database']['bytes'] = $bytes;
         System::tuning_data_stats($stats);
@@ -75,11 +75,11 @@ class DataStats
 
     /**
      * @param array<string, mixed>|null $previous
+     * @param array<string, array{data: int, index: int}> $sizes
      * @return array<string, array{rows: int, deleted: int, revisions: int, data_bytes: int|null, index_bytes: int|null, previous_rows: int|null, previous_time: int|null}>
      */
-    protected static function tables(?array $previous): array
+    protected static function tables(?array $previous, array $sizes): array
     {
-        $sizes = static::sizes();
         // the revisions of all the tables in one query
         $revisions = [];
         try {
@@ -130,6 +130,7 @@ class DataStats
         try {
             $prefix = strval(\DB::connection()->getTablePrefix());
             foreach (\DB::select('select table_name as name, data_length as data_bytes, index_length as index_bytes from information_schema.tables where table_schema = database()') as $row) {
+                $row = (object) array_change_key_case((array) $row, CASE_LOWER);
                 $name = strval($row->name);
                 if ($prefix !== '' && str_starts_with($name, $prefix)) {
                     $name = substr($name, strlen($prefix));

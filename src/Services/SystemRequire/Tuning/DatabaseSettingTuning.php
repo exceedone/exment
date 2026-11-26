@@ -35,7 +35,8 @@ class DatabaseSettingTuning extends DataTuningBase
             if (DataStats::isMySql()) {
                 try {
                     $row = \DB::selectOne("show variables like 'innodb_buffer_pool_size'");
-                    $value = isset($row) ? ($row->Value ?? null) : null;
+                    // the names of the columns are as the connection gives them (lower case in Exment)
+                    $value = isset($row) ? (array_change_key_case((array) $row, CASE_LOWER)['value'] ?? null) : null;
                     $this->bufferPool = is_numeric($value) ? intval($value) : null;
                 } catch (\Throwable $e) {
                 }
