@@ -3,6 +3,8 @@
 namespace Exceedone\Exment\DataItems\Grid;
 
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomRelation;
+use Exceedone\Exment\Enums\RelationType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\ColumnItems\GridCellStyle;
 use Exceedone\Exment\Enums\ColumnType;
@@ -24,6 +26,12 @@ class GanttGrid extends GridBase
      * Group key of records without a group value.
      */
     public const EMPTY_KEY = '__exment_gantt_empty__';
+
+    /**
+     * The group setting that groups the records by their parent record (a 1:n relation), for
+     * example the issues of several projects in one chart, a project per group (ISS00244).
+     */
+    public const GROUP_PARENT = 'parent_id';
 
     /**
      * Colors given to bar color values, by option order.
@@ -128,7 +136,9 @@ class GanttGrid extends GridBase
     {
         $color_column = $this->getSelectColumnById($this->custom_view->gantt_color_column_id);
         $progress_column = $this->getNumberColumnById($this->custom_view->gantt_progress_column_id);
-        $group_column = $this->getGroupColumn();
+        // ISS00244: grouped by the parent record, or by a column
+        $group_parent = $this->getGroupParentTable();
+        $group_column = isset($group_parent) ? null : $this->getGroupColumn();
         $parent_column = $this->getParentColumn();
         $assignee_column = $this->getUserColumnById($this->custom_view->gantt_assignee_column_id);
 
@@ -140,7 +150,9 @@ class GanttGrid extends GridBase
             $end = $this->rawDate($record, $end_column);
 
             $group_key = '';
-            if (isset($group_column)) {
+            if (isset($group_parent)) {
+                $group_key = is_nullorempty($record->parent_id) ? '' : strval($record->parent_id);
+            } elseif (isset($group_column)) {
                 $raw = array_get($record->value, $group_column->column_name);
                 $raw = is_array($raw) ? array_first($raw) : $raw;
                 $group_key = is_nullorempty($raw) ? '' : strval($raw);
@@ -203,8 +215,8 @@ class GanttGrid extends GridBase
             // the days of the user (ISS02835)
             'today' => UserTimezone::today()->format('Y-m-d'),
             'rows' => $rows,
-            'groups' => $this->buildGroups($group_column, $rows),
-            'group_label' => isset($group_column) ? $group_column->column_view_name : null,
+            'groups' => isset($group_parent) ? $this->buildParentGroups($group_parent, $rows) : $this->buildGroups($group_column, $rows),
+            'group_label' => isset($group_parent) ? strval($group_parent->table_view_name) : (isset($group_column) ? $group_column->column_view_name : null),
             'assignees' => $this->buildAssignees($assignee_column, array_unique($assignee_ids)),
             'colors' => $colors,
             'legend' => $legend,
@@ -292,6 +304,88 @@ class GanttGrid extends GridBase
         }
 
         return $groups;
+    }
+
+    /**
+     * The groups of a chart grouped by the parent record (ISS00244): one per parent, read in one
+     * query, ordered like a select_table group - the closest deadline of the parent first (its
+     * deadline column, see deadlineColumn()), then the undated ones by name; the records without
+     * a parent last.
+     *
+     * @param CustomTable $parent_table
+     * @param array<int, array<string, mixed>> $rows
+     * @return array<int, array<string, mixed>>
+     */
+    protected function buildParentGroups($parent_table, array $rows)
+    {
+        $used = collect($rows)->pluck('group')->unique()->values();
+        $ids = $used->filter(function ($key) {
+            return $key !== '';
+        })->values()->all();
+        $due_column = $this->deadlineColumn($parent_table);
+        $parents = empty($ids) ? collect() : $parent_table->getValueModel()->query()->whereIn('id', $ids)->get()->keyBy('id');
+
+        $groups = [];
+        foreach ($ids as $key) {
+            $parent = $parents->get($key);
+            $groups[] = [
+                'key' => strval($key),
+                'label' => isset($parent) ? strval($parent->getLabel()) : strval($key),
+                'due' => (isset($parent) && isset($due_column)) ? $this->rawDate($parent, $due_column) : null,
+            ];
+        }
+
+        return static::sortGroups($groups, $used->contains(''));
+    }
+
+    /**
+     * Dated groups first, the closest first, then the undated ones by name; the group of the
+     * records without a value last.
+     *
+     * @param array<int, array<string, mixed>> $groups
+     * @return array<int, array<string, mixed>>
+     */
+    public static function sortGroups(array $groups, bool $withEmpty): array
+    {
+        usort($groups, function ($a, $b) {
+            if (is_null($a['due']) != is_null($b['due'])) {
+                return is_null($a['due']) ? 1 : -1;
+            }
+
+            return strcmp(strval($a['due']), strval($b['due'])) ?: strcmp(strval($a['label']), strval($b['label']));
+        });
+        if ($withEmpty) {
+            $groups[] = ['key' => '', 'label' => exmtrans('custom_view.gantt_no_group'), 'due' => null];
+        }
+
+        return $groups;
+    }
+
+    /**
+     * The parent table to group by, when the view groups by the parent record and the table has
+     * a 1:n parent.
+     *
+     * @return CustomTable|null
+     */
+    protected function getGroupParentTable()
+    {
+        if (strval($this->custom_view->gantt_group_column_id) !== self::GROUP_PARENT) {
+            return null;
+        }
+
+        return static::parentTableOf($this->custom_table);
+    }
+
+    /**
+     * @param CustomTable $custom_table
+     * @return CustomTable|null
+     */
+    protected static function parentTableOf($custom_table)
+    {
+        $relation = CustomRelation::getRelationByChild($custom_table, RelationType::ONE_TO_MANY);
+        $parent = isset($relation) ? $relation->parent_custom_table_cache : null;
+
+        return $parent instanceof CustomTable ? $parent : null;
     }
 
     /**
@@ -600,6 +694,11 @@ class GanttGrid extends GridBase
     protected static function getGroupColumnOptions($custom_table)
     {
         $options = [];
+        // ISS00244: by the parent record (a project, for the issues of several projects)
+        $parent = static::parentTableOf($custom_table);
+        if (isset($parent)) {
+            $options[self::GROUP_PARENT] = exmtrans('custom_view.gantt_group_parent', ['table' => strval($parent->table_view_name)]);
+        }
         foreach ($custom_table->custom_columns_cache as $custom_column) {
             if (!in_array(array_get($custom_column, 'column_type'), [ColumnType::SELECT, ColumnType::SELECT_VALTEXT, ColumnType::SELECT_TABLE])) {
                 continue;

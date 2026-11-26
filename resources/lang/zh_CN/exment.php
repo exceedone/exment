@@ -3544,6 +3544,10 @@ IP 地址: :ip
         'gantt_progress' => '进度',
         'gantt_no_bar' => '未设置日期',
         'gantt_no_group' => '未分组',
+        'gantt_group_parent' => '按父数据（:table）分组',
+        'gantt_view_list' => '以列表查看',
+        'gantt_view_chart' => '以图表查看',
+        'gantt_week' => ':date 这一周',
         'gantt_empty' => '没有可显示的数据。',
         'kanban_source' => '看板列的生成方式',
         'kanban_source_options' => [
