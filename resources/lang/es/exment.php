@@ -5211,6 +5211,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
         'reveal' => 'Mostrar',
         'unreadable' => '(no se puede leer: sin clave)',
         'form_help' => 'Este valor se guarda cifrado. Si se deja vacío, conserva el valor actual. Escriba un valor nuevo solo para cambiarlo.',
+        'masked_input' => 'Un valor oculto (****1234) solo se acepta como «sin cambios», cuando es la forma oculta del valor actual. Para cambiar el valor, escriba el valor nuevo completo.',
     ],
     'audit_report' => [
         'api_allowed' => 'Puede',

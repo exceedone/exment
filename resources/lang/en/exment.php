@@ -5239,6 +5239,7 @@ If it was not you, change your password and tell the administrators.",
         'reveal' => 'Show',
         'unreadable' => '(cannot be read: no key)',
         'form_help' => 'This value is stored encrypted. Left empty, it keeps the value it has. Enter a new value only to change it.',
+        'masked_input' => 'A masked value (****1234) is taken only as "not changed", when it is the masked form of the value there now. To change the value, enter the whole new value.',
     ],
     'audit_report' => [
         'api_allowed' => 'May use',

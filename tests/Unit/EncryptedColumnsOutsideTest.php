@@ -122,6 +122,50 @@ class EncryptedColumnsOutsideTest extends UnitTestBase
         $this->assertStringContainsString('"data/{tableKey}/{id}/reveal/{column}", "ApiDataController@dataReveal"', $routes);
     }
 
+    public function testAnExportImportedAgainChangesNothing(): void
+    {
+        $record = $this->record();
+        $raw = \DB::table(getDBTableName($this->table()))->where('id', $record->id)->value('value');
+
+        // what the export gives
+        $provider = new DefaultTableProvider(['custom_table' => $this->table()]);
+        $body = new \ReflectionMethod(DefaultTableProvider::class, 'getBodyValue');
+        $body->setAccessible(true);
+        $exported = $body->invoke($provider, $record->getValue('text'), $this->column(), ConditionType::COLUMN, $record);
+        $this->assertSame('****9876', $exported);
+
+        // imported again (the validation of an import, then the save): accepted, nothing changes
+        $input = ['value' => ['text' => $exported, 'integer' => 12]];
+        $validator = $this->table()->validateValue($input, $record, ['systemColumn' => true, 'checkCustomValueExists' => false, 'validateLock' => false]);
+        $this->assertFalse($validator->fails(), json_encode($validator->getMessages()) ?: '');
+        $record->setValue('text', $exported);
+        $record->save();
+        $this->assertSame($raw, \DB::table(getDBTableName($this->table()))->where('id', $record->id)->value('value'));
+        System::clearRequestSession();
+        /** @var CustomValue $fresh */
+        $fresh = $this->table()->getValueModel($record->id);
+        $this->assertSame('customer-0001-9876', $fresh->getValue('text'));
+
+        // a masked value that is not its own: refused, and never written
+        $validator = $this->table()->validateValue(['value' => ['text' => '****0000']], $fresh, ['systemColumn' => true, 'checkCustomValueExists' => false, 'validateLock' => false]);
+        $this->assertTrue($validator->fails());
+        $this->assertStringContainsString(strval(exmtrans('encrypted.masked_input')), json_encode($validator->getMessages(), JSON_UNESCAPED_UNICODE) ?: '');
+        $fresh->setValue('text', '****0000');
+        $fresh->save();
+        System::clearRequestSession();
+        /** @var CustomValue $again */
+        $again = $this->table()->getValueModel($record->id);
+        $this->assertSame('customer-0001-9876', $again->getValue('text'));
+
+        // a whole new value is taken
+        $again->setValue('text', 'customer-0002-1111');
+        $again->save();
+        System::clearRequestSession();
+        /** @var CustomValue $changed */
+        $changed = $this->table()->getValueModel($record->id);
+        $this->assertSame('customer-0002-1111', $changed->getValue('text'));
+    }
+
     public function testACopyIsSavedEncrypted(): void
     {
         $record = $this->record();
