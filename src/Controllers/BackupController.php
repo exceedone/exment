@@ -534,8 +534,7 @@ class BackupController extends AdminControllerBase
         }
 
         // a backup of the data now, before it is replaced (ISS02943)
-        $form->checkboxone('backup_first', exmtrans('backup.run.screen.backup_first'))
-            ->option(['1' => exmtrans('backup.run.screen.backup_first_option')])
+        $form->switchbool('backup_first', exmtrans('backup.run.screen.backup_first_option'))
             ->default('1')
             ->setWidth(8, 3)
             ->help(exmtrans('backup.run.screen.backup_first_help'));
