@@ -18,6 +18,7 @@ use Exceedone\Exment\Services\Encryption\EncryptedValue;
 use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\LogManagement\LogWriter;
 use Exceedone\Exment\Tests\TestDefine;
+use Exceedone\Exment\Validator\EncryptedMaskRule;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 /**
@@ -158,6 +159,32 @@ class EncryptedColumnsRevealTest extends UnitTestBase
         $record->setValue('text', 'Ito Shiro');
         $record->save();
         $this->assertSame('Ito Shiro', $this->record2($record->id)->getValue('text'));
+    }
+
+    public function testTheFormRefusesAMaskedValue(): void
+    {
+        $record = $this->record('090-1234-5678');
+
+        // the box of the form has the rule
+        $field = $this->column()->column_item->setCustomValue($record)->getAdminField();
+        $rules = (new \ReflectionProperty($field, 'rules'))->getValue($field);
+        $this->assertNotEmpty(array_filter((array) $rules, function ($rule) {
+            return $rule instanceof EncryptedMaskRule;
+        }));
+
+        // edit: its own mask is "not changed", another mask is refused, a full value is taken
+        $edit = new EncryptedMaskRule($this->column(), $record->id);
+        $this->assertTrue($edit->passes('value.text', '****5678'));
+        $this->assertFalse($edit->passes('value.text', '****0000'));
+        $this->assertFalse($edit->passes('value.text', '****'));
+        $this->assertTrue($edit->passes('value.text', '090-9999-0000'));
+        $this->assertTrue($edit->passes('value.text', ''));
+        $this->assertSame(strval(exmtrans('encrypted.masked_form')), $edit->message());
+
+        // create: no value yet, so a mask is always refused (never saved as empty)
+        $create = new EncryptedMaskRule($this->column(), null);
+        $this->assertFalse($create->passes('value.text', '****5555'));
+        $this->assertTrue($create->passes('value.text', 'new value 5555'));
     }
 
     protected function record2(int $id): CustomValue

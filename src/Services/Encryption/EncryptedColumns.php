@@ -161,7 +161,7 @@ EOT);
      * encrypted column a masked value other than the masked value it has now: it would write
      * "****" over the real value. The masked value it has now is taken as "not changed".
      *
-     * @param array<mixed> $input
+     * @param mixed $input the values of the save (an array; anything else has no errors)
      * @param mixed $custom_value
      * @param array<string, mixed> $options
      * @return array<string, array<int, string>>
