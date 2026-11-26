@@ -24,6 +24,9 @@ use Illuminate\Support\Facades\Schema;
  */
 class PermissionChangeLog extends Model
 {
+    // on the connection of the logs when one is set (ISS02905)
+    use Traits\UsesLogConnection;
+
     public const CHANGE_ADDED = 'added';
     public const CHANGE_REMOVED = 'removed';
 
@@ -51,7 +54,7 @@ class PermissionChangeLog extends Model
     {
         if (!isset(static::$tableExists)) {
             try {
-                static::$tableExists = Schema::hasTable('permission_change_logs');
+                static::$tableExists = \Exceedone\Exment\Services\LogManagement\LogConnection::schema()->hasTable('permission_change_logs');
             } catch (\Throwable $e) {
                 static::$tableExists = false;
             }

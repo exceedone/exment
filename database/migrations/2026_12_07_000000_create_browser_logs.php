@@ -15,10 +15,10 @@ return new class extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('browser_logs')) {
+        if (Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->hasTable('browser_logs')) {
             return;
         }
-        Schema::create('browser_logs', function (Blueprint $table) {
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->create('browser_logs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('base_user_id')->unsigned()->nullable();
             // error, request, page
@@ -53,6 +53,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('browser_logs');
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->dropIfExists('browser_logs');
     }
 };

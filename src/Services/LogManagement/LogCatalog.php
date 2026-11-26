@@ -147,6 +147,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.operation_log',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::operationLog();
+                },
                 'retention' => function () {
                     return boolval(System::operation_log_enable_automatic()) ? max(1, intval(System::operation_log_keep_days())) : null;
                 },
@@ -164,6 +167,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.login_log',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('login_logs');
+                },
                 'retention' => function () {
                     return static::days(System::log_retention_login_log(), static::DEFAULT_LOGIN_LOG_DAYS);
                 },
@@ -205,6 +211,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.permission_change',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('permission_change_logs');
+                },
                 'retention' => function () {
                     return static::days(System::log_retention_permission_change(), static::DEFAULT_PERMISSION_CHANGE_DAYS);
                 },
@@ -245,6 +254,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.data_access',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('data_access_logs');
+                },
                 'retention' => function () {
                     return static::days(System::log_retention_data_access(), DataAccessLogs::DEFAULT_DAYS);
                 },
@@ -287,6 +299,9 @@ class LogCatalog
             'data_access_daily' => [
                 'label' => 'exment::exment.log_management.types.data_access_daily',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('data_access_daily');
+                },
                 'retention' => function () {
                     return static::days(System::log_retention_data_access_daily(), DataAccessLogs::DEFAULT_DAILY_DAYS);
                 },
@@ -348,6 +363,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.browser_log',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('browser_logs');
+                },
                 'retention' => function () {
                     return static::days(System::log_retention_browser_log(), BrowserLogs::DEFAULT_DAYS);
                 },

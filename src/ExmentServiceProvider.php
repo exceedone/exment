@@ -110,6 +110,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
+        \Exceedone\Exment\Console\LogDbCommand::class,
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
         \Exceedone\Exment\Console\AuditReportCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,

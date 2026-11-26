@@ -27,6 +27,9 @@ use Illuminate\Support\Facades\Schema;
  */
 class BrowserLog extends Model
 {
+    // on the connection of the logs when one is set (ISS02905)
+    use Traits\UsesLogConnection;
+
     public const KIND_ERROR = 'error';
     public const KIND_REQUEST = 'request';
     public const KIND_PAGE = 'page';
@@ -52,7 +55,7 @@ class BrowserLog extends Model
     {
         if (!isset(static::$tableExists)) {
             try {
-                static::$tableExists = Schema::hasTable('browser_logs');
+                static::$tableExists = \Exceedone\Exment\Services\LogManagement\LogConnection::schema()->hasTable('browser_logs');
             } catch (\Throwable $e) {
                 static::$tableExists = false;
             }
