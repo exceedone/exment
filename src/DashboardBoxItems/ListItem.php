@@ -85,6 +85,7 @@ class ListItem implements ItemInterface
             }
         ];
         list($headers, $bodies, $columnStyles, $columnClasses) = $this->custom_view->convertDataTable($datalist, $option);
+        list($headers, $bodies, $columnStyles, $columnClasses) = static::actionsFirst($headers, $bodies, $columnStyles, $columnClasses);
 
         $widgetTable = new WidgetTable($headers, $bodies);
         $widgetTable->class('table table-hover');
@@ -92,6 +93,35 @@ class ListItem implements ItemInterface
         $widgetTable->setColumnClasses($columnClasses);
 
         return $widgetTable->render();
+    }
+
+    /**
+     * The action column (show, edit) first in the modern design, as the data list page puts
+     * it on the left (#2273). convertDataTable() adds it last, with no style or class of its
+     * own: there is one when there is a header more than the classes of the columns.
+     *
+     * @param array<mixed> $headers
+     * @param array<mixed> $bodies
+     * @param array<mixed> $columnStyles
+     * @param array<mixed> $columnClasses
+     * @return array{0: array<mixed>, 1: array<mixed>, 2: array<mixed>, 3: array<mixed>}
+     */
+    public static function actionsFirst(array $headers, array $bodies, array $columnStyles, array $columnClasses): array
+    {
+        if (!\Exment::isModernUi() || count($headers) <= count($columnClasses) || count($headers) < 2) {
+            return [$headers, $bodies, $columnStyles, $columnClasses];
+        }
+        array_unshift($headers, array_pop($headers));
+        foreach ($bodies as $index => $row) {
+            if (is_array($row) && count($row) === count($headers)) {
+                array_unshift($row, array_pop($row));
+                $bodies[$index] = $row;
+            }
+        }
+        // the cells after it keep their own styles and classes
+        $columnStyles = array_merge([''], array_values($columnStyles));
+        $columnClasses = array_merge(['column-__actions__'], array_values($columnClasses));
+        return [$headers, $bodies, $columnStyles, $columnClasses];
     }
 
     /**
