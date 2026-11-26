@@ -180,8 +180,32 @@ class BackupRuns
             throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')));
         }
         $progress->info('the backup before the restore', ['file' => $name]);
+        static::keepSafetyBackups();
         $progress->advance(1, 1);
         return $name;
+    }
+
+    /**
+     * Keep the last exment.backup.keep_safety backups made before a restore (3).
+     */
+    public static function keepSafetyBackups(): int
+    {
+        $keep = max(1, intval(config('exment.backup.keep_safety', 3)));
+        try {
+            $disk = \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_BACKUP_SYNC);
+            $files = array_values(array_filter($disk->files('list'), function ($file) {
+                return (bool) preg_match('/^' . static::SAFETY_PREFIX . '\d{14}\.zip$/', basename($file));
+            }));
+            // the name holds the time: the newest last
+            sort($files);
+            $old = array_slice($files, 0, max(0, count($files) - $keep));
+            if (count($old) > 0) {
+                $disk->delete($old);
+            }
+            return count($old);
+        } catch (\Throwable $e) {
+            return 0;
+        }
     }
 
     protected static function finished(RunProgress $progress, string $status, ?string $message): void
