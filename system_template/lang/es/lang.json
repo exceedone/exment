@@ -588,6 +588,11 @@
             "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Modo de mantenimiento"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "storage_conversion",
+            "title": "Conversión del almacenamiento de tablas"
         }
     ]
 }

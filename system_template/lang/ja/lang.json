@@ -588,6 +588,11 @@
             "menu_type": "system",
             "menu_name": "maintenance",
             "title": "メンテナンスモード"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "storage_conversion",
+            "title": "テーブル保存方式の変換"
         }
     ]
 }

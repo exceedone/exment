@@ -33,7 +33,7 @@ class MenuArranger
         ['master', [['table', 'base_info'], ['table', 'organization'], ['table', 'user'], ['table', 'information']]],
         ['admin_data', [['system', 'custom_table'], ['system', 'studio'], ['system', 'menu'], ['system', 'workflow'], ['table', 'mail_template'], ['system', 'notify'], ['system', 'cell_style_preset'], ['system', 'template']]],
         ['admin_user', [['system', 'loginuser'], ['system', 'role_group'], ['system', 'login_setting'], ['system', 'api_setting'], ['system', 'operation_log']]],
-        ['admin', [['system', 'system'], ['system', 'feature'], ['system', 'plugin'], ['system', 'backup'], ['system', 'tuning'], ['system', 'security_check'], ['system', 'scheduled_jobs'], ['system', 'maintenance']]],
+        ['admin', [['system', 'system'], ['system', 'feature'], ['system', 'plugin'], ['system', 'backup'], ['system', 'tuning'], ['system', 'security_check'], ['system', 'scheduled_jobs'], ['system', 'maintenance'], ['system', 'storage_conversion']]],
     ];
 
     /** The settings, after the groups of the feature map (master is 90). */

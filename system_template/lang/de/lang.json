@@ -588,6 +588,11 @@
             "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Wartungsmodus"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "storage_conversion",
+            "title": "Umstellung der Tabellenspeicherung"
         }
     ]
 }

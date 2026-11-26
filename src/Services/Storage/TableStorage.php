@@ -125,6 +125,12 @@ final class TableStorage
         );
     }
 
+    /** Application data access (reads and writes of values) is refused in this state: schema being prepared (02 §16). */
+    public function refusesDataAccess(): bool
+    {
+        return in_array($this->state, \Exceedone\Exment\Enums\StorageState::dataAccessRefusedStates(), true);
+    }
+
     /** Single-valued typed columns are the read source (storage_mode physical, physical-read state). */
     public function readsPhysical(): bool
     {

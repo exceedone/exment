@@ -588,6 +588,11 @@
             "menu_type": "system",
             "menu_name": "maintenance",
             "title": "维护模式"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "storage_conversion",
+            "title": "表存储方式转换"
         }
     ]
 }

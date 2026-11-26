@@ -588,6 +588,11 @@
             "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Chế độ bảo trì"
+        },
+        {
+            "menu_type": "system",
+            "menu_name": "storage_conversion",
+            "title": "Chuyển đổi cách lưu bảng"
         }
     ]
 }

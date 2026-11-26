@@ -40,8 +40,23 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
     {
         $this->assertSame(['custom_table', 'studio', 'menu', 'workflow', 'mail_template', 'notify', 'cell_style_preset', 'template'], $this->children('admin_data'));
         $this->assertSame(['loginuser', 'role_group', 'login_setting', 'api_setting', 'operation_log'], $this->children('admin_user'));
-        // the safety check is added under "admin" by its installer
-        $this->assertSame(['system', 'feature', 'plugin', 'backup', 'tuning', 'security_check', 'scheduled_jobs', 'maintenance'], array_values(array_diff($this->children('admin'), ['safety_check'])));
+        // the safety check is added under "admin" by its installer, the storage conversion by its migration
+        $this->assertSame(['system', 'feature', 'plugin', 'backup', 'tuning', 'security_check', 'scheduled_jobs', 'maintenance'], array_values(array_diff($this->children('admin'), ['safety_check', 'storage_conversion'])));
+    }
+
+    public function testTheSystemTemplateAndTheLayoutHaveTheStorageConversionMenuLast(): void
+    {
+        $config = json_decode(strval(file_get_contents(dirname(__DIR__, 2) . '/system_template/config.json')), true);
+        $admin = array_values(array_map(function ($m) {
+            return $m['menu_name'];
+        }, array_filter($config['admin_menu'], function ($m) {
+            return ($m['parent_name'] ?? null) === 'admin' && $m['menu_type'] === 'system';
+        })));
+        $this->assertSame('storage_conversion', end($admin));
+        $layout = collect(\Exceedone\Exment\Services\MenuArranger::LAYOUT)->first(function ($g) {
+            return $g[0] === 'admin';
+        });
+        $this->assertSame(['system', 'storage_conversion'], end($layout[1]));
     }
 
     public function testTheGroupsAreInOrder(): void

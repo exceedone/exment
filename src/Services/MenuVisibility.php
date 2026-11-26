@@ -362,6 +362,14 @@ class MenuVisibility
             }
         }
 
+        // the page of the storage conversion: only where the conversion is offered (the permission, the system
+        // administrator only, is checked below like any page; the page and its actions check both again)
+        if (array_get($item, 'menu_type') == MenuType::SYSTEM
+            && array_get($item, 'menu_name') === 'storage_conversion'
+            && !app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class)->isOffered()) {
+            return false;
+        }
+
         // if organization and not use org setting, return false
         if (array_get($item, 'menu_type') == MenuType::TABLE
             && array_get($item, 'table_name') == SystemTableName::ORGANIZATION

@@ -11,7 +11,9 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Services\Storage\ConversionAvailability;
 use Exceedone\Exment\Services\Storage\CutoverConfirmation;
 use Exceedone\Exment\Services\Storage\DrainAttestation;
+use Exceedone\Exment\Services\Storage\PhysicalColumnLifecycle;
 use Exceedone\Exment\Services\Storage\PhysicalSchemaManager;
+use Exceedone\Exment\Services\Storage\PhysicalTableInitializer;
 use Exceedone\Exment\Services\Storage\StagingCleanup;
 use Exceedone\Exment\Services\Storage\StorageConversionStatus;
 use Exceedone\Exment\Services\Storage\StorageTransitions;
@@ -188,6 +190,33 @@ class StorageConversionController extends AdminControllerBase
                 throw new StorageConversionException('deprovision refused: the typed table name does not match', []);
             }
             app(PhysicalSchemaManager::class)->deprovision($table);
+            return 'message_done';
+        });
+    }
+
+    /** Resume the initialization of a table created as physical (retry after a failed DDL step). */
+    public function initialize(Request $request, $id)
+    {
+        return $this->act($id, function (CustomTable $table) {
+            app(PhysicalTableInitializer::class)->initialize($table, (int)\Exment::getUserId());
+            return 'message_done';
+        });
+    }
+
+    /** Cancel an initialization (only while the table is empty): drop the empty typed columns, back to JSON. */
+    public function cancelInitialize(Request $request, $id)
+    {
+        return $this->act($id, function (CustomTable $table) {
+            app(PhysicalTableInitializer::class)->cancel($table, (int)\Exment::getUserId());
+            return 'message_done';
+        });
+    }
+
+    /** Recovery of an interrupted column step on a table that reads physical: schema = definition (idempotent). */
+    public function reconcile(Request $request, $id)
+    {
+        return $this->act($id, function (CustomTable $table) {
+            app(PhysicalColumnLifecycle::class)->reconcile($table, (int)\Exment::getUserId());
             return 'message_done';
         });
     }

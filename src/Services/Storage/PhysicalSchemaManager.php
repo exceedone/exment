@@ -578,6 +578,34 @@ class PhysicalSchemaManager
             throw new StorageConversionException('physical schema plan has blockers', ['blockers' => $plan->blockers()]);
         }
 
+        $added = $this->applyPlanDdl($table, $plan, $storage->generation());
+
+        return [
+            'state' => TableStorage::fresh($table)->toArray(),
+            'added' => $added,
+            'existing' => array_map(function ($e) {
+                return (string)$e['staging_column'];
+            }, $plan->existing()),
+            'json' => array_values(array_map(function ($e) {
+                return (string)$e['column_name'];
+            }, array_filter($plan->columns(), function ($e) {
+                return $e['action'] === 'json';
+            }))),
+            'warnings' => $eligibility->warnings(),
+        ];
+    }
+
+    /**
+     * The DDL of a plan: value_original first, then every missing staging column; idempotent, resumable.
+     * Shared by provision() (state provisioned) and the initialization of a table created as physical
+     * (state initializing). A database refusal leaves the columns added so far (DDL auto-commits), records
+     * an audit row with the SQLSTATE/driver code only, and throws; the caller keeps its state.
+     *
+     * @return array<int, string> the columns added
+     * @throws StorageConversionException
+     */
+    public function applyPlanDdl(CustomTable $table, PhysicalSchemaPlan $plan, int $generation, string $auditState = StorageState::PROVISIONED): array
+    {
         $db_table_name = $plan->dbTableName();
         $added = [];
         try {
@@ -597,7 +625,7 @@ class PhysicalSchemaManager
             // refuses an incomplete schema, deprovision() can remove the (empty) columns. Only the
             // SQLSTATE / driver code is reported: a DB message can carry identifiers and values.
             $code = static::dbErrorCode($ex);
-            StorageAudit::record((int)$table->id, StorageState::PROVISIONED, StorageState::PROVISIONED, $storage->generation(), $storage->generation(),
+            StorageAudit::record((int)$table->id, $auditState, $auditState, $generation, $generation,
                 ['operation' => 'provision_failed', 'db_error' => $code, 'added' => $added]);
             throw new StorageConversionException('provisioning stopped: the database refused a schema change (' . $code . ')'
                 . ($code === 'mysql:1118' ? ' - row size limit; this table cannot be converted in this release' : '')
@@ -608,19 +636,7 @@ class PhysicalSchemaManager
             $this->forgetColumnListing($db_table_name);
         }
 
-        return [
-            'state' => TableStorage::fresh($table)->toArray(),
-            'added' => $added,
-            'existing' => array_map(function ($e) {
-                return (string)$e['staging_column'];
-            }, $plan->existing()),
-            'json' => array_values(array_map(function ($e) {
-                return (string)$e['column_name'];
-            }, array_filter($plan->columns(), function ($e) {
-                return $e['action'] === 'json';
-            }))),
-            'warnings' => $eligibility->warnings(),
-        ];
+        return $added;
     }
 
     /**
@@ -724,6 +740,33 @@ class PhysicalSchemaManager
             throw new StorageConversionException('deprovision needs state provisioned', ['storage' => $storage->toArray()]);
         }
 
+        [$plan, $drop] = $this->dropEmptyStagingColumns($table);
+
+        $next = $storage->transitionTo(StorageState::JSON, StorageMode::JSON, false);
+        if ($next === null) {
+            throw new StorageConversionException('storage state changed concurrently; staging columns were dropped', ['dropped' => $drop]);
+        }
+        StorageAudit::record($next->tableId(), StorageState::PROVISIONED, StorageState::JSON, $storage->generation(), $next->generation(), ['operation' => 'deprovision', 'dropped' => $drop]);
+
+        $kept = array_map(function ($w) {
+            return (string)$w['message'];
+        }, array_filter($plan->warnings(), function ($w) {
+            return $w['code'] === 'orphan_staging_column';
+        }));
+
+        return ['state' => $next->toArray(), 'dropped' => $drop, 'kept' => array_values($kept)];
+    }
+
+    /**
+     * Drop the staging columns of the table's current columns and value_original - only when every one is
+     * ours (not generated, expected type) AND empty; otherwise nothing is dropped. Shared by deprovision()
+     * and the cancellation of an initializing table.
+     *
+     * @return array{0: PhysicalSchemaPlan, 1: array<int, string>} the plan used, the columns dropped
+     * @throws StorageConversionException
+     */
+    public function dropEmptyStagingColumns(CustomTable $table): array
+    {
         $plan = $this->plan($table);
         $db_table_name = $plan->dbTableName();
         $family = static::driverFamily();
@@ -762,18 +805,118 @@ class PhysicalSchemaManager
             $this->forgetColumnListing($db_table_name);
         }
 
-        $next = $storage->transitionTo(StorageState::JSON, StorageMode::JSON, false);
-        if ($next === null) {
-            throw new StorageConversionException('storage state changed concurrently; staging columns were dropped', ['dropped' => $drop]);
+        return [$plan, $drop];
+    }
+
+    // ------------------------------------------------------------------ per-column DDL (02 §16 lifecycle)
+
+    /**
+     * Idempotent: make sure value_original and the typed column of a single-valued column exist with the
+     * expected type (a name taken by anything else is refused, never altered). Returns the typed column
+     * name, or null for a column that has none (multi-valued: stays in JSON, R2).
+     *
+     * @throws StorageConversionException a database refusal (code only) or an unexpected live column
+     */
+    public function addColumnDdl(CustomTable $table, \Exceedone\Exment\Model\CustomColumn $column): ?string
+    {
+        if ($column->isMultipleEnabled()) {
+            return null;
         }
-        StorageAudit::record($next->tableId(), StorageState::PROVISIONED, StorageState::JSON, $storage->generation(), $next->generation(), ['operation' => 'deprovision', 'dropped' => $drop]);
+        $type = PhysicalColumnType::of($column);
+        if ($type === null) {
+            throw new StorageConversionException("column type {$column->column_type} has no physical type", ['column' => $column->column_name]);
+        }
+        $db_table_name = getDBTableName($table);
+        $name = PhysicalNaming::stagingColumn($column);
+        try {
+            $this->addValueOriginalColumn($db_table_name);
+            $this->addStagingColumn($db_table_name, $name, $type);
+        } catch (\Illuminate\Database\QueryException $ex) {
+            $code = static::dbErrorCode($ex);
+            throw new StorageConversionException('the database refused the column change (' . $code . ')'
+                . ($code === 'mysql:1118' ? ' - row size limit' : ''), ['db_error' => $code, 'column' => $column->column_name]);
+        } finally {
+            $this->forgetColumnListing($db_table_name);
+        }
+        return $name;
+    }
 
-        $kept = array_map(function ($w) {
-            return (string)$w['message'];
-        }, array_filter($plan->warnings(), function ($w) {
-            return $w['code'] === 'orphan_staging_column';
-        }));
+    /**
+     * Idempotent: drop the typed column of a column suuid and its index (SQL Server refuses to drop an
+     * indexed column; MySQL drops a single-column index with it, but is told explicitly for symmetry).
+     * Only a column of our naming that is not a generated column is dropped. Returns whether one was dropped.
+     */
+    public function dropColumnDdl(CustomTable $table, string $suuid): bool
+    {
+        $name = PhysicalNaming::STAGING_PREFIX . $suuid;
+        if (!PhysicalNaming::isStagingName($name) || strlen(PhysicalNaming::STAGING_INDEX_PREFIX . $suuid) > PhysicalNaming::MAX_IDENTIFIER_LENGTH) {
+            throw new StorageConversionException('not a valid typed column name', []);
+        }
+        $db_table_name = getDBTableName($table);
+        $live = $this->liveColumn($db_table_name, $name);
+        if ($live === null) {
+            return false;
+        }
+        if (!empty($live['generation'])) {
+            throw new StorageConversionException("$name is a generated column; it is not dropped", []);
+        }
+        $index = PhysicalNaming::STAGING_INDEX_PREFIX . $suuid;
+        try {
+            $schema = DB::connection()->getSchemaBuilder();
+            foreach ($schema->getIndexes($db_table_name) as $i) {
+                if ((string)$i['name'] === $index) {
+                    $schema->table($db_table_name, function (Blueprint $blueprint) use ($index) {
+                        $blueprint->dropIndex($index);
+                    });
+                    break;
+                }
+            }
+            $schema->table($db_table_name, function (Blueprint $blueprint) use ($name) {
+                $blueprint->dropColumn($name);
+            });
+        } catch (\Illuminate\Database\QueryException $ex) {
+            if ($this->liveColumn($db_table_name, $name) !== null) {
+                $code = static::dbErrorCode($ex);
+                throw new StorageConversionException('the database refused to drop the column (' . $code . ')', ['db_error' => $code]);
+            }
+        } finally {
+            $this->forgetColumnListing($db_table_name);
+        }
+        return true;
+    }
 
-        return ['state' => $next->toArray(), 'dropped' => $drop, 'kept' => array_values($kept)];
+    /**
+     * Typed columns of the live schema that no current column owns.
+     *
+     * @return array<int, string>
+     */
+    public function orphanStagingColumns(CustomTable $table): array
+    {
+        $own = [];
+        foreach ($table->custom_columns_cache as $column) {
+            if (!$column->isMultipleEnabled() && PhysicalColumnType::of($column) !== null && !empty($column->suuid)) {
+                $own[PhysicalNaming::stagingColumn($column)] = true;
+            }
+        }
+        $orphans = [];
+        foreach (DB::connection()->getSchemaBuilder()->getColumns(getDBTableName($table)) as $c) {
+            $name = (string)$c['name'];
+            if (PhysicalNaming::isStagingName($name) && !isset($own[$name]) && empty($c['generation'])) {
+                $orphans[] = $name;
+            }
+        }
+        return $orphans;
+    }
+    /** Idempotent: make sure the value_original column exists (recovery of an interrupted lifecycle step). */
+    public function ensureValueOriginal(CustomTable $table): void
+    {
+        $db_table_name = getDBTableName($table);
+        try {
+            $this->addValueOriginalColumn($db_table_name);
+        } catch (\Illuminate\Database\QueryException $ex) {
+            throw new StorageConversionException('the database refused to add value_original (' . static::dbErrorCode($ex) . ')', []);
+        } finally {
+            $this->forgetColumnListing($db_table_name);
+        }
     }
 }
