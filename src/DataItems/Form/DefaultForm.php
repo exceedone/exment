@@ -478,7 +478,19 @@ EOT;
                     'width' => $form_column->width ?? 4,
                 ]);
             }
+            $this->appendEmbedFields($form, $custom_form_block);
         };
+    }
+
+    /**
+     * Fields a form adds to a block, after its columns (not shown: internal fields). The fields of
+     * the block are the only values of it that are kept (EmbeddedForm::prepare).
+     *
+     * @param mixed $form the form of the block
+     * @param mixed $custom_form_block
+     */
+    protected function appendEmbedFields($form, $custom_form_block): void
+    {
     }
 
     /**

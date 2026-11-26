@@ -8,6 +8,8 @@ use ExmentAdminCore\Admin\Layout\Content;
 use Exceedone\Exment\Form\PublicContent;
 use Exceedone\Exment\Model\CustomForm;
 use Exceedone\Exment\Model\PublicForm;
+use Exceedone\Exment\Services\PublicFormService;
+use Illuminate\Support\Facades\RateLimiter;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
@@ -84,6 +86,20 @@ class PublicFormController extends Controller
             ;
         }
         return $this->getInputContent($request);
+    }
+
+    /**
+     * The script that puts the form in a web site: <script src=".../embed.js" async></script>.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function embedJs(Request $request)
+    {
+        return response($this->public_form->embedScript(), 200, [
+            'Content-Type' => 'application/javascript; charset=UTF-8',
+            'Cache-Control' => 'public, max-age=3600',
+            'X-Content-Type-Options' => 'nosniff',
+        ]);
     }
 
     // @phpstan-ignore-next-line
@@ -210,9 +226,26 @@ class PublicFormController extends Controller
             $public_form = $this->public_form;
             $custom_table = $this->custom_table;
 
-            $form->saving(function ($form) {
+            // submissions a hour from one address (a public form made by code, ISS02942)
+            $limit = intval($public_form->getOption(PublicFormService::RATE_LIMIT, 0));
+            if ($limit > 0) {
+                $limiterKey = 'exment_public_form:' . $public_form->uuid . ':' . strval($request->ip());
+                if (RateLimiter::tooManyAttempts($limiterKey, $limit)) {
+                    throw new \Exceedone\Exment\Exceptions\PublicFormNotFoundException();
+                }
+                RateLimiter::hit($limiterKey, 3600);
+            }
+            $fixed = PublicFormService::fixedValues($public_form);
+
+            $form->saving(function ($form) use ($fixed) {
                 // Disable default saved notify
                 $form->model()->saved_notify(false);
+                // the values every submission gets, not on the form: put in the inputs (after the
+                // validation, before they are set on the model), so the saving and saved events of
+                // the table see them
+                foreach ($fixed as $name => $value) {
+                    $form->input('value.' . strval($name), $value);
+                }
             });
 
             // notify

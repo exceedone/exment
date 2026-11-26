@@ -4372,7 +4372,7 @@ IPアドレス: :ip
             'sales' => '営業・顧客',
             'asset' => '資産管理',
             'project' => 'プロジェクト',
-            'it_support' => 'ITサポート',
+            'it_support' => 'サポート窓口',
             'hr' => '人事・総務',
             'admin_data' => '設定：データと画面',
             'admin_user' => '設定：ユーザーと権限',
