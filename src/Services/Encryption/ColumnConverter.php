@@ -99,7 +99,7 @@ class ColumnConverter
      * The json with the value of the column converted, null: not changed.
      *
      * @param mixed $json
-     * @param array{converted: int, unreadable: int} $result counted
+     * @param array{phase: string, after: int, done: bool, converted: int, unreadable: int} $result counted
      */
     protected static function convertJson($json, string $column, bool $encrypt, array &$result): ?string
     {

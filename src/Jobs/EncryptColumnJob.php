@@ -30,6 +30,9 @@ class EncryptColumnJob implements ShouldQueue
         $this->afterCommit();
     }
 
+    /**
+     * @return array<int, object>
+     */
     public function middleware(): array
     {
         return [new LogFailureOnSyncDriver()];
