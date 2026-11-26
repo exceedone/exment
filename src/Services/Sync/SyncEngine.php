@@ -126,12 +126,23 @@ class SyncEngine
             if (!$run->dry_run && boolval($mapping->option('check_deletes', true)) && static::deletesDue($mapping)) {
                 static::deletes($run, $mapping, $table);
             }
+            // the connector's own end of a run (the parents of the items, its own checks)
+            if ($connector instanceof SyncFinisher) {
+                try {
+                    foreach ($connector->finished($mapping, $run->dry_run, $run->count('errors') === 0) as $note) {
+                        static::error($run, null, strval($note), false);
+                    }
+                } catch (\Throwable $e) {
+                    static::error($run, null, static::safeMessage($e));
+                }
+            }
             static::finish($run, $mapping, $run->count('errors') > 0 ? SyncRun::STATUS_PARTIAL : SyncRun::STATUS_SUCCEEDED, null);
             return true;
         }
         $run->save();
-        if (!$run->dry_run) {
-            // the next run goes on from here, even when this one stops
+        if (!$run->dry_run && $run->count('errors') === 0) {
+            // the next run goes on from here, even when this one stops (never past an item that
+            // failed: the next run reads it again, and the ones written are unchanged by then)
             $mapping->cursor = $run->cursor;
             $mapping->save();
         }
@@ -373,7 +384,10 @@ class SyncEngine
             $mapping->next_run_at = Carbon::now()->addMinutes($wait);
         } else {
             $mapping->failures = 0;
-            $mapping->cursor = $run->cursor;
+            if ($status === SyncRun::STATUS_SUCCEEDED) {
+                // an item that failed is read again by the next run
+                $mapping->cursor = $run->cursor;
+            }
             $mapping->next_run_at = Carbon::now()->addMinutes(max(1, $mapping->interval_minutes));
         }
         $mapping->save();

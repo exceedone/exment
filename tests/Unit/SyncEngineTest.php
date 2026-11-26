@@ -116,8 +116,17 @@ class FakeSyncConnector implements SyncConnector
  * A connector of the tests that writes its items itself (SyncWriter), with a setting of its own on
  * the mapping (SyncMappingFields): the "prefix" put before each title.
  */
-class FakeWriterConnector extends FakeSyncConnector implements \Exceedone\Exment\Services\Sync\SyncWriter, \Exceedone\Exment\Services\Sync\SyncMappingFields
+class FakeWriterConnector extends FakeSyncConnector implements \Exceedone\Exment\Services\Sync\SyncWriter, \Exceedone\Exment\Services\Sync\SyncMappingFields, \Exceedone\Exment\Services\Sync\SyncFinisher
 {
+    /** @var array<int, array{0: bool, 1: bool}> the ends of the runs: [dry, complete] */
+    public static array $finished = [];
+
+    public function finished(SyncMapping $mapping, bool $dry, bool $complete): array
+    {
+        static::$finished[] = [$dry, $complete];
+        return $dry ? [] : ['finished ' . ($complete ? 'complete' : 'with errors')];
+    }
+
     /** @var array<int, string> the items written (not in a dry run) */
     public static array $written = [];
 
@@ -391,6 +400,7 @@ class SyncEngineTest extends UnitTestBase
     {
         SyncConnectors::register(new FakeWriterConnector());
         FakeWriterConnector::$written = [];
+        FakeWriterConnector::$finished = [];
         FakeSyncConnector::$items = [$this->item('w1', 'Writer one'), $this->item('w2', 'bad'), $this->item('w3', 'Writer three')];
         $mapping = $this->mapping();
         $mapping->connection->connector = 'fakew';
@@ -417,6 +427,11 @@ class SyncEngineTest extends UnitTestBase
         $one = $this->record($mapping, 'w1');
         $this->assertNotNull($one);
         $this->assertSame('BL-Writer one', $one->getValue('text'));
+        // the end of the run: told it had errors; and the cursor is not moved past the item that failed
+        $this->assertSame([[true, false], [false, false]], FakeWriterConnector::$finished);
+        $this->assertSame('finished with errors', SyncRunError::query()->where('sync_run_id', $run->id)->whereNull('remote_id')->value('message'));
+        $mapping->refresh();
+        $this->assertNull($mapping->cursor, 'read again by the next run');
 
         // again: the same values are not given to the writer again
         $mapping->refresh();
