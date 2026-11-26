@@ -394,6 +394,14 @@ class Notify extends ModelBase
             }
 
             $users = $this->uniqueUsers($users, $action_setting);
+
+            // what each user needs, read once for all of them (ISS02906): when the notification
+            // was sent last, and the settings of the user (language, time zone)
+            $this->preloadSentHistories($mail_template, $custom_table, $custom_value, $users);
+            \Exceedone\Exment\Services\UserLocale::preloadSettings($users->map(function ($user) {
+                return $user instanceof NotifyTarget ? $user->id() : null;
+            })->filter()->values()->all());
+
             foreach ($users as $user) {
                 if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, true, $action_setting)) {
                     continue;
@@ -420,6 +428,9 @@ class Notify extends ModelBase
                 }
             }
         }
+
+        // read again by the next run (it sees the logs this one wrote)
+        $this->sentHistories = [];
     }
 
 
@@ -789,14 +800,20 @@ class Notify extends ModelBase
 
         // if already send notify in 1 minutes, continue.
         if ($checkHistory && $custom_value && $mail_template) {
-            $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
-            $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
-            $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)::where($index_user, $user->id())
-                ->where($index_mail_template, $mail_template->id)
-                ->where('parent_id', $custom_value->id)
-                ->where('parent_type', $custom_table->table_name)
-                ->get()
-            ;
+            $preloadKey = $this->sentHistoriesKey($mail_template, $custom_table, $custom_value);
+            if (isset($this->sentHistories[$preloadKey]) && !is_nullorempty($user->id())) {
+                // read for all the users at once (preloadSentHistories)
+                $mail_send_histories = $this->sentHistories[$preloadKey][strval($user->id())] ?? [];
+            } else {
+                $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
+                $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
+                $mail_send_histories = getModelName(SystemTableName::MAIL_SEND_LOG)::where($index_user, $user->id())
+                    ->where($index_mail_template, $mail_template->id)
+                    ->where('parent_id', $custom_value->id)
+                    ->where('parent_type', $custom_table->table_name)
+                    ->get()
+                ;
+            }
 
             foreach ($mail_send_histories as $mail_send_log) {
                 // If user were sending within 5 minutes, false
@@ -812,6 +829,63 @@ class Notify extends ModelBase
         }
 
         return true;
+    }
+
+    /**
+     * The mail send logs of this notification for each user, read once for all the users that
+     * get it (the same query as approvalSendUser, with all their ids), ISS02906.
+     *
+     * @var array<string, array<string, array<int, mixed>>>
+     */
+    protected $sentHistories = [];
+
+    /**
+     * @param mixed $mail_template
+     * @param mixed $custom_table
+     * @param mixed $custom_value
+     * @param iterable<mixed> $users
+     */
+    protected function preloadSentHistories($mail_template, $custom_table, $custom_value, $users): void
+    {
+        if (!$custom_value || !$mail_template || !$custom_table) {
+            return;
+        }
+        $ids = [];
+        foreach ($users as $user) {
+            if ($user instanceof NotifyTarget && !is_nullorempty($user->id())) {
+                $ids[] = $user->id();
+            }
+        }
+        if (count($ids) === 0) {
+            return;
+        }
+
+        $mail_send_log_table = CustomTable::getEloquent(SystemTableName::MAIL_SEND_LOG);
+        $index_user = CustomColumn::getEloquent('user', $mail_send_log_table)->getIndexColumnName();
+        $index_mail_template = CustomColumn::getEloquent('mail_template', $mail_send_log_table)->getIndexColumnName();
+
+        $byUser = [];
+        foreach (array_chunk(array_values(array_unique($ids)), 1000) as $chunk) {
+            $logs = getModelName(SystemTableName::MAIL_SEND_LOG)::whereIn($index_user, $chunk)
+                ->where($index_mail_template, $mail_template->id)
+                ->where('parent_id', $custom_value->id)
+                ->where('parent_type', $custom_table->table_name)
+                ->get();
+            foreach ($logs as $log) {
+                $byUser[strval(array_get($log, 'value.user'))][] = $log;
+            }
+        }
+        $this->sentHistories[$this->sentHistoriesKey($mail_template, $custom_table, $custom_value)] = $byUser;
+    }
+
+    /**
+     * @param mixed $mail_template
+     * @param mixed $custom_table
+     * @param mixed $custom_value
+     */
+    protected function sentHistoriesKey($mail_template, $custom_table, $custom_value): string
+    {
+        return implode(':', [$mail_template->id ?? '', $custom_table->table_name ?? '', $custom_value->id ?? '']);
     }
 
     /**

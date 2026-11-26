@@ -137,8 +137,19 @@ class UserTimezone
         if (is_nullorempty($timezone)) {
             return false;
         }
-        return in_array($timezone, timezone_identifiers_list(), true) || strtoupper((string)$timezone) === 'UTC';
+        // the list made once (it was made for each check: once a user of a notification, ISS02906)
+        if (!isset(static::$identifiers)) {
+            static::$identifiers = array_flip(timezone_identifiers_list());
+        }
+        return isset(static::$identifiers[$timezone]) || strtoupper((string)$timezone) === 'UTC';
     }
+
+    /**
+     * The names of the time zones PHP knows, as keys.
+     *
+     * @var array<string, int>|null
+     */
+    protected static $identifiers = null;
 
     // the conversion ----------------------------------------------------
 

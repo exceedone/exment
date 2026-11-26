@@ -171,20 +171,39 @@ class Plugin extends ModelBase
             return [];
         }
 
+        $table_name = CustomTable::getEloquent($custom_table)->table_name ?? null;
+
+        // the same in a request (a notification to many users asked once a user, ISS02906):
+        // by the table, the filter and the login user; again after a plugin is saved
+        // (one entry holding all of them, so that clearRequestSession() of it empties them)
+        $hash = implode(':', [$table_name, $filterAccessible ? 1 : 0, \Exment::getUserId() ?? '']);
+        $kept = System::requestSession(static::PLUGINS_BY_TABLE_KEY);
+        $kept = is_array($kept) ? $kept : [];
+        if (array_key_exists($hash, $kept)) {
+            return $kept[$hash];
+        }
+
         $func = $filterAccessible ? 'getAccessableByPluginTypes' : 'getByPluginTypes';
-        return static::{$func}(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())->filter(function ($plugin) use ($custom_table) {
+        $plugins = static::{$func}(PluginType::PLUGIN_TYPE_CUSTOM_TABLE())->filter(function ($plugin) use ($table_name) {
             $target_tables = array_get($plugin, 'options.target_tables', []);
             if (is_nullorempty($target_tables)) {
                 return false;
             }
 
-            if (!in_array(CustomTable::getEloquent($custom_table)->table_name, $target_tables)) {
+            if (!in_array($table_name, $target_tables)) {
                 return false;
             }
 
             return true;
         });
+
+        $kept[$hash] = $plugins;
+        System::setRequestSession(static::PLUGINS_BY_TABLE_KEY, $kept);
+        return $plugins;
     }
+
+    /** the request session of getPluginsByTable() */
+    protected const PLUGINS_BY_TABLE_KEY = 'plugins_by_table';
 
     /**
      * Get Batches filtering hour
@@ -1031,9 +1050,11 @@ class Plugin extends ModelBase
         // what the plugins registered as features is made again (the routes cached)
         static::saved(function ($model) {
             \Exceedone\Exment\Services\Features::forgetPluginsCache();
+            System::clearRequestSession(static::PLUGINS_BY_TABLE_KEY);
         });
         static::deleted(function ($model) {
             \Exceedone\Exment\Services\Features::forgetPluginsCache();
+            System::clearRequestSession(static::PLUGINS_BY_TABLE_KEY);
         });
     }
 }
