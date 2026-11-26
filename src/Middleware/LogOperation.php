@@ -198,6 +198,8 @@ class LogOperation extends BaseLogOperation
             'system_teams_workflow_url_new',
             // the application of the mail with OAuth (ISS02913)
             'system_mail_oauth_client_secret',
+            // the refresh token of the mailbox (Google): whoever has it sends mail as the mailbox
+            'system_mail_oauth_refresh_token',
         ];
     }
 
