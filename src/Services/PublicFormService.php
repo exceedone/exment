@@ -91,7 +91,7 @@ class PublicFormService
             $options[static::FIXED_VALUES] = $fixed;
             $options[static::RATE_LIMIT] = max(0, intval($opts['rate_limit'] ?? 0));
             $options['use_confirm'] = boolval($opts['confirm'] ?? false);
-            $options['use_recaptcha'] = boolval($opts['recaptcha'] ?? PublicForm::isEnableRecaptcha());
+            $options['use_recaptcha'] = boolval($opts['recaptcha'] ?? (PublicForm::isEnableRecaptcha() === true));
             foreach (['complete_title', 'complete_text'] as $key) {
                 if (array_key_exists($key, $opts)) {
                     $options[$key] = strval($opts[$key]);
