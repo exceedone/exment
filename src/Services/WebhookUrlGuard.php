@@ -19,15 +19,27 @@ class WebhookUrlGuard
      */
     public static function isAllowed(?string $url, ?bool $denyPrivate = null): bool
     {
+        return static::allowedIps($url, $denyPrivate) !== null;
+    }
+
+    /**
+     * The addresses of the host Exment may post to, to connect to these and no other (a name
+     * may answer another address the next time it is asked). Null: not allowed; empty: a host
+     * the administrator allows, connected to by its name.
+     *
+     * @return array<string>|null
+     */
+    public static function allowedIps(?string $url, ?bool $denyPrivate = null): ?array
+    {
         if (is_nullorempty($url)) {
-            return false;
+            return null;
         }
         $parts = parse_url((string)$url);
         if ($parts === false || !in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true) || empty($parts['host'])) {
-            return false;
+            return null;
         }
         if (isset($parts['user']) || isset($parts['pass'])) {
-            return false;
+            return null;
         }
 
         $host = trim($parts['host'], '[]');
@@ -38,21 +50,21 @@ class WebhookUrlGuard
             return strtolower(trim($h));
         }, explode(',', (string)config('exment.notify_webhook_allow_hosts', ''))));
         if (in_array(strtolower($host), $allowHosts, true)) {
-            return true;
+            return [];
         }
 
         $ips = static::resolve($host);
         if (empty($ips)) {
-            return false;
+            return null;
         }
 
         $denyPrivate = $denyPrivate ?? boolval(config('exment.notify_webhook_deny_private', false));
         foreach ($ips as $ip) {
             if (!static::isAllowedIp($ip, $denyPrivate)) {
-                return false;
+                return null;
             }
         }
-        return true;
+        return $ips;
     }
 
     /**
