@@ -208,7 +208,7 @@ class Google
     protected function throttleKey(\Illuminate\Http\Request $request): string
     {
         $loginuser = \Admin::user();
-        return '2factor|' . ($loginuser ? $loginuser->id : $request->ip());
+        return '2factor|' . ($loginuser ? $loginuser->id : \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip()));
     }
 
     /**

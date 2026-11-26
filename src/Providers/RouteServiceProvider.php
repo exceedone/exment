@@ -38,7 +38,7 @@ class RouteServiceProvider extends ServiceProvider
                 $per_minute = ApiRateRaises::perMinute($rate_limit, ApiRateRaises::userOfApiKey((string)$bearer));
                 // by the IP (a new random key each time, or many keys, do not get more) and by the key
                 return [
-                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
+                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip())),
                     Limit::perMinute($per_minute)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
                 ];
             }
@@ -47,7 +47,7 @@ class RouteServiceProvider extends ServiceProvider
             $token = $login_user instanceof \Exceedone\Exment\Model\LoginUser ? $login_user->token() : null;
             $client_id = $token instanceof \Laravel\Passport\Token ? $token->client_id : null;
             $per_minute = ApiRateRaises::perMinute($rate_limit, $login_user?->base_user_id, $client_id);
-            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: $request->ip());
+            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip()));
         });
     }
     /**
