@@ -40,6 +40,7 @@ class ScheduledJobs
         'exment:audit-report' => 'audit_report',
         'exment:sync' => 'sync',
         'exment:queue-heartbeat' => 'queue_heartbeat',
+        'exment:tuning-data' => 'tuning_data',
     ];
 
     /** The feature a job is for: when it is not used, the job does nothing. */
