@@ -1543,7 +1543,6 @@ return [
                 'used_space' => ':count backups, :size in total',
                 'free_space' => ':size free',
                 'free_space_low' => 'The disk of the backups is running out of free space (:size left). Delete the backups you no longer need.',
-                'backup_first' => 'Before the restore',
                 'backup_first_option' => 'Back up the current data (recommended)',
                 'backup_first_help' => 'Before the restore, the current data is backed up as "beforerestore" plus the date and time. If something goes wrong, you can restore it.',
                 'preview' => 'What is replaced',

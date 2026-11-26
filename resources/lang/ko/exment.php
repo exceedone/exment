@@ -1496,7 +1496,6 @@ return [
                 'used_space' => '백업 :count개・합계 :size',
                 'free_space' => '여유 :size',
                 'free_space_low' => '백업을 두는 디스크의 여유 공간이 부족합니다(남은 공간 :size). 필요 없는 백업을 삭제해 주세요.',
-                'backup_first' => '복원 전에',
                 'backup_first_option' => '현재 데이터를 백업하기(권장)',
                 'backup_first_help' => '복원 전에 현재 데이터를 "beforerestore+날짜와 시간" 이름으로 백업합니다. 문제가 생기면 이것으로 되돌릴 수 있습니다.',
                 'preview' => '바뀌는 내용',

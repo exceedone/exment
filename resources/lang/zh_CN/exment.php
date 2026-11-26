@@ -1496,7 +1496,6 @@ return [
                 'used_space' => '备份 :count 个・合计 :size',
                 'free_space' => '可用 :size',
                 'free_space_low' => '存放备份的磁盘可用空间不足（剩余 :size）。请删除不需要的备份。',
-                'backup_first' => '还原之前',
                 'backup_first_option' => '备份当前数据（推荐）',
                 'backup_first_help' => '还原之前，以“beforerestore＋日期时间”的名称备份当前数据。出现问题时可以用它恢复。',
                 'preview' => '将被替换的内容',

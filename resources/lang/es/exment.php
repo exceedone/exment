@@ -1496,7 +1496,6 @@ return [
                 'used_space' => ':count copias, :size en total',
                 'free_space' => ':size libres',
                 'free_space_low' => 'Queda poco espacio libre en el disco de las copias de seguridad (:size). Elimine las copias que ya no necesite.',
-                'backup_first' => 'Antes de restaurar',
                 'backup_first_option' => 'Hacer una copia de los datos actuales (recomendado)',
                 'backup_first_help' => 'Antes de restaurar, se hace una copia de los datos actuales con el nombre «beforerestore» más la fecha y la hora. Si algo sale mal, puede restaurarla.',
                 'preview' => 'Qué se reemplaza',

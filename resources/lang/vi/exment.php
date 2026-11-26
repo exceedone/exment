@@ -1496,7 +1496,6 @@ return [
                 'used_space' => ':count bản sao lưu, tổng :size',
                 'free_space' => 'Còn trống :size',
                 'free_space_low' => 'Ổ đĩa chứa bản sao lưu sắp hết dung lượng trống (còn :size). Hãy xóa các bản sao lưu không cần thiết.',
-                'backup_first' => 'Trước khi khôi phục',
                 'backup_first_option' => 'Sao lưu dữ liệu hiện tại (khuyến nghị)',
                 'backup_first_help' => 'Trước khi khôi phục, dữ liệu hiện tại được sao lưu với tên "beforerestore" kèm ngày giờ. Nếu có sự cố, bạn có thể khôi phục lại từ bản này.',
                 'preview' => 'Nội dung sẽ bị thay thế',

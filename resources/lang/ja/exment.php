@@ -1543,7 +1543,6 @@ return [
                 'used_space' => 'バックアップ :count 個・合わせて :size',
                 'free_space' => '空き :size',
                 'free_space_low' => 'バックアップを置くディスクの空きが少なくなっています（残り :size）。いらないバックアップを消してください。',
-                'backup_first' => 'リストアの前に',
                 'backup_first_option' => '今のデータをバックアップする（おすすめ）',
                 'backup_first_help' => 'リストアの前に、今のデータを「beforerestore＋日時」の名前でバックアップします。うまくいかなかったときは、それを使って元に戻せます。',
                 'preview' => '置きかわるもの',

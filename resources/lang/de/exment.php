@@ -1496,7 +1496,6 @@ return [
                 'used_space' => ':count Sicherungen, insgesamt :size',
                 'free_space' => ':size frei',
                 'free_space_low' => 'Auf dem Datenträger der Sicherungen wird der freie Speicher knapp (:size übrig). Löschen Sie nicht mehr benötigte Sicherungen.',
-                'backup_first' => 'Vor der Wiederherstellung',
                 'backup_first_option' => 'Die aktuellen Daten sichern (empfohlen)',
                 'backup_first_help' => 'Vor der Wiederherstellung werden die aktuellen Daten als „beforerestore“ mit Datum und Uhrzeit gesichert. Geht etwas schief, können Sie sie damit wiederherstellen.',
                 'preview' => 'Was ersetzt wird',
