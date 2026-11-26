@@ -42,9 +42,10 @@ class BackupRunScreenTest extends FeatureTestBase
     {
         foreach (BackupRun::query()->get() as $run) {
             /** @var BackupRun $run */
-            $path = BackupRuns::logFullPath($run);
-            if (is_file($path)) {
-                @unlink($path);
+            foreach ([BackupRuns::logFullPath($run), BackupRuns::statusPath($run->uuid), BackupRuns::consolePath($run)] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
             }
         }
         SecretMasker::flush();
@@ -191,6 +192,105 @@ class BackupRunScreenTest extends FeatureTestBase
         $this->assertEveryRouteIsForbidden($run);
 
         $this->assertSame(0, BackupRun::query()->where('id', '<>', $run->id)->count(), 'no run was started');
+    }
+
+    public function testTheJsonOfTheRunsIs403WithoutAjaxToo(): void
+    {
+        $run = $this->finishedRun();
+        $user = $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        if ($user->allPermissions()->isEmpty()) {
+            // a user without any role: admin-core's page "permission denied" sends itself and stops (exit)
+            $this->markTestSkipped('the test user has no role');
+        }
+        // not the page "permission denied" answered 200: the controller answers 403
+        $this->get(admin_url('backup/runs/current'))->assertForbidden();
+        $this->get(admin_urls('backup', 'runs', $run->uuid, 'status'))->assertForbidden();
+        $this->get(admin_urls('backup', 'runs', $run->uuid))->assertForbidden();
+    }
+
+    public function testTheRunsAnswerDuringTheMaintenanceOfARestore(): void
+    {
+        $property = new \ReflectionProperty(\Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class, 'neverPrevent');
+        $except = (array) $property->getValue();
+        $this->assertContains(trim(strval(config('admin.route.prefix', 'admin')), '/') . '/backup/runs/*', $except);
+        $this->assertSame('exment::backup.restoring', \Exceedone\Exment\Services\BackupRestore\Restore::downOptions()['--render']);
+        $this->assertStringContainsString(e(exmtrans('backup.run.screen.restoring_text')), view('exment::backup.restoring')->render());
+    }
+
+    public function testARestoreOfTheScreenRunsApart(): void
+    {
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, [
+            'file_name' => 'claudeapart',
+            'targets' => [BackupRuns::SOURCE_STORED, 'claudeapart'],
+        ], true);
+        $this->assertSame(BackupRun::STATUS_QUEUED, $run->status);
+
+        // the command line: the artisan of the site and the uuid of the run only
+        $line = BackupRuns::restoreCommandLine($run);
+        $this->assertStringContainsString('exment:restore --run=' . $run->uuid . ' --yes', $line);
+        $this->assertStringContainsString(base_path('artisan'), $line);
+        $password = strval(config('database.connections.' . config('database.default') . '.password'));
+        if ($password !== '') {
+            $this->assertStringNotContainsString($password, $line);
+        }
+
+        // the command takes it: the request answers at once
+        $lines = [];
+        $this->assertTrue(BackupRuns::launchRestore($run, function (string $line) use (&$lines, $run) {
+            $lines[] = $line;
+            $this->assertNotNull(BackupRuns::takeQueued($run->uuid, BackupRun::KIND_RESTORE));
+        }));
+        $this->assertCount(1, $lines);
+        $this->assertSame(BackupRun::STATUS_RUNNING, $run->refresh()->status);
+        // taken once only
+        $this->assertNull(BackupRuns::takeQueued($run->uuid, BackupRun::KIND_RESTORE));
+    }
+
+    public function testARestoreNotTakenApartIsRunHere(): void
+    {
+        config(['exment.backup.detach_wait_seconds' => 0]);
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, ['targets' => [BackupRuns::SOURCE_UPLOAD, 'claude.zip']], true);
+
+        $this->assertFalse(BackupRuns::launchRestore($run, function (string $line) {
+            // the process did not start
+        }));
+        $this->assertSame(BackupRun::STATUS_RUNNING, $run->status, 'taken back by the request');
+        $this->assertNull(BackupRuns::takeQueued($run->uuid, BackupRun::KIND_RESTORE), 'a process that starts late does not run it again');
+
+        $this->runArtisan('exment:restore', ['--run' => $run->uuid, '--yes' => true])->assertExitCode(1)->run();
+        $this->runArtisan('exment:restore', ['--run' => 'not-a-uuid', '--yes' => true])->assertExitCode(1)->run();
+    }
+
+    public function testTheStatusFileIsReadWhileTheTableIsReplaced(): void
+    {
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN);
+        $progress = new RunProgress($run);
+        $progress->begin();
+        $progress->stage('verify');
+        $progress->databaseReplacing();
+        $progress->stage('load', 10);
+        $progress->advance(4);
+
+        // the restore replaced the table: the run is not in it
+        \DB::table(BackupRun::TABLE)->where('uuid', $run->uuid)->delete();
+        $status = $this->get(admin_urls('backup', 'runs', $run->uuid, 'status'), self::AJAX)->assertOk();
+        $status->assertJson(['run' => ['uuid' => $run->uuid, 'stage' => 'load', 'active' => true, 'stage_done' => 4]]);
+        $this->get(admin_url('backup/runs/current'), self::AJAX)->assertOk()->assertJson(['run' => ['uuid' => $run->uuid]]);
+
+        $progress->databaseReplaced();
+        $progress->finish(BackupRun::STATUS_SUCCEEDED);
+        $this->get(admin_urls('backup', 'runs', $run->uuid, 'status'), self::AJAX)->assertOk()->assertJson(['run' => ['status' => 'succeeded', 'active' => false]]);
+        @unlink(BackupRuns::statusPath($run->uuid));
+    }
+
+    /**
+     * @param array<string, mixed> $parameters
+     */
+    private function runArtisan(string $command, array $parameters = []): \Illuminate\Testing\PendingCommand
+    {
+        $pending = $this->artisan($command, $parameters);
+        $this->assertInstanceOf(\Illuminate\Testing\PendingCommand::class, $pending);
+        return $pending;
     }
 
     private function assertEveryRouteIsForbidden(BackupRun $run): void

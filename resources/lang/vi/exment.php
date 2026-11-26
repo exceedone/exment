@@ -1491,6 +1491,10 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restore_in_request' => 'Khôi phục từ màn hình này',
+                'restore_command_note' => 'Trên máy chủ này, việc khôi phục chạy trong yêu cầu của màn hình này. Với trang web lớn, việc này mất nhiều thời gian và màn hình có thể ngừng chờ (việc khôi phục vẫn tiếp tục). Với trang web lớn, nên dùng lệnh php artisan exment:restore trên máy chủ.',
+                'restoring_title' => 'Đang khôi phục',
+                'restoring_text' => 'Đang khôi phục. Vui lòng chờ trong giây lát. Trang này sẽ tự tải lại khi xong.',
                 'scope' => 'Nội dung sao lưu',
                 'scopes' => [
                     'all' => 'Theo cài đặt (tất cả đối tượng)',
@@ -1566,6 +1570,7 @@ return [
                 'stalled' => 'Không có tiến triển trong :minutes phút trở lên nên được xem là đã dừng. Bạn có thể chạy lại.',
                 'stalled_queued' => 'Đã chờ trong hàng đợi :minutes phút trở lên mà không bắt đầu. Hãy kiểm tra worker của hàng đợi có đang chạy không.',
                 'stalled_restored' => 'Lần chạy này đang diễn ra vào lúc tạo bản sao lưu đã được khôi phục.',
+                'restore_started' => 'Đã bắt đầu khôi phục. Bạn có thể theo dõi tiến độ trên màn hình này. Khi xong, bạn sẽ cần đăng nhập lại.',
             ],
             'hints' => [
                 'see_log' => 'Hãy xem nhật ký chi tiết.',

@@ -21,7 +21,7 @@ class RestoreCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:restore {file?} {--tmp=} {--yes}';
+    protected $signature = 'exment:restore {file?} {--tmp=} {--yes} {--run= : the uuid of a restore asked on the screen, run apart}';
 
     /**
      * The console command description.
@@ -54,6 +54,11 @@ class RestoreCommand extends Command
      */
     public function handle()
     {
+        // a restore asked on the screen, started apart (BackupRuns::launchRestore)
+        if (!is_nullorempty($this->option('run'))) {
+            return $this->handleRun(strval($this->option('run')));
+        }
+
         $message = preg_replace('/<br>/u', '', exmtrans('backup.message.restore_caution'));
 
         if (!boolval($this->option('yes')) && !$this->confirm($message)) {
@@ -107,6 +112,46 @@ class RestoreCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Run the restore of a run the screen started (queued): its file is in the run.
+     */
+    protected function handleRun(string $uuid): int
+    {
+        $run = BackupRuns::takeQueued($uuid, BackupRun::KIND_RESTORE);
+        if (!isset($run)) {
+            $this->error('The restore is not waiting: ' . $uuid);
+            return 1;
+        }
+        $targets = array_values($run->targets ?? []);
+        $tmp = ($targets[0] ?? null) === BackupRuns::SOURCE_UPLOAD;
+        $file = strval($targets[1] ?? '');
+        \Exment::setTimeLimitLong();
+        ignore_user_abort(true);
+
+        try {
+            $this->restore->initBackupRestore();
+            $result = BackupRuns::runRestore($run, $this->restore, $file, $tmp, function (string $line) {
+                $this->line($line);
+            });
+        } catch (\Throwable $e) {
+            // told in the run (its log, the bell and the mail)
+            $this->error(\Exceedone\Exment\Services\BackupRestore\SecretMasker::mask($e->getMessage()));
+            return 1;
+        } finally {
+            $this->restore->diskService()?->deleteTmpDirectory();
+        }
+
+        // the uploaded file is consumed (kept when the restore failed, to try again)
+        if ($result === 0 && $tmp && $file !== '') {
+            try {
+                \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_ADMIN_TMP)->delete($file);
+            } catch (\Throwable $e) {
+                // nothing more
+            }
+        }
+        return $result === 0 ? 0 : 1;
     }
 
     // @phpstan-ignore-next-line

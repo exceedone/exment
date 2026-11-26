@@ -1491,6 +1491,10 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restore_in_request' => '이 화면에서 복원',
+                'restore_command_note' => '이 서버에서는 복원이 이 화면의 요청 안에서 실행됩니다. 큰 사이트에서는 시간이 오래 걸려 화면이 기다리다 끊길 수 있습니다(복원은 계속됩니다). 큰 사이트에서는 서버에서 php artisan exment:restore 명령을 사용하는 것을 권장합니다.',
+                'restoring_title' => '복원 중입니다',
+                'restoring_text' => '복원 중입니다. 잠시 기다려 주세요. 끝나면 이 화면이 자동으로 바뀝니다.',
                 'scope' => '포함할 내용',
                 'scopes' => [
                     'all' => '설정대로(모든 대상)',
@@ -1566,6 +1570,7 @@ return [
                 'stalled' => ':minutes분 이상 진행이 없어 멈춘 것으로 보았습니다. 다시 실행할 수 있습니다.',
                 'stalled_queued' => ':minutes분 이상 큐에서 기다렸지만 시작되지 않았습니다. 큐 워커가 실행 중인지 확인해 주세요.',
                 'stalled_restored' => '복원한 백업을 만들 때 실행 중이던 기록입니다.',
+                'restore_started' => '복원을 시작했습니다. 진행 상황은 이 화면에서 볼 수 있습니다. 끝나면 다시 로그인하게 됩니다.',
             ],
             'hints' => [
                 'see_log' => '자세한 로그를 확인해 주세요.',

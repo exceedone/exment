@@ -1491,6 +1491,10 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restore_in_request' => 'Wiederherstellung über diese Seite',
+                'restore_command_note' => 'Auf diesem Server läuft die Wiederherstellung innerhalb der Anfrage dieser Seite. Bei einer großen Website dauert das lange, und die Seite kann das Warten abbrechen (die Wiederherstellung läuft weiter). Für große Websites wird der Befehl php artisan exment:restore auf dem Server empfohlen.',
+                'restoring_title' => 'Wiederherstellung läuft',
+                'restoring_text' => 'Eine Wiederherstellung läuft. Bitte warten Sie einen Moment. Diese Seite lädt sich nach dem Ende von selbst neu.',
                 'scope' => 'Umfang',
                 'scopes' => [
                     'all' => 'Wie in den Einstellungen (alle Ziele)',
@@ -1566,6 +1570,7 @@ return [
                 'stalled' => 'Seit :minutes Minuten oder länger gab es keinen Fortschritt; der Vorgang gilt als angehalten. Sie können ihn erneut ausführen.',
                 'stalled_queued' => 'Der Vorgang hat :minutes Minuten oder länger in der Warteschlange gewartet und nicht begonnen. Prüfen Sie, ob der Queue-Worker läuft.',
                 'stalled_restored' => 'Dieser Vorgang lief, als die wiederhergestellte Sicherung erstellt wurde.',
+                'restore_started' => 'Die Wiederherstellung wurde gestartet. Den Fortschritt sehen Sie auf dieser Seite. Danach melden Sie sich erneut an.',
             ],
             'hints' => [
                 'see_log' => 'Sehen Sie sich das ausführliche Protokoll an.',

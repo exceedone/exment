@@ -1491,6 +1491,10 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restore_in_request' => '从此页面还原',
+                'restore_command_note' => '在此服务器上，还原在此页面的请求中执行。大型网站耗时较长，页面可能会等待超时（还原仍会继续）。大型网站建议在服务器上使用 php artisan exment:restore 命令。',
+                'restoring_title' => '正在还原',
+                'restoring_text' => '正在还原。请稍候。结束后此页面会自动刷新。',
                 'scope' => '备份内容',
                 'scopes' => [
                     'all' => '按设置（全部对象）',
@@ -1566,6 +1570,7 @@ return [
                 'stalled' => '已有 :minutes 分钟以上没有进展，视为已停止。可以再次执行。',
                 'stalled_queued' => '在队列中等待 :minutes 分钟以上仍未开始。请确认队列的 worker 是否在运行。',
                 'stalled_restored' => '这是还原的备份创建时正在执行的记录。',
+                'restore_started' => '已开始还原。可以在此页面查看进度。结束后需要重新登录。',
             ],
             'hints' => [
                 'see_log' => '请查看详细日志。',

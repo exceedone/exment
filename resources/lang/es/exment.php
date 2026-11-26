@@ -1491,6 +1491,10 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restore_in_request' => 'Restaurar desde esta pantalla',
+                'restore_command_note' => 'En este servidor, la restauración se ejecuta dentro de la solicitud de esta pantalla. En un sitio grande tarda mucho y la pantalla puede dejar de esperar (la restauración continúa). Para sitios grandes se recomienda el comando php artisan exment:restore en el servidor.',
+                'restoring_title' => 'Restauración en curso',
+                'restoring_text' => 'Hay una restauración en curso. Espere un momento. Esta página se recargará sola cuando termine.',
                 'scope' => 'Qué incluir',
                 'scopes' => [
                     'all' => 'Según la configuración (todos los objetivos)',
@@ -1566,6 +1570,7 @@ return [
                 'stalled' => 'No hubo progreso durante :minutes minutos o más, por lo que se considera detenida. Puede volver a ejecutarla.',
                 'stalled_queued' => 'Esperó en la cola :minutes minutos o más y no comenzó. Compruebe que el worker de la cola está en ejecución.',
                 'stalled_restored' => 'Esta ejecución estaba en curso cuando se hizo la copia de seguridad restaurada.',
+                'restore_started' => 'La restauración ha comenzado. Puede seguir su progreso en esta pantalla. Al terminar, deberá iniciar sesión de nuevo.',
             ],
             'hints' => [
                 'see_log' => 'Consulte el registro detallado.',

@@ -1538,6 +1538,10 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restore_in_request' => 'Restore from this page',
+                'restore_command_note' => 'On this server, the restore runs inside the request of this page. On a large site it takes long, and the page may give up waiting (the restore goes on). For a large site, the command php artisan exment:restore on the server is recommended.',
+                'restoring_title' => 'Restore in progress',
+                'restoring_text' => 'A restore is in progress. Please wait a moment. This page reloads by itself when it ends.',
                 'scope' => 'What to include',
                 'scopes' => [
                     'all' => 'As in the settings (all the targets)',
@@ -1613,6 +1617,7 @@ return [
                 'stalled' => 'There was no progress for :minutes minutes or more, so the run is considered stopped. You can run it again.',
                 'stalled_queued' => 'It waited in the queue for :minutes minutes or more and did not start. Check that the queue worker is running.',
                 'stalled_restored' => 'This run was in progress when the restored backup was taken.',
+                'restore_started' => 'The restore has started. You can follow its progress on this page. When it ends, you will sign in again.',
             ],
             'hints' => [
                 'see_log' => 'See the detailed log.',

@@ -368,6 +368,7 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootDatabase();
         $this->bootSchedule();
         $this->bootMeilisearch();
+        $this->bootBackupRuns();
         // when the user signed in to the pages (SSO too): a user of SSO makes an API key only soon after
         // "php artisan cache:clear" keeps the restart signal of the queue (ISS02908)
         \Illuminate\Support\Facades\Event::listen('cache:clearing', function () {
@@ -402,6 +403,18 @@ class ExmentServiceProvider extends ServiceProvider
      *
      * @return void
      */
+    /**
+     * The runs of the backup and the restore (ISS02943): during the maintenance of a restore, the
+     * pages of the runs still answer (the screen polls the progress; the controller lets the
+     * system administrators only).
+     */
+    protected function bootBackupRuns(): void
+    {
+        $prefix = trim(strval(config('admin.route.prefix', 'admin')), '/');
+        $base = ($prefix === '' ? '' : $prefix . '/') . 'backup/runs';
+        \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::except([$base . '/*']);
+    }
+
     protected function bootMeilisearch()
     {
         // Push the saved values (systems table) into config('meilisearch.*').
