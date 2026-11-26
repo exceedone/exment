@@ -13,6 +13,29 @@ class SyncConnectors
     /** @var array<string, class-string<SyncConnector>|SyncConnector> */
     protected static $connectors = [];
 
+    /** @var bool the plugins were asked once */
+    protected static $booted = false;
+
+    /**
+     * Build the classes of the page plugins once, so each registers its connector in its
+     * constructor: also where Exment does not build them by itself (the routes cached, the queue
+     * worker, the commands).
+     */
+    public static function boot(): void
+    {
+        if (static::$booted) {
+            return;
+        }
+        static::$booted = true;
+        try {
+            if (canConnection() && hasTable(\Exceedone\Exment\Enums\SystemTableName::PLUGIN)) {
+                \Exceedone\Exment\Model\Plugin::getByPluginTypes(\Exceedone\Exment\Enums\PluginType::PAGE, true);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] sync: the plugins could not be asked for their connectors: ' . get_class($e));
+        }
+    }
+
     /**
      * @param class-string<SyncConnector>|SyncConnector $connector
      */
@@ -27,6 +50,7 @@ class SyncConnectors
 
     public static function get(?string $key): ?SyncConnector
     {
+        static::boot();
         $connector = isset($key) ? (static::$connectors[$key] ?? null) : null;
         return $connector instanceof SyncConnector ? $connector : null;
     }
@@ -36,6 +60,7 @@ class SyncConnectors
      */
     public static function options(): array
     {
+        static::boot();
         $options = [];
         foreach (static::$connectors as $key => $connector) {
             if ($connector instanceof SyncConnector) {
