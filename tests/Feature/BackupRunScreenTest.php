@@ -194,18 +194,53 @@ class BackupRunScreenTest extends FeatureTestBase
         $this->assertSame(0, BackupRun::query()->where('id', '<>', $run->id)->count(), 'no run was started');
     }
 
-    public function testTheJsonOfTheRunsIs403WithoutAjaxToo(): void
+    public function testEveryRouteOfTheRunsIsForTheSystemAdministratorsOnly(): void
     {
         $run = $this->finishedRun();
-        $user = $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
-        if ($user->allPermissions()->isEmpty()) {
-            // a user without any role: admin-core's page "permission denied" sends itself and stops (exit)
-            $this->markTestSkipped('the test user has no role');
+        $routes = collect(app('router')->getRoutes()->getRoutes())->filter(function ($route) {
+            return str_contains($route->uri(), 'backup/runs');
+        })->values();
+        $this->assertGreaterThanOrEqual(4, $routes->count(), 'the routes of the runs');
+
+        foreach ($routes as $route) {
+            /** @var \Illuminate\Routing\Route $route */
+            // the check of the routes of the admin pages, as the other pages
+            $this->assertContains('admin.permission', $route->gatherMiddleware(), $route->uri() . ' keeps the permission check');
+            $this->assertNotContains('admin.permission', $route->excludedMiddleware(), $route->uri() . ' keeps the permission check');
+            // and the action checks it again
+            $action = $route->getActionName();
+            $this->assertStringContainsString('BackupController@', $action, $route->uri());
+            $method = new \ReflectionMethod(BackupController::class, explode('@', $action)[1]);
+            $lines = array_slice(file(strval($method->getFileName())) ?: [], $method->getStartLine() - 1, $method->getEndLine() - $method->getStartLine() + 1);
+            $this->assertStringContainsString('static::denyUnlessSystem();', implode('', $lines), $route->uri() . ' checks the system administrator');
         }
-        // not the page "permission denied" answered 200: the controller answers 403
-        $this->get(admin_url('backup/runs/current'))->assertForbidden();
-        $this->get(admin_urls('backup', 'runs', $run->uuid, 'status'))->assertForbidden();
-        $this->get(admin_urls('backup', 'runs', $run->uuid))->assertForbidden();
+
+        // a user who is not a system administrator: 403 on each, with the roles used and not
+        foreach ([true, false] as $roles) {
+            System::permission_available($roles);
+            System::clearRequestSession();
+            $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+            foreach ($routes as $route) {
+                $url = url(str_replace('{uuid}', $run->uuid, $route->uri()));
+                $this->get($url, self::AJAX)->assertForbidden();
+            }
+        }
+
+        // a system administrator still gets in
+        System::permission_available(true);
+        System::clearRequestSession();
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->get(admin_url('backup/runs/current'), self::AJAX)->assertOk();
+        $this->get(admin_urls('backup', 'runs', $run->uuid, 'status'), self::AJAX)->assertOk();
+        $this->get(admin_urls('backup', 'runs', $run->uuid))->assertOk();
+    }
+
+    public function testTheOtherAdminPagesStillNeedTheirPermissions(): void
+    {
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        foreach (['system', 'role_group', 'loginuser', 'backup'] as $page) {
+            $this->get(admin_url($page), self::AJAX)->assertForbidden();
+        }
     }
 
     public function testTheRunsAnswerDuringTheMaintenanceOfARestore(): void

@@ -1517,7 +1517,7 @@ return [
                 ],
                 'progress_header' => 'Tiến độ sao lưu / khôi phục',
                 'started' => 'Bắt đầu',
-                'elapsed' => 'Đã chạy',
+                'elapsed' => 'Thời gian đã chạy',
                 'unknown' => 'Đang tính',
                 'restoring' => 'Đang khôi phục. Trang web đang bảo trì cho đến khi hoàn tất.',
                 'finished' => 'Đã xong.',
@@ -1552,7 +1552,7 @@ return [
                 'restore' => 'Khôi phục',
             ],
             'triggers' => [
-                'screen' => 'Màn hình',
+                'screen' => 'Thủ công',
                 'command' => 'Lệnh',
                 'schedule' => 'Tự động',
             ],
