@@ -760,6 +760,19 @@ return [
         ],
     ],
 
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => 'The save was refused on its way (a firewall or similar)',
+        'back_title' => 'The last save may not have reached Exment (a firewall or similar)',
+        'body' => 'A firewall or a proxy in front of the site refused what was sent. This is not a permission problem in Exment. Words such as a URL, an IP address or a path (../) in the text can cause it. Change them and save again, or tell your administrator. What you wrote is still here.',
+        'details' => 'Details',
+        'help' => 'How to tell and how to fix it',
+        'close' => 'Close',
+        'd_status' => 'Status',
+        'd_where' => 'Sent to',
+        'd_headers' => 'Headers of the answer',
+        'd_text' => 'First lines of the answer',
+    ],
     'security_check' => [
         'header' => 'Security Check',
         'description' => 'Check the settings that keep this site safe.',
@@ -781,6 +794,14 @@ return [
         'after_initialize_high' => 'The security check has :count items to fix at once.',
         'open' => 'Open the security check',
         'item' => [
+            'firewall' => [
+                'label' => 'A firewall in front of the site',
+                'explain' => 'Tries from this browser whether a firewall in front of the site (AWS WAF, Cloudflare, a proxy of the company...) refuses a save with a URL, an IP address or a path in it. When it does, users cannot tell why they cannot save.',
+                'not_yet' => 'Not tried yet',
+                'running' => 'Trying...',
+                'run' => 'Try',
+                'warning' => 'The test was refused in front of the site. A save with those words is refused too. Exclude those rules of the firewall for this path only.',
+            ],
             'file_permission' => [
                 'label' => 'Permissions of the important files',
                 'explain' => '.env and the config cache hold secrets such as the database password. Keep them from the other users of the server (640 or so), and storage not open to everyone.',
@@ -850,6 +871,13 @@ return [
                 'explain' => 'When the keys of the encrypted columns are in a key service (AWS KMS, Secrets Manager, Vault), whether they can be read from it now. With the keys in .env (the default), there is nothing to check.',
                 'warning' => 'The key service can be used, but there is no key yet (php artisan exment:data-key generate).',
                 'ng' => 'The keys cannot be read from the key service (:provider). The encrypted columns cannot be read now, nor saved. Reason: :reason',
+            ],
+            'queue_worker' => [
+                'label' => 'The queue worker',
+                'explain' => 'With QUEUE_CONNECTION other than sync (the notices, webhooks, search index and such run by the queue), whether a queue worker (php artisan queue:work) runs: a small job is queued every five minutes, and the time a worker ran it is read. With sync (the default), there is nothing to check.',
+                'warning' => 'Not checked yet. With the scheduler running (php artisan schedule:run every minute), it is checked in about five minutes.',
+                'unknown_state' => 'Not checked yet. With the scheduler running (php artisan schedule:run every minute), it is checked in about five minutes.',
+                'ng' => 'No queue worker is running (the jobs have not been run for :minutes minutes; the last at :last). The notices and such stay unsent. Run a worker, restarted when it stops (Supervisor, systemd...).',
             ],
             'version' => [
                 'label' => 'Versions of Exment and the plugins',
@@ -5938,6 +5966,7 @@ If it was not you, change your password and tell the administrators.",
             'log_maintenance' => 'Logs: delete the old ones',
             'trash_purge' => 'Trash: delete old deleted data for good (kept in an archive)',
             'sync' => 'Data sync: run the mappings whose time has come',
+            'queue_heartbeat' => 'Queue: check that a worker runs',
             'tuning_data' => 'Speed: count the data (tuning)',
             'audit_report' => 'IT audit report: make the report of the month or the quarter',
             'batch' => 'Plugin batch: :name',

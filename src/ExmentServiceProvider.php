@@ -112,6 +112,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
         \Exceedone\Exment\Console\LogDbCommand::class,
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
+        \Exceedone\Exment\Console\QueueHeartbeatCommand::class,
         \Exceedone\Exment\Console\TuningDataCommand::class,
         \Exceedone\Exment\Console\DataKeyCommand::class,
         \Exceedone\Exment\Console\SyncCommand::class,
@@ -140,6 +141,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Middleware\ExmentDebug::class,
         // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
         \Exceedone\Exment\Middleware\MaintenanceOperatorGuard::class,
+        // every answer of Exment says it is (ISS02935): one without the mark was given by a firewall in front
+        \Exceedone\Exment\Middleware\MarkResponse::class,
     ];
 
 
@@ -366,6 +369,13 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSchedule();
         $this->bootMeilisearch();
         // when the user signed in to the pages (SSO too): a user of SSO makes an API key only soon after
+        // "php artisan cache:clear" keeps the restart signal of the queue (ISS02908)
+        \Illuminate\Support\Facades\Event::listen('cache:clearing', function () {
+            \Exceedone\Exment\Services\QueueWorker::holdSignal();
+        });
+        \Illuminate\Support\Facades\Event::listen('cache:cleared', function () {
+            \Exceedone\Exment\Services\QueueWorker::putBackSignal();
+        });
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
             \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
         });
@@ -655,6 +665,10 @@ class ExmentServiceProvider extends ServiceProvider
     public static function registerSchedule(Schedule $schedule): void
     {
         $schedule->command('exment:schedule')->hourly();
+        // the heartbeat of the queue's worker, only while a queue is used (ISS02908)
+        $schedule->command('exment:queue-heartbeat')->everyFiveMinutes()->when(function () {
+            return \Exceedone\Exment\Services\QueueWorker::used();
+        });
         // only when the safety check watches the feed: otherwise it would start PHP every minute for nothing (ISS02823)
         $schedule->command('exment:safetywatch')->cron(static::safetyWatchCron())->withoutOverlapping(10)->when(function () {
             return static::safetyWatchUsed();

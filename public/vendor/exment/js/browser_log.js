@@ -167,11 +167,33 @@
         add({kind: 'error', path: path(window.location.href), message: 'Unhandled rejection: ' + message, source: source(null, 0, 0, reason && reason.stack)});
     }
 
-    function request(method, url, status, started) {
+    function request(method, url, status, started, blocked) {
         if (isOwn(url)) {
             return;
         }
-        add({kind: 'request', path: path(url), status: status, duration: Math.round(now() - started), method: method});
+        var event = {kind: 'request', path: path(url), status: status, duration: Math.round(now() - started), method: method};
+        // not an answer of Exment (no X-Exment): something in front of the site gave it (ISS02935)
+        if (blocked) {
+            event.message = 'not answered by Exment (a firewall or a proxy in front?); headers: ' + blocked.join(', ');
+        }
+        add(event);
+    }
+
+    // the names of the headers of an answer that is not Exment's, or null (ISS02935)
+    function notExment(status, has, names) {
+        if (!status || has) {
+            return null;
+        }
+        return names.slice(0, 20);
+    }
+    function xhrNames(xhr) {
+        try {
+            return String(xhr.getAllResponseHeaders() || '').split(/\r?\n/).map(function (line) {
+                return line.split(':')[0].trim().toLowerCase();
+            }).filter(function (name) { return name !== ''; });
+        } catch (e) {
+            return [];
+        }
     }
 
     function watchJquery() {
@@ -187,7 +209,10 @@
             if (thrown === 'abort' || (xhr && xhr.statusText === 'abort')) {
                 return;
             }
-            request(settings.type || 'GET', settings.url, xhr ? xhr.status : 0, xhr && xhr.__exmentStarted ? xhr.__exmentStarted : now());
+            var mark = false;
+            try { mark = !!(xhr && xhr.getResponseHeader('X-Exment')); } catch (e) { mark = false; }
+            request(settings.type || 'GET', settings.url, xhr ? xhr.status : 0, xhr && xhr.__exmentStarted ? xhr.__exmentStarted : now(),
+                xhr ? notExment(xhr.status, mark, xhrNames(xhr)) : null);
         });
         if (config.pages) {
             var pjaxStarted = null;
@@ -214,7 +239,9 @@
             var method = (init && init.method) || (input && input.method) || 'GET';
             return original.apply(this, arguments).then(function (response) {
                 if (!response.ok) {
-                    request(method, url, response.status, started);
+                    var names = [];
+                    try { response.headers.forEach(function (v, k) { names.push(k); }); } catch (e) { names = []; }
+                    request(method, url, response.status, started, notExment(response.status, response.headers.has('X-Exment'), names));
                 }
                 return response;
             }, function (error) {

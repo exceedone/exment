@@ -3482,6 +3482,17 @@ body .main-header .navbar .nav > li > a > .label {
 body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages-menu > .dropdown-menu, .navbar-nav > .tasks-menu > .dropdown-menu {
   width: 400px;
 }
+@media (max-width: 767.98px) {
+  body .navbar-nav > .notifications-menu > .dropdown-menu {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    top: auto;
+    width: auto;
+    max-width: none;
+    transform: none !important;
+  }
+}
 
 .skin-red .navbar-notify .label-danger, .skin-red-light .navbar-notify .label-danger {
   background-color: yellow !important;
@@ -3982,8 +3993,8 @@ table img.image_html:hover {
     width: 100%;
     margin-left: -42px !important;
     padding-left: 47px !important;
-    margin-right: -55px !important;
-    padding-right: 60px !important;
+    margin-right: -110px !important;
+    padding-right: 115px !important;
     max-width: 100000px;
     /* padding: 10px 0; */
   }

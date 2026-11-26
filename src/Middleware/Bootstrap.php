@@ -187,6 +187,18 @@ class Bootstrap
         // @phpstan-ignore-next-line
         Ad::jslast(admin_asset('vendor/exment/js/customscript.js?ver='.$ver));
 
+        // a save refused on its way by a firewall in front of the site (ISS02935): said as one
+        // @phpstan-ignore-next-line
+        Ad::jslast(admin_asset('vendor/exment/js/blocked_notice.js?ver='.$ver));
+        $blockedTexts = [];
+        foreach (['title', 'back_title', 'body', 'details', 'help', 'close', 'd_status', 'd_where', 'd_headers', 'd_text'] as $key) {
+            $blockedTexts[$key] = exmtrans('blocked_notice.' . $key);
+        }
+        Ad::script('if (window.ExmentBlockedNotice) { window.ExmentBlockedNotice.start(' . json_encode([
+            'texts' => $blockedTexts,
+            'help' => getManualUrl('troubleshooting_firewall'),
+        ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . '); }');
+
         // the log of the browser (ISS02904): only for a user who has it, nothing for the others
         if (\Exceedone\Exment\Services\LogManagement\BrowserLogs::active()) {
             // @phpstan-ignore-next-line

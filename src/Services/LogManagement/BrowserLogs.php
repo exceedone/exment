@@ -140,7 +140,8 @@ class BrowserLogs
             'path' => static::path($event['path'] ?? null),
             'status' => $kind === BrowserLog::KIND_REQUEST ? $number($event['status'] ?? null, 999) : null,
             'duration_ms' => $number($event['duration'] ?? null, 3600000),
-            'message' => $kind === BrowserLog::KIND_ERROR ? static::message($event['message'] ?? null) : null,
+            // a request: only the note that a firewall answered it (ISS02935), never a body
+            'message' => in_array($kind, [BrowserLog::KIND_ERROR, BrowserLog::KIND_REQUEST], true) ? static::message($event['message'] ?? null) : null,
             'source' => $kind === BrowserLog::KIND_ERROR ? static::source($event['source'] ?? null) : null,
             'count' => max(1, $number($event['count'] ?? 1, 1000) ?? 1),
         ];

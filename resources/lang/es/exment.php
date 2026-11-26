@@ -740,6 +740,19 @@ return [
             'recaptcha_secret_key' => 'Si utiliza Google reCAPTCHA en los formularios públicos, introduzca la clave secreta. *Tras configurarla, seleccione en cada formulario público si se usa Google reCAPTCHA.',
         ],
     ],
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => 'El guardado fue rechazado por el camino (un firewall u otro similar)',
+        'back_title' => 'Puede que el último guardado no llegara a Exment (un firewall u otro similar)',
+        'body' => 'Un firewall o un proxy delante del sitio rechazó lo enviado. No es un problema de permisos de Exment. Palabras como una URL, una dirección IP o una ruta (../) en el texto pueden causarlo. Cámbielas y guarde de nuevo, o avise a su administrador. Lo que escribió sigue aquí.',
+        'details' => 'Detalles',
+        'help' => 'Cómo reconocerlo y corregirlo',
+        'close' => 'Cerrar',
+        'd_status' => 'Estado',
+        'd_where' => 'Enviado a',
+        'd_headers' => 'Cabeceras de la respuesta',
+        'd_text' => 'Primeras líneas de la respuesta',
+    ],
     'security_check' => [
         'header' => 'Comprobación de seguridad',
         'description' => 'Revise la configuración que mantiene este sitio seguro.',
@@ -761,6 +774,14 @@ return [
         'after_initialize_high' => 'La comprobación de seguridad tiene :count elementos que conviene corregir de inmediato.',
         'open' => 'Abrir la comprobación de seguridad',
         'item' => [
+            'firewall' => [
+                'label' => 'Un firewall delante del sitio',
+                'explain' => 'Prueba desde este navegador si un firewall delante del sitio (AWS WAF, Cloudflare, un proxy de la empresa...) rechaza un guardado con una URL, una dirección IP o una ruta. Si lo hace, los usuarios no saben por qué no pueden guardar.',
+                'not_yet' => 'Aún no probado',
+                'running' => 'Probando...',
+                'run' => 'Probar',
+                'warning' => 'La prueba fue rechazada delante del sitio. Un guardado con esas palabras también se rechaza. Excluya esas reglas del firewall solo para esta ruta.',
+            ],
             'file_permission' => [
                 'label' => 'Permisos de los archivos importantes',
                 'explain' => '.env y la caché de configuración contienen secretos, como la contraseña de la base de datos. Impida que los lean otros usuarios del servidor (640 o similar) y no deje storage abierto a todos.',
@@ -830,6 +851,13 @@ return [
                 'explain' => 'Cuando las claves de las columnas cifradas están en un servicio de claves (AWS KMS, Secrets Manager, Vault), si se pueden leer de él ahora. Con las claves en .env (predeterminado), no hay nada que comprobar.',
                 'warning' => 'El servicio de claves se puede usar, pero aún no hay ninguna clave (php artisan exment:data-key generate).',
                 'ng' => 'No se pueden leer las claves del servicio de claves (:provider). Las columnas cifradas no se pueden leer ahora ni guardar. Motivo: :reason',
+            ],
+            'queue_worker' => [
+                'label' => 'El worker de la cola',
+                'explain' => 'Con QUEUE_CONNECTION distinto de sync (los avisos, webhooks, índice de búsqueda, etc. se ejecutan en la cola), si se ejecuta un worker de la cola (php artisan queue:work): cada cinco minutos se encola un trabajo pequeño y se lee cuándo lo ejecutó un worker. Con sync (predeterminado), no hay nada que comprobar.',
+                'warning' => 'Aún no comprobado. Con el programador en marcha (php artisan schedule:run cada minuto), se comprueba en unos cinco minutos.',
+                'unknown_state' => 'Aún no comprobado. Con el programador en marcha (php artisan schedule:run cada minuto), se comprueba en unos cinco minutos.',
+                'ng' => 'No se ejecuta ningún worker de la cola (hace :minutes minutos que no se ejecutan trabajos; el último a las :last). Los avisos y demás quedan sin enviar. Ejecute un worker que se reinicie si se detiene (Supervisor, systemd...).',
             ],
             'version' => [
                 'label' => 'Versiones de Exment y de los plugins',
@@ -5910,6 +5938,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
             'log_maintenance' => 'Registros: eliminar los antiguos',
             'trash_purge' => 'Papelera: eliminar definitivamente los datos eliminados antiguos (se guardan en un archivo)',
             'sync' => 'Sincronización de datos: ejecutar las asignaciones que tocan',
+            'queue_heartbeat' => 'Cola: comprobar que se ejecuta un worker',
             'tuning_data' => 'Velocidad: contar los datos (ajuste)',
             'audit_report' => 'Informe de auditoría de TI: crear el informe del mes o del trimestre',
             'batch' => 'Lote del plugin: :name',

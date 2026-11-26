@@ -740,6 +740,19 @@ return [
             'recaptcha_secret_key' => 'Nếu sử dụng Google reCAPTCHA trong biểu mẫu công khai, vui lòng nhập khóa bí mật. *Sau khi thiết lập, hãy chọn có sử dụng Google reCAPTCHA trong từng biểu mẫu công khai hay không.',
         ],
     ],
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => 'Việc lưu bị từ chối trên đường truyền (tường lửa, v.v.)',
+        'back_title' => 'Lần lưu trước có thể chưa đến được Exment (tường lửa, v.v.)',
+        'body' => 'Tường lửa hoặc proxy phía trước trang đã từ chối nội dung gửi đi. Đây không phải vấn đề quyền của Exment. Các từ như URL, địa chỉ IP hoặc đường dẫn (../) trong nội dung có thể là nguyên nhân. Hãy sửa rồi lưu lại, hoặc báo cho quản trị viên. Nội dung bạn viết vẫn còn.',
+        'details' => 'Chi tiết',
+        'help' => 'Cách nhận biết và cách sửa',
+        'close' => 'Đóng',
+        'd_status' => 'Trạng thái',
+        'd_where' => 'Gửi đến',
+        'd_headers' => 'Header của phản hồi',
+        'd_text' => 'Những dòng đầu của phản hồi',
+    ],
     'security_check' => [
         'header' => 'Kiểm tra bảo mật',
         'description' => 'Kiểm tra các cài đặt giúp trang web này hoạt động an toàn.',
@@ -761,6 +774,14 @@ return [
         'after_initialize_high' => 'Kiểm tra bảo mật phát hiện :count mục nên khắc phục ngay.',
         'open' => 'Mở kiểm tra bảo mật',
         'item' => [
+            'firewall' => [
+                'label' => 'Tường lửa phía trước trang',
+                'explain' => 'Thử từ trình duyệt này xem tường lửa phía trước trang (AWS WAF, Cloudflare, proxy của công ty...) có từ chối việc lưu có URL, địa chỉ IP hoặc đường dẫn hay không. Nếu có, người dùng không biết vì sao không lưu được.',
+                'not_yet' => 'Chưa thử',
+                'running' => 'Đang thử...',
+                'run' => 'Thử',
+                'warning' => 'Lần gửi thử bị từ chối phía trước trang. Việc lưu có những từ đó cũng bị từ chối. Hãy loại trừ các quy tắc đó của tường lửa chỉ cho đường dẫn này.',
+            ],
             'file_permission' => [
                 'label' => 'Quyền của các tệp quan trọng',
                 'explain' => '.env và bộ nhớ đệm cấu hình chứa thông tin bí mật như mật khẩu cơ sở dữ liệu. Vui lòng đảm bảo người dùng khác trên máy chủ không thể đọc được (khoảng 640), và storage không được mở cho mọi người đọc ghi.',
@@ -830,6 +851,13 @@ return [
                 'explain' => 'Khi khóa của các cột được mã hóa nằm trong dịch vụ khóa (AWS KMS, Secrets Manager, Vault), kiểm tra xem hiện có đọc được từ đó không. Khi khóa nằm trong .env (mặc định), không có gì để kiểm tra.',
                 'warning' => 'Có thể dùng dịch vụ khóa nhưng chưa có khóa nào (php artisan exment:data-key generate).',
                 'ng' => 'Không đọc được khóa từ dịch vụ khóa (:provider). Hiện không thể đọc hay lưu các cột được mã hóa. Lý do: :reason',
+            ],
+            'queue_worker' => [
+                'label' => 'Worker của hàng đợi',
+                'explain' => 'Khi QUEUE_CONNECTION khác sync (thông báo, Webhook, chỉ mục tìm kiếm... chạy qua hàng đợi), kiểm tra xem worker của hàng đợi (php artisan queue:work) có chạy không: cứ 5 phút một công việc nhỏ được đưa vào hàng đợi và đọc thời điểm worker xử lý. Với sync (mặc định), không có gì để kiểm tra.',
+                'warning' => 'Chưa kiểm tra. Khi trình lập lịch chạy (php artisan schedule:run mỗi phút), khoảng 5 phút sau sẽ được kiểm tra.',
+                'unknown_state' => 'Chưa kiểm tra. Khi trình lập lịch chạy (php artisan schedule:run mỗi phút), khoảng 5 phút sau sẽ được kiểm tra.',
+                'ng' => 'Không có worker của hàng đợi nào đang chạy (đã :minutes phút không xử lý công việc; lần cuối lúc :last). Thông báo... sẽ không được gửi. Hãy chạy worker và để nó tự khởi động lại khi dừng (Supervisor, systemd...).',
             ],
             'version' => [
                 'label' => 'Phiên bản của Exment và plugin',
@@ -5910,6 +5938,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'log_maintenance' => 'Log: xóa log cũ',
             'trash_purge' => 'Thùng rác: xóa hẳn dữ liệu đã xóa cũ (lưu vào kho lưu trữ)',
             'sync' => 'Đồng bộ dữ liệu: chạy các ánh xạ đã đến giờ',
+            'queue_heartbeat' => 'Hàng đợi: kiểm tra worker có chạy không',
             'tuning_data' => 'Tốc độ: đếm dữ liệu (tinh chỉnh)',
             'audit_report' => 'Báo cáo kiểm toán CNTT: tạo báo cáo của tháng hoặc quý',
             'batch' => 'Batch của plugin: :name',
