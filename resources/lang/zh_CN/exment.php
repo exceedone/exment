@@ -852,6 +852,13 @@ return [
                 'warning' => '密钥服务可以使用，但还没有密钥（php artisan exment:data-key generate）。',
                 'ng' => '无法从密钥服务（:provider）读取密钥。加密列现在无法读取，也无法保存。原因：:reason',
             ],
+            'queue_worker' => [
+                'label' => '队列的 Worker',
+                'explain' => '当 QUEUE_CONNECTION 不是 sync 时（通知、Webhook、搜索索引等通过队列运行），检查队列的 Worker（php artisan queue:work）是否在运行：每 5 分钟向队列放入一个小任务，并读取 Worker 处理它的时间。为 sync（默认）时无需检查。',
+                'warning' => '尚未检查。计划任务（每分钟 php artisan schedule:run）运行时，约 5 分钟后完成检查。',
+                'unknown_state' => '尚未检查。计划任务（每分钟 php artisan schedule:run）运行时，约 5 分钟后完成检查。',
+                'ng' => '没有正在运行的队列 Worker（已有 :minutes 分钟未处理任务；最后一次：:last）。通知等将一直不会发送。请运行 Worker，并使其停止后自动重启（Supervisor、systemd 等）。',
+            ],
             'version' => [
                 'label' => 'Exment 和插件的版本',
                 'explain' => '将 Exment 和官方插件保持为最新版本。已发布安全修复的插件请立即更新。',
@@ -5904,6 +5911,7 @@ IP 地址: :ip
             'log_maintenance' => '日志：删除旧日志',
             'trash_purge' => '回收站：彻底删除旧的已删除数据（保存到归档）',
             'sync' => '数据同步：运行已到时间的映射',
+            'queue_heartbeat' => '队列：检查 Worker 是否在运行',
             'tuning_data' => '速度：统计数据（调优）',
             'audit_report' => 'IT 审计报告：生成当月或当季度的报告',
             'batch' => '插件批处理：:name',

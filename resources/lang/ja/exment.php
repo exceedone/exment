@@ -872,6 +872,13 @@ return [
                 'warning' => '鍵のサービスは使えますが、鍵がまだありません（php artisan exment:data-key generate）。',
                 'ng' => '鍵のサービス（:provider）から鍵を読めません。暗号化した列は「今は読めません」になり、保存もできません。理由：:reason',
             ],
+            'queue_worker' => [
+                'label' => 'キューのワーカー',
+                'explain' => 'QUEUE_CONNECTION を sync 以外にしているとき（通知・Webhook・検索の索引などをキューで動かすとき）、キューのワーカー（php artisan queue:work）が動いているかを確かめます。5 分ごとに小さな仕事をキューに入れ、ワーカーが片づけた時刻を見ます。sync（初期値）のときは確かめることはありません。',
+                'warning' => 'まだ確かめていません。スケジュール（php artisan schedule:run を毎分）が動いていると、5 分ほどで確かめられます。',
+                'unknown_state' => 'まだ確かめていません。スケジュール（php artisan schedule:run を毎分）が動いていると、5 分ほどで確かめられます。',
+                'ng' => 'キューのワーカーが動いていません（:minutes 分より前から、キューの仕事が片づいていません。最後に片づいたのは :last）。通知などが送られないままになります。ワーカーを動かし、止まっても動きなおすようにしてください（Supervisor・systemd など）。',
+            ],
             'version' => [
                 'label' => 'Exment とプラグインの版',
                 'explain' => 'Exment と公式プラグインを新しい版にします。安全のための直しが出ているプラグインは、すぐに更新します。',
@@ -5931,6 +5938,7 @@ IPアドレス: :ip
             'log_maintenance' => 'ログ：古いものを消す',
             'trash_purge' => 'ゴミ箱：古い削除済みデータを完全に削除（アーカイブに残す）',
             'sync' => 'データ同期：時間が来た割り付けを動かす',
+            'queue_heartbeat' => 'キュー：ワーカーが動いているかを確かめる',
             'tuning_data' => '画面の速さ：データの数を数える（チューニング）',
             'audit_report' => 'IT 監査のレポート：月・四半期のレポートを作る',
             'batch' => 'プラグインのバッチ：:name',
