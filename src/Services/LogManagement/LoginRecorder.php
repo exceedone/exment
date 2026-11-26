@@ -64,6 +64,26 @@ class LoginRecorder
     }
 
     /**
+     * A user exempt from the IP filter of the pages, from an address out of it (ISS02915).
+     *
+     * @param mixed $user the login user
+     */
+    public static function ipExempt($user): void
+    {
+        static::write(LoginLog::RESULT_IP_EXEMPT, $user);
+    }
+
+    /**
+     * A login from an address out of the IP filter by a user who is not exempt: logged out at once.
+     *
+     * @param mixed $user the login user
+     */
+    public static function ipRefused($user): void
+    {
+        static::write(LoginLog::RESULT_FAILURE, $user, ['failure_reason' => LoginLog::REASON_IP_NOT_ALLOWED]);
+    }
+
+    /**
      * @param mixed $user
      */
     protected static function isNewIp($user): bool

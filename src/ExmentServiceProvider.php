@@ -224,7 +224,8 @@ class ExmentServiceProvider extends ServiceProvider
         'admin_anonymous' => [
             'admin.security-headers',
             'admin.browser',
-            'admin.web-ipfilter',
+            // the login pages: shown to a user exempt from the IP filter (ISS02915)
+            'admin.web-ipfilter:login',
             'admin.initialize',
             'exment.maintenance:anonymous',
             // the language of the login page (cookie, browser)
@@ -241,13 +242,13 @@ class ExmentServiceProvider extends ServiceProvider
         ],
         // Exment not login web page, and simple config, (Almost use image)
         'admin_anonymous_simple' => [
-            'admin.web-ipfilter',
+            'admin.web-ipfilter:strict',
             'admin.initialize',
         ],
         // Exment install page
         'admin_install' => [
             'admin.browser',
-            'admin.web-ipfilter',
+            'admin.web-ipfilter:strict',
             'admin.initialize',
             'admin.session',
         ],
