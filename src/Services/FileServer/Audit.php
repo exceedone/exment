@@ -76,7 +76,8 @@ class Audit
                 'link_id' => $linkId,
                 'action' => $action,
                 'detail' => count($detail) > 0 ? json_encode($detail, JSON_UNESCAPED_UNICODE) : null,
-                'ip' => isset($request) ? mb_substr(strval($request->ip()), 0, 45) : null,
+                // as the log setting says (log_ip_mode), like the other logs
+                'ip' => isset($request) ? mb_substr(strval(\Exceedone\Exment\Services\LogManagement\LogPrivacy::ip($request->ip())), 0, 45) : null,
                 'user_agent' => isset($request) ? mb_substr(strval($request->userAgent()), 0, 255) : null,
                 'created_at' => now(),
             ]);

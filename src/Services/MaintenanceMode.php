@@ -870,7 +870,7 @@ class MaintenanceMode
                 'user_id' => $userId ?? 0,
                 'path' => 'maintenance/' . $action,
                 'method' => isset($request) ? substr($request->method(), 0, 10) : 'CLI',
-                'ip' => isset($request) ? strval($request->getClientIp()) : '127.0.0.1',
+                'ip' => isset($request) ? strval(\Exceedone\Exment\Services\LogManagement\LogPrivacy::ip($request->getClientIp())) : '127.0.0.1',
                 'input' => json_encode($detail, JSON_UNESCAPED_UNICODE),
             ]);
         } catch (\Throwable $e) {

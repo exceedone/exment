@@ -335,7 +335,7 @@ class UserApiKeys
         if (!isset($key)) {
             // logged, but at most once a minute an address (random keys are not a line each)
             RateLimiter::attempt('apikey-log:' . static::siteHash() . ':' . IpAddress::limiterKey($request->ip()), 1, function () use ($request) {
-                \Log::info('[Exment] an unknown API key was refused (from ' . $request->ip() . ')');
+                \Log::info('[Exment] an unknown API key was refused (from ' . \Exceedone\Exment\Services\LogManagement\LogPrivacy::ip($request->ip()) . ')');
             }, 60);
             return $refuse('unknown');
         }
@@ -398,7 +398,8 @@ class UserApiKeys
     public static function touch(UserApiKey $key, Request $request): void
     {
         $now = Carbon::now();
-        $ip = substr((string)$request->ip(), 0, 64);
+        // the last IP is kept as the log setting says (log_ip_mode), like the logs
+        $ip = substr((string)\Exceedone\Exment\Services\LogManagement\LogPrivacy::ip($request->ip()), 0, 64);
         $seconds = intval(config('exment.api_key_touch_seconds', 0));
         if ($seconds <= 0) {
             static::writeUse($key, $now, $ip, 1);

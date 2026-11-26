@@ -123,6 +123,39 @@ class LogPrivacyTest extends UnitTestBase
         $this->assertSame(45, strlen('ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255'));
     }
 
+    /**
+     * Every IP a log or a record keeps goes through LogPrivacy::ip (log_ip_mode): the audit
+     * log of the file server, the last IP of an API key and the operation logs written by hand.
+     * The mails to the user (a new IP, a new key) show the user's own IP as it is.
+     */
+    public function testEveryKeptIpFollowsTheIpMode(): void
+    {
+        foreach ([
+            'src/Services/FileServer/Audit.php' => "'ip' => isset(\$request) ? mb_substr(strval(\\Exceedone\\Exment\\Services\\LogManagement\\LogPrivacy::ip(\$request->ip())), 0, 45) : null,",
+            'src/Services/UserApiKeys.php' => "\$ip = substr((string)\\Exceedone\\Exment\\Services\\LogManagement\\LogPrivacy::ip(\$request->ip()), 0, 64);",
+            'src/Services/DataMaintenance/AttachmentCleanup.php' => "LogPrivacy::ip(\$request->getClientIp())",
+            'src/Services/MaintenanceMode.php' => "LogPrivacy::ip(\$request->getClientIp())",
+            'src/Services/SystemRequire/Tuning/AutoTuning.php' => "LogPrivacy::ip(\$request->getClientIp())",
+        ] as $path => $needle) {
+            $this->assertStringContainsString($needle, (string) file_get_contents(exment_package_path($path)), $path);
+        }
+
+        // no other "'ip' =>" of a log takes the address of the request as it is
+        foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(exment_package_path('src'), \FilesystemIterator::SKIP_DOTS)) as $file) {
+            if ($file->getExtension() !== 'php') {
+                continue;
+            }
+            foreach (file($file->getPathname()) ?: [] as $no => $line) {
+                if (preg_match("/'(last_used_)?ip' => .*\\\$request->(ip|getClientIp)\\(\\)/", $line) && strpos($line, 'LogPrivacy::ip(') === false) {
+                    $this->fail($file->getPathname() . ':' . ($no + 1) . ' keeps the IP of the request as it is');
+                }
+            }
+        }
+
+        $this->set('log_ip_mode', LogPrivacy::IP_TRUNCATE);
+        $this->assertSame('192.0.2.0', LogPrivacy::ip('192.0.2.7'));
+    }
+
     public function testTheApplicationLogMasksMailsAndTheValuesOfSql(): void
     {
         $message = "SQLSTATE[23000]: Duplicate entry 'taro@example.com' (Connection: mysql, SQL: insert into `users` (`name`, `memo`) values ('Taro Yamada', 'it''s \\'mine\\''))";
