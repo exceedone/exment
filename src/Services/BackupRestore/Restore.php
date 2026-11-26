@@ -7,6 +7,7 @@ use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\CoreExtensions;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Services\ZipService;
+use Exceedone\Exment\Storage\Disk\BackupDiskService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use File;
@@ -73,20 +74,27 @@ class Restore
     public function execute($file = null, ?bool $tmp = null)
     {
         $this->configSkipped = false;
+        $progress = $this->progress();
 
         try {
+            $progress->stage('verify');
             \Artisan::call('down');
 
             // check backup execute
             \ExmentDB::checkBackup();
 
-            // unzip backup file
+            // unzip backup file (the stage "extract" starts when the file is checked)
             $this->unzipFile($file, $tmp);
 
             $result = 0;
 
+            $progress->stage('load', $this->countDatabaseFiles());
+
             // the rules of an application before the database is replaced (CoreExtensions::addRestoreRule)
             $this->runRestoreRules('before');
+
+            // the runs of the backup are kept, and put back when the database is replaced
+            $progress->databaseReplacing();
 
             // restore table definition
             $this->restoreDatabase();
@@ -95,11 +103,14 @@ class Restore
             $this->importTsv();
 
             // copy directory to temporary folder
+            $progress->stage('files');
             if (!$this->copyFiles()) {
+                $progress->error('some folders were not copied');
                 $result = -1;
             }
 
             // copy env
+            $progress->stage('finish', 2);
             $this->updateEnv();
 
             $this->runRestoreRules('after');
@@ -108,19 +119,26 @@ class Restore
             // below read Exment's own models - clear before, and again after, so the caller
             // starts from a clean cache whichever way the migration step goes.
             System::clearCache();
+            $progress->advance(1);
 
             if (!$this->migrateToCurrentSchema()) {
+                $progress->error('migrate failed after the database was restored: the schema is still at the version of the backup');
                 $result = -1;
             }
 
             System::clearCache();
 
+            $progress->databaseReplaced();
+            $progress->advance(1);
+
             return $result;
         } catch (\Exception $e) {
             throw $e;
         } finally {
+            // a restore that stopped half way: the record is written again all the same
+            $progress->databaseReplaced();
             \Artisan::call('up');
-            $this->diskService->deleteTmpDirectory();
+            $this->diskService?->deleteTmpDirectory();
         }
     }
 
@@ -185,7 +203,41 @@ class Restore
     // @phpstan-ignore-next-line
     protected function importTsv()
     {
-        \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
+        \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath(), function (array $info) {
+            $this->databaseProgress($info);
+        });
+    }
+
+    /**
+     * The files of the database in the backup (the units of the stage "database").
+     */
+    protected function countDatabaseFiles(): int
+    {
+        $dir = $this->diskService->tmpDiskItem()->dirFullPath();
+        if (!\File::isDirectory($dir)) {
+            return 0;
+        }
+        return count(array_filter(\File::files($dir), function ($file) {
+            return preg_match('/.+\.(sql|tsv)$/i', $file->getFilename()) && !preg_match('/^view_.*/i', $file->getFilename());
+        }));
+    }
+
+    /**
+     * A file of the database is restored (ExmentDB::restoreDatabase / importTsv).
+     *
+     * @param array<string, mixed> $info
+     */
+    protected function databaseProgress(array $info): void
+    {
+        $progress = $this->progress();
+        $table = $info['table'] ?? '(definition)';
+        $exitCode = intval($info['exit_code'] ?? 0);
+        if ($exitCode !== 0) {
+            $progress->error('a file of the database was not restored', ['table' => $table, 'exit_code' => $exitCode]);
+        }
+        $progress->info('table', array_filter(['table' => $table, 'rows' => $info['rows'] ?? null, 'bytes' => $info['bytes'] ?? null], fn ($v) => $v !== null));
+        $progress->advance(1, 1, intval($info['bytes'] ?? 0));
+        $progress->heartbeat();
     }
 
     /**
@@ -199,8 +251,11 @@ class Restore
         $tmpDisk = $this->diskService->tmpDiskItem()->disk();
 
         $directories = $tmpDisk->allDirectories($this->diskService->tmpDiskItem()->dirName());
+        $progress = $this->progress();
+        $progress->total(count($directories));
 
         foreach ($directories as $directory) {
+            $progress->advance(1);
             // check target key name
             $splits = explode("/", $directory);
             if (count($splits) < 2) {
@@ -241,12 +296,16 @@ class Restore
                         'path' => $topath,
                         'target' => $setting[2] ?? $keyname,
                     ]);
+                    $progress->warn('a folder that is not writable was skipped', ['target' => $setting[2] ?? $keyname]);
                     continue;
                 }
 
                 $success = \File::copyDirectory($fromDirectory, $topath);
                 if (!$success) {
+                    $progress->error('a folder was not copied', ['target' => $setting[2] ?? $keyname]);
                     $result = false;
+                } else {
+                    $progress->info('folder', ['target' => $setting[2] ?? $keyname]);
                 }
             }
             // is croud file
@@ -279,6 +338,7 @@ class Restore
 
         if ($this->configSkipped) {
             \Log::warning('Exment: restore skipped the config files of the backup: ' . $this->getBackupLaravelVersionText());
+            $progress->info('config skipped', ['versions' => $this->getBackupLaravelVersionText()]);
         }
 
         return $result;
@@ -457,6 +517,11 @@ class Restore
         $targetfile = array_get(pathinfo($file), 'filename');
 
         $this->initBackupRestore($targetfile);
+        $this->diskService->progress = $this->progress();
+        $run = $this->progress()->run();
+        if (isset($run) && !isset($run->file_name)) {
+            $run->file_name = mb_substr(strval($targetfile), 0, 100);
+        }
 
         // set to tmp zip file
         if (!boolval($tmp)) {
@@ -481,7 +546,8 @@ class Restore
                 throw new InvalidZipEntryException($zipEntryError);
             }
 
-            $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
+            $this->progress()->info('zip', ['files' => $zip->numFiles, 'bytes' => intval(@filesize($zipPath))]);
+            BackupDiskService::extract($zip, $this->diskService->tmpDiskItem()->dirFullPath(), $this->progress());
             $zip->close();
         }
 
@@ -496,6 +562,8 @@ class Restore
     // @phpstan-ignore-next-line
     protected function restoreDatabase()
     {
-        \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+        \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath(), function (array $info) {
+            $this->databaseProgress($info);
+        });
     }
 }

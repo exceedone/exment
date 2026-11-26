@@ -87,7 +87,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      *
      * @param string $tempDir backup target table (default:null)
      * @param string $table
-     * @return void
+     * @return int the exit code of mysqldump (0: done)
      */
     protected function dumpDatabase($tempDir, $table = null)
     {
@@ -131,7 +131,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             $command = sprintf('%s -t %s %s > %s', $command, escapeshellarg($database), escapeshellarg($table), escapeshellarg($file));
         }
 
-        exec($command);
+        // the command holds the password: it is never written to a log
+        exec($command, $output, $exitCode);
+
+        return intval($exitCode);
     }
 
     /**
@@ -198,27 +201,37 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
 
     /**
-     * Restore database
+     * Backup database
      *
      * @param string $tempDir dir path
+     * @param callable|null $progress fn (array $info): void, after each table (ISS02943)
      * @return void
      */
-    public function backupDatabase($tempDir)
+    public function backupDatabase($tempDir, ?callable $progress = null)
     {
-        // export table definition
-        $this->dumpDatabase($tempDir);
-
         // get all table list
         $tables = \Schema::getTableListing();
+        $total = count($tables) + 1;
+
+        // export table definition
+        $exitCode = $this->dumpDatabase($tempDir);
+        if (isset($progress)) {
+            $progress(['total' => $total, 'table' => null, 'exit_code' => $exitCode, 'path' => path_join($tempDir, config('exment.backup_info.def_file', 'table_definition.sql'))]);
+        }
 
         // backup each table
         foreach ($tables as $name) {
             if (stripos($name, 'exm__') === 0) {
                 // backup table data which has virtual column
-                $this->backupTable($tempDir, $name);
+                $rows = $this->backupTable($tempDir, $name);
+                $info = ['total' => $total, 'table' => $name, 'exit_code' => 0, 'rows' => $rows, 'path' => path_join($tempDir, $name . '.tsv')];
             } else {
                 // backup table data with mysqldump
-                $this->dumpDatabase($tempDir, $name);
+                $exitCode = $this->dumpDatabase($tempDir, $name);
+                $info = ['total' => $total, 'table' => $name, 'exit_code' => $exitCode, 'path' => sprintf('%s.sql', path_join($tempDir, $name))];
+            }
+            if (isset($progress)) {
+                $progress($info);
             }
         }
     }
@@ -228,7 +241,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      *
      * @param $tempDir
      * @param $table
-     * @return void
+     * @return int the rows written
      */
     // @phpstan-ignore-next-line
     protected function backupTable($tempDir, $table)
@@ -250,9 +263,11 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         // write column header
         $file->fputcsv($outcols);
 
+        $count = 0;
         // execute backup. contains soft deleted table
-        \DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols) {
+        \DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols, &$count) {
             foreach ($rows as $row) {
+                $count++;
                 $array = (array)$row;
                 $row = array_map(function ($key) use ($array) {
                     return $array[$key];
@@ -261,6 +276,8 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 $file->fputcsv($row);
             }
         });
+
+        return $count;
     }
 
 
@@ -268,9 +285,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      * Restore database
      *
      * @param string $dirFullPath contains dir path
+     * @param callable|null $progress fn (array $info): void, after each file (ISS02943)
      * @return void
      */
-    public function restoreDatabase($dirFullPath)
+    public function restoreDatabase($dirFullPath, ?callable $progress = null)
     {
         try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
@@ -299,6 +317,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             if (\File::exists($def)) {
                 $backupTables = $this->getDefinitionTables($def);
 
+                // the command holds the password: it is never written to a log
                 $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($def));
                 exec($command, $output, $return_var);
                 \File::delete($def);
@@ -306,6 +325,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 // a definition that did not load leaves the database half replaced: keep the rest as it is
                 if ($return_var == 0) {
                     $this->dropTablesNotInBackup($backupTables);
+                }
+                if (isset($progress)) {
+                    $progress(['table' => null, 'exit_code' => intval($return_var)]);
                 }
             }
 
@@ -324,7 +346,11 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                     \DB::table($table)->truncate();
                 }
 
-                exec($command);
+                $size = intval($file->getSize());
+                exec($command, $output, $exitCode);
+                if (isset($progress)) {
+                    $progress(['total' => count($files), 'table' => $table, 'exit_code' => intval($exitCode), 'bytes' => $size]);
+                }
             }
         } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
@@ -461,9 +487,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
      * insert table data from backup tsv files.
      *
      * @param string $dirFullPath restore file path
+     * @param callable|null $progress fn (array $info): void, after each file (ISS02943)
      */
     // @phpstan-ignore-next-line
-    public function importTsv($dirFullPath)
+    public function importTsv($dirFullPath, ?callable $progress = null)
     {
         // get tsv files in target folder
         /** @phpstan-ignore-next-line */
@@ -507,7 +534,9 @@ __EOT__;
                 $query = sprintf($cmd, addslashes($file->getPathName()), $table, $charset);
                 $cnt = \DB::connection()->getpdo()->exec($query);
 
-                //return $cnt;
+                if (isset($progress)) {
+                    $progress(['total' => count($files), 'table' => $table, 'rows' => intval($cnt), 'bytes' => intval($file->getSize())]);
+                }
             }
         } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
