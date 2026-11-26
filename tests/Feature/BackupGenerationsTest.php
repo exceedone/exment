@@ -94,7 +94,8 @@ class BackupGenerationsTest extends FeatureTestBase
 
         $space = Backup::space();
         $this->assertGreaterThanOrEqual(1, $space['count']);
-        $this->assertGreaterThanOrEqual(2048, $space['bytes']);
+        // the file made here holds 3 bytes ("zip")
+        $this->assertGreaterThanOrEqual(3, $space['bytes']);
         $this->assertNotNull($space['free'], 'the backup disk of the tests is on this server');
 
         config(['exment.backup.low_free_bytes' => PHP_INT_MAX]);
