@@ -49,6 +49,10 @@ class SyncMapping extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
+        'sync_connection_id' => 'integer',
+        'custom_table_id' => 'integer',
+        'interval_minutes' => 'integer',
+        'failures' => 'integer',
         'field_map' => 'array',
         'options' => 'array',
         'enabled' => 'boolean',
@@ -57,6 +61,9 @@ class SyncMapping extends Model
         'deletes_checked_at' => 'datetime',
     ];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<SyncConnection, $this>
+     */
     public function connection(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(SyncConnection::class, 'sync_connection_id');
@@ -68,6 +75,7 @@ class SyncMapping extends Model
     }
 
     /**
+     * @param mixed $default
      * @return mixed
      */
     public function option(string $name, $default = null)

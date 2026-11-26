@@ -160,7 +160,8 @@ class SyncEngine
 
         [$values, $notes] = $mapper->map($mapping, $table, $item);
         $model = $record ?? $table->getValueModel();
-        $validator = $table->validateValue(['value' => $values], $model, [
+        // validateValue reads the values as the "value" of a row itself
+        $validator = $table->validateValue($values, $model, [
             'systemColumn' => false,
             'checkCustomValueExists' => !isset($record),
             'validateLock' => false,
@@ -235,9 +236,12 @@ class SyncEngine
             return;
         }
         $table = $model->custom_table;
-        $have = $model->getDocuments(['count' => 1000])->map(function ($document) {
-            return strval($document->getValue('document_name'));
-        })->all();
+        $have = [];
+        $documents = $model->getDocuments(['count' => 1000]);
+        foreach ($documents instanceof \Illuminate\Pagination\AbstractPaginator ? $documents->items() : $documents->all() as $document) {
+            /** @var CustomValue $document */
+            $have[] = strval($document->getValue('document_name'));
+        }
         foreach ($connector->attachments($connection, $mapping->remote_object, $item) as $name => $contents) {
             $name = strval($name);
             if ($name === '' || in_array($name, $have, true)) {

@@ -207,7 +207,7 @@ class SyncController extends AdminControllerBase
             return redirect(admin_url('sync'));
         }
         $run = SyncEngine::start($mapping, $dry, 'manual', static::userId());
-        return redirect(admin_urls('sync', 'runs', $run->id));
+        return redirect()->to(strval(admin_urls('sync', 'runs', $run->id)));
     }
 
     public function showRun(Content $content, string $id): Content

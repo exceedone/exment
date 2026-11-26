@@ -35,17 +35,24 @@ class SyncRun extends Model
     protected $guarded = ['id'];
 
     protected $casts = [
+        'sync_mapping_id' => 'integer',
         'dry_run' => 'boolean',
         'counts' => 'array',
         'started_at' => 'datetime',
         'finished_at' => 'datetime',
     ];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo<SyncMapping, $this>
+     */
     public function mapping(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
         return $this->belongsTo(SyncMapping::class, 'sync_mapping_id');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<SyncRunError, $this>
+     */
     public function errors(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(SyncRunError::class, 'sync_run_id');

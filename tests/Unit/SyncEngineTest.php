@@ -180,6 +180,23 @@ class SyncEngineTest extends UnitTestBase
         return strval($login->base_user->getValue('email'));
     }
 
+    /**
+     * @return array<int, string>
+     */
+    protected function documentNames(CustomValue $record): array
+    {
+        $names = [];
+        $documents = $record->getDocuments(['count' => 100]);
+        foreach ($documents instanceof \Illuminate\Pagination\AbstractPaginator ? $documents->items() : $documents->all() as $document) {
+            /** @var CustomValue $document */
+            $names[] = strval($document->getValue('document_name'));
+        }
+        return $names;
+    }
+
+    /**
+     * @param mixed $n
+     */
     protected function item(string $id, string $title, $n = 1, ?string $owner = null, ?string $updated = '2026-11-01 10:00:00', bool $attachments = false): RemoteItem
     {
         return new RemoteItem($id, ['title' => $title, 'n' => $n, 'owner' => $owner], Carbon::parse($updated), Carbon::parse('2026-10-01 09:00:00'), 'https://svc.test/' . $id, $attachments);
@@ -217,7 +234,16 @@ class SyncEngineTest extends UnitTestBase
         $this->assertSame('2026-11-01 10:00:00', $one->updated_at->format('Y-m-d H:i:s'), 'the times of the service kept');
         $three = $this->record($mapping, 'r3');
         $this->assertNotNull($three);
-        $this->assertSame(['note-r3.txt'], $three->getDocuments(['count' => 10])->map(fn ($d) => $d->getValue('document_name'))->values()->all());
+        $this->assertSame(['note-r3.txt'], $this->documentNames($three));
+
+        // written through the save of a row: the required column is in the database
+        foreach (['r1' => 'Sync one', 'r2' => 'Sync two', 'r3' => 'Sync three'] as $remoteId => $title) {
+            $id = SyncLink::query()->where('sync_mapping_id', $mapping->id)->where('remote_id', $remoteId)->value('custom_value_id');
+            $this->assertNotNull($id, $remoteId);
+            $json = json_decode(strval(\DB::table(getDBTableName($this->table()))->where('id', $id)->value('value')), true);
+            $this->assertSame($title, array_get($json, 'text'), $remoteId . ': the required text');
+        }
+        $this->assertSame(0, SyncRunError::query()->where('sync_run_id', $run->id)->count());
 
         $mapping->refresh();
         $this->assertSame('3', $mapping->cursor);
@@ -231,7 +257,7 @@ class SyncEngineTest extends UnitTestBase
         $again->refresh();
         $this->assertSame(3, $again->count('unchanged'));
         $this->assertSame(3, SyncLink::query()->where('sync_mapping_id', $mapping->id)->count());
-        $this->assertSame(1, $three->getDocuments(['count' => 10])->count(), 'the attachment not added again');
+        $this->assertSame(['note-r3.txt'], $this->documentNames($three), 'the attachment not added again');
     }
 
     public function testADryRunWritesNothing(): void
@@ -272,14 +298,18 @@ class SyncEngineTest extends UnitTestBase
         $run = SyncEngine::start($mapping, false, 'manual');
         $run->refresh();
         $this->assertSame(1, $run->count('skipped'), 'Exment wins');
-        $this->assertSame('Local edit', $this->record($mapping, 'c1')?->getValue('text'));
+        $local = $this->record($mapping, 'c1');
+        $this->assertNotNull($local);
+        $this->assertSame('Local edit', $local->getValue('text'));
 
         // the service wins
         $mapping->conflict_rule = SyncMapping::CONFLICT_REMOTE;
         $mapping->cursor = null;
         $mapping->save();
         SyncEngine::start($mapping, false, 'manual');
-        $this->assertSame('Remote v2', $this->record($mapping, 'c1')?->getValue('text'));
+        $remote = $this->record($mapping, 'c1');
+        $this->assertNotNull($remote);
+        $this->assertSame('Remote v2', $remote->getValue('text'));
     }
 
     public function testDeletedInTheService(): void
@@ -313,6 +343,16 @@ class SyncEngineTest extends UnitTestBase
         $this->assertSame(1, $mapping->failures);
         $this->assertTrue($mapping->next_run_at->gt(Carbon::now()->addMinutes(31)), 'a longer wait after a failure');
         $this->assertGreaterThan($bells, NotifyNavbar::query()->count());
+    }
+
+    public function testTheMenuOfANewSiteAndOfAnUpdate(): void
+    {
+        $template = json_decode(strval(file_get_contents(exment_package_path('system_template/config.json'))), true);
+        $menus = collect(array_get($template, 'admin_menu', []))->keyBy('menu_name');
+        $this->assertSame('admin', array_get($menus->get('sync'), 'parent_name'));
+        $this->assertSame(intval(array_get($menus->get('scheduled_jobs'), 'order')) + 1, intval(array_get($menus->get('sync'), 'order')));
+        $this->assertFileExists(exment_package_path('database/migrations/2026_12_10_000001_add_sync_menu_under_admin.php'));
+        $this->assertSame('sync', array_get(Features::core(), SyncEngine::FEATURE . '.menu'));
     }
 
     public function testTheScheduleAndTheSecrets(): void

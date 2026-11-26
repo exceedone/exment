@@ -612,6 +612,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "sync",
+            "title": "Sincronización de datos"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "log_management",
             "title": "Gestión de registros"
         },

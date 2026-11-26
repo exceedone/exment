@@ -612,6 +612,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "sync",
+            "title": "数据同步"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "log_management",
             "title": "日志管理"
         },

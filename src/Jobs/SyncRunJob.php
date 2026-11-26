@@ -14,14 +14,12 @@ class SyncRunJob implements ShouldQueue
 {
     use JobTrait;
 
-    /** @var int a part is not tried again: the next run goes on from the cursor */
-    public $tries = 1;
-
-    /** @var int */
-    public $timeout = 600;
-
     public function __construct(public int $runId)
     {
+        // a part is not tried again: the next run goes on from the cursor (set here: JobTrait
+        // declares them, and a property declared again with another value is a fatal error)
+        $this->tries = 1;
+        $this->timeout = 600;
         $this->afterCommit();
     }
 

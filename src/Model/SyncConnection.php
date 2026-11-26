@@ -74,6 +74,9 @@ class SyncConnection extends Model
         $this->secrets = $secrets;
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany<SyncMapping, $this>
+     */
     public function mappings(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(SyncMapping::class, 'sync_connection_id');
