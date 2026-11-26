@@ -1491,6 +1491,12 @@ return [
         ],
         'run' => [
             'screen' => [
+                'scope' => 'Nội dung sao lưu',
+                'scopes' => [
+                    'all' => 'Theo cài đặt (tất cả đối tượng)',
+                    'database' => 'Chỉ cơ sở dữ liệu',
+                    'files' => 'Chỉ tệp',
+                ],
                 'progress_header' => 'Tiến độ sao lưu / khôi phục',
                 'started' => 'Bắt đầu',
                 'elapsed' => 'Đã chạy',

@@ -1538,6 +1538,12 @@ return [
         ],
         'run' => [
             'screen' => [
+                'scope' => 'What to include',
+                'scopes' => [
+                    'all' => 'As in the settings (all the targets)',
+                    'database' => 'The database only',
+                    'files' => 'The files only',
+                ],
                 'progress_header' => 'Backup / restore progress',
                 'started' => 'Started',
                 'elapsed' => 'Elapsed',

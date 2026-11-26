@@ -1491,6 +1491,12 @@ return [
         ],
         'run' => [
             'screen' => [
+                'scope' => '备份内容',
+                'scopes' => [
+                    'all' => '按设置（全部对象）',
+                    'database' => '仅数据库',
+                    'files' => '仅文件',
+                ],
                 'progress_header' => '备份・还原的进度',
                 'started' => '开始',
                 'elapsed' => '已用时间',

@@ -1538,6 +1538,12 @@ return [
         ],
         'run' => [
             'screen' => [
+                'scope' => '入れるもの',
+                'scopes' => [
+                    'all' => '設定のとおり（すべての対象）',
+                    'database' => 'データベースだけ',
+                    'files' => 'ファイルだけ',
+                ],
                 'progress_header' => 'バックアップ・リストアの進み具合',
                 'started' => '開始',
                 'elapsed' => 'かかった時間',

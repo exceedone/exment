@@ -1491,6 +1491,12 @@ return [
         ],
         'run' => [
             'screen' => [
+                'scope' => 'Qué incluir',
+                'scopes' => [
+                    'all' => 'Según la configuración (todos los objetivos)',
+                    'database' => 'Solo la base de datos',
+                    'files' => 'Solo los archivos',
+                ],
                 'progress_header' => 'Progreso de la copia de seguridad / restauración',
                 'started' => 'Inicio',
                 'elapsed' => 'Tiempo transcurrido',

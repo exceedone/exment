@@ -122,6 +122,27 @@ class BackupController extends AdminControllerBase
     }
 
     /**
+     * What a backup of the screen holds (ISS02943): all the targets of the settings, the
+     * database only, or the files only (the targets of the settings without the database; all
+     * the folders when the settings have none).
+     *
+     * @param array<mixed> $settings
+     * @return array<int, string>
+     */
+    public static function targetsOfScope(string $scope, array $settings): array
+    {
+        $settings = array_values(array_filter(array_map('strval', $settings), fn ($t) => in_array($t, Enums\BackupTarget::arrays(), true)));
+        if ($scope === 'database') {
+            return [Enums\BackupTarget::DATABASE];
+        }
+        if ($scope === 'files') {
+            $files = array_values(array_diff($settings, [Enums\BackupTarget::DATABASE]));
+            return count($files) > 0 ? $files : array_values(array_diff(Enums\BackupTarget::arrays(), [Enums\BackupTarget::DATABASE]));
+        }
+        return count($settings) > 0 ? $settings : Enums\BackupTarget::arrays();
+    }
+
+    /**
      * The runs of the history (the newest first).
      *
      * @return array<int, array<string, mixed>>
@@ -373,7 +394,7 @@ class BackupController extends AdminControllerBase
         static::denyUnlessSystem();
         \Exment::setTimeLimitLong();
 
-        $target = System::backup_target();
+        $target = static::targetsOfScope(strval($request->get('scope', 'all')), (array) System::backup_target());
 
         // one at a time; to the queue when its worker runs, else here as before (ISS02943)
         $queued = BackupRuns::queueAvailable();

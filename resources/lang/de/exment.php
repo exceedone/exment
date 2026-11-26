@@ -1491,6 +1491,12 @@ return [
         ],
         'run' => [
             'screen' => [
+                'scope' => 'Umfang',
+                'scopes' => [
+                    'all' => 'Wie in den Einstellungen (alle Ziele)',
+                    'database' => 'Nur die Datenbank',
+                    'files' => 'Nur die Dateien',
+                ],
                 'progress_header' => 'Fortschritt der Sicherung / Wiederherstellung',
                 'started' => 'Beginn',
                 'elapsed' => 'Dauer bisher',

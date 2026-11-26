@@ -3,7 +3,9 @@
 namespace Exceedone\Exment\Tests\Feature;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Controllers\BackupController;
 use Exceedone\Exment\Model\BackupRun;
+use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\BackupRestore\BackupRuns;
@@ -13,6 +15,7 @@ use Exceedone\Exment\Services\LogManagement\LogWriter;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -147,6 +150,26 @@ class BackupRunScreenTest extends FeatureTestBase
         $other = $this->finishedRun();
         $this->get(admin_urls('backup', 'runs', $other->uuid))->assertOk()->assertSee(exmtrans('backup.run.screen.log_none'));
         $this->get(admin_urls('backup', 'runs', $other->uuid, 'log'))->assertNotFound();
+    }
+
+    public function testTheScopeChosenOnTheScreen(): void
+    {
+        $settings = ['database', 'plugin', 'attachment'];
+        $this->assertSame(['database', 'plugin', 'attachment'], BackupController::targetsOfScope('all', $settings));
+        $this->assertSame(['database'], BackupController::targetsOfScope('database', $settings));
+        $this->assertSame(['plugin', 'attachment'], BackupController::targetsOfScope('files', $settings));
+        // the settings have no folder: all of them
+        $this->assertSame(['plugin', 'attachment', 'log', 'config'], BackupController::targetsOfScope('files', ['database']));
+        // a scope not known, or a target not known, is as the settings
+        $this->assertSame(['plugin'], BackupController::targetsOfScope('foo', ['plugin', '../etc']));
+
+        System::backup_target(['plugin']);
+        System::clearCache();
+        $response = $this->post(admin_url('backup/save'), ['scope' => 'files'])->assertOk()->assertJson(['result' => true]);
+        /** @var BackupRun $run */
+        $run = BackupRun::query()->where('uuid', strval($response->json('run')))->firstOrFail();
+        $this->assertSame(['plugin'], $run->targets);
+        Storage::disk(Define::DISKNAME_BACKUP_SYNC)->delete("list/{$run->file_name}.zip");
     }
 
     public function testOnlyTheSystemAdministrators(): void

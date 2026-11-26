@@ -1491,6 +1491,12 @@ return [
         ],
         'run' => [
             'screen' => [
+                'scope' => '포함할 내용',
+                'scopes' => [
+                    'all' => '설정대로(모든 대상)',
+                    'database' => '데이터베이스만',
+                    'files' => '파일만',
+                ],
                 'progress_header' => '백업・복원 진행 상황',
                 'started' => '시작',
                 'elapsed' => '걸린 시간',
