@@ -48,9 +48,8 @@
         <div class="alert alert-warning easy-no-notice" style="display:none">{{ exmtrans('custom_form_public.easy.warning_no_notice') }}</div>
     </div>
     <div class="form-group" style="max-width:760px">
-        <label class="fw-bold">{{ exmtrans('custom_form_public.complete_text') }}</label>
+        <label class="fw-bold">{{ exmtrans('custom_form_public.easy.thanks_label') }}</label>
         <textarea name="complete_text" class="form-control" rows="3">{{ $complete_text }}</textarea>
-        <p class="text-muted small">{{ exmtrans('custom_form_public.easy.help.complete_text') }}</p>
     </div>
 
     {{-- more settings, folded --}}

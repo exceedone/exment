@@ -2766,6 +2766,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'step_publish' => 'Veröffentlichen',
             'publish' => 'Veröffentlichen',
             'published' => 'Das Webformular wurde erstellt.',
+            'thanks_label' => 'Text nach dem Senden',
             'complete_sample' => 'Vielen Dank für Ihre Nachricht. Wir prüfen sie und melden uns bei Ihnen.',
             'error_input' => 'Wählen Sie mindestens ein Feld zum Anzeigen.',
             'embed_header' => 'Code für eine Website',
@@ -2785,7 +2786,6 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'preview_help' => 'So erscheint es auf einer Website. Wird es hier gesendet, werden wirklich Daten hinzugefügt.',
             'help' => [
                 'name' => 'Der Name über dem Formular und in der Eingangsbestätigung (bis zu 40 Zeichen).',
-                'complete_text' => 'Der Text nach dem Senden.',
                 'notify_admin_users' => 'Diese Personen erhalten bei jeder Einsendung eine E-Mail.',
                 'notify_user_column' => 'Die Eingangsbestätigung geht an dieses E-Mail-Feld.',
                 'robot' => 'Verhindert Formulare, die von Robotern gesendet werden.',

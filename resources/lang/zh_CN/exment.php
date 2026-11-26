@@ -2766,6 +2766,7 @@ IP 地址: :ip
             'step_publish' => '公开',
             'publish' => '公开',
             'published' => '已创建网页表单。',
+            'thanks_label' => '提交后显示的文字',
             'complete_sample' => '感谢您的咨询。我们确认内容后，负责人会与您联系。',
             'error_input' => '请至少选择一个要显示的项目。',
             'embed_header' => '贴到网站上的代码',
@@ -2785,7 +2786,6 @@ IP 地址: :ip
             'preview_help' => '贴到网站上会这样显示。在这里提交会真的添加数据。',
             'help' => [
                 'name' => '显示在表单上方和受理邮件中的名称（最多 40 个字符）。',
-                'complete_text' => '提交后显示的文字。',
                 'notify_admin_users' => '每次提交时，用邮件通知这些人。',
                 'notify_user_column' => '向此邮件地址项目发送受理邮件。',
                 'robot' => '防止机器人提交表单。',

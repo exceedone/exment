@@ -2766,6 +2766,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'step_publish' => 'Công khai',
             'publish' => 'Công khai',
             'published' => 'Đã tạo biểu mẫu web.',
+            'thanks_label' => 'Câu hiển thị sau khi gửi',
             'complete_sample' => 'Cảm ơn bạn đã liên hệ. Chúng tôi sẽ xem nội dung và người phụ trách sẽ liên lạc lại.',
             'error_input' => 'Hãy chọn ít nhất một mục để hiện.',
             'embed_header' => 'Mã để dán vào trang web',
@@ -2785,7 +2786,6 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'preview_help' => 'Khi dán vào trang web sẽ hiện như thế này. Gửi từ đây sẽ thật sự thêm dữ liệu.',
             'help' => [
                 'name' => 'Tên hiển thị trên biểu mẫu và trong email xác nhận (tối đa 40 ký tự).',
-                'complete_text' => 'Câu hiển thị sau khi gửi.',
                 'notify_admin_users' => 'Mỗi lần có gửi, những người này được báo bằng email.',
                 'notify_user_column' => 'Email xác nhận được gửi đến mục email này.',
                 'robot' => 'Chặn biểu mẫu do robot gửi.',
