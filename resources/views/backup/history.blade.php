@@ -8,6 +8,15 @@
     </div>
     <div class="box-body">
         <p class="text-muted">{{ exmtrans('backup.run.screen.history_help', ['count' => $keepRuns]) }}</p>
+        <p class="backup-space">
+            {{ exmtrans('backup.run.screen.used_space', ['count' => number_format($space['count']), 'size' => bytesToHuman($space['bytes']) ?? '0 B']) }}
+            @if(isset($space['free']))
+                &nbsp;/&nbsp;{{ exmtrans('backup.run.screen.free_space', ['size' => bytesToHuman($space['free'])]) }}
+            @endif
+        </p>
+        @if($space['low'])
+        <div class="alert alert-warning backup-space-low">{{ exmtrans('backup.run.screen.free_space_low', ['size' => bytesToHuman($space['free'])]) }}</div>
+        @endif
         @if(count($runs) === 0)
             <p class="backup-history-empty">{{ exmtrans('backup.run.screen.no_runs') }}</p>
         @else

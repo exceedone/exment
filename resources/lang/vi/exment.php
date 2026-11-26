@@ -1450,6 +1450,7 @@ return [
         'automatic_term' => 'Chu kỳ sao lưu tự động (ngày)',
         'automatic_hour' => 'Giờ bắt đầu sao lưu tự động (giờ)',
         'history_files' => 'Số thế hệ lưu giữ',
+        'history_include_manual' => 'Tính cả bản sao lưu thủ công vào số thế hệ',
         'restore_zipfile' => 'Tệp khôi phục',
         'upload_zipfile' => 'Tải lên (zip)',
         'filesize_over' => 'Trường hợp tệp quá lớn không thể tải lên',
@@ -1488,9 +1489,13 @@ return [
             'automatic_term' => 'Cài đặt sao lưu tự động sau mỗi bao nhiêu ngày. Ví dụ: nếu nhập "3", sao lưu sẽ được thực hiện 3 ngày một lần.',
             'automatic_hour' => 'Giờ bắt đầu sao lưu tự động. Ví dụ: nếu nhập "3", sao lưu sẽ bắt đầu lúc 3:00.',
             'history_files' => 'Số thế hệ được lưu giữ khi sao lưu tự động. Khi nhập từ 1 trở lên, số bản sao lưu bằng số nguyên đã nhập sẽ được giữ lại.',
+            'history_include_manual' => 'Nếu chọn YES, các bản sao lưu tạo trên màn hình này hoặc bằng lệnh cũng được tính vào "Số thế hệ lưu giữ" và bản cũ nhất sẽ bị xóa. Nếu NO (mặc định), chỉ tính các bản sao lưu tự động. Các bản sao lưu tạo trước khi khôi phục được giữ riêng, tối đa 3 bản.',
         ],
         'run' => [
             'screen' => [
+                'used_space' => ':count bản sao lưu, tổng :size',
+                'free_space' => 'Còn trống :size',
+                'free_space_low' => 'Ổ đĩa chứa bản sao lưu sắp hết dung lượng trống (còn :size). Hãy xóa các bản sao lưu không cần thiết.',
                 'backup_first' => 'Trước khi khôi phục',
                 'backup_first_option' => 'Sao lưu dữ liệu hiện tại (khuyến nghị)',
                 'backup_first_help' => 'Trước khi khôi phục, dữ liệu hiện tại được sao lưu với tên "beforerestore" kèm ngày giờ. Nếu có sự cố, bạn có thể khôi phục lại từ bản này.',

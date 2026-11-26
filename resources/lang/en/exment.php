@@ -1497,6 +1497,7 @@ return [
         'automatic_term' => 'Auto Backup Execution Interval(day)',
         'automatic_hour' => 'Auto Backup Start Time(hour)',
         'history_files' => 'Number of preservation generations',
+        'history_include_manual' => 'Count manual backups toward the generations',
         'restore_zipfile' => 'Restore file',
         'upload_zipfile' => 'Upload(zip)',
         'filesize_over' => 'If the file size is too large to upload',
@@ -1535,9 +1536,13 @@ return [
             'automatic_term' => 'It is a setting of how many days to perform automatic backup. Example: When entering "3", execute backup every 3 days',
             'automatic_hour' => 'The start time of the automatic backup. Example: When entering "3", start backup execution at 3:00',
             'history_files' => 'The number of generations to keep during automatic backup. When 1 or more is input, the backup of the input integer is kept.',
+            'history_include_manual' => 'If YES, backups made on this page or by the command also count toward "Number of preservation generations", and the oldest are deleted. If NO (the default), only automatic backups count. Backups made before a restore are kept separately, up to 3.',
         ],
         'run' => [
             'screen' => [
+                'used_space' => ':count backups, :size in total',
+                'free_space' => ':size free',
+                'free_space_low' => 'The disk of the backups is running out of free space (:size left). Delete the backups you no longer need.',
                 'backup_first' => 'Before the restore',
                 'backup_first_option' => 'Back up the current data (recommended)',
                 'backup_first_help' => 'Before the restore, the current data is backed up as "beforerestore" plus the date and time. If something goes wrong, you can restore it.',
