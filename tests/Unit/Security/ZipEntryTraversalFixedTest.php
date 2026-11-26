@@ -539,7 +539,8 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
         $content = $this->exmentSource('Storage/Disk/BackupDiskService.php');
 
         $this->assertMatchesRegularExpression(
-            '/if \(\$zip->open\(\$localSyncDiskItem->fileFullPath\(\)\) !== true\) \{\s*(?:\/\/[^\n]*\n\s*)*throw new InvalidZipEntryException/',
+            // the zip opened is the downloaded copy, or the stored file itself (ISS02943)
+            '/if \(\$zip->open\(\$zipPath\) !== true\) \{\s*(?:\/\/[^\n]*\n\s*)*throw new InvalidZipEntryException/',
             $content,
             'BackupDiskService::sync() swallows a failed open() again.'
         );

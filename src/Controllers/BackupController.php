@@ -112,12 +112,19 @@ class BackupController extends AdminControllerBase
 
     /**
      * Only the system administrators, on every action (the menu and the route permission are
-     * checked before; this is checked again here).
+     * checked before; this is checked again here). On a site where the roles are not used,
+     * Auth\Permission lets everyone in: then the system administrators of the settings only.
      */
     protected static function denyUnlessSystem(): void
     {
         $user = \Exment::user();
-        if (!isset($user) || !$user->hasPermission(Enums\Permission::SYSTEM)) {
+        if (!isset($user)) {
+            abort(403);
+        }
+        $allowed = boolval(System::permission_available())
+            ? boolval($user->hasPermission(Enums\Permission::SYSTEM))
+            : boolval($user->isAdministrator());
+        if (!$allowed) {
             abort(403);
         }
     }
@@ -532,8 +539,7 @@ class BackupController extends AdminControllerBase
         }
 
         // a backup of the data now, before it is replaced (ISS02943)
-        $form->checkboxone('backup_first', exmtrans('backup.run.screen.backup_first'))
-            ->option(['1' => exmtrans('backup.run.screen.backup_first_option')])
+        $form->switchbool('backup_first', exmtrans('backup.run.screen.backup_first_option'))
             ->default('1')
             ->setWidth(8, 3)
             ->help(exmtrans('backup.run.screen.backup_first_help'));
