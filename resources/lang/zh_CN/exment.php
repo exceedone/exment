@@ -4652,6 +4652,7 @@ IP 地址: :ip
             'plugin_not_found' => '找不到插件。',
             'wrong_view_and_table' => '目标表与视图不一致。',
             'unsupported_view_kind_type' => 'API 不支持指定的视图类型。',
+            'unsupported_content_type' => 'Content-Type 必须为 application/json（接收文件的 API 也接受 multipart/form-data）。',
             'not_contains_custom_form' => '此表单无法执行指定的 API。',
             'one_record_already' => '此表只能登记一条记录。',
             'demo_mode' => '此演示站点无法使用该操作。',

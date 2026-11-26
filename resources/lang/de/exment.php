@@ -4652,6 +4652,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'plugin_not_found' => 'Plugin nicht gefunden.',
             'wrong_view_and_table' => 'Zieltabelle und Ansicht passen nicht zusammen.',
             'unsupported_view_kind_type' => 'Dieser Ansichtstyp wird von der API nicht unterstützt.',
+            'unsupported_content_type' => 'Der Content-Type muss application/json sein (die APIs, die eine Datei annehmen, akzeptieren auch multipart/form-data).',
             'not_contains_custom_form' => 'Die angegebene API kann für dieses Formular nicht ausgeführt werden.',
             'one_record_already' => 'Diese Tabelle erlaubt nur einen Datensatz.',
             'demo_mode' => 'Dieser Vorgang ist auf dieser Demo-Website nicht verfügbar.',

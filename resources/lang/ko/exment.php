@@ -4652,6 +4652,7 @@ IP 주소: :ip
             'plugin_not_found' => '플러그인을 찾을 수 없습니다.',
             'wrong_view_and_table' => '대상 테이블과 뷰가 서로 다릅니다.',
             'unsupported_view_kind_type' => '지정한 뷰 유형은 API에서 지원되지 않습니다.',
+            'unsupported_content_type' => 'Content-Type은 application/json이어야 합니다(파일을 받는 API는 multipart/form-data도 사용할 수 있습니다).',
             'not_contains_custom_form' => '이 폼에서는 지정한 API를 실행할 수 없습니다.',
             'one_record_already' => '이 테이블에는 레코드를 1건만 등록할 수 있습니다.',
             'demo_mode' => '데모 사이트에서는 이 작업을 사용할 수 없습니다.',
