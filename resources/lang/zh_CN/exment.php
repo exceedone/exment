@@ -5146,6 +5146,14 @@ IP 地址: :ip
     ],
     // ISS02839
     'audit_report' => [
+        'permission_list' => [
+            'system_admin' => '系统管理员',
+            'no_permission_setting' => '未使用权限',
+            'all_tables' => '（所有表）',
+            'all_user_editable_flg' => '所有用户均可编辑',
+            'all_user_viewable_flg' => '所有用户均可查看',
+            'all_user_accessable_flg' => '所有用户均可引用',
+        ],
         'filter_table' => '表（名称）',
         'filter_user' => '用户（代码）',
         'data_kind' => [
@@ -5244,6 +5252,9 @@ IP 地址: :ip
             'result_other' => '未检查',
         ],
         'section' => [
+            'user_table_access' => '各用户对表的权限',
+            'table_access' => '每个表谁可以查看、谁可以修改',
+            'administrator_changes' => '最近 1 个月管理员的变更',
             'data_access' => '数据的读取和写入',
             'data_access_heavy' => '读取异常多的用户',
             'security' => '安全状态',
@@ -5263,6 +5274,9 @@ IP 地址: :ip
             'log_retention' => '日志保存期限',
         ],
         'note' => [
+            'user_table_access' => '按用户显示可查看或修改数据的表、最高权限，以及权限来自哪个角色组（通过组织获得时为“组织 → 角色组”），为当前状态。对所有表生效的权限合并为一行。',
+            'table_access' => '按表显示可修改数据和可查看数据的用户数（按权限分类），以及面向所有用户的设置，为当前状态。',
+            'administrator_changes' => '截至报告结束日的 1 个月内，系统权限的变更，以及拥有系统权限的角色组成员的变更。',
             'data_access' => '期间内谁通过页面、API 或 MCP 读取、列出、导出、创建、变更、删除或恢复了各表的记录。列表按一次计算，而不是按显示的每条记录计算；几分钟内再次读取按一次计算。不保存读取的值。',
             'data_access_heavy' => '期间内读取 :min 次或以上，且超过读取用户中位数 :factor 倍的用户。',
             'reads_not_recorded' => '读取不会被记录：操作记录只保留变更（日志管理）。',
@@ -5279,6 +5293,12 @@ IP 地址: :ip
             'public_forms' => '任何知道 URL 的人都可以提交的页面。',
         ],
         'column' => [
+            'can_edit' => '可修改',
+            'sources' => '来源',
+            'editors' => '可修改的用户',
+            'viewers' => '可查看的用户',
+            'all_users' => '所有用户',
+            'by_permission' => '按权限',
             'read' => '读取',
             'list' => '列表',
             'export' => '导出',

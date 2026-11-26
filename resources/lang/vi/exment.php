@@ -5146,6 +5146,14 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
     ],
     // ISS02839
     'audit_report' => [
+        'permission_list' => [
+            'system_admin' => 'Quản trị viên hệ thống',
+            'no_permission_setting' => 'Không dùng quyền',
+            'all_tables' => '(mọi bảng)',
+            'all_user_editable_flg' => 'Tất cả người dùng có thể chỉnh sửa',
+            'all_user_viewable_flg' => 'Tất cả người dùng có thể xem',
+            'all_user_accessable_flg' => 'Tất cả người dùng có thể tham chiếu',
+        ],
         'filter_table' => 'Bảng (tên)',
         'filter_user' => 'Người dùng (mã)',
         'data_kind' => [
@@ -5244,6 +5252,9 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'result_other' => 'Chưa kiểm tra',
         ],
         'section' => [
+            'user_table_access' => 'Quyền của từng người dùng trên các bảng',
+            'table_access' => 'Ai được xem và thay đổi từng bảng',
+            'administrator_changes' => 'Thay đổi quản trị viên trong tháng qua',
             'data_access' => 'Đọc và ghi dữ liệu',
             'data_access_heavy' => 'Người dùng đọc nhiều bất thường',
             'security' => 'Tình trạng bảo mật',
@@ -5263,6 +5274,9 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'log_retention' => 'Thời gian lưu nhật ký',
         ],
         'note' => [
+            'user_table_access' => 'Với mỗi người dùng: các bảng mà người đó có thể xem hoặc thay đổi dữ liệu, quyền mạnh nhất và các nhóm vai trò mà quyền đó đến từ (qua tổ chức: "Tổ chức → Nhóm vai trò"), theo trạng thái hiện tại. Quyền trên mọi bảng chiếm một dòng.',
+            'table_access' => 'Với mỗi bảng: số người dùng có thể thay đổi và xem dữ liệu, theo từng quyền, cùng cài đặt dành cho mọi người dùng, theo trạng thái hiện tại.',
+            'administrator_changes' => 'Trong tháng tính đến cuối báo cáo: các thay đổi về quyền hệ thống và về thành viên của các nhóm vai trò có quyền đó.',
             'data_access' => 'Ai đã đọc, xem danh sách, xuất, tạo, thay đổi, xóa hoặc khôi phục các bản ghi của từng bảng trong khoảng thời gian, từ các trang, API hoặc MCP. Một danh sách được tính một lần, không tính theo từng bản ghi hiển thị; đọc lại trong vài phút được tính một lần. Không lưu giá trị đã đọc.',
             'data_access_heavy' => 'Những người dùng có số lần đọc trong khoảng thời gian từ :min trở lên và nhiều hơn :factor lần trung vị của những người dùng đã đọc.',
             'reads_not_recorded' => 'Việc đọc không được ghi lại: nhật ký thao tác chỉ giữ các thay đổi (quản lý nhật ký).',
@@ -5279,6 +5293,12 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'public_forms' => 'Các trang mà bất kỳ ai có URL đều có thể gửi.',
         ],
         'column' => [
+            'can_edit' => 'Có thể thay đổi',
+            'sources' => 'Từ',
+            'editors' => 'Người có thể thay đổi',
+            'viewers' => 'Người có thể xem',
+            'all_users' => 'Tất cả người dùng',
+            'by_permission' => 'Theo quyền',
             'read' => 'Đọc',
             'list' => 'Danh sách',
             'export' => 'Xuất',
