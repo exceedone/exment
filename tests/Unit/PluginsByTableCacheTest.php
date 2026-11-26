@@ -19,7 +19,13 @@ class PluginsByTableCacheTest extends UnitTestBase
     {
         $table = CustomTable::getEloquent('custom_value_edit');
         $this->assertNotNull($table);
-        $names = fn () => collect(Plugin::getPluginsByTable($table, false))->pluck('plugin_name')->values()->all();
+        $names = function () use ($table): array {
+            $names = [];
+            foreach (Plugin::getPluginsByTable($table, false) as $plugin) {
+                $names[] = $plugin->plugin_name;
+            }
+            return $names;
+        };
 
         $before = $names();
         $this->assertNotContains('PbtCacheTestPlugin', $before);
