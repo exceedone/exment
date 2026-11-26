@@ -58,7 +58,7 @@ class McpController extends AdminControllerBase
         }
         RateLimiter::increment($limiterKey, 60, $points);
         if ($mode === ApiCost::MODE_LOG && $parsed) {
-            ApiCost::logOverLimit($limiterKey, ApiCost::ofMcpMessage($message), $perMinute, 60, 'An MCP client');
+            ApiCost::logOverLimit($limiterKey, ApiCost::ofMcpMessage($message), $perMinute, 60, 'An MCP client (user ' . intval($user->id) . ')');
         }
 
         if (!$parsed) {

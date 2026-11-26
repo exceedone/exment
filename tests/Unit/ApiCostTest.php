@@ -39,7 +39,9 @@ class ApiCostTest extends UnitTestBase
     protected function apiRequest(string $method, array $query = [], string $ip = '198.51.100.10'): Request
     {
         $request = Request::create('/admin/api/data/test', 'GET', $query, [], [], ['REMOTE_ADDR' => $ip]);
-        $route = new Route('GET', 'admin/api/data/{tableKey}', ['uses' => 'Exceedone\\Exment\\Controllers\\ApiDataController@' . $method]);
+        $action = 'Exceedone\\Exment\\Controllers\\ApiDataController@' . $method;
+        // as the router makes it: the controller of the action
+        $route = new Route('GET', 'admin/api/data/{tableKey}', ['uses' => $action, 'controller' => $action]);
         $route->bind($request);
         $request->setRouteResolver(function () use ($route) {
             return $route;
@@ -142,7 +144,7 @@ class ApiCostTest extends UnitTestBase
     public function testLogModeLogsAndDoesNotRefuse(): void
     {
         config(['exment.api_max_rate_limit' => 5, 'exment.api_rate_cost' => 'log']);
-        Log::spy();
+        $log = Log::spy();
         $ip = $this->ip(41);
         foreach ([1, 2] as $i) {
             $response = $this->throttle($this->apiRequest('dataList', ['count' => 100], $ip));
@@ -150,7 +152,7 @@ class ApiCostTest extends UnitTestBase
         }
         // limited as before: 1 a call
         $this->assertSame('3', $response->headers->get('X-RateLimit-Remaining'));
-        Log::shouldHaveReceived('warning')->once()->withArgs(function ($message) {
+        $log->shouldHaveReceived('warning')->once()->withArgs(function ($message) {
             return str_contains($message, 'over its rate limit in points (6 / 5 a minute)');
         });
     }

@@ -51,7 +51,7 @@ class ThrottleRequests extends BaseThrottleRequests
 
     /**
      * @param \Illuminate\Http\Request $request
-     * @param array<int, object> $limits
+     * @param array<int, object{key: string, maxAttempts: int, decaySeconds: int, afterCallback: callable|null, responseCallback: callable|null}> $limits
      * @return \Symfony\Component\HttpFoundation\Response
      */
     protected function handleRequest($request, Closure $next, array $limits)
@@ -64,7 +64,7 @@ class ThrottleRequests extends BaseThrottleRequests
         if (ApiCost::mode() === ApiCost::MODE_LOG) {
             // limited as before; the points are only counted beside, and logged when over
             foreach ($limits as $limit) {
-                ApiCost::logOverLimit($limit->key, $points, intval($limit->maxAttempts), intval($limit->decaySeconds), 'An API client');
+                ApiCost::logOverLimit($limit->key, $points, intval($limit->maxAttempts), intval($limit->decaySeconds), 'An API client ' . ApiCost::whoOf($request));
             }
             return parent::handleRequest($request, $next, $limits);
         }
@@ -72,7 +72,7 @@ class ThrottleRequests extends BaseThrottleRequests
         // the points of this call must fit in what is left of the minute
         foreach ($limits as $limit) {
             if ($this->limiter->attempts($limit->key) + $points > $limit->maxAttempts) {
-                throw $this->buildException($request, $limit->key, $limit->maxAttempts, $limit->responseCallback ?? null);
+                throw $this->buildException($request, $limit->key, $limit->maxAttempts, $limit->responseCallback);
             }
         }
         foreach ($limits as $limit) {

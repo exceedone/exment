@@ -89,7 +89,14 @@ class ApiCost
     public static function ofRequest(Request $request): int
     {
         $route = $request->route();
-        $action = $route instanceof \Illuminate\Routing\Route ? strval($route->getActionName()) : '';
+        $action = '';
+        if ($route instanceof \Illuminate\Routing\Route) {
+            // the controller of the action, else what it uses (a route made outside the router)
+            $action = $route->getActionName();
+            if ($action === 'Closure' && is_string($route->getAction('uses'))) {
+                $action = $route->getAction('uses');
+            }
+        }
         $action = substr($action, strrpos($action, '\\') !== false ? strrpos($action, '\\') + 1 : 0);
 
         $points = static::BASE[$action] ?? 1;
@@ -166,6 +173,18 @@ class ApiCost
             return min($max, max(1, intval(config('exment.api_default_data_count', 20))));
         }
         return min($max, intval($count));
+    }
+
+    /**
+     * Who a log line is about: the user, else the address (as the logs keep it, log_ip_mode).
+     */
+    public static function whoOf(Request $request): string
+    {
+        $user = \Exment::user();
+        if (isset($user)) {
+            return '(user ' . intval($user->base_user_id ?? $user->id) . ')';
+        }
+        return '(from ' . strval(\Exceedone\Exment\Services\LogManagement\LogPrivacy::ip(IpAddress::limiterKey($request->ip()))) . ')';
     }
 
     /**
