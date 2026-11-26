@@ -59,14 +59,12 @@ class NotifyUserJob implements ShouldQueue
         $before = $guard->user();
         $actor = isset($this->actorUserId) ? LoginUser::where('base_user_id', $this->actorUserId)->first() : null;
         if ($actor) {
-            // @phpstan-ignore-next-line
             $guard->setUser($actor);
         }
         try {
             NotifyRunner::runNow($notify, $custom_value, $this->options);
         } finally {
             if ($before) {
-                // @phpstan-ignore-next-line
                 $guard->setUser($before);
             } elseif (method_exists($guard, 'forgetUser')) {
                 $guard->forgetUser();

@@ -62,13 +62,15 @@ class NotifyLaterTest extends UnitTestBase
         $sync = $this->bells(NotifyRunner::SYNC, 'later_sync_q');
 
         // only this job is held (the bells it makes go through the sync queue as always)
-        Queue::fake([NotifyUserJob::class]);
+        $fake = Queue::fake([NotifyUserJob::class]);
         $queued = $this->bells(NotifyRunner::QUEUE, 'later_queue');
         $this->assertSame([], $queued['got'], 'nothing while the save waits');
-        Queue::assertPushed(NotifyUserJob::class, 1);
+        // one job for this notification (the other notifications of the table have their own)
+        $notifyId = intval($queued['notify']->id);
+        $jobs = $fake->pushed(NotifyUserJob::class, fn (NotifyUserJob $job) => $job->notifyId === $notifyId);
+        $this->assertCount(1, $jobs);
 
         // the worker runs the job: the same bells
-        $jobs = Queue::pushed(NotifyUserJob::class);
         foreach ($jobs as $job) {
             \Auth::guard('admin')->logout();
             $job->handle();
@@ -155,7 +157,8 @@ class NotifyLaterTest extends UnitTestBase
             'got' => $this->namesOf($notify),
             'before' => $before,
             'subjects' => NotifyNavbar::withoutGlobalScopes()->where('notify_id', $notify->id)->orderBy('target_user_id')->pluck('notify_subject')
-                ->map(fn ($subject) => str_replace($name, '', strval($subject)))->all(),
+                // without the name of the record and the numbers (its id, the time)
+                ->map(fn ($subject) => preg_replace('/[0-9]+/', '#', str_replace($name, '', strval($subject))))->all(),
             'notify' => $notify,
         ];
     }
