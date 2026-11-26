@@ -90,7 +90,12 @@ abstract class CustomValue extends ModelBase
             return parent::castAttribute($key, $value);
         }
         if ($this->valueJson !== $value) {
-            $this->valueDecoded = parent::castAttribute($key, $value);
+            $decoded = parent::castAttribute($key, $value);
+            // the encrypted columns are read as their plain values (ISS00148)
+            if (is_array($decoded) && str_contains($value, \Exceedone\Exment\Services\Encryption\EncryptedValue::PREFIX)) {
+                $decoded = \Exceedone\Exment\Services\Encryption\EncryptedColumns::decryptValues($decoded, $this->custom_table);
+            }
+            $this->valueDecoded = $decoded;
             $this->valueJson = $value;
         }
         return $this->valueDecoded;
@@ -620,6 +625,8 @@ abstract class CustomValue extends ModelBase
             $model->rememberPreviousCommentText();
 
             if ($model->disable_saving_event) {
+                // the encrypted columns are written encrypted, whatever saves the row (ISS00148)
+                \Exceedone\Exment\Services\Encryption\EncryptedColumns::encryptForSave($model);
                 return;
             }
 
@@ -637,6 +644,9 @@ abstract class CustomValue extends ModelBase
                 // re-get field data --------------------------------------------------
                 $model->prepareValue();
             }
+
+            // the encrypted columns are written encrypted (ISS00148), the revision too
+            \Exceedone\Exment\Services\Encryption\EncryptedColumns::encryptForSave($model);
 
             // prepare revision
             $model->preSave();

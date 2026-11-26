@@ -1651,6 +1651,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The keys of the encrypted columns (ISS00148, Services\Encryption\DataKeys)
+    |--------------------------------------------------------------------------
+    | "id:key" pairs, the key 32 bytes in base64, the first one encrypting:
+    |   DATA_ENCRYPTION_KEYS="k2:...,k1:..."   (php artisan exment:data-key generate)
+    | Not APP_KEY, and not named EXMENT_*: a backup keeps those, and a backup alone must not
+    | read the encrypted values. Keep a copy of the keys in a safe place: a value whose key is
+    | lost cannot be read again.
+    */
+    'data_encryption_keys' => env('DATA_ENCRYPTION_KEYS', ''),
+
+    /*
+    |--------------------------------------------------------------------------
     | The files of the application log (ISS02839)
     |--------------------------------------------------------------------------
     | The mode of a new file of the application log (octal): 0640, the owner writes, its group

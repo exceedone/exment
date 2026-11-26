@@ -281,6 +281,14 @@ class Features
             'manual' => 'api_rate_raise',
             'who' => false,
         ]);
+        // the encrypted columns (Encryption\EncryptedColumns, ISS00148): the option of a column.
+        // Off until it is turned on; a column already encrypted stays so when it is turned off
+        $core[Encryption\EncryptedColumns::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.encrypted_columns',
+            'description' => 'exment::exment.feature.features.encrypted_columns_help',
+            'manual' => 'column',
+            'who' => false,
+        ]);
         return $core;
     }
 

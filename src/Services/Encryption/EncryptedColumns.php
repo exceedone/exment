@@ -1,0 +1,167 @@
+<?php
+
+namespace Exceedone\Exment\Services\Encryption;
+
+use Exceedone\Exment\Enums\ColumnType;
+use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Services\Features;
+
+/**
+ * The columns kept encrypted in the database (ISS00148, stage 1).
+ *
+ * A column of a text type with the option "encrypted" keeps its values as EncryptedValue in
+ * the json of the row: encrypted when the row is saved (encryptForSave, from the saving event
+ * of CustomValue) and decrypted when the json is read (decryptValues, from its cast), so the
+ * code that reads a row reads the plain value. The database, a dump and a backup hold only the
+ * encrypted one; the key is not in them (DataKeys).
+ *
+ * The option is offered while the feature (Feature management, "encrypted_columns") is on. A
+ * column already encrypted stays so when the feature is turned off: its values are still
+ * decrypted to be read and encrypted when saved, until the option is turned off (which
+ * converts the values back, as turning it on converts them: EncryptColumnJob).
+ *
+ * An encrypted value cannot be searched by a part, sorted or summed: the database sees only
+ * the encrypted text. The option cannot be set with the search index, unique or multiple.
+ */
+class EncryptedColumns
+{
+    public const FEATURE = 'encrypted_columns';
+
+    /** The column types that can be encrypted (text, not numbers, dates or references). */
+    public const TYPES = [ColumnType::TEXT, ColumnType::TEXTAREA, ColumnType::EMAIL, ColumnType::URL];
+
+    /** The options it cannot be set with. */
+    public const CONFLICTS = ['index_enabled', 'unique', 'multiple_enabled'];
+
+    public static function featureOn(): bool
+    {
+        return Features::enabled(static::FEATURE);
+    }
+
+    public static function supports(?string $columnType): bool
+    {
+        return in_array($columnType, static::TYPES, true);
+    }
+
+    /**
+     * @param CustomColumn|null $column
+     */
+    public static function isEncrypted($column): bool
+    {
+        return isset($column) && static::supports($column->column_type) && boolval($column->getOption('encrypted'));
+    }
+
+    /**
+     * How many last characters the masked value shows (0 to 4, default 4).
+     */
+    public static function visible(CustomColumn $column): int
+    {
+        $visible = $column->getOption('encrypted_mask_visible');
+        return is_nullorempty($visible) ? 4 : max(0, min(4, intval($visible)));
+    }
+
+    /**
+     * The names of the encrypted columns of a table.
+     *
+     * @param CustomTable|null $table
+     * @return array<int, string>
+     */
+    public static function namesOf($table): array
+    {
+        if (!isset($table)) {
+            return [];
+        }
+        $names = [];
+        foreach ($table->custom_columns_cache as $column) {
+            if (static::isEncrypted($column)) {
+                $names[] = $column->column_name;
+            }
+        }
+        return $names;
+    }
+
+    /**
+     * The json of a row as it is read: the encrypted values decrypted. A value that cannot be
+     * decrypted (its key is not here) stays as it is, so saving the row keeps it.
+     *
+     * @param array<string, mixed> $values
+     * @return array<string, mixed>
+     */
+    public static function decryptValues(array $values, ?CustomTable $table): array
+    {
+        foreach (static::namesOf($table) as $name) {
+            $value = $values[$name] ?? null;
+            if (EncryptedValue::isEncrypted($value)) {
+                $plain = EncryptedValue::decrypt($value);
+                if (isset($plain)) {
+                    $values[$name] = $plain;
+                }
+            }
+        }
+        return $values;
+    }
+
+    /**
+     * Encrypt the values of the encrypted columns of a row before it is written. A value that
+     * did not change keeps the encrypted text it had (a new one each time would make every save
+     * a change and a revision).
+     */
+    public static function encryptForSave(CustomValue $model): void
+    {
+        $names = static::namesOf($model->custom_table);
+        if (count($names) === 0) {
+            return;
+        }
+        $values = $model->value;
+        if (!is_array($values)) {
+            return;
+        }
+        $original = json_decode_ex($model->getRawOriginal('value'), true);
+        $original = is_array($original) ? $original : [];
+
+        $changed = false;
+        foreach ($names as $name) {
+            $value = $values[$name] ?? null;
+            if (!is_string($value) || $value === '' || EncryptedValue::isEncrypted($value)) {
+                continue;
+            }
+            $before = $original[$name] ?? null;
+            if (EncryptedValue::isEncrypted($before) && !EncryptedValue::needsRotation($before) && EncryptedValue::decrypt($before) === $value) {
+                $values[$name] = $before;
+            } else {
+                $values[$name] = EncryptedValue::encrypt($value);
+            }
+            $changed = true;
+        }
+        if ($changed) {
+            $model->setAttribute('value', $values);
+        }
+    }
+
+    /**
+     * One value converted: encrypted (or encrypted again with the current key) or decrypted.
+     * Null: nothing to do (or a value that cannot be decrypted, left as it is).
+     *
+     * @param mixed $value
+     * @return string|null
+     */
+    public static function convertValue($value, bool $encrypt)
+    {
+        if (!is_string($value) || $value === '') {
+            return null;
+        }
+        if ($encrypt) {
+            if (!EncryptedValue::isEncrypted($value)) {
+                return EncryptedValue::encrypt($value);
+            }
+            if (EncryptedValue::needsRotation($value)) {
+                $plain = EncryptedValue::decrypt($value);
+                return isset($plain) ? EncryptedValue::encrypt($plain) : null;
+            }
+            return null;
+        }
+        return EncryptedValue::isEncrypted($value) ? EncryptedValue::decrypt($value) : null;
+    }
+}

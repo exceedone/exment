@@ -32,6 +32,8 @@ use Exceedone\Exment\Enums\TextAlignType;
 use Exceedone\Exment\Enums\EditableUserInfoType;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Validator;
+use Exceedone\Exment\Jobs\EncryptColumnJob;
+use Exceedone\Exment\Services\Encryption\EncryptedColumns;
 use Illuminate\Validation\Rule;
 
 class CustomColumnController extends AdminControllerTableBase
@@ -310,6 +312,24 @@ class CustomColumnController extends AdminControllerTableBase
             $form->switchbool('unique', exmtrans("custom_column.options.unique"))
                 ->help(exmtrans("custom_column.help.unique"));
 
+            // kept encrypted in the database (ISS00148): while the feature is on, or for a column
+            // already encrypted (so it can be turned off)
+            if (EncryptedColumns::featureOn() || EncryptedColumns::isEncrypted($custom_column)) {
+                $form->switchbool('encrypted', exmtrans("custom_column.options.encrypted"))
+                    ->rules([new Validator\EncryptedColumnRule()])
+                    ->attribute([
+                        'data-filtertrigger' => true,
+                        'data-filter' => json_encode(['parent' => 1, 'key' => 'column_type', 'value' => EncryptedColumns::TYPES]),
+                    ])
+                    ->help(exmtrans("custom_column.help.encrypted"));
+                $form->select('encrypted_mask_visible', exmtrans("custom_column.options.encrypted_mask_visible"))
+                    ->options([0 => '0', 1 => '1', 2 => '2', 3 => '3', 4 => '4'])
+                    ->default(4)
+                    ->disableClear()
+                    ->attribute(['data-filter' => json_encode(['parent' => 1, 'key' => 'options_encrypted', 'value' => '1'])])
+                    ->help(exmtrans("custom_column.help.encrypted_mask_visible"));
+            }
+
             $form->switchbool('init_only', exmtrans("custom_column.options.init_only"))
                 ->help(exmtrans("custom_column.help.init_only"));
 
@@ -422,9 +442,14 @@ class CustomColumnController extends AdminControllerTableBase
             $form->ignore('add_table_label_flg');
         }
 
-        $form->saved(function (Form $form) {
+        // the values already there are encrypted (or decrypted) when the option changed (ISS00148)
+        $wasEncrypted = isset($custom_column) && EncryptedColumns::isEncrypted($custom_column);
+        $form->saved(function (Form $form) use ($wasEncrypted) {
             $model = $form->model();
             $this->addColumnAfterSaved($model);
+            if ($model instanceof CustomColumn && EncryptedColumns::isEncrypted($model) !== $wasEncrypted) {
+                EncryptColumnJob::dispatch($model->id, !$wasEncrypted);
+            }
         });
 
         $form->disableCreatingCheck(false);
