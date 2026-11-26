@@ -348,7 +348,9 @@ class SyncEngineTest extends UnitTestBase
     public function testTheMenuOfANewSiteAndOfAnUpdate(): void
     {
         $template = json_decode(strval(file_get_contents(exment_package_path('system_template/config.json'))), true);
-        $menus = collect(array_get($template, 'admin_menu', []))->keyBy('menu_name');
+        /** @var array<int, array<string, mixed>> $list */
+        $list = array_get($template, 'admin_menu', []);
+        $menus = collect($list)->keyBy('menu_name');
         $this->assertSame('admin', array_get($menus->get('sync'), 'parent_name'));
         $this->assertSame(intval(array_get($menus->get('scheduled_jobs'), 'order')) + 1, intval(array_get($menus->get('sync'), 'order')));
         $this->assertFileExists(exment_package_path('database/migrations/2026_12_10_000001_add_sync_menu_under_admin.php'));
