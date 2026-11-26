@@ -1566,6 +1566,8 @@ return [
                 'stalled' => '已有 :minutes 分钟以上没有进展，视为已停止。可以再次执行。',
                 'stalled_queued' => '在队列中等待 :minutes 分钟以上仍未开始。请确认队列的 worker 是否在运行。',
                 'stalled_restored' => '这是还原的备份创建时正在执行的记录。',
+                'verify_sha256' => '备份文件与创建时不同（sha256 不一致）。文件已损坏或是其他文件。未执行还原。',
+                'verify_read' => '无法读取备份中的文件（:name）。备份已损坏。未执行还原。',
             ],
             'hints' => [
                 'see_log' => '请查看详细日志。',

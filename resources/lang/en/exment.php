@@ -1613,6 +1613,8 @@ return [
                 'stalled' => 'There was no progress for :minutes minutes or more, so the run is considered stopped. You can run it again.',
                 'stalled_queued' => 'It waited in the queue for :minutes minutes or more and did not start. Check that the queue worker is running.',
                 'stalled_restored' => 'This run was in progress when the restored backup was taken.',
+                'verify_sha256' => 'The backup file differs from when it was made (the sha256 does not match). It is broken or another file. Nothing was restored.',
+                'verify_read' => 'A file in the backup cannot be read (:name). The backup is broken. Nothing was restored.',
             ],
             'hints' => [
                 'see_log' => 'See the detailed log.',

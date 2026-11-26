@@ -1566,6 +1566,8 @@ return [
                 'stalled' => 'Seit :minutes Minuten oder länger gab es keinen Fortschritt; der Vorgang gilt als angehalten. Sie können ihn erneut ausführen.',
                 'stalled_queued' => 'Der Vorgang hat :minutes Minuten oder länger in der Warteschlange gewartet und nicht begonnen. Prüfen Sie, ob der Queue-Worker läuft.',
                 'stalled_restored' => 'Dieser Vorgang lief, als die wiederhergestellte Sicherung erstellt wurde.',
+                'verify_sha256' => 'Die Sicherungsdatei unterscheidet sich von der bei ihrer Erstellung (sha256 stimmt nicht überein). Sie ist beschädigt oder eine andere Datei. Es wurde nichts wiederhergestellt.',
+                'verify_read' => 'Eine Datei der Sicherung kann nicht gelesen werden (:name). Die Sicherung ist beschädigt. Es wurde nichts wiederhergestellt.',
             ],
             'hints' => [
                 'see_log' => 'Sehen Sie sich das ausführliche Protokoll an.',

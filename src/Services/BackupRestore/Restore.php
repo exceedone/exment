@@ -547,6 +547,7 @@ class Restore
             }
 
             $this->progress()->info('zip', ['files' => $zip->numFiles, 'bytes' => intval(@filesize($zipPath))]);
+            BackupDiskService::verify($zip, $zipPath, null, $this->progress());
             BackupDiskService::extract($zip, $this->diskService->tmpDiskItem()->dirFullPath(), $this->progress());
             $zip->close();
         }

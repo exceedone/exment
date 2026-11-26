@@ -332,10 +332,13 @@ class Backup
                 throw new \RuntimeException('the zip file could not be written: ' . $zip->getStatusString());
             }
             $size = intval(@filesize($this->diskService->tmpDiskItem()->fileFullPath()));
-            $progress->info('zip', ['files' => $count, 'bytes' => $size]);
+            // a restore of this file checks it first (BackupDiskService::verify)
+            $sha256 = hash_file('sha256', $this->diskService->tmpDiskItem()->fileFullPath());
+            $progress->info('zip', ['files' => $count, 'bytes' => $size, 'sha256' => $sha256 === false ? null : $sha256]);
             $run = $progress->run();
             if (isset($run)) {
                 $run->file_size = $size;
+                $run->sha256 = $sha256 === false ? null : $sha256;
             }
         } else {
             throw new \RuntimeException('the zip file could not be made: ' . strval($res));

@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property array<int, string>|null $targets
  * @property string|null $file_name
  * @property int|null $file_size
+ * @property string|null $sha256 the sha256 of the file a backup made
  * @property int $warnings
  * @property int $errors
  * @property string|null $message
