@@ -825,6 +825,12 @@ return [
                 'explain' => '通知的 Webhook 不发送到服务器内部网络的地址。有意向内部发送的站点可保持现状。',
                 'warning' => '未阻止向内部网络发送 Webhook。',
             ],
+            'data_key' => [
+                'label' => '加密密钥的存放位置',
+                'explain' => '加密列的密钥存放在密钥服务（AWS KMS、Secrets Manager、Vault）中时，检查现在能否从中读取。密钥存放在 .env 中（默认）时无需检查。',
+                'warning' => '密钥服务可以使用，但还没有密钥（php artisan exment:data-key generate）。',
+                'ng' => '无法从密钥服务（:provider）读取密钥。加密列现在无法读取，也无法保存。原因：:reason',
+            ],
             'version' => [
                 'label' => 'Exment 和插件的版本',
                 'explain' => '将 Exment 和官方插件保持为最新版本。已发布安全修复的插件请立即更新。',
@@ -5235,6 +5241,8 @@ IP 地址: :ip
     'encrypted' => [
         'reveal' => '显示',
         'unreadable' => '（无法读取：没有密钥）',
+        'unavailable' => '（暂时无法读取：无法连接密钥服务）',
+        'unavailable_save' => '暂时无法读取加密列的密钥（无法连接密钥服务）。请稍后再保存。',
         'form_help' => '此值已加密保存。保持为空时，保存为当前的值。只有要更改时才输入新值。',
         'masked_input' => '遮盖的值（****1234）只有与当前值的遮盖形式相同时，才视为“不更改”。要更改值，请输入完整的新值。',
         'masked_form' => '这看起来是遮盖后的值。请输入完整的值，或保持为空以保留当前的值。',

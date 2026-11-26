@@ -825,6 +825,12 @@ return [
                 'explain' => 'Không gửi Webhook thông báo tới các địa chỉ thuộc mạng nội bộ của máy chủ. Những trang có chủ ý gửi vào mạng nội bộ thì giữ nguyên.',
                 'warning' => 'Chưa chặn Webhook gửi tới mạng nội bộ.',
             ],
+            'data_key' => [
+                'label' => 'Nơi đặt khóa mã hóa',
+                'explain' => 'Khi khóa của các cột được mã hóa nằm trong dịch vụ khóa (AWS KMS, Secrets Manager, Vault), kiểm tra xem hiện có đọc được từ đó không. Khi khóa nằm trong .env (mặc định), không có gì để kiểm tra.',
+                'warning' => 'Có thể dùng dịch vụ khóa nhưng chưa có khóa nào (php artisan exment:data-key generate).',
+                'ng' => 'Không đọc được khóa từ dịch vụ khóa (:provider). Hiện không thể đọc hay lưu các cột được mã hóa. Lý do: :reason',
+            ],
             'version' => [
                 'label' => 'Phiên bản của Exment và plugin',
                 'explain' => 'Luôn cập nhật Exment và các plugin chính thức lên phiên bản mới. Plugin có bản sửa lỗi bảo mật cần được cập nhật ngay.',
@@ -5235,6 +5241,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
     'encrypted' => [
         'reveal' => 'Hiện',
         'unreadable' => '(không đọc được: không có khóa)',
+        'unavailable' => '(hiện không đọc được: không kết nối được dịch vụ khóa)',
+        'unavailable_save' => 'Hiện không đọc được khóa của cột được mã hóa (không kết nối được dịch vụ khóa). Vui lòng lưu lại sau.',
         'form_help' => 'Giá trị này được lưu ở dạng mã hóa. Để trống thì giữ nguyên giá trị hiện tại. Chỉ nhập giá trị mới khi muốn thay đổi.',
         'masked_input' => 'Giá trị bị che (****1234) chỉ được nhận là "không đổi" khi nó trùng với dạng che của giá trị hiện tại. Để thay đổi, hãy nhập toàn bộ giá trị mới.',
         'masked_form' => 'Giá trị này trông như giá trị bị che. Hãy nhập toàn bộ giá trị, hoặc để trống để giữ giá trị hiện tại.',
