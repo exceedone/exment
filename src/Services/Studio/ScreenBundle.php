@@ -31,7 +31,8 @@ use Exceedone\Exment\Model\System;
  *
  * - a kanban, its lanes the choices of a choice item ("status");
  * - a calendar of a date item;
- * - a chart: the number of data by a choice item (a summary view and a chart);
+ * - a chart: the number of data by a choice item, as a summary view (the pie chart
+ *   itself is a box of the dashboard, so it is made only with the dashboard, #2271);
  * - a dashboard of the app: the list, and the chart and the calendar made.
  *
  * Posted with the screen as

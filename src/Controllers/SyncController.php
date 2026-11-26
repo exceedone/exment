@@ -142,7 +142,17 @@ class SyncController extends AdminControllerBase
             $error = $e instanceof \Exceedone\Exment\Services\Sync\SyncException ? $e->getMessage() : get_class($e);
         }
         $table = CustomTable::getEloquent(intval($request->get('custom_table_id', $mapping->custom_table_id)));
+        $connectorFields = [];
+        if ($connector instanceof \Exceedone\Exment\Services\Sync\SyncMappingFields && strval($request->get('remote_object', $mapping->remote_object)) !== '') {
+            try {
+                $connectorFields = $connector->mappingFields($connection, strval($request->get('remote_object', $mapping->remote_object)), $mapping);
+            } catch (\Throwable $e) {
+                $error = $error ?? ($e instanceof \Exceedone\Exment\Services\Sync\SyncException ? $e->getMessage() : get_class($e));
+            }
+        }
         $content->row(view('exment::sync.mapping', [
+            'connectorFields' => $connectorFields,
+            'writesItself' => $connector instanceof \Exceedone\Exment\Services\Sync\SyncWriter,
             'mapping' => $mapping,
             'connection' => $connection,
             'objects' => $objects,
@@ -169,6 +179,19 @@ class SyncController extends AdminControllerBase
             admin_toastr(exmtrans('sync.message.mapping_required'), 'error');
             return back()->withInput();
         }
+        // the settings of the connector on the mapping
+        $connectorValues = [];
+        $connector = $connection->connectorInstance();
+        if ($connector instanceof \Exceedone\Exment\Services\Sync\SyncMappingFields) {
+            foreach (array_keys($connector->mappingFields($connection, $object, $mapping)) as $field) {
+                $connectorValues[$field] = mb_substr(trim(strval($request->get('connector_' . $field))), 0, 1000);
+            }
+            $error = $connector->checkMappingFields($connection, $object, $connectorValues);
+            if (isset($error)) {
+                admin_toastr($error, 'error');
+                return back()->withInput();
+            }
+        }
         $map = [];
         foreach ((array)$request->get('field_map', []) as $remote => $column) {
             if (!is_nullorempty($column) && !is_nullorempty($remote)) {
@@ -188,6 +211,7 @@ class SyncController extends AdminControllerBase
             'options' => [
                 'keep_times' => boolval($request->get('keep_times')),
                 'check_deletes' => boolval($request->get('check_deletes')),
+                'connector' => $connectorValues,
             ],
             'enabled' => boolval($request->get('enabled')),
         ]);

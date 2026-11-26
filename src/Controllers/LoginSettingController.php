@@ -202,6 +202,11 @@ class LoginSettingController extends AdminControllerBase
             ->help(exmtrans("login.help.update_user_info"))
             ->default(false);
 
+            // the avatar of the IdP (#1593): on, as before the setting
+            $form->switchbool('get_avatar', exmtrans("login.get_avatar"))
+            ->help(exmtrans("login.help.get_avatar"))
+            ->default(true);
+
 
             $form->exmheader(exmtrans('login.login_button'))->hr();
 

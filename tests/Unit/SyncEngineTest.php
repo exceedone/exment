@@ -113,6 +113,57 @@ class FakeSyncConnector implements SyncConnector
 }
 
 /**
+ * A connector of the tests that writes its items itself (SyncWriter), with a setting of its own on
+ * the mapping (SyncMappingFields): the "prefix" put before each title.
+ */
+class FakeWriterConnector extends FakeSyncConnector implements \Exceedone\Exment\Services\Sync\SyncWriter, \Exceedone\Exment\Services\Sync\SyncMappingFields, \Exceedone\Exment\Services\Sync\SyncFinisher
+{
+    /** @var array<int, array{0: bool, 1: bool}> the ends of the runs: [dry, complete] */
+    public static array $finished = [];
+
+    public function finished(SyncMapping $mapping, bool $dry, bool $complete): array
+    {
+        static::$finished[] = [$dry, $complete];
+        return $dry ? [] : ['finished ' . ($complete ? 'complete' : 'with errors')];
+    }
+
+    /** @var array<int, string> the items written (not in a dry run) */
+    public static array $written = [];
+
+    public function key(): string
+    {
+        return 'fakew';
+    }
+
+    public function mappingFields(SyncConnection $connection, string $object, SyncMapping $mapping): array
+    {
+        return ['prefix' => ['label' => 'Prefix', 'type' => 'text']];
+    }
+
+    public function checkMappingFields(SyncConnection $connection, string $object, array $values): ?string
+    {
+        return strlen(strval($values['prefix'] ?? '')) > 10 ? 'too long' : null;
+    }
+
+    public function write(SyncMapping $mapping, RemoteItem $item, bool $dry): \Exceedone\Exment\Services\Sync\SyncWriteResult
+    {
+        if (strval($item->values['title'] ?? '') === 'bad') {
+            throw new SyncException('the writer refused ' . $item->id);
+        }
+        if ($dry) {
+            return new \Exceedone\Exment\Services\Sync\SyncWriteResult('created');
+        }
+        $table = $mapping->customTable();
+        $record = $table->getValueModel();
+        $record->setValue('text', strval(array_get($mapping->options ?? [], 'connector.prefix')) . strval($item->values['title'] ?? ''));
+        $record->saved_notify(false);
+        $record->save();
+        static::$written[] = $item->id;
+        return new \Exceedone\Exment\Services\Sync\SyncWriteResult('created', intval($record->id), ['a note of ' . $item->id]);
+    }
+}
+
+/**
  * The data sync (ISS00113), the engine with a connector of the tests: a run writes the items to
  * records and links them (never twice), a dry run writes nothing, the rules of a change on both
  * sides and of a deleted item, the errors, a failed run, the schedule, the secrets.
@@ -343,6 +394,57 @@ class SyncEngineTest extends UnitTestBase
         $this->assertSame(1, $mapping->failures);
         $this->assertTrue($mapping->next_run_at->gt(Carbon::now()->addMinutes(31)), 'a longer wait after a failure');
         $this->assertGreaterThan($bells, NotifyNavbar::query()->count());
+    }
+
+    public function testAConnectorThatWritesItself(): void
+    {
+        SyncConnectors::register(new FakeWriterConnector());
+        FakeWriterConnector::$written = [];
+        FakeWriterConnector::$finished = [];
+        FakeSyncConnector::$items = [$this->item('w1', 'Writer one'), $this->item('w2', 'bad'), $this->item('w3', 'Writer three')];
+        $mapping = $this->mapping();
+        $mapping->connection->connector = 'fakew';
+        $mapping->connection->save();
+        $mapping->options = ['connector' => ['prefix' => 'BL-'], 'check_deletes' => false];
+        $mapping->save();
+
+        // a dry run: the writer is asked, nothing written
+        $dry = SyncEngine::start($mapping, true, 'manual');
+        $dry->refresh();
+        $this->assertSame(2, $dry->count('created'));
+        $this->assertSame(1, $dry->count('errors'));
+        $this->assertSame([], FakeWriterConnector::$written);
+
+        $run = SyncEngine::start($mapping->refresh(), false, 'manual');
+        $run->refresh();
+        $this->assertSame(SyncRun::STATUS_PARTIAL, $run->status);
+        $this->assertSame(['w1', 'w3'], FakeWriterConnector::$written);
+        $this->assertSame(2, $run->count('created'));
+        $this->assertSame(1, $run->count('errors'));
+        $this->assertSame('the writer refused w2', SyncRunError::query()->where('sync_run_id', $run->id)->where('remote_id', 'w2')->value('message'));
+        $this->assertSame('a note of w1', SyncRunError::query()->where('sync_run_id', $run->id)->where('remote_id', 'w1')->value('message'));
+        // the engine links what the writer gives back; the setting of the mapping reached it
+        $one = $this->record($mapping, 'w1');
+        $this->assertNotNull($one);
+        $this->assertSame('BL-Writer one', $one->getValue('text'));
+        // the end of the run: told it had errors; and the cursor is not moved past the item that failed
+        $this->assertSame([[true, false], [false, false]], FakeWriterConnector::$finished);
+        $this->assertSame('finished with errors', SyncRunError::query()->where('sync_run_id', $run->id)->whereNull('remote_id')->value('message'));
+        $mapping->refresh();
+        $this->assertNull($mapping->cursor, 'read again by the next run');
+
+        // again: the same values are not given to the writer again
+        $mapping->refresh();
+        $mapping->cursor = null;
+        $mapping->save();
+        $again = SyncEngine::start($mapping, false, 'manual');
+        $again->refresh();
+        $this->assertSame(2, $again->count('unchanged'));
+        $this->assertSame(['w1', 'w3'], FakeWriterConnector::$written);
+
+        $connector = new FakeWriterConnector();
+        $this->assertSame('too long', $connector->checkMappingFields($mapping->connection, 'app1', ['prefix' => str_repeat('x', 11)]));
+        SyncConnectors::forget('fakew');
     }
 
     public function testTheMenuOfANewSiteAndOfAnUpdate(): void
