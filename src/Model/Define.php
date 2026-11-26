@@ -94,6 +94,10 @@ class Define
 
         'web_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
         'api_ip_filters' => ['default' => '', 'group' => 'advanced'] ,
+        // who the IP filter of the web pages does not refuse (ISS02915): users, organizations, role groups
+        'web_ip_filter_exempt_users' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
+        'web_ip_filter_exempt_organizations' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
+        'web_ip_filter_exempt_role_groups' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
         // who may use the API (ISS02915): users, organizations, role groups. Nothing chosen: every user
         'api_allowed_users' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],
         'api_allowed_organizations' => ['type' => 'array', 'default' => null, 'group' => 'advanced'],

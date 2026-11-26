@@ -41,7 +41,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class AuditReport
 {
-    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'user_table_access', 'table_access', 'administrator_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'data_access', 'data_access_heavy', 'mcp_calls', 'security', 'log_retention'];
+    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'user_table_access', 'table_access', 'administrator_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'ip_exemptions', 'ip_exempt_access', 'api_keys', 'file_shares', 'public_forms', 'data_access', 'data_access_heavy', 'mcp_calls', 'security', 'log_retention'];
 
     /** The sections shown only while their log is kept: the MCP calls (ISS02915). */
     public const OPTIONAL_SECTIONS = ['mcp_calls'];
@@ -223,6 +223,10 @@ class AuditReport
                 return ['created_at', 'user_code', 'user_name', 'ip'];
             case 'new_ips':
                 return ['created_at', 'user_code', 'user_name', 'ip', 'provider'];
+            case 'ip_exemptions':
+                return ['member_type', 'member_code', 'member_name'];
+            case 'ip_exempt_access':
+                return ['created_at', 'user_code', 'user_name', 'ip'];
             case 'api_keys':
                 return ['user_code', 'user_name', 'name', 'key_prefix', 'scopes', 'tables', 'allowed_ips', 'created_at', 'expires_at', 'last_used', 'use_count', 'state', 'marks'];
             case 'file_shares':
@@ -691,7 +695,7 @@ class AuditReport
             ->groupBy('result', 'failure_reason')
             ->get();
         $rows = [];
-        foreach ([LoginLog::RESULT_SUCCESS, LoginLog::RESULT_FAILURE, LoginLog::RESULT_LOCKOUT, LoginLog::RESULT_LOGOUT] as $result) {
+        foreach (LoginLog::RESULTS as $result) {
             foreach ($counts->where('result', $result)->sortBy('failure_reason') as $count) {
                 $reason = $count->failure_reason;
                 $rows[] = [strval(exmtrans('log_management.result.' . $result)), is_nullorempty($reason) ? '' : strval(exmtrans('log_management.reason.' . $reason)), number_format(intval($count->aggregate))];
@@ -753,6 +757,49 @@ class AuditReport
         }
         $rows = [];
         foreach ($this->loginQuery()->where('result', LoginLog::RESULT_LOCKOUT)->orderBy('id')->limit(static::MAX_LOG_ROWS)->get() as $log) {
+            [$code, $name] = $this->userOf($log->base_user_id);
+            $rows[] = [$this->date($log->created_at, true), $code, $name, strval($log->ip)];
+        }
+        return $rows;
+    }
+
+    /**
+     * Who the IP filter of the web pages does not refuse (ISS02915): now.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsIpExemptions(): array
+    {
+        $settings = \Exceedone\Exment\Services\IpFilterExemptions::settings();
+        $rows = [];
+        foreach (['users' => SystemTableName::USER, 'organizations' => SystemTableName::ORGANIZATION] as $key => $type) {
+            foreach ($settings[$key] as $id) {
+                [$code, $name] = $this->memberOf($type, $id);
+                $rows[] = [static::text('member_type.' . $type), $code, $name];
+            }
+        }
+        if (count($settings['role_groups']) > 0) {
+            $names = RoleGroup::query()->whereIn('id', $settings['role_groups'])->pluck('role_group_view_name', 'id');
+            foreach ($settings['role_groups'] as $id) {
+                $rows[] = [static::text('member_type.role_group'), '', strval($names[$id] ?? '#' . $id)];
+            }
+        }
+        return $rows;
+    }
+
+    /**
+     * The uses of the web pages from an address out of the IP filter by a user exempt from it, in
+     * the period (once a session and address).
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsIpExemptAccess(): array
+    {
+        if (!LoginLog::tableExists()) {
+            return [];
+        }
+        $rows = [];
+        foreach ($this->loginQuery()->where('result', LoginLog::RESULT_IP_EXEMPT)->orderBy('id')->limit(static::MAX_LOG_ROWS)->get() as $log) {
             [$code, $name] = $this->userOf($log->base_user_id);
             $rows[] = [$this->date($log->created_at, true), $code, $name, strval($log->ip)];
         }

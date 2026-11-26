@@ -373,6 +373,36 @@ class SystemController extends AdminControllerBase
         $form->textarea('web_ip_filters', exmtrans('system.web_ip_filters'))->rows(3);
         $form->textarea('api_ip_filters', exmtrans('system.api_ip_filters'))->rows(3);
 
+        // who the filter of the web pages does not refuse (ISS02915): the API keeps its own filter
+        foreach (['web_ip_filter_exempt_users' => SystemTableName::USER, 'web_ip_filter_exempt_organizations' => SystemTableName::ORGANIZATION] as $key => $tableName) {
+            if ($tableName === SystemTableName::ORGANIZATION && !boolval(System::organization_available())) {
+                continue;
+            }
+            $selected = System::{$key}();
+            $form->multipleSelect($key, exmtrans('system.' . $key))
+                ->help(exmtrans('system.help.' . $key))
+                ->ajax(CustomTable::getEloquent($tableName)->getOptionAjaxUrl())
+                ->options(function ($option) use ($tableName, $selected) {
+                    return CustomTable::getEloquent($tableName)->getSelectOptions([
+                        'selected_value' => $selected,
+                    ]);
+                })
+                ->validationOptions(function ($option) use ($tableName, $selected) {
+                    return CustomTable::getEloquent($tableName)->getSelectOptions([
+                        'selected_value' => $selected,
+                        'all' => true,
+                        'notAjax' => true,
+                    ]);
+                })
+                ->default($selected);
+        }
+        $form->multipleSelect('web_ip_filter_exempt_role_groups', exmtrans('system.web_ip_filter_exempt_role_groups'))
+            ->help(exmtrans('system.help.web_ip_filter_exempt_role_groups'))
+            ->options(function ($option) {
+                return \Exceedone\Exment\Model\RoleGroup::all()->pluck('role_group_view_name', 'id');
+            })
+            ->default(System::web_ip_filter_exempt_role_groups());
+
         // who may use the API (ISS02915): nothing chosen, every user; the system administrators always
         $form->exmheader(exmtrans('system.api_users'))->hr();
         $form->descriptionHtml(exmtrans('system.help.api_users'));

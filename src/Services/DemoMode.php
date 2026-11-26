@@ -137,6 +137,9 @@ class DemoMode
         // IP filter: could lock every visitor out
         'web_ip_filters',
         'api_ip_filters',
+        'web_ip_filter_exempt_users',
+        'web_ip_filter_exempt_organizations',
+        'web_ip_filter_exempt_role_groups',
         'api_allowed_users',
         'api_allowed_organizations',
         'api_allowed_role_groups',

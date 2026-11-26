@@ -262,7 +262,7 @@ class LogManagementController extends AdminControllerBase
             'from' => $date($request->get('from')),
             'to' => $date($request->get('to')),
             'name' => is_string($name) && trim($name) !== '' ? mb_substr(trim($name), 0, 100) : null,
-            'result' => in_array($result, [LoginLog::RESULT_SUCCESS, LoginLog::RESULT_FAILURE, LoginLog::RESULT_LOCKOUT, LoginLog::RESULT_LOGOUT], true) ? $result : null,
+            'result' => in_array($result, LoginLog::RESULTS, true) ? $result : null,
         ];
     }
 

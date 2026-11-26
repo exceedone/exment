@@ -30,10 +30,16 @@ class LoginLog extends Model
     public const RESULT_FAILURE = 'failure';
     public const RESULT_LOCKOUT = 'lockout';
     public const RESULT_LOGOUT = 'logout';
+    /** a user exempt from the IP filter, from an address out of it (ISS02915): once a session */
+    public const RESULT_IP_EXEMPT = 'ip_exempt';
+    /** all the results, in the order of the pages */
+    public const RESULTS = [self::RESULT_SUCCESS, self::RESULT_FAILURE, self::RESULT_LOCKOUT, self::RESULT_LOGOUT, self::RESULT_IP_EXEMPT];
 
     public const REASON_WRONG_PASSWORD = 'wrong_password';
     public const REASON_UNKNOWN_USER = 'unknown_user';
     public const REASON_2FA_FAILED = '2fa_failed';
+    /** logged in from an address out of the IP filter, not exempt (ISS02915) */
+    public const REASON_IP_NOT_ALLOWED = 'ip_not_allowed';
 
     protected $table = 'login_logs';
 
