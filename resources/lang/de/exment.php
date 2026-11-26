@@ -1505,6 +1505,10 @@ return [
                 'preview_folder' => ':name: :files Dateien (:size)',
                 'preview_env' => 'Einstellungen (ein Teil von .env)',
                 'preview_versions' => 'Erstellt mit: Exment :exment / Laravel :laravel (jetzt: Exment :current_exment / Laravel :current_laravel)',
+                'restore_in_request' => 'Wiederherstellung über diese Seite',
+                'restore_command_note' => 'Auf diesem Server läuft die Wiederherstellung innerhalb der Anfrage dieser Seite. Bei einer großen Website dauert das lange, und die Seite kann das Warten abbrechen (die Wiederherstellung läuft weiter). Für große Websites wird der Befehl php artisan exment:restore auf dem Server empfohlen.',
+                'restoring_title' => 'Wiederherstellung läuft',
+                'restoring_text' => 'Eine Wiederherstellung läuft. Bitte warten Sie einen Moment. Diese Seite lädt sich nach dem Ende von selbst neu.',
                 'scope' => 'Umfang',
                 'scopes' => [
                     'all' => 'Wie in den Einstellungen (alle Ziele)',
@@ -1584,6 +1588,7 @@ return [
                 'verify_sha256' => 'Die Sicherungsdatei unterscheidet sich von der bei ihrer Erstellung (sha256 stimmt nicht überein). Sie ist beschädigt oder eine andere Datei. Es wurde nichts wiederhergestellt.',
                 'verify_read' => 'Eine Datei der Sicherung kann nicht gelesen werden (:name). Die Sicherung ist beschädigt. Es wurde nichts wiederhergestellt.',
                 'safety_failed' => 'Die Sicherung vor der Wiederherstellung ist fehlgeschlagen. Es wurde nichts wiederhergestellt. Sehen Sie sich das ausführliche Protokoll an.',
+                'restore_started' => 'Die Wiederherstellung wurde gestartet. Den Fortschritt sehen Sie auf dieser Seite. Danach melden Sie sich erneut an.',
             ],
             'hints' => [
                 'see_log' => 'Sehen Sie sich das ausführliche Protokoll an.',

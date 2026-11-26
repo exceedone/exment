@@ -226,6 +226,11 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $tables = \Schema::getTableListing();
         $total = count($tables) + 1;
 
+        // the number of tables first: the screen counts them from the start
+        if (isset($progress)) {
+            $progress(['total' => $total, 'start' => true]);
+        }
+
         // export table definition
         $exitCode = $this->dumpDatabase($tempDir);
         if (isset($progress)) {

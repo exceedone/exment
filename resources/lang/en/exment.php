@@ -1552,6 +1552,10 @@ return [
                 'preview_folder' => ':name: :files files (:size)',
                 'preview_env' => 'Settings (part of .env)',
                 'preview_versions' => 'Made on: Exment :exment / Laravel :laravel (now: Exment :current_exment / Laravel :current_laravel)',
+                'restore_in_request' => 'Restore from this page',
+                'restore_command_note' => 'On this server, the restore runs inside the request of this page. On a large site it takes long, and the page may give up waiting (the restore goes on). For a large site, the command php artisan exment:restore on the server is recommended.',
+                'restoring_title' => 'Restore in progress',
+                'restoring_text' => 'A restore is in progress. Please wait a moment. This page reloads by itself when it ends.',
                 'scope' => 'What to include',
                 'scopes' => [
                     'all' => 'As in the settings (all the targets)',
@@ -1631,6 +1635,7 @@ return [
                 'verify_sha256' => 'The backup file differs from when it was made (the sha256 does not match). It is broken or another file. Nothing was restored.',
                 'verify_read' => 'A file in the backup cannot be read (:name). The backup is broken. Nothing was restored.',
                 'safety_failed' => 'The backup before the restore failed. Nothing was restored. See the detailed log.',
+                'restore_started' => 'The restore has started. You can follow its progress on this page. When it ends, you will sign in again.',
             ],
             'hints' => [
                 'see_log' => 'See the detailed log.',

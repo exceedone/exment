@@ -1505,6 +1505,10 @@ return [
                 'preview_folder' => ':name: :files tệp (:size)',
                 'preview_env' => 'Cài đặt (một phần của .env)',
                 'preview_versions' => 'Phiên bản khi tạo: Exment :exment / Laravel :laravel (hiện tại: Exment :current_exment / Laravel :current_laravel)',
+                'restore_in_request' => 'Khôi phục từ màn hình này',
+                'restore_command_note' => 'Trên máy chủ này, việc khôi phục chạy trong yêu cầu của màn hình này. Với trang web lớn, việc này mất nhiều thời gian và màn hình có thể ngừng chờ (việc khôi phục vẫn tiếp tục). Với trang web lớn, nên dùng lệnh php artisan exment:restore trên máy chủ.',
+                'restoring_title' => 'Đang khôi phục',
+                'restoring_text' => 'Đang khôi phục. Vui lòng chờ trong giây lát. Trang này sẽ tự tải lại khi xong.',
                 'scope' => 'Nội dung sao lưu',
                 'scopes' => [
                     'all' => 'Theo cài đặt (tất cả đối tượng)',
@@ -1584,6 +1588,7 @@ return [
                 'verify_sha256' => 'Tệp sao lưu khác với lúc được tạo (sha256 không khớp). Tệp bị hỏng hoặc là tệp khác. Chưa khôi phục gì.',
                 'verify_read' => 'Không đọc được một tệp trong bản sao lưu (:name). Bản sao lưu bị hỏng. Chưa khôi phục gì.',
                 'safety_failed' => 'Sao lưu trước khi khôi phục không thành công. Chưa khôi phục gì. Hãy xem nhật ký chi tiết.',
+                'restore_started' => 'Đã bắt đầu khôi phục. Bạn có thể theo dõi tiến độ trên màn hình này. Khi xong, bạn sẽ cần đăng nhập lại.',
             ],
             'hints' => [
                 'see_log' => 'Hãy xem nhật ký chi tiết.',
