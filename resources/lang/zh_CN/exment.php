@@ -2745,6 +2745,7 @@ IP 地址: :ip
         'required' => '必填',
         'choices' => '选项',
         'choices_help' => '每行一个',
+        'choices_help_valtext' => '每行一个“值,标签”（例如：01,总部）',
         'move_up' => '上移',
         'move_down' => '下移',
         'remove' => '删除',

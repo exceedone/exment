@@ -2745,6 +2745,7 @@ IP 주소: :ip
         'required' => '필수',
         'choices' => '선택지',
         'choices_help' => '한 줄에 하나씩 입력',
+        'choices_help_valtext' => '한 줄에 "값,표시명" 형식으로 입력 (예: 01,본사)',
         'move_up' => '위로',
         'move_down' => '아래로',
         'remove' => '삭제',

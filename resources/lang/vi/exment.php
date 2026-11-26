@@ -2745,6 +2745,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'required' => 'Bắt buộc',
         'choices' => 'Lựa chọn',
         'choices_help' => 'Mỗi lựa chọn một dòng',
+        'choices_help_valtext' => 'Mỗi dòng một "giá trị,nhãn" (ví dụ: 01,Trụ sở chính)',
         'move_up' => 'Lên',
         'move_down' => 'Xuống',
         'remove' => 'Xóa',

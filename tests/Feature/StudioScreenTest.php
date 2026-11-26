@@ -58,6 +58,31 @@ class StudioScreenTest extends FeatureTestBase
         $response->assertSee('exm-studio-node', false);
     }
 
+    /**
+     * A table of one record opens its data, not a view: no "+ view" for it, and a badge says
+     * what it is (#2269).
+     */
+    public function testATableOfOneRecordHasNoNewViewAndABadge(): void
+    {
+        // a test table made a table of one record (rolled back after the test)
+        $table = CustomTable::getEloquent('child_table');
+        $this->assertNotNull($table);
+        $table->setOption('one_record_flg', '1');
+        $table->save();
+        System::clearRequestSession();
+
+        $response = $this->openStudio(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $response->assertOk();
+        $response->assertDontSee(admin_urls('view', 'child_table', 'create'), false);
+        $response->assertSee(admin_urls('view', 'parent_table', 'create'), false);
+        $response->assertSee(exmtrans('custom_table.one_record_flg'));
+
+        $cards = collect((new ScreenList())->tableCards())->keyBy('table_name');
+        $this->assertTrue($cards['child_table']['one_record']);
+        $this->assertFalse($cards['parent_table']['one_record']);
+        $this->assertNull($cards['child_table']['view_create_url']);
+    }
+
     public function testAUserSeesOnlyTheTablesTheyMaySet(): void
     {
         $checked = 0;

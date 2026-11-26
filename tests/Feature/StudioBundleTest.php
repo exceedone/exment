@@ -50,15 +50,16 @@ class StudioBundleTest extends FeatureTestBase
 
     /**
      * @param array<string, mixed>|null $bundle
+     * @param array<int, array<string, mixed>>|null $fields
      * @return \Illuminate\Testing\TestResponse<\Symfony\Component\HttpFoundation\Response>
      */
-    protected function postApp(?array $bundle)
+    protected function postApp(?array $bundle, ?array $fields = null)
     {
         System::clearRequestSession();
         $data = [
             'table_view_name' => static::NAME,
             'table_name' => static::TABLE,
-            'fields' => json_encode([
+            'fields' => json_encode($fields ?? [
                 ['type' => ColumnType::TEXT, 'label' => 'title'],
                 ['type' => ColumnType::SELECT, 'label' => 'status', 'choices' => "todo\ndoing\ndone"],
                 ['type' => ColumnType::DATE, 'label' => 'due'],
@@ -149,6 +150,69 @@ class StudioBundleTest extends FeatureTestBase
         $this->assertStringContainsString('todo', $chartHtml);
         System::clearRequestSession();
         $this->followingRedirects()->get(admin_url('?dashboard=' . $dashboard->suuid))->assertOk();
+    }
+
+    /**
+     * The items the kanban and the chart are made from get the search index, so their
+     * views can sort and filter by them (#2270); the title does not.
+     */
+    public function testTheKanbanAndChartItemsGetTheSearchIndex(): void
+    {
+        $this->postApp(['kanban' => 1, 'calendar' => null, 'chart' => 1, 'dashboard' => false])->assertRedirect();
+        System::clearRequestSession();
+        $table = CustomTable::getEloquent(static::TABLE);
+        $this->assertNotNull($table);
+        $status = CustomColumn::getEloquent('status', $table);
+        $this->assertNotNull($status);
+        $this->assertTrue(boolval($status->index_enabled));
+        $this->assertFalse(boolval(CustomColumn::getEloquent('title', $table)?->index_enabled));
+        $this->assertTrue(hasColumn(getDBTableName($table), $status->getIndexColumnName(false)));
+    }
+
+    /**
+     * ... but never past the number of indexes a table may have.
+     */
+    public function testTheSearchIndexKeepsTheLimit(): void
+    {
+        config(['exment.column_index_enabled_count' => 0]);
+        $this->postApp(['kanban' => 1, 'calendar' => 2, 'chart' => 1, 'dashboard' => false])->assertRedirect();
+        System::clearRequestSession();
+        $table = CustomTable::getEloquent(static::TABLE);
+        $this->assertNotNull($table);
+        $this->assertFalse(boolval(CustomColumn::getEloquent('status', $table)?->index_enabled));
+        $this->assertFalse(boolval(CustomColumn::getEloquent('due', $table)?->index_enabled));
+        // the views are made all the same
+        $this->assertSame(3, CustomView::where('custom_table_id', $table->id)
+            ->whereIn('view_kind_type', [ViewKindType::KANBAN, ViewKindType::CALENDAR, ViewKindType::AGGREGATE])->count());
+    }
+
+    /**
+     * A "value,label" choice (#2272) is a column with its values and labels, and a kanban
+     * and a chart can be made from it.
+     */
+    public function testAValueAndLabelChoiceMakesAKanban(): void
+    {
+        $this->postApp(['kanban' => 1, 'calendar' => null, 'chart' => 1, 'dashboard' => false], [
+            ['type' => ColumnType::TEXT, 'label' => 'title'],
+            ['type' => ColumnType::SELECT_VALTEXT, 'label' => 'office', 'choices' => "01,Head office\n02,Osaka"],
+        ])->assertRedirect(admin_urls('data', static::TABLE, 'create'));
+        $this->assertSame([], session('studio_errors', []));
+        System::clearRequestSession();
+        $table = CustomTable::getEloquent(static::TABLE);
+        $this->assertNotNull($table);
+        $office = CustomColumn::getEloquent('office', $table);
+        $this->assertNotNull($office);
+        $this->assertSame(ColumnType::SELECT_VALTEXT, $office->column_type);
+        $this->assertSame(['01' => 'Head office', '02' => 'Osaka'], collect($office->createSelectOptions())->toArray());
+        /** @var CustomView $kanban */
+        $kanban = CustomView::where('custom_table_id', $table->id)->where('view_kind_type', ViewKindType::KANBAN)->firstOrFail();
+        $this->assertSame(intval($office->id), intval($kanban->getOption('kanban_group_column_id')));
+
+        $data = $table->getValueModel();
+        $data->setValue(['title' => 'a', 'office' => '02']);
+        $data->save();
+        System::clearRequestSession();
+        $this->get(admin_urls('data', static::TABLE) . '?view=' . $kanban->suuid)->assertOk()->assertSee('Osaka');
     }
 
     public function testOnlyWhatIsAskedForIsMade(): void

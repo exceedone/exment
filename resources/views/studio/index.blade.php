@@ -51,6 +51,7 @@
                                             @else
                                                 {{ $table['table_view_name'] }}
                                             @endif
+                                            @if (!empty($table['one_record']))<span class="exm-studio-badge" title="{{ exmtrans('custom_table.help.one_record_flg') }}">{{ exmtrans('custom_table.one_record_flg') }}</span>@endif
                                         </div>
                                         <div class="exm-studio-table-links">
                                             @if ($table['form_create_url'])
