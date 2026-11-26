@@ -28,6 +28,19 @@ class NotifyTemplateTest extends UnitTestBase
     use DatabaseTransactions;
     use CustomTableTrait;
 
+    /**
+     * Remove what a run before left. The test makes a table, and making a table (DDL) commits the
+     * transaction of the test on MySQL, so its table and notification stayed: the next run on the
+     * same database found two. Deleting the table deletes its notifications too.
+     */
+    protected function removeLeftovers(string $table_name): void
+    {
+        foreach (CustomTable::where('table_name', $table_name)->get() as $table) {
+            $table->delete();
+        }
+        System::clearCache();
+    }
+
     protected function makeNotify(CustomTable $table, CustomColumn $due, CustomColumn $owner, ?int $mailId): Notify
     {
         $notify = new Notify();
@@ -54,7 +67,7 @@ class NotifyTemplateTest extends UnitTestBase
 
     public function testANotifyTravelsByNamesAndComesBackAsIds(): void
     {
-        System::clearCache();
+        $this->removeLeftovers('notify_template_test');
         $table = $this->_createSimpleTable('notify_template_test');
         $due = CustomColumn::create(['custom_table_id' => $table->id, 'column_name' => 'due', 'column_view_name' => 'due', 'column_type' => ColumnType::DATE, 'options' => []]);
         $owner = CustomColumn::create(['custom_table_id' => $table->id, 'column_name' => 'owner', 'column_view_name' => 'owner', 'column_type' => ColumnType::USER, 'options' => []]);
@@ -98,7 +111,7 @@ class NotifyTemplateTest extends UnitTestBase
 
     public function testTheLanguageFileHasOnlyTheNames(): void
     {
-        System::clearCache();
+        $this->removeLeftovers('notify_template_lang');
         $table = $this->_createSimpleTable('notify_template_lang');
         $due = CustomColumn::create(['custom_table_id' => $table->id, 'column_name' => 'due', 'column_view_name' => 'due', 'column_type' => ColumnType::DATE, 'options' => []]);
         System::clearCache();
