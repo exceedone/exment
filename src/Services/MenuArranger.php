@@ -31,7 +31,7 @@ class MenuArranger
         [null, [['system', 'home']]],
         ['groupware', [['system', 'file_server'], ['custom', 'exment_groupware_mail']]],
         ['master', [['table', 'base_info'], ['table', 'organization'], ['table', 'user'], ['table', 'information']]],
-        ['admin_data', [['system', 'custom_table'], ['system', 'studio'], ['system', 'menu'], ['system', 'workflow'], ['table', 'mail_template'], ['system', 'notify'], ['system', 'cell_style_preset'], ['system', 'template']]],
+        ['admin_data', [['system', 'custom_table'], ['system', 'studio'], ['system', 'menu'], ['system', 'workflow'], ['table', 'mail_template'], ['system', 'notify'], ['system', 'cell_style_preset'], ['system', 'template'], ['system', 'trash']]],
         ['admin_user', [['system', 'loginuser'], ['system', 'role_group'], ['system', 'login_setting'], ['system', 'api_setting'], ['system', 'operation_log']]],
         ['admin', [['system', 'system'], ['system', 'safety_check_setting'], ['system', 'meili_setting'], ['system', 'feature'], ['system', 'plugin'], ['system', 'backup'], ['system', 'tuning'], ['system', 'security_check'], ['system', 'scheduled_jobs'], ['system', 'log_management'], ['system', 'maintenance']]],
     ];

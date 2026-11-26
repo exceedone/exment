@@ -216,6 +216,17 @@ class CustomValueController extends AdminControllerTableBase
             }
         }
 
+        // who listed or exported the table (ISS02905): one row a list, not one a record shown
+        if (!$modalframe) {
+            \Exceedone\Exment\Services\LogManagement\DataAccessLogs::listed(
+                $this->custom_table,
+                isset($this->custom_view) ? intval($this->custom_view->id) : null,
+                !is_nullorempty($request->get(Exporter::$queryName)) && !GridBase::isImportTemplateRequest($request)
+                    ? \Exceedone\Exment\Model\DataAccessLog::KIND_EXPORT
+                    : \Exceedone\Exment\Model\DataAccessLog::KIND_LIST
+            );
+        }
+
         if (!$modalframe || $modal) {
             Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
                 'is_modal' => $modal,
@@ -847,6 +858,9 @@ class CustomValueController extends AdminControllerTableBase
             return $response;
         }
 
+        // who read it (ISS02905)
+        \Exceedone\Exment\Services\LogManagement\DataAccessLogs::read($this->custom_table, $id);
+
         $custom_value = $this->custom_table->getValueModel($id);
 
         Plugin::pluginExecuteEvent(PluginEventType::LOADING, $this->custom_table, [
@@ -875,6 +889,13 @@ class CustomValueController extends AdminControllerTableBase
                 }
                 $show_item->setOptionBoxes($row);
             });
+            // who read and who changed it, for the users with Audit (ISS02905)
+            $box = AuditReportController::recordAccessBox($this->custom_table, intval($id));
+            if (isset($box)) {
+                $content->row(function ($row) use ($box) {
+                    $row->column(12, $box);
+                });
+            }
             $this->appendBackToListButton();
         }
 

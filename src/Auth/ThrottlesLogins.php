@@ -96,7 +96,8 @@ trait ThrottlesLogins
      */
     protected function throttleKey(Request $request)
     {
-        return Str::lower($request->input($this->username())).'|'.$request->ip();
+        // an IPv6 address counts as its /64 (ISS02909)
+        return Str::lower($request->input($this->username())).'|'.\Exceedone\Exment\Services\IpAddress::limiterKey($request->ip());
     }
 
     /**

@@ -6,6 +6,8 @@ use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
+use Exceedone\Exment\Model\DataAccessLog;
+use Exceedone\Exment\Services\LogManagement\DataAccessLogs;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\MemberDirectory;
 use Exceedone\Exment\Services\UserApiKeys;
@@ -73,11 +75,12 @@ class McpTools
             ],
             [
                 'name' => 'search_data',
-                'description' => 'Search the records of a table the user can see. q: words searched in the columns the table searches (optional: without it, the newest records). limit: how many (at most ' . static::maxRows() . ').' . $untrusted,
+                'description' => 'Search the records of a table the user can see. q: words searched in the columns the table searches (optional: without it, the newest records). limit: how many (at most ' . static::maxRows() . '). The answer has next_cursor when there are more: call again with the same table and q and cursor set to it (null: no more).' . $untrusted,
                 'inputSchema' => ['type' => 'object', 'properties' => [
                     'table' => $table,
                     'q' => ['type' => 'string', 'description' => 'Words to search.'],
                     'limit' => ['type' => 'integer', 'minimum' => 1, 'maximum' => static::maxRows()],
+                    'cursor' => ['type' => 'string', 'description' => 'The next_cursor of the answer before, to read on.'],
                 ], 'required' => ['table']],
                 'annotations' => $readOnly,
             ],
@@ -151,10 +154,19 @@ class McpTools
                     return $this->answer($this->getTable($this->table($args)));
                 case 'search_data':
                     $this->needScope(ApiScope::VALUE_READ);
-                    return $this->answer($this->searchData($this->table($args), $args));
+                    $table = $this->table($args);
+                    // who listed the data (ISS02905)
+                    DataAccessLogs::from(DataAccessLog::VIA_MCP, function () use ($table) {
+                        DataAccessLogs::listed($table);
+                    });
+                    return $this->answer($this->searchData($table, $args));
                 case 'get_data':
                     $this->needScope(ApiScope::VALUE_READ);
-                    return $this->answer($this->row($this->record($args)));
+                    $record = $this->record($args);
+                    DataAccessLogs::from(DataAccessLog::VIA_MCP, function () use ($record) {
+                        DataAccessLogs::read($record->custom_table, $record->id);
+                    });
+                    return $this->answer($this->row($record));
                 case 'list_attachments':
                     $this->needScope(ApiScope::VALUE_READ);
                     return $this->answer($this->attachments($this->record($args)));
@@ -358,6 +370,7 @@ class McpTools
      */
     protected function searchData(CustomTable $custom_table, array $args): array
     {
+        $started = microtime(true);
         $limit = max(1, min(static::maxRows(), intval($args['limit'] ?? 20)));
         $q = $args['q'] ?? '';
         if (!is_string($q)) {
@@ -367,13 +380,47 @@ class McpTools
         if (mb_strlen($q) > static::MAX_QUERY_LENGTH) {
             throw new ToolError('"q" is too long (at most ' . static::MAX_QUERY_LENGTH . ' characters).');
         }
+        $cursor = $this->readCursor($args['cursor'] ?? null, $custom_table, $q);
+
         if ($q !== '') {
-            $found = $custom_table->searchValue($q, ['maxCount' => $limit, 'isApi' => true]) ?? collect();
+            // The columns the table searches by words, as the search box of the data list
+            // (setSearchQueryOrWhere; searchValue with isApi and no columns searched no column).
+            // In one order, the newest id first, on from the last id of the page before: the
+            // search of searchValue has no order, so its pages would repeat and skip records.
+            $dbTable = getDBTableName($custom_table);
+            $query = $custom_table->getValueQuery();
+            $custom_table->getValueModel()->setSearchQueryOrWhere($query, $q);
+            if (isset($cursor)) {
+                $query->where($dbTable . '.id', '<', intval($cursor['i'] ?? 0));
+            }
+            $found = $query->orderByDesc($dbTable . '.id')->limit($limit + 1)->get();
+            $more = $found->count() > $limit;
+            $found = $found->take($limit);
         } else {
-            $found = $custom_table->getValueQuery()->orderByDesc('updated_at')->orderByDesc('id')->limit($limit)->get();
+            // the newest first, on from the last record of the page before; one more than
+            // asked, to know whether there are more
+            $query = $custom_table->getValueQuery();
+            if (isset($cursor)) {
+                $this->afterCursor($query, $cursor);
+            }
+            $found = $query->orderByDesc('updated_at')->orderByDesc('id')->limit($limit + 1)->get();
+            $more = $found->count() > $limit;
+            $found = $found->take($limit);
         }
+
+        $seconds = floatval(config('exment.mcp_search_seconds', 0));
         $rows = [];
+        $examined = 0;
+        $last = null;
+        $stopped = false;
         foreach ($found as $value) {
+            // at least one record a call, so a search always goes on
+            if ($seconds > 0 && $examined > 0 && microtime(true) - $started > $seconds) {
+                $stopped = true;
+                break;
+            }
+            $examined++;
+            $last = $value;
             // the query is filtered by the permissions; each record is checked again, as the API does
             if (!($value instanceof CustomValue) || $value->enableAccess() !== true) {
                 continue;
@@ -383,7 +430,79 @@ class McpTools
                 break;
             }
         }
-        return ['table' => $custom_table->table_name, 'count' => count($rows), 'limit' => $limit, 'rows' => $rows];
+
+        $next = null;
+        if ($last instanceof CustomValue && ($more || $stopped || $examined < $found->count())) {
+            $next = $q !== ''
+                ? $this->makeCursor($custom_table, $q, ['i' => intval($last->id)])
+                : $this->makeCursor($custom_table, $q, ['u' => $last->getAttributes()['updated_at'] ?? null, 'i' => intval($last->id)]);
+        }
+
+        $result = ['table' => $custom_table->table_name, 'count' => count($rows), 'limit' => $limit, 'rows' => $rows, 'next_cursor' => $next];
+        if ($stopped) {
+            $result['stopped'] = 'The time of one call (' . $seconds . ' seconds) was over: read on with next_cursor.';
+        }
+        return $result;
+    }
+
+    /**
+     * The records after the one a cursor points at, in the order of the newest first
+     * (updated_at, id; the records without updated_at come last, as the databases sort them).
+     *
+     * @param mixed $query
+     * @param array<string, mixed> $cursor
+     */
+    protected function afterCursor($query, array $cursor): void
+    {
+        $at = isset($cursor['u']) ? strval($cursor['u']) : null;
+        $id = intval($cursor['i'] ?? 0);
+        $query->where(function ($where) use ($at, $id) {
+            if (!isset($at)) {
+                $where->whereNull('updated_at')->where('id', '<', $id);
+                return;
+            }
+            $where->where('updated_at', '<', $at)
+                ->orWhere(function ($same) use ($at, $id) {
+                    $same->where('updated_at', $at)->where('id', '<', $id);
+                })
+                ->orWhereNull('updated_at');
+        });
+    }
+
+    /**
+     * A cursor: where the next call reads on from, for this table and these words only.
+     *
+     * @param array<string, mixed> $at
+     */
+    protected function makeCursor(CustomTable $custom_table, string $q, array $at): string
+    {
+        $json = json_encode(['h' => $this->cursorHash($custom_table, $q)] + $at) ?: '{}';
+        return rtrim(strtr(base64_encode($json), '+/', '-_'), '=');
+    }
+
+    /**
+     * @param mixed $cursor
+     * @return array<string, mixed>|null
+     */
+    protected function readCursor($cursor, CustomTable $custom_table, string $q): ?array
+    {
+        if (!isset($cursor) || $cursor === '') {
+            return null;
+        }
+        $decoded = is_string($cursor) && strlen($cursor) <= 512 ? base64_decode(strtr($cursor, '-_', '+/'), true) : false;
+        $data = is_string($decoded) ? json_decode($decoded, true) : null;
+        if (!is_array($data) || !isset($data['h'])) {
+            throw new ToolError('"cursor" is not a cursor of search_data.');
+        }
+        if (!hash_equals($this->cursorHash($custom_table, $q), strval($data['h']))) {
+            throw new ToolError('"cursor" is of another search: call with the same table and q.');
+        }
+        return $data;
+    }
+
+    protected function cursorHash(CustomTable $custom_table, string $q): string
+    {
+        return substr(hash('sha256', $custom_table->table_name . "\n" . $q), 0, 16);
     }
 
     /**

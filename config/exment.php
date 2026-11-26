@@ -718,6 +718,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | IPv6 prefix of the rate limits
+    |--------------------------------------------------------------------------
+    |
+    | The rate limits and the login lockouts count an IPv6 address as its network of this
+    | prefix (a client has a /64 and can take a new address in it for every try). 128 counts
+    | each address.
+    |
+    */
+    'ipv6_limit_prefix' => env('EXMENT_IPV6_LIMIT_PREFIX', 64),
+
+    /*
+    |--------------------------------------------------------------------------
     | session Expire On Close
     |--------------------------------------------------------------------------
     |
@@ -1137,6 +1149,19 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The archive of the deleted data deleted for good (ISS00147)
+    |--------------------------------------------------------------------------
+    | exment:trash-purge deletes for good the deleted data older than the days of its table
+    | (the table setting), after writing it to deleted_archives and copying its files.
+    | keep_days: the days an archive is kept (0: kept forever).
+    | disk: the disk of the copied files (empty: the disk of the attachments), folder: the folder in it.
+    */
+    'deleted_archive_keep_days' => env('EXMENT_DELETED_ARCHIVE_KEEP_DAYS', 365),
+    'deleted_archive_disk' => env('EXMENT_DELETED_ARCHIVE_DISK'),
+    'deleted_archive_folder' => env('EXMENT_DELETED_ARCHIVE_FOLDER', 'archives/deleted'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Document upload max count one request
     |--------------------------------------------------------------------------
     |
@@ -1397,6 +1422,12 @@ return [
     'mcp_calls_per_minute' => env('EXMENT_MCP_CALLS_PER_MINUTE', 60),
 
     /*
+    | The longest a search_data call reads records, in seconds: then it answers with what it has
+    | and next_cursor to read on. 0: no limit (the time of PHP only).
+    */
+    'mcp_search_seconds' => env('EXMENT_MCP_SEARCH_SECONDS', 0),
+
+    /*
     | When the notifications of a saved record are made (ISS02906): queue (by the queue worker),
     | after_response (after the answer is sent, in the same process) or sync (while the save waits,
     | as before 7.3). Not set: queue when QUEUE_CONNECTION is not sync, else after_response in a
@@ -1601,6 +1632,31 @@ return [
     | writes the same file needs 0660.
     */
     'log_file_permission' => env('EXMENT_LOG_FILE_PERMISSION', '0640'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | How the records of the logs are written (ISS02903)
+    |--------------------------------------------------------------------------
+    | The operation log, the logins and the last use of an API key, without making the response
+    | wait. "after_response" (the default): after the response is sent. "queue": by the queue
+    | (QUEUE_CONNECTION other than sync; without one, after_response). "sync": at once, as before.
+    | A record that cannot be written is kept in storage/logs/exment-log-fallback.log.
+    */
+    'log_write_mode' => env('EXMENT_LOG_WRITE_MODE', 'after_response'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | The database of the logs, their size (ISS02905)
+    |--------------------------------------------------------------------------
+    | log_db_connection: a connection of config/database.php for the log tables (login_logs,
+    | permission_change_logs, browser_logs, data_access_logs, data_access_daily), so that the logs
+    | do not fill the database of the data. Empty: the default connection. A site that has the
+    | tables already: php artisan exment:log-db --copy after setting it.
+    | log_size_warn_mb: a warning on the log management page and in the security check when all
+    | the logs (tables, files, archives) are larger. 0: no warning.
+    */
+    'log_db_connection' => env('EXMENT_LOG_DB_CONNECTION'),
+    'log_size_warn_mb' => env('EXMENT_LOG_SIZE_WARN_MB', 1024),
 
     /*
     |--------------------------------------------------------------------------

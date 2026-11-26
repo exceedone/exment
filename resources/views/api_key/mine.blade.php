@@ -85,7 +85,7 @@
                 <div class="form-group">
                     <label class="col-sm-2 control-label">{{ exmtrans('api_key.allowed_ips') }}</label>
                     <div class="col-sm-8">
-                        <textarea name="allowed_ips" rows="3" class="form-control" placeholder="192.0.2.10&#10;198.51.100.0/24">{{ $old['allowed_ips'] ?? '' }}</textarea>
+                        <textarea name="allowed_ips" rows="3" class="form-control" placeholder="192.0.2.10&#10;198.51.100.0/24&#10;2001:db8::/32">{{ $old['allowed_ips'] ?? '' }}</textarea>
                         <span class="help-block">{{ exmtrans('api_key.allowed_ips_help') }}</span>
                     </div>
                 </div>

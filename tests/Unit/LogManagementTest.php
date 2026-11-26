@@ -137,6 +137,35 @@ class LogManagementTest extends UnitTestBase
     }
 
     /**
+     * A lockout is recorded for the account of the name typed; a name that is no account keeps
+     * nothing of what was typed.
+     */
+    public function testTheLockoutIsForTheAccount(): void
+    {
+        $user = LoginUser::whereHas('base_user', function ($query) {
+            $query->where('value->user_code', 'admin');
+        })->first();
+        $this->assertNotNull($user);
+
+        $request = Request::create('/admin/auth/login', 'POST', ['username' => 'admin', 'password' => 'wrong'], [], [], ['REMOTE_ADDR' => '203.0.113.8']);
+        $this->app->instance('request', $request);
+        event(new Lockout($request));
+        $row = LoginLog::query()->orderByDesc('id')->firstOrFail();
+        $this->assertSame(LoginLog::RESULT_LOCKOUT, $row->result);
+        $this->assertEquals($user->id, $row->login_user_id);
+        $this->assertEquals($user->base_user_id, $row->base_user_id);
+        $this->assertSame('admin', $row->login_name);
+
+        $request = Request::create('/admin/auth/login', 'POST', ['username' => 'no-such-account-7319', 'password' => 'wrong'], [], [], ['REMOTE_ADDR' => '203.0.113.8']);
+        $this->app->instance('request', $request);
+        event(new Lockout($request));
+        $row = LoginLog::query()->orderByDesc('id')->firstOrFail();
+        $this->assertSame(LoginLog::RESULT_LOCKOUT, $row->result);
+        $this->assertNull($row->base_user_id);
+        $this->assertNull($row->login_name, 'what was typed is not kept');
+    }
+
+    /**
      * Part 3: the old logs go in a gzip file a month before they are deleted, the file grows when
      * the month gets more, and the archives older than the years kept are deleted.
      */

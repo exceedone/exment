@@ -38,7 +38,7 @@ class RouteServiceProvider extends ServiceProvider
                 $per_minute = ApiRateRaises::perMinute($rate_limit, ApiRateRaises::userOfApiKey((string)$bearer));
                 // by the IP (a new random key each time, or many keys, do not get more) and by the key
                 return [
-                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
+                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip())),
                     Limit::perMinute($per_minute)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
                 ];
             }
@@ -47,7 +47,7 @@ class RouteServiceProvider extends ServiceProvider
             $token = $login_user instanceof \Exceedone\Exment\Model\LoginUser ? $login_user->token() : null;
             $client_id = $token instanceof \Laravel\Passport\Token ? $token->client_id : null;
             $per_minute = ApiRateRaises::perMinute($rate_limit, $login_user?->base_user_id, $client_id);
-            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: $request->ip());
+            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: \Exceedone\Exment\Services\IpAddress::limiterKey($request->ip()));
         });
     }
     /**
@@ -251,6 +251,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('log_management', 'LogManagementController@index');
             $router->post('log_management/setting', 'LogManagementController@postSetting');
             $router->get('log_management/logins.csv', 'LogManagementController@loginsCsv');
+            $router->get('log_management/browser', 'BrowserLogController@index');
+            $router->post('log_management/browser/setting', 'BrowserLogController@postSetting');
             $router->get('log_management/files/{name}', 'LogManagementController@file')->where('name', '[A-Za-z0-9._-]+');
             $router->get('log_management/archives/{kind}/{name}', 'LogManagementController@archive')->where(['kind' => '[a-z0-9_]+', 'name' => '[A-Za-z0-9._-]+']);
             // the IT audit report (ISS02840)
@@ -258,6 +260,7 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('log_management/audit.pdf', 'AuditReportController@pdf');
             $router->get('log_management/audit/{section}.csv', 'AuditReportController@csv')->where('section', '[a-z_]+');
             $router->get('log_management/audit/files/{id}', 'AuditReportController@file')->where('id', '[0-9]+');
+            $router->get('log_management/audit/record', 'AuditReportController@record');
             $router->post('log_management/audit/verify', 'AuditReportController@verify');
             $router->post('log_management/audit/setting', 'AuditReportController@postSetting');
             $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
@@ -265,6 +268,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('api_rate_raises', 'ApiRateRaiseController@index');
             $router->post('api_rate_raises', 'ApiRateRaiseController@store');
             $router->post('api_rate_raises/{id}/delete', 'ApiRateRaiseController@delete');
+            // the trash: the deleted rows of all the tables (ISS00334)
+            $router->get('trash', 'TrashController@index');
+            $router->post('trash/restore', 'TrashController@restore');
+            $router->post('trash/delete', 'TrashController@delete');
             $router->get('maintenance', 'MaintenanceController@index');
             $router->post('maintenance', 'MaintenanceController@store');
             $router->post('maintenance/start', 'MaintenanceController@start');
@@ -598,6 +605,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('webapi/menu/menutargetview', 'MenuController@menutargetview');
 
             $router->get('webapi/mention/users', 'MentionController@users');
+            // the log of the browsers (ISS02904): at most a sending a second a user
+            $router->post('webapi/browser_log', 'BrowserLogController@store')->middleware('throttle:60,1');
 
             $router->get("webapi/{tableKey}/cellstylepreset", 'CellStylePresetController@presets');
             $router->get("webapi/{tableKey}/cellstylepreset/modal", 'CellStylePresetController@modal');

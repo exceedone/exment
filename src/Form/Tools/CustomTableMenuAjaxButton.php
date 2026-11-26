@@ -40,7 +40,9 @@ class CustomTableMenuAjaxButton extends ModalTileAjaxMenuButton
 
         return <<<EOT
 
-        $('.block_custom_table').find('.grid-row-checkbox').off('ifChanged').on('ifChanged',function(ev){
+        // ifChanged while iCheck is loaded (it triggers no native change), else the native change
+        var checkEvent = ($.fn && $.fn.iCheck) ? 'ifChanged' : 'change';
+        $('.block_custom_table').find('.grid-row-checkbox').off(checkEvent).on(checkEvent,function(ev){
             var rows = selectedRows();
             $('[data-widgetmodal_uuid="$uuid"]').attr('disabled', rows.length !== 1);
         });

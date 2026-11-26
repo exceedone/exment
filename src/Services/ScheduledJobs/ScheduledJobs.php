@@ -36,6 +36,7 @@ class ScheduledJobs
         'exment:meili-reconcile' => 'meili_reconcile',
         'exment:maintenance tick' => 'maintenance_tick',
         'exment:log-maintenance' => 'log_maintenance',
+        'exment:trash-purge' => 'trash_purge',
         'exment:audit-report' => 'audit_report',
     ];
 

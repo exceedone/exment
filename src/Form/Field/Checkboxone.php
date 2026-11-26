@@ -75,7 +75,8 @@ class Checkboxone extends Field
      */
     public function render()
     {
-        $this->script = "$('{$this->getElementClassSelector()}').iCheck({checkboxClass:'icheckbox_minimal-blue'});";
+        // without iCheck (admin-core 2.0) the checkbox stays a native one
+        $this->script = "if ($.fn.iCheck) { $('{$this->getElementClassSelector()}').iCheck({checkboxClass:'icheckbox_minimal-blue'}); }";
 
         // @phpstan-ignore-next-line
         return parent::render()->with(['check_value' => $this->check_value, 'check_label' => $this->check_label]);
