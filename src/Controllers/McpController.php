@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Controllers;
 
+use Exceedone\Exment\Services\ApiCost;
 use Exceedone\Exment\Services\Mcp\McpServer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -44,17 +45,23 @@ class McpController extends AdminControllerBase
             return response()->json(McpServer::error(null, -32600, 'Unsupported MCP-Protocol-Version.'), 400);
         }
 
-        // calls per minute of a user
+        // calls per minute of a user; in points when exment.api_rate_cost is on (ISS02885 #5)
         $perMinute = max(1, intval(config('exment.mcp_calls_per_minute', 60)));
         $limiterKey = static::limiterKey(intval($user->id));
-        if (RateLimiter::tooManyAttempts($limiterKey, $perMinute)) {
+        $message = json_decode((string)$request->getContent(), true);
+        $parsed = json_last_error() === JSON_ERROR_NONE;
+        $mode = ApiCost::mode();
+        $points = $mode === ApiCost::MODE_ON && $parsed ? ApiCost::ofMcpMessage($message) : 1;
+        if (RateLimiter::attempts($limiterKey) + $points > $perMinute) {
             return response()->json(McpServer::error(null, -32000, 'Too many calls: try again later.'), 429)
                 ->header('Retry-After', strval(RateLimiter::availableIn($limiterKey)));
         }
-        RateLimiter::hit($limiterKey, 60);
+        RateLimiter::increment($limiterKey, 60, $points);
+        if ($mode === ApiCost::MODE_LOG && $parsed) {
+            ApiCost::logOverLimit($limiterKey, ApiCost::ofMcpMessage($message), $perMinute, 60, 'An MCP client');
+        }
 
-        $message = json_decode((string)$request->getContent(), true);
-        if (json_last_error() !== JSON_ERROR_NONE) {
+        if (!$parsed) {
             return response()->json(McpServer::error(null, -32700, 'Parse error.'), 400);
         }
 
