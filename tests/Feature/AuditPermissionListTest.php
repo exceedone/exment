@@ -129,6 +129,21 @@ class AuditPermissionListTest extends FeatureTestBase
         }
     }
 
+    public function testEveryColumnHasATextInEveryLanguage(): void
+    {
+        $report = new \ReflectionMethod(AuditReport::class, 'columnKeys');
+        $report->setAccessible(true);
+        $instance = new AuditReport(Carbon::now()->subMonth(), Carbon::now());
+        foreach (['en', 'ja', 'de', 'es', 'ko', 'vi', 'zh_CN'] as $locale) {
+            foreach (AuditReport::SECTIONS as $section) {
+                foreach ($report->invoke($instance, $section) as $column) {
+                    $key = 'exment::exment.audit_report.column.' . $column;
+                    $this->assertTrue(\Lang::hasForLocale($key, $locale), "{$locale}: {$key}");
+                }
+            }
+        }
+    }
+
     public function testTheChangesOfTheAdministrators(): void
     {
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);

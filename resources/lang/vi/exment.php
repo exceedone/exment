@@ -5293,6 +5293,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'public_forms' => 'Các trang mà bất kỳ ai có URL đều có thể gửi.',
         ],
         'column' => [
+            'permission' => 'Quyền',
             'can_edit' => 'Có thể thay đổi',
             'sources' => 'Từ',
             'editors' => 'Người có thể thay đổi',

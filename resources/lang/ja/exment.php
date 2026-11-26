@@ -5320,6 +5320,7 @@ IPアドレス: :ip
             'public_forms' => 'URL を知っていればだれでも送れるページです。',
         ],
         'column' => [
+            'permission' => '権限',
             'can_edit' => '変えられる',
             'sources' => 'どこから',
             'editors' => '変えられる人',

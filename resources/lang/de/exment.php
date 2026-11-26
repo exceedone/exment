@@ -5293,6 +5293,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'public_forms' => 'Seiten, an die jeder mit der URL senden kann.',
         ],
         'column' => [
+            'permission' => 'Berechtigung',
             'can_edit' => 'Darf ändern',
             'sources' => 'Von',
             'editors' => 'Darf ändern',

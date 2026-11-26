@@ -5293,6 +5293,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
             'public_forms' => 'Páginas a las que cualquiera con la URL puede enviar.',
         ],
         'column' => [
+            'permission' => 'Permiso',
             'can_edit' => 'Puede cambiar',
             'sources' => 'Origen',
             'editors' => 'Pueden cambiar',

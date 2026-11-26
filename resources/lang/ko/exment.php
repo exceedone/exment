@@ -5293,6 +5293,7 @@ IP 주소: :ip
             'public_forms' => 'URL을 아는 사람 누구나 보낼 수 있는 페이지입니다.',
         ],
         'column' => [
+            'permission' => '권한',
             'can_edit' => '변경 가능',
             'sources' => '출처',
             'editors' => '변경 가능한 사용자',

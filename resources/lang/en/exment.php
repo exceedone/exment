@@ -5321,6 +5321,7 @@ If it was not you, change your password and tell the administrators.",
             'public_forms' => 'Pages anyone with the URL can send.',
         ],
         'column' => [
+            'permission' => 'Permission',
             'can_edit' => 'May change',
             'sources' => 'From',
             'editors' => 'May change',

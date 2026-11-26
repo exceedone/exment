@@ -5293,6 +5293,7 @@ IP 地址: :ip
             'public_forms' => '任何知道 URL 的人都可以提交的页面。',
         ],
         'column' => [
+            'permission' => '权限',
             'can_edit' => '可修改',
             'sources' => '来源',
             'editors' => '可修改的用户',
