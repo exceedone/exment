@@ -3482,6 +3482,17 @@ body .main-header .navbar .nav > li > a > .label {
 body .navbar-nav > .notifications-menu > .dropdown-menu, .navbar-nav > .messages-menu > .dropdown-menu, .navbar-nav > .tasks-menu > .dropdown-menu {
   width: 400px;
 }
+@media (max-width: 767.98px) {
+  body .navbar-nav > .notifications-menu > .dropdown-menu {
+    position: fixed !important;
+    left: 8px !important;
+    right: 8px !important;
+    top: auto;
+    width: auto;
+    max-width: none;
+    transform: none !important;
+  }
+}
 
 .skin-red .navbar-notify .label-danger, .skin-red-light .navbar-notify .label-danger {
   background-color: yellow !important;
