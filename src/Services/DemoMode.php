@@ -114,6 +114,10 @@ class DemoMode
         'system_mail_password',
         'system_mail_from',
         'system_mail_from_view_name',
+        'system_mail_auth',
+        'system_mail_oauth_tenant',
+        'system_mail_oauth_client_id',
+        'system_mail_oauth_client_secret',
         // LINE
         'system_line_channel_token',
         'system_line_channel_secret',
@@ -150,6 +154,7 @@ class DemoMode
     public const SECRET_SYSTEM_KEYS = [
         'system_mail_username',
         'system_mail_password',
+        'system_mail_oauth_client_secret',
         'system_line_channel_token',
         'system_line_channel_secret',
         'system_teams_workflow_url',

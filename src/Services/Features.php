@@ -54,6 +54,7 @@ class Features
     public const DATA_MAINTENANCE = 'data_maintenance';
     public const TEAMS_NOTIFY = 'teams_notify';
     public const WEBHOOK_NOTIFY = 'webhook_notify';
+    public const MAIL_OAUTH = 'mail_oauth';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -221,6 +222,15 @@ class Features
             'label' => 'exment::exment.feature.features.browser_log',
             'description' => 'exment::exment.feature.features.browser_log_help',
             'manual' => 'log_management',
+        ]);
+        // mail with OAuth 2.0 (ISS02913): Microsoft 365, Google; off until a system administrator
+        // turns it on and sets the application
+        $core[static::MAIL_OAUTH] = static::definition([
+            'label' => 'exment::exment.feature.features.mail_oauth',
+            'description' => 'exment::exment.feature.features.mail_oauth_help',
+            'endpoints' => ['mail_oauth_setting'],
+            'manual' => 'system_setting',
+            'who' => false,
         ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
