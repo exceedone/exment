@@ -87,7 +87,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
         return true;
     }
 
-    public function backupDatabase($tempDir)
+    public function backupDatabase($tempDir, ?callable $progress = null)
     {
     }
 
@@ -97,7 +97,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      * @param string $dirFullPath contains dir path
      * @return void
      */
-    public function restoreDatabase($dirFullPath)
+    public function restoreDatabase($dirFullPath, ?callable $progress = null)
     {
     }
 
@@ -107,7 +107,7 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
      * @param string $dirFullPath restore file path
      */
     // @phpstan-ignore-next-line
-    public function importTsv($dirFullPath)
+    public function importTsv($dirFullPath, ?callable $progress = null)
     {
     }
 

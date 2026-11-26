@@ -1535,7 +1535,59 @@ return [
             'automatic_term' => 'It is a setting of how many days to perform automatic backup. Example: When entering "3", execute backup every 3 days',
             'automatic_hour' => 'The start time of the automatic backup. Example: When entering "3", start backup execution at 3:00',
             'history_files' => 'The number of generations to keep during automatic backup. When 1 or more is input, the backup of the input integer is kept.',
-        ]
+        ],
+        'run' => [
+            'kinds' => [
+                'backup' => 'Backup',
+                'restore' => 'Restore',
+            ],
+            'triggers' => [
+                'screen' => 'Screen',
+                'command' => 'Command',
+                'schedule' => 'Automatic',
+            ],
+            'statuses' => [
+                'queued' => 'Waiting',
+                'running' => 'Running',
+                'succeeded' => 'Succeeded',
+                'warning' => 'Finished with problems',
+                'failed' => 'Failed',
+                'stalled' => 'Stopped',
+            ],
+            'stages' => [
+                'prepare' => 'Preparing',
+                'dump' => 'Exporting the database',
+                'files' => 'Copying the files',
+                'archive' => 'Making the zip',
+                'upload' => 'Storing the file',
+                'verify' => 'Checking',
+                'extract' => 'Extracting',
+                'load' => 'Restoring the database',
+                'finish' => 'Finishing',
+            ],
+            'warning' => 'Warning',
+            'error' => 'Error',
+            'remaining' => 'Left',
+            'message' => [
+                'locked' => 'Another backup or restore is running. Run it again when it has finished.',
+                'queued' => 'The backup has started. You can follow its progress on this page.',
+                'stalled' => 'There was no progress for :minutes minutes or more, so the run is considered stopped. You can run it again.',
+                'stalled_queued' => 'It waited in the queue for :minutes minutes or more and did not start. Check that the queue worker is running.',
+                'stalled_restored' => 'This run was in progress when the restored backup was taken.',
+            ],
+            'hints' => [
+                'see_log' => 'See the detailed log.',
+                'disk_full' => 'There is not enough free disk space. Free some space, then run it again.',
+                'command' => 'Check the mysqldump and mysql commands (see "Backup" in the manual).',
+                'bad_file' => 'The backup file cannot be read. Choose another file.',
+                'permission' => 'There is no permission to write to a folder. Check the permissions on the server.',
+            ],
+            'notify' => [
+                'subject' => 'Exment: :kind (:status)',
+                'body' => "Result of the :kind: :status\nStarted: :started\nFinished: :finished\nFile: :file\nWarnings: :warnings  Errors: :errors",
+                'next' => 'The detailed log is in the history on the backup page. Fix the cause, then run it again.',
+            ],
+        ],
     ],
 
     'user' => [

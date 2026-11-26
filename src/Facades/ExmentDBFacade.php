@@ -29,9 +29,9 @@ namespace Exceedone\Exment\Facades;
  * @method static bool isUseUnicodeMultipleColumn();
  * @method static bool isSqlServer();
  * @method static bool checkBackup();
- * @method static void backupDatabase($tempDir)
- * @method static void restoreDatabase($dirFullPath)
- * @method static void importTsv($dirFullPath)
+ * @method static void backupDatabase($tempDir, ?callable $progress = null)
+ * @method static void restoreDatabase($dirFullPath, ?callable $progress = null)
+ * @method static void importTsv($dirFullPath, ?callable $progress = null)
  * @method static void createView($viewName, $query)
  * @method static void dropView($viewName)
  *

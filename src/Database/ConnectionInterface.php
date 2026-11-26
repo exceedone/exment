@@ -26,29 +26,32 @@ interface ConnectionInterface
     public function isUseUnicodeMultipleColumn(): bool;
 
     /**
-     * Restore database
+     * Backup database
      *
      * @param string $tempDir dir path
+     * @param callable|null $progress fn (array $info): void, after each table (ISS02943): total, table, exit_code, rows
      * @return void
      */
-    public function backupDatabase($tempDir);
+    public function backupDatabase($tempDir, ?callable $progress = null);
 
 
     /**
      * Restore database
      *
      * @param string $dirFullPath contains dir path
+     * @param callable|null $progress fn (array $info): void, after each file (ISS02943): total, table, exit_code
      * @return void
      */
-    public function restoreDatabase($dirFullPath);
+    public function restoreDatabase($dirFullPath, ?callable $progress = null);
 
     /**
      * insert table data from backup tsv files.
      *
      * @param string $dirFullPath restore file path
+     * @param callable|null $progress fn (array $info): void, after each file (ISS02943): total, table, rows
      */
     // @phpstan-ignore-next-line
-    public function importTsv($dirFullPath);
+    public function importTsv($dirFullPath, ?callable $progress = null);
 
 
 
