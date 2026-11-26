@@ -129,6 +129,20 @@ class NavbarSender extends SenderBase
             $parent_type = (isset($this->custom_value) ? $this->custom_value->custom_table->table_name : null);
         }
 
+        // kept and written with the other bells of the notification (ISS02906)
+        if (\Exceedone\Exment\Services\Notify\NotifyNavbarBatch::collecting()) {
+            \Exceedone\Exment\Services\Notify\NotifyNavbarBatch::add(
+                $this->notify_id ?? -1,
+                $parent_id,
+                $parent_type,
+                $this->subject,
+                $this->body,
+                $target_user_id,
+                \Exment::getUserId() ?? null
+            );
+            return;
+        }
+
         // send slack message
         $this->notify(new Jobs\NavbarJob(
             $this->subject,
