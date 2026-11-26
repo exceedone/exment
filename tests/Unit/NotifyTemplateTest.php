@@ -28,11 +28,6 @@ class NotifyTemplateTest extends UnitTestBase
     use DatabaseTransactions;
     use CustomTableTrait;
 
-    /**
-     * Remove what a run before left. The test makes a table, and making a table (DDL) commits the
-     * transaction of the test on MySQL, so its table and notification stayed: the next run on the
-     * same database found two. Deleting the table deletes its notifications too.
-     */
     protected function tearDown(): void
     {
         // and what this run made (it was committed with the table)
@@ -42,6 +37,11 @@ class NotifyTemplateTest extends UnitTestBase
         parent::tearDown();
     }
 
+    /**
+     * Remove what a run before left. The test makes a table, and making a table (DDL) commits the
+     * transaction of the test on MySQL, so its table and notification stayed: the next run on the
+     * same database found two. Deleting the table deletes its notifications too.
+     */
     protected function removeLeftovers(string $table_name): void
     {
         foreach (CustomTable::where('table_name', $table_name)->get() as $table) {
