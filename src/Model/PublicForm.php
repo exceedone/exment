@@ -734,6 +734,11 @@ class PublicForm extends ModelBase
         return <<<JS
 (function () {
     if (window.parent === window) { return; }
+    // in a frame the page is as high as the form: the page is at least as high as the window
+    // (min-height 100vh), and the frame follows the page, so it would grow without end
+    var style = document.createElement('style');
+    style.textContent = 'html, body#body-publicform, body#body-publicform .wrapper, body#body-publicform .content-wrapper, body#body-publicform .container-middle, body#body-publicform #container-inner { min-height: 0 !important; height: auto !important; }';
+    document.head.appendChild(style);
     var send = function () {
         var h = Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0);
         window.parent.postMessage({ exmentPublicForm: {$id}, height: h }, '*');

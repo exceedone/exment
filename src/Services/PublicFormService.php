@@ -45,7 +45,8 @@ class PublicFormService
      * @param array<string, mixed> $opts view_name, active (true), fixed_values ([column name => value]),
      *        complete_title, complete_text, confirm (false), notify_user_column (an email column: the
      *        receipt mail to the person who sent it), notify_admin_users (user ids: a mail on each
-     *        submission), recaptcha (true when reCAPTCHA is set on the site), rate_limit (0)
+     *        submission), recaptcha (true when reCAPTCHA is set on the site), rate_limit (0),
+     *        required (column names that must be filled on this form; the columns themselves do not change)
      */
     public static function ensure(CustomTable $table, string $ownerKey, array $columns, array $opts = []): PublicForm
     {
@@ -53,6 +54,12 @@ class PublicFormService
             throw new \InvalidArgumentException('PublicFormService: the owner key is empty');
         }
         $customColumns = static::columns($table, $columns);
+        $required = array_values(array_map('strval', (array) ($opts['required'] ?? [])));
+        foreach ($required as $name) {
+            if (!in_array($name, $columns, true)) {
+                throw new \InvalidArgumentException("PublicFormService: \"{$name}\" is required but not on the form");
+            }
+        }
         $fixed = (array) ($opts['fixed_values'] ?? []);
         foreach (array_keys($fixed) as $name) {
             if (is_null(CustomColumn::getEloquent(strval($name), $table))) {
@@ -65,7 +72,7 @@ class PublicFormService
 
         $viewName = mb_substr(strval($opts['view_name'] ?? $table->table_view_name), 0, 40);
 
-        return \ExmentDB::transaction(function () use ($table, $ownerKey, $customColumns, $opts, $fixed, $viewName) {
+        return \ExmentDB::transaction(function () use ($table, $ownerKey, $customColumns, $opts, $fixed, $viewName, $required) {
             $publicForm = static::findByOwner($ownerKey);
             $customForm = isset($publicForm) ? $publicForm->custom_form : null;
             if (!($customForm instanceof CustomForm) || intval($customForm->custom_table_id) !== intval($table->id)) {
@@ -75,7 +82,7 @@ class PublicFormService
             }
             $customForm->form_view_name = $viewName;
             $customForm->save();
-            static::setFormColumns($table, $customForm, $customColumns);
+            static::setFormColumns($table, $customForm, $customColumns, $required);
 
             if (!isset($publicForm)) {
                 $publicForm = new PublicForm();
@@ -185,8 +192,9 @@ class PublicFormService
      * One block of the table with the columns, in order (the columns not in it any more go).
      *
      * @param array<int, CustomColumn> $columns
+     * @param array<int, string> $required the names of the columns that must be filled on this form
      */
-    protected static function setFormColumns(CustomTable $table, CustomForm $customForm, array $columns): void
+    protected static function setFormColumns(CustomTable $table, CustomForm $customForm, array $columns, array $required = []): void
     {
         /** @var CustomFormBlock|null $block */
         $block = CustomFormBlock::query()->where('custom_form_id', $customForm->id)->where('form_block_type', FormBlockType::DEFAULT)->first();
@@ -210,6 +218,8 @@ class PublicFormService
             $formColumn->column_no = 1;
             $formColumn->width = 4;
             $formColumn->order = $order++;
+            // required on this form only (CustomItem::required reads the options of the form column)
+            $formColumn->options = in_array(strval($column->column_name), $required, true) ? ['required' => '1'] : [];
             $formColumn->save();
         }
     }

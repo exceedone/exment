@@ -104,6 +104,35 @@ class PublicFormServiceTest extends FeatureTestBase
         $this->assertNull($again->fresh()->notify_complete_user);
     }
 
+    public function testRequiredColumnsOnThisFormOnly(): void
+    {
+        $email = \Exceedone\Exment\Model\CustomColumn::getEloquent('email', $this->table());
+        $this->assertFalse(boolval($email->required));
+        $form = PublicFormService::ensure($this->table(), static::OWNER, ['text', 'email', 'index_text'], ['required' => ['email'], 'recaptcha' => false]);
+        $block = $form->custom_form->custom_form_blocks->first();
+        $options = CustomFormColumn::query()->where('custom_form_block_id', $block->id)->orderBy('order')->get()->mapWithKeys(function ($column) {
+            return [strval($column->column_item->name()) => boolval(array_get(jsonToArray($column->options), 'required'))];
+        })->all();
+        $this->assertSame(['text' => false, 'email' => true, 'index_text' => false], $options);
+        // the column itself is not changed
+        /** @var \Exceedone\Exment\Model\CustomColumn $again */
+        $again = \Exceedone\Exment\Model\CustomColumn::query()->findOrFail($email->id);
+        $this->assertFalse(boolval($again->required));
+
+        // sent without it: not saved
+        \Auth::guard('admin')->logout();
+        System::clearRequestSession();
+        System::clearCache();
+        $model = $this->table()->getValueModel();
+        $before = $model->query()->count();
+        $this->post($form->getUrl('create'), $this->formData($form, ['text' => 'no mail']));
+        $this->assertSame($before, $model->query()->count());
+
+        // a required column that is not on the form
+        $this->expectException(\InvalidArgumentException::class);
+        PublicFormService::ensure($this->table(), static::OWNER, ['text'], ['required' => ['email']]);
+    }
+
     public function testWrongColumns(): void
     {
         foreach ([
@@ -173,6 +202,8 @@ class PublicFormServiceTest extends FeatureTestBase
         // in a frame: no header and the height is told to the page around it
         $page = strval($this->get($form->getUrl() . '?embed=1')->assertStatus(200)->getContent());
         $this->assertStringContainsString('exmentPublicForm', $page);
+        // the page is not kept at the height of the window (the frame would grow without end)
+        $this->assertStringContainsString('min-height: 0 !important', $page);
         $this->assertTrue($form->isEmbedded());
     }
 }
