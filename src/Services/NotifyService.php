@@ -342,9 +342,9 @@ class NotifyService
         })) {
             $targets->push(exmtrans('notify.notify_action_options.microsoft_teams'));
         }
-        if (collect($this->notify->action_settings)->contains(function ($action_setting) {
+        if (count(array_filter((array)$this->notify->action_settings, function ($action_setting) {
             return isMatchString(NotifyAction::WEBHOOK, array_get($action_setting, 'notify_action'));
-        })) {
+        })) > 0) {
             $targets->push(exmtrans('notify.notify_action_options.webhook'));
         }
 

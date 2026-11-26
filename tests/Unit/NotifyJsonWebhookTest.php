@@ -91,15 +91,15 @@ class NotifyJsonWebhookTest extends UnitTestBase
         $this->assertSame(['text' => 'webhook_json'], $json['record']['texts']);
 
         // the secret is kept encrypted
-        $stored = Notify::find($notify->id)->action_settings[0]['webhook_secret'];
+        $stored = Notify::findOrFail(intval($notify->id))->action_settings[0]['webhook_secret'];
         $this->assertStringStartsWith(JsonWebhook::SECRET_PREFIX, $stored);
         $this->assertStringNotContainsString(static::SECRET, $stored);
         $this->assertSame(static::SECRET, JsonWebhook::plainSecret($stored));
         // saved again: not encrypted twice
-        $notify = Notify::find($notify->id);
+        $notify = Notify::findOrFail(intval($notify->id));
         $notify->active_flg = 1;
         $notify->save();
-        $this->assertSame(static::SECRET, JsonWebhook::plainSecret(Notify::find($notify->id)->action_settings[0]['webhook_secret']));
+        $this->assertSame(static::SECRET, JsonWebhook::plainSecret(Notify::findOrFail(intval($notify->id))->action_settings[0]['webhook_secret']));
     }
 
     public function testTriedAgainAndToldWhenNotSent(): void
