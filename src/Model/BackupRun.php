@@ -124,7 +124,7 @@ class BackupRun extends Model
     public function stageRow(string $name): ?array
     {
         foreach ($this->stages ?? [] as $row) {
-            if (is_array($row) && ($row['name'] ?? null) === $name) {
+            if (($row['name'] ?? null) === $name) {
                 return $row;
             }
         }

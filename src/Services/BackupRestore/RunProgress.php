@@ -366,7 +366,7 @@ class RunProgress
         }
         $stages = $this->run->stages ?? [];
         for ($i = count($stages) - 1; $i >= 0; $i--) {
-            if (is_array($stages[$i]) && ($stages[$i]['name'] ?? null) === $this->run->stage) {
+            if (($stages[$i]['name'] ?? null) === $this->run->stage) {
                 $stages[$i] = $callback($stages[$i]);
                 break;
             }

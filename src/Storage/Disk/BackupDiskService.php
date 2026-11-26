@@ -28,32 +28,6 @@ class BackupDiskService extends DiskServiceBase
     }
 
     /**
-     * Extract a zip checked already (ZipService::validateZipEntries), some entries at a time so
-     * the progress moves (the stage "extract").
-     */
-    public static function extract(\ZipArchive $zip, string $dir, ?RunProgress $progress = null): void
-    {
-        if (!isset($progress)) {
-            $zip->extractTo($dir);
-            return;
-        }
-        $names = [];
-        for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-            if (is_string($name)) {
-                $names[] = $name;
-            }
-        }
-        $progress->stage('extract', count($names));
-        foreach (array_chunk($names, static::EXTRACT_CHUNK) as $chunk) {
-            if (!$zip->extractTo($dir, $chunk)) {
-                throw new \RuntimeException('the backup file could not be extracted: ' . $zip->getStatusString());
-            }
-            $progress->advance(count($chunk), count($chunk));
-        }
-    }
-
-    /**
      * Whether needs download from clowd
      *
      * @return boolean
@@ -127,5 +101,31 @@ class BackupDiskService extends DiskServiceBase
         $localSyncDisk->delete($localSyncDiskItem->filePath());
 
         return true;
+    }
+
+    /**
+     * Extract a zip checked already (ZipService::validateZipEntries), some entries at a time so
+     * the progress moves (the stage "extract").
+     */
+    public static function extract(\ZipArchive $zip, string $dir, ?RunProgress $progress = null): void
+    {
+        if (!isset($progress)) {
+            $zip->extractTo($dir);
+            return;
+        }
+        $names = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if (is_string($name)) {
+                $names[] = $name;
+            }
+        }
+        $progress->stage('extract', count($names));
+        foreach (array_chunk($names, static::EXTRACT_CHUNK) as $chunk) {
+            if (!$zip->extractTo($dir, $chunk)) {
+                throw new \RuntimeException('the backup file could not be extracted: ' . $zip->getStatusString());
+            }
+            $progress->advance(count($chunk), count($chunk));
+        }
     }
 }

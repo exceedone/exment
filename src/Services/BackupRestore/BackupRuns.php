@@ -161,7 +161,7 @@ class BackupRuns
     protected static function failed(RunProgress $progress, \Throwable $e): void
     {
         $progress->error(get_class($e) . ': ' . $e->getMessage());
-        \Log::error('[Exment] ' . ($progress->run()?->kind ?? 'backup') . ' failed: ' . SecretMasker::mask($e->getMessage()));
+        \Log::error('[Exment] ' . ($progress->run()->kind ?? 'backup') . ' failed: ' . SecretMasker::mask($e->getMessage()));
         $progress->finish(BackupRun::STATUS_FAILED, static::reason($e) . ' ' . strval(exmtrans('backup.run.hints.' . static::hint($e))));
         $run = $progress->run();
         if (isset($run)) {
