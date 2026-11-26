@@ -96,6 +96,8 @@ class ScreenList
             $canForm = $table->hasPermission(Permission::EDIT_CUSTOM_FORM);
             $canView = $table->hasSystemViewPermission();
             $canData = $table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE);
+            // a table of one record opens its data, not a view: no view is made for it (#2269)
+            $oneRecord = boolval($table->isOneRecord());
 
             $cards[] = [
                 'id' => $table->id,
@@ -109,7 +111,8 @@ class ScreenList
                 'forms' => $canForm ? $this->formRows($table, $forms->get($table->id, collect())) : null,
                 'form_create_url' => $canForm ? admin_urls('form', $name, 'create') : null,
                 'views' => $canView ? $this->viewRows($table, $views->get($table->id, collect()), $canData) : null,
-                'view_create_url' => $canView ? admin_urls('view', $name, 'create') : null,
+                'view_create_url' => $canView && !$oneRecord ? admin_urls('view', $name, 'create') : null,
+                'one_record' => $oneRecord,
             ];
         }
         return $cards;

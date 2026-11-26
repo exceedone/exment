@@ -364,8 +364,11 @@ class ScreenEditor
             if (isset($field['type'])) {
                 return [
                     'type' => strval($field['type']),
-                    'choices' => $field['type'] === \Exceedone\Exment\Enums\ColumnType::SELECT
-                        ? array_values(array_filter(array_map('trim', explode("\n", strval($field['choices']))), function ($choice) {
+                    'choices' => in_array($field['type'], [\Exceedone\Exment\Enums\ColumnType::SELECT, \Exceedone\Exment\Enums\ColumnType::SELECT_VALTEXT], true)
+                        ? array_values(array_filter(array_map(function ($line) use ($field) {
+                            // a "value,label" item is compared by its value
+                            return trim($field['type'] === \Exceedone\Exment\Enums\ColumnType::SELECT_VALTEXT ? explode(',', $line, 2)[0] : $line);
+                        }, explode("\n", strval($field['choices']))), function ($choice) {
                             return $choice !== '';
                         }))
                         : null,

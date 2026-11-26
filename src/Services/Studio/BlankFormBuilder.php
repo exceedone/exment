@@ -56,6 +56,8 @@ class BlankFormBuilder
         ColumnType::DATETIME => ['icon' => 'fa-clock-o', 'choices' => false],
         ColumnType::TIME => ['icon' => 'fa-hourglass-half', 'choices' => false],
         ColumnType::SELECT => ['icon' => 'fa-list-ul', 'choices' => true],
+        // "value,label" a line, as the column setting takes them (#2272)
+        ColumnType::SELECT_VALTEXT => ['icon' => 'fa-list-ol', 'choices' => true],
         ColumnType::YESNO => ['icon' => 'fa-toggle-on', 'choices' => false],
         ColumnType::EMAIL => ['icon' => 'fa-envelope-o', 'choices' => false],
         ColumnType::URL => ['icon' => 'fa-link', 'choices' => false],
@@ -387,6 +389,9 @@ class BlankFormBuilder
         ];
         if ($field['type'] === ColumnType::SELECT) {
             $options['select_item'] = $field['choices'];
+        }
+        if ($field['type'] === ColumnType::SELECT_VALTEXT) {
+            $options['select_item_valtext'] = $field['choices'];
         }
         if ($field['type'] === ColumnType::FILE) {
             $options['multiple_enabled'] = '0';
