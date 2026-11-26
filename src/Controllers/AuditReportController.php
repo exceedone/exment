@@ -4,7 +4,10 @@ namespace Exceedone\Exment\Controllers;
 
 use Carbon\Carbon;
 use Exceedone\Exment\Enums\Permission;
+use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Model\AuditReportFile;
+use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\DataAccessLog;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\AuditReport\AuditReport;
 use Exceedone\Exment\Services\AuditReport\AuditReportStore;
@@ -76,6 +79,8 @@ class AuditReportController extends AdminControllerBase
             'settingUrl' => admin_urls('log_management', 'audit', 'setting'),
             'verifyUrl' => admin_urls('log_management', 'audit', 'verify'),
             'pdfUrl' => admin_urls_query('log_management', 'audit.pdf', $query),
+            'dataTable' => $query['data_table'] ?? '',
+            'dataUser' => $query['data_user'] ?? '',
             'csvUrl' => function (string $section) use ($query): string {
                 return admin_urls_query('log_management', 'audit', $section . '.csv', $query);
             },
@@ -209,6 +214,87 @@ class AuditReportController extends AdminControllerBase
     }
 
     /**
+     * Who read and who changed a record (ISS02905), the newest first.
+     *
+     * @return Content
+     */
+    public function record(Request $request, Content $content)
+    {
+        static::denyUnlessAudit();
+        $table = CustomTable::getEloquent(strval($request->get('table')));
+        $id = $request->get('id');
+        if (!isset($table) || !is_numeric($id)) {
+            abort(404);
+        }
+        $this->AdminContent($content);
+        $page = max(1, intval($request->get('page', 1)));
+        $rows = static::recordAccess($table, intval($id), static::RECORD_ROWS + 1, ($page - 1) * static::RECORD_ROWS);
+        $more = count($rows) > static::RECORD_ROWS;
+        $rows = array_slice($rows, 0, static::RECORD_ROWS);
+        $query = ['table' => $table->table_name, 'id' => intval($id)];
+        $content->row(view('exment::log_management.record_access', [
+            'rows' => $rows,
+            'title' => strval($table->table_view_name) . ' #' . intval($id),
+            'recordUrl' => admin_urls('data', $table->table_name, intval($id)),
+            'prevUrl' => $page > 1 ? admin_urls_query('log_management', 'audit', 'record', $query + ['page' => $page - 1]) : null,
+            'nextUrl' => $more ? admin_urls_query('log_management', 'audit', 'record', $query + ['page' => $page + 1]) : null,
+            'moreUrl' => null,
+            'readsKept' => \Exceedone\Exment\Services\LogManagement\LogSettings::logsMethod('GET'),
+        ]));
+        return $content;
+    }
+
+    /** The rows of the page of a record. */
+    public const RECORD_ROWS = 50;
+
+    /** The rows of the box on the detail page. */
+    public const RECORD_BOX_ROWS = 20;
+
+    /**
+     * The box "who read and who changed it" of the detail page of a record, null for a user without
+     * Audit (ISS02905).
+     */
+    public static function recordAccessBox(CustomTable $table, int $id): ?string
+    {
+        if (!Permission::canAudit() || !DataAccessLog::tableExists()) {
+            return null;
+        }
+        $rows = static::recordAccess($table, $id, static::RECORD_BOX_ROWS + 1, 0);
+        return view('exment::log_management.record_access', [
+            'rows' => array_slice($rows, 0, static::RECORD_BOX_ROWS),
+            'title' => null,
+            'recordUrl' => null,
+            'prevUrl' => null,
+            'nextUrl' => null,
+            'moreUrl' => count($rows) > static::RECORD_BOX_ROWS ? admin_urls_query('log_management', 'audit', 'record', ['table' => $table->table_name, 'id' => $id, 'page' => 1]) : null,
+            'readsKept' => \Exceedone\Exment\Services\LogManagement\LogSettings::logsMethod('GET'),
+        ])->render();
+    }
+
+    /**
+     * @return array<int, array{at: string, kind: string, via: string, user: string}>
+     */
+    protected static function recordAccess(CustomTable $table, int $id, int $limit, int $offset): array
+    {
+        if (!DataAccessLog::tableExists()) {
+            return [];
+        }
+        $rows = DataAccessLog::query()->where('custom_table_id', $table->id)->where('record_id', $id)
+            ->orderByDesc('created_at')->orderByDesc('id')->offset($offset)->limit($limit)->get();
+        $users = getModelName(SystemTableName::USER)::withTrashed()->whereIn('id', $rows->pluck('base_user_id')->filter()->unique()->all())->get()->keyBy('id');
+        return $rows->map(function (DataAccessLog $row) use ($users) {
+            $user = is_null($row->base_user_id) ? null : $users->get($row->base_user_id);
+            return [
+                'at' => optional($row->created_at)->format('Y-m-d H:i:s') ?? '',
+                'kind' => strval(exmtrans('audit_report.data_kind.' . $row->kind)),
+                'via' => strval(exmtrans('audit_report.via.' . $row->via)),
+                'user' => is_null($row->base_user_id) ? strval(exmtrans('audit_report.made_by_job'))
+                    : (isset($user) ? trim(strval(array_get($user->value ?? [], 'user_code')) . ' ' . strval(array_get($user->value ?? [], 'user_name'))) : '#' . $row->base_user_id),
+            ];
+        })->all();
+    }
+
+    /**
      * A cell must not start a formula in a spreadsheet.
      */
     public static function csvCell(string $value): string
@@ -236,7 +322,16 @@ class AuditReportController extends AdminControllerBase
         }
         $days = $request->get('inactive_days');
         $days = is_numeric($days) ? min(3650, max(1, intval($days))) : AuditReport::DEFAULT_INACTIVE_DAYS;
-        return new AuditReport($from, $to, $days);
+        $report = new AuditReport($from, $to, $days);
+
+        // the sections of the data: a table (its name), a user (the code) (ISS02905)
+        $tableName = $request->get('data_table');
+        $table = is_string($tableName) && $tableName !== '' ? CustomTable::getEloquent($tableName) : null;
+        $userCode = $request->get('data_user');
+        $user = is_string($userCode) && trim($userCode) !== ''
+            ? getModelName(SystemTableName::USER)::withTrashed()->where('value->user_code', trim($userCode))->first()
+            : null;
+        return $report->filterData(isset($table) ? intval($table->id) : null, isset($user) ? intval($user->id) : null);
     }
 
     /**
@@ -244,11 +339,25 @@ class AuditReportController extends AdminControllerBase
      */
     protected function query(AuditReport $report): array
     {
-        return [
+        $query = [
             'from' => $report->from()->format('Y-m-d'),
             'to' => $report->to()->format('Y-m-d'),
             'inactive_days' => strval($report->inactiveDays()),
         ];
+        $filter = $report->dataFilter();
+        if (isset($filter['table'])) {
+            $table = CustomTable::getEloquent($filter['table']);
+            if (isset($table)) {
+                $query['data_table'] = strval($table->table_name);
+            }
+        }
+        if (isset($filter['user'])) {
+            $user = getModelName(SystemTableName::USER)::withTrashed()->find($filter['user']);
+            if (isset($user)) {
+                $query['data_user'] = strval(array_get($user->value ?? [], 'user_code'));
+            }
+        }
+        return $query;
     }
 
     /**

@@ -23,6 +23,9 @@ use Illuminate\Support\Facades\Schema;
  */
 class LoginLog extends Model
 {
+    // on the connection of the logs when one is set (ISS02905)
+    use Traits\UsesLogConnection;
+
     public const RESULT_SUCCESS = 'success';
     public const RESULT_FAILURE = 'failure';
     public const RESULT_LOCKOUT = 'lockout';
@@ -49,7 +52,7 @@ class LoginLog extends Model
     {
         if (!isset(static::$tableExists)) {
             try {
-                static::$tableExists = Schema::hasTable('login_logs');
+                static::$tableExists = \Exceedone\Exment\Services\LogManagement\LogConnection::schema()->hasTable('login_logs');
             } catch (\Throwable $e) {
                 static::$tableExists = false;
             }

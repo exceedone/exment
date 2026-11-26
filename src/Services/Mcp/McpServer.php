@@ -100,7 +100,10 @@ class McpServer
                     throw new McpError(-32602, 'Unknown tool.');
                 }
                 $this->log($name, $args);
-                return (new McpTools($this->user))->call($name, $args);
+                // its reads and writes of the data are marked MCP (ISS02905)
+                return \Exceedone\Exment\Services\LogManagement\DataAccessLogs::from(\Exceedone\Exment\Model\DataAccessLog::VIA_MCP, function () use ($name, $args) {
+                    return (new McpTools($this->user))->call($name, $args);
+                });
         }
         throw new McpError(-32601, "Method not found: $method");
     }

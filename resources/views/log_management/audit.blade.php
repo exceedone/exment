@@ -8,6 +8,8 @@
             <input type="date" class="form-control input-sm" name="to" value="{{ $report->to()->format('Y-m-d') }}" aria-label="{{ exmtrans('audit_report.period') }}">
             <label for="audit-inactive-days" style="margin-left:12px">{{ exmtrans('audit_report.inactive_days') }}</label>
             <input type="number" min="1" max="3650" class="form-control input-sm" id="audit-inactive-days" name="inactive_days" value="{{ $report->inactiveDays() }}" style="width:90px">
+            <input type="text" class="form-control input-sm" name="data_table" value="{{ $dataTable }}" placeholder="{{ exmtrans('audit_report.filter_table') }}" style="width:140px">
+            <input type="text" class="form-control input-sm" name="data_user" value="{{ $dataUser }}" placeholder="{{ exmtrans('audit_report.filter_user') }}" style="width:140px">
             <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-search" aria-hidden="true"></i> {{ exmtrans('audit_report.show') }}</button>
             <a href="{{ $pdfUrl }}" class="btn btn-default btn-sm" data-pjax="false" target="_blank" id="audit-report-pdf"><i class="fa fa-file-pdf-o" aria-hidden="true"></i> PDF</a>
             <a href="{{ $logUrl }}" class="btn btn-default btn-sm"><i class="fa fa-archive" aria-hidden="true"></i> {{ exmtrans('log_management.header') }}</a>

@@ -1652,6 +1652,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The database of the logs, their size (ISS02905)
+    |--------------------------------------------------------------------------
+    | log_db_connection: a connection of config/database.php for the log tables (login_logs,
+    | permission_change_logs, browser_logs, data_access_logs, data_access_daily), so that the logs
+    | do not fill the database of the data. Empty: the default connection. A site that has the
+    | tables already: php artisan exment:log-db --copy after setting it.
+    | log_size_warn_mb: a warning on the log management page and in the security check when all
+    | the logs (tables, files, archives) are larger. 0: no warning.
+    */
+    'log_db_connection' => env('EXMENT_LOG_DB_CONNECTION'),
+    'log_size_warn_mb' => env('EXMENT_LOG_SIZE_WARN_MB', 1024),
+
+    /*
+    |--------------------------------------------------------------------------
     | Mask targets for the operation log
     |--------------------------------------------------------------------------
     |

@@ -83,6 +83,10 @@ class LogOperation extends BaseLogOperation
         if ($request->is(ltrim(admin_base_path('safety/answer'), '/'))) {
             return true;
         }
+        // the log of the browsers is a log itself (ISS02904)
+        if ($request->is(ltrim(admin_base_path('webapi/browser_log'), '/'))) {
+            return true;
+        }
         // the MCP server logs each tool call itself, marked "MCP" (Services\Mcp\McpServer)
         if ($request->is(ltrim(admin_base_path('api/mcp'), '/'))) {
             return true;
