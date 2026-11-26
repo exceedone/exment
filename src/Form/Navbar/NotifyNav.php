@@ -51,7 +51,7 @@ class NotifyNav implements Renderable
             <input id="notify_navbar_interval" type="hidden" value="$interval" data-user="$user_key" />
             <li class="navbar-notify dropdown notifications-menu">
                 <a href="javascript:void(0);" 
-                class="container-notify hidden-xs dropdown-toggle" 
+                class="container-notify dropdown-toggle" 
                 data-bs-toggle="dropdown" 
                 aria-expanded="false">
                 <i class="fa fa-bell"></i>
