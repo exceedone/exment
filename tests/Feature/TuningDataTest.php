@@ -97,7 +97,7 @@ class TuningDataTest extends FeatureTestBase
         $orphan->parent_id = 99999999;
         $orphan->save();
 
-        $this->artisan('exment:tuning-data')->assertExitCode(0);
+        $this->assertSame(0, \Artisan::call('exment:tuning-data'));
         $stats = DataStats::load();
         $this->assertNotNull($stats);
         $counts = $stats['tables'][$table->table_name];
