@@ -16,7 +16,6 @@ use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Model\BackupRun;
-use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\BackupRestore\BackupRuns;
 use Validator;
 use DB;
@@ -46,7 +45,6 @@ class BackupController extends AdminControllerBase
      */
     public function index(Request $request, Content $content)
     {
-        static::denyUnlessSystem();
         $this->AdminContent($content);
         $disk = $this->backup->disk();
 
@@ -78,15 +76,6 @@ class BackupController extends AdminControllerBase
 
         $rows = $this->restore->list();
 
-        // the run going on, and the history (ISS02943)
-        BackupRuns::markStalled();
-        $active = BackupRuns::active();
-        $content->row(view('exment::backup.progress', [
-            'active' => isset($active) ? $active->toStatusArray() : null,
-            'statusUrl' => admin_urls('backup', 'runs'),
-            'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
-        ]));
-
         $content->row(view(
             'exment::backup.index',
             [
@@ -97,160 +86,11 @@ class BackupController extends AdminControllerBase
             ]
         ));
 
-        $content->row(view('exment::backup.history', [
-            'runs' => $this->historyRows(),
-            'keepRuns' => max(1, intval(config('exment.backup.keep_runs', 100))),
-        ]));
-
         // create setting form
         $content->row($this->settingFormBox());
 
 
         return $content;
-    }
-
-    /**
-     * Only the system administrators, on every action (the menu and the route permission are
-     * checked before; this is checked again here).
-     */
-    protected static function denyUnlessSystem(): void
-    {
-        $user = \Exment::user();
-        if (!isset($user) || !$user->hasPermission(Enums\Permission::SYSTEM)) {
-            abort(403);
-        }
-    }
-
-    /**
-     * The runs of the history (the newest first).
-     *
-     * @return array<int, array<string, mixed>>
-     */
-    protected function historyRows(): array
-    {
-        $limit = max(1, min(500, intval(config('exment.backup.history_rows', 50))));
-        $runs = BackupRun::query()->orderByDesc('id')->limit($limit)->get();
-        $names = [];
-        $rows = [];
-        foreach ($runs as $run) {
-            /** @var BackupRun $run */
-            $userId = $run->created_user_id;
-            if (isset($userId) && !array_key_exists($userId, $names)) {
-                $login = LoginUser::find($userId);
-                $names[$userId] = isset($login) ? strval($login->user_name) : null;
-            }
-            $rows[] = array_merge($run->toStatusArray(), [
-                'trigger_label' => strval(exmtrans("backup.run.triggers.{$run->triggered_by}")),
-                'user_name' => isset($userId) ? ($names[$userId] ?? null) : null,
-                'file_size_text' => isset($run->file_size) ? bytesToHuman($run->file_size) : null,
-                'duration_text' => isset($run->started_at) ? BackupRestore\RunProgress::duration(intval($run->elapsedSeconds())) : null,
-                'has_log' => is_file(BackupRuns::logFullPath($run)),
-            ]);
-        }
-        return $rows;
-    }
-
-    /**
-     * The run going on now (null: none), for the screen that polls.
-     */
-    public function runCurrent(Request $request): \Illuminate\Http\JsonResponse
-    {
-        static::denyUnlessSystem();
-        BackupRuns::markStalled();
-        $run = BackupRuns::active();
-
-        return response()->json(['run' => isset($run) ? $run->toStatusArray() : null]);
-    }
-
-    /**
-     * The progress of a run, for the screen that polls.
-     */
-    public function runStatus(Request $request, string $uuid): \Illuminate\Http\JsonResponse
-    {
-        static::denyUnlessSystem();
-        $run = $this->findRun($uuid);
-        if ($run->isActive()) {
-            BackupRuns::markStalled();
-            $run->refresh();
-        }
-
-        return response()->json(['run' => $run->toStatusArray()]);
-    }
-
-    /**
-     * A run: its stages and its log.
-     *
-     * @return Content
-     */
-    public function runShow(Request $request, Content $content, string $uuid)
-    {
-        static::denyUnlessSystem();
-        $run = $this->findRun($uuid);
-        $this->AdminContent($content);
-
-        $log = BackupRuns::readLog($run);
-        $maxLines = max(100, intval(config('exment.backup.log_view_lines', 2000)));
-        $lines = isset($log) ? preg_split('/\r\n|\n/', rtrim($log)) : [];
-        $lines = is_array($lines) ? $lines : [];
-        $cut = count($lines) > $maxLines;
-        if ($cut) {
-            $lines = array_slice($lines, -$maxLines);
-        }
-
-        $content->row(view('exment::backup.run', [
-            'run' => $run->toStatusArray(),
-            'trigger' => strval(exmtrans("backup.run.triggers.{$run->triggered_by}")),
-            'user_name' => isset($run->created_user_id) ? LoginUser::find($run->created_user_id)?->user_name : null,
-            'file_size_text' => isset($run->file_size) ? bytesToHuman($run->file_size) : null,
-            'lines' => $lines,
-            'cut' => $cut,
-            'maxLines' => $maxLines,
-            'hasLog' => isset($log),
-            'downloadUrl' => admin_urls('backup', 'runs', $run->uuid, 'log'),
-            'statusUrl' => admin_urls('backup', 'runs'),
-            'backUrl' => admin_url('backup'),
-            'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
-        ]));
-
-        return $content;
-    }
-
-    /**
-     * Download the log of a run (masked), written in the operation log.
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function runLog(Request $request, string $uuid)
-    {
-        static::denyUnlessSystem();
-        $run = $this->findRun($uuid);
-        $log = BackupRuns::readLog($run);
-        if (!isset($log)) {
-            abort(404);
-        }
-        BackupRuns::operationLog($run, 'download');
-
-        $name = sprintf('backup-%s-%s.log', $run->kind, ($run->started_at ?? $run->created_at)?->format('YmdHis') ?? $run->uuid);
-
-        return response($log, 200, [
-            'Content-Type' => 'text/plain; charset=UTF-8',
-            'Content-Disposition' => 'attachment; filename="' . $name . '"',
-            'X-Content-Type-Options' => 'nosniff',
-            'Cache-Control' => 'no-store',
-        ]);
-    }
-
-    protected function findRun(string $uuid): BackupRun
-    {
-        if (!preg_match('/^[0-9a-f\-]{36}$/i', $uuid)) {
-            abort(404);
-        }
-        /** @var BackupRun|null $run */
-        $run = BackupRun::query()->where('uuid', $uuid)->first();
-        if (!isset($run)) {
-            abort(404);
-        }
-        return $run;
     }
 
     // @phpstan-ignore-next-line
@@ -296,7 +136,6 @@ class BackupController extends AdminControllerBase
      */
     public function postSetting(Request $request)
     {
-        static::denyUnlessSystem();
         $validator = Validator::make($request->all(), [
             'backup_target.0' => 'required',
         ]);
@@ -332,7 +171,6 @@ class BackupController extends AdminControllerBase
      */
     public function delete(Request $request)
     {
-        static::denyUnlessSystem();
         $disk = $this->backup->disk();
 
         $data = $request->all();
@@ -370,7 +208,6 @@ class BackupController extends AdminControllerBase
      */
     public function save(Request $request)
     {
-        static::denyUnlessSystem();
         \Exment::setTimeLimitLong();
 
         $target = System::backup_target();
@@ -431,7 +268,6 @@ class BackupController extends AdminControllerBase
     // @phpstan-ignore-next-line
     public function download($arg)
     {
-        static::denyUnlessSystem();
         $ymdhms = urldecode($arg);
 
         // validate "\", "/", "."
@@ -463,7 +299,6 @@ class BackupController extends AdminControllerBase
      */
     public function importModal($file_key = null)
     {
-        static::denyUnlessSystem();
         $import_path = admin_url(url_join('backup', 'import'));
         // create form fields
         $form = new ModalForm();
@@ -519,7 +354,6 @@ class BackupController extends AdminControllerBase
      */
     public function import(Request $request)
     {
-        static::denyUnlessSystem();
         \Exment::setTimeLimitLong();
 
         // validation
@@ -610,7 +444,6 @@ class BackupController extends AdminControllerBase
      */
     public function restore(Request $request)
     {
-        static::denyUnlessSystem();
         \Exment::setTimeLimitLong();
 
         $data = $request->all();
@@ -673,7 +506,6 @@ class BackupController extends AdminControllerBase
      */
     public function editname(Request $request)
     {
-        static::denyUnlessSystem();
         $data = $request->all();
 
         // validate "\", "/", "."
