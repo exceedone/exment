@@ -141,6 +141,12 @@ class DataKeyCommand extends Command
         if ($unreadable > 0) {
             $this->warn("{$unreadable} values have a key that is not in DATA_ENCRYPTION_KEYS: left as they are.");
         }
+        // the secrets of the settings kept with the keys (mail OAuth, LINE WORKS; ISS02929)
+        $secrets = \Exceedone\Exment\Services\Encryption\Secrets::resaveSettings();
+        $this->line("settings: {$secrets['saved']}");
+        if ($secrets['unreadable'] > 0) {
+            $this->warn("{$secrets['unreadable']} secrets of the settings cannot be read: left as they are.");
+        }
         return 0;
     }
 

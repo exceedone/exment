@@ -628,9 +628,14 @@ class System extends ModelBase
             } elseif ($type == 'file') {
                 $value = is_null($value) ? null : Storage::disk(config('admin.upload.disk'))->url($value);
             } elseif ($type == 'password') {
-                try {
-                    $value = is_null($value) ? null : decrypt($value);
-                } catch (\Exception $ex) {
+                if (boolval(array_get($setting, 'data_key'))) {
+                    // the keys of the encrypted columns when the site has them (ISS02929)
+                    $value = is_null($value) ? null : \Exceedone\Exment\Services\Encryption\Secrets::decrypt(strval($value));
+                } else {
+                    try {
+                        $value = is_null($value) ? null : decrypt($value);
+                    } catch (\Exception $ex) {
+                    }
                 }
             }
             return $value;
@@ -670,7 +675,11 @@ class System extends ModelBase
                 Storage::disk(config('admin.upload.disk'))->delete($old_value);
             }
         } elseif ($type == 'password') {
-            $system->system_value = is_null($value) ? null : encrypt($value);
+            // "data_key": with the keys of the encrypted columns when the site has them (ISS02929),
+            // else with APP_KEY as before (the bare payload, as the other secrets)
+            $system->system_value = is_null($value) ? null : (boolval(array_get($setting, 'data_key'))
+                ? \Exceedone\Exment\Services\Encryption\Secrets::encrypt(strval($value), false)
+                : encrypt($value));
         } else {
             $system->system_value = $value;
         }
