@@ -12,7 +12,6 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\UserApiKey;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
-use Symfony\Component\HttpFoundation\IpUtils;
 
 /**
  * The API keys of the users (ISS00437). A user whom the administrators allow (the feature
@@ -245,18 +244,11 @@ class UserApiKeys
      */
     public static function parseIps(?string $text): array
     {
-        $ips = array_values(array_filter(array_map('trim', preg_split('/[\r\n,]+/', (string)$text) ?: [])));
-        foreach ($ips as $ip) {
-            [$address, $mask] = array_pad(explode('/', $ip, 2), 2, null);
-            if (filter_var($address, FILTER_VALIDATE_IP) === false) {
-                throw new \InvalidArgumentException('allowed_ips');
-            }
-            $max = str_contains((string)$address, ':') ? 128 : 32;
-            if (isset($mask) && (!ctype_digit($mask) || (int)$mask > $max)) {
-                throw new \InvalidArgumentException('allowed_ips');
-            }
+        // IPv4 and IPv6, an address or a range (ISS02909)
+        if (count(IpAddress::invalidRules($text)) > 0) {
+            throw new \InvalidArgumentException('allowed_ips');
         }
-        return $ips;
+        return IpAddress::splitRules($text);
     }
 
     /**
@@ -342,7 +334,7 @@ class UserApiKeys
         $key = UserApiKey::where('key_hash', static::hash($plain))->first();
         if (!isset($key)) {
             // logged, but at most once a minute an address (random keys are not a line each)
-            RateLimiter::attempt('apikey-log:' . static::siteHash() . ':' . $request->ip(), 1, function () use ($request) {
+            RateLimiter::attempt('apikey-log:' . static::siteHash() . ':' . IpAddress::limiterKey($request->ip()), 1, function () use ($request) {
                 \Log::info('[Exment] an unknown API key was refused (from ' . $request->ip() . ')');
             }, 60);
             return $refuse('unknown');
@@ -370,7 +362,7 @@ class UserApiKeys
         }
 
         $ips = $key->ipList();
-        if (count($ips) > 0 && !IpUtils::checkIp((string)$request->ip(), $ips)) {
+        if (count($ips) > 0 && !IpAddress::matches((string)$request->ip(), $ips)) {
             return $refuse('ip', $key);
         }
 
@@ -470,11 +462,15 @@ class UserApiKeys
 
     protected static function writeUse(UserApiKey $key, Carbon $at, string $ip, int $count): void
     {
-        UserApiKey::where('id', $key->id)->update([
-            'last_used_at' => $at,
-            'last_used_ip' => $ip,
-            'use_count' => \DB::raw('use_count + ' . max(1, $count)),
-        ]);
+        // a record: written after the response (ISS02903)
+        $id = $key->id;
+        \Exceedone\Exment\Services\LogManagement\LogWriter::defer('the use of an API key', function () use ($id, $at, $ip, $count) {
+            UserApiKey::where('id', $id)->update([
+                'last_used_at' => $at,
+                'last_used_ip' => $ip,
+                'use_count' => \DB::raw('use_count + ' . max(1, $count)),
+            ]);
+        });
     }
 
     /**

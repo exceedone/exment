@@ -334,6 +334,9 @@ class Permission
                 // no break
             case "plugins":
                 return $this->validatePluginPermission($endpoint);
+            // the trash (ISS00334): who may see the deleted rows of a table at least; the page lists only those tables
+            case "trash":
+                return \Exceedone\Exment\Services\Trash::available();
             case "notify":
                 $user = \Exment::user();
                 return $user ? $user->hasPermissionContainsTable(PermissionEnum::CUSTOM_TABLE) : false;

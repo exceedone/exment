@@ -206,6 +206,22 @@ class Features
             'manual' => 'notify_webhook',
             'who' => false,
         ]);
+        // the trash (Services\Trash, ISS00334): the deleted rows of all the tables on one page. Off
+        // until it is turned on; who may use it is the permission to see the deleted rows of a table
+        $core[Trash::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.trash',
+            'description' => 'exment::exment.feature.features.trash_help',
+            'endpoints' => ['trash'],
+            'menu' => 'trash',
+            'who' => false,
+        ]);
+        // the log of the browsers (Services\LogManagement\BrowserLogs, ISS02904): off until it is
+        // turned on; the role groups whose users' browsers send it
+        $core[\Exceedone\Exment\Services\LogManagement\BrowserLogs::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.browser_log',
+            'description' => 'exment::exment.feature.features.browser_log_help',
+            'manual' => 'log_management',
+        ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
         $core[static::TUNING] = static::definition([

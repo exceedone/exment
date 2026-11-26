@@ -100,7 +100,10 @@ class McpServer
                     throw new McpError(-32602, 'Unknown tool.');
                 }
                 $this->log($name, $args);
-                return (new McpTools($this->user))->call($name, $args);
+                // its reads and writes of the data are marked MCP (ISS02905)
+                return \Exceedone\Exment\Services\LogManagement\DataAccessLogs::from(\Exceedone\Exment\Model\DataAccessLog::VIA_MCP, function () use ($name, $args) {
+                    return (new McpTools($this->user))->call($name, $args);
+                });
         }
         throw new McpError(-32601, "Method not found: $method");
     }
@@ -117,7 +120,7 @@ class McpServer
             if (strlen($input) > static::MAX_LOG_INPUT) {
                 $input = json_encode(['_cut' => mb_strcut($input, 0, static::MAX_LOG_INPUT)], JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
             }
-            OperationLogModel::create([
+            \Exceedone\Exment\Services\LogManagement\LogWriter::insert(OperationLogModel::class, [
                 'user_id' => $this->user->id,
                 'path' => 'mcp/' . $tool,
                 'method' => 'MCP',

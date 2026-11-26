@@ -30,11 +30,11 @@
             <td><small>{{ $k['scopes'] }}</small></td>
             <td><small>
                 {{ exmtrans('api_key.tables') }}: {{ $k['tables'] ?? exmtrans('api_key.all_tables') }}<br>
-                {{ exmtrans('api_key.allowed_ips') }}: {{ $k['ips'] !== '' ? $k['ips'] : exmtrans('api_key.any_ip') }}<br>
+                {{ exmtrans('api_key.allowed_ips') }}: <span style="overflow-wrap: anywhere;">{{ $k['ips'] !== '' ? $k['ips'] : exmtrans('api_key.any_ip') }}</span><br>
                 {{ exmtrans('api_key.client_cert') }}: {{ $k['cert'] ? exmtrans('api_key.needed') : '-' }}
             </small></td>
             <td>{{ $k['expires_at'] }}</td>
-            <td><small>{{ $k['last_used_at'] ?? '-' }}<br>{{ $k['last_used_ip'] }} ({{ $k['use_count'] }})
+            <td><small>{{ $k['last_used_at'] ?? '-' }}<br><span style="overflow-wrap: anywhere;">{{ $k['last_used_ip'] }}</span> ({{ $k['use_count'] }})
                 @if (isset($k['last_refused_at']))
                     <br><span class="text-danger">{{ exmtrans('api_key.last_refused') }}: {{ $k['last_refused_at'] }} {{ $k['last_refused_reason'] }}</span>
                 @endif
