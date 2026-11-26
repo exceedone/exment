@@ -264,8 +264,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $file->fputcsv($outcols);
 
         $count = 0;
-        // execute backup. contains soft deleted table
-        \DB::table($table)->orderBy('id')->chunk(1000, function ($rows) use ($file, $outcols, &$count) {
+        // execute backup. contains soft deleted table. By the id (not an offset), so a large table is
+        // not read again from its start for each part (ISS02943)
+        \DB::table($table)->chunkById(1000, function ($rows) use ($file, $outcols, &$count) {
             foreach ($rows as $row) {
                 $count++;
                 $array = (array)$row;
@@ -275,7 +276,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 // write detail data
                 $file->fputcsv($row);
             }
-        });
+        }, 'id');
 
         return $count;
     }

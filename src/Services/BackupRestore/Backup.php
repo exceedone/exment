@@ -13,6 +13,17 @@ class Backup
     use EnvTrait;
 
     /**
+     * The files compressed already: stored in the zip as they are.
+     */
+    public const STORED_EXTENSIONS = [
+        'zip', 'gz', 'tgz', 'bz2', 'xz', '7z', 'rar',
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'avif',
+        'mp3', 'mp4', 'm4a', 'mov', 'webm', 'avi', 'mkv',
+        'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp',
+        'woff', 'woff2',
+    ];
+
+    /**
      * Create a new command instance.
      *
      * @return void
@@ -302,6 +313,11 @@ class Backup
                 $relativePath = substr($filePath, strlen($this->diskService->tmpDiskItem()->dirFullPath()) + 1);
                 $relativePath = \Exment::replaceBackToSlash($relativePath);
                 $zip->addFile($filePath, $relativePath);
+                // a file compressed already (an image, an Office file, a zip) is stored as it is:
+                // compressing it again takes time and saves nothing (ISS02943)
+                if (in_array(strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)), static::STORED_EXTENSIONS, true)) {
+                    $zip->setCompressionName($relativePath, \ZipArchive::CM_STORE);
+                }
                 $count++;
             }
             // the files are compressed when the zip is closed: its progress (0 to 1) as percent

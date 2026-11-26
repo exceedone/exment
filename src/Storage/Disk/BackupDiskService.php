@@ -69,20 +69,28 @@ class BackupDiskService extends DiskServiceBase
         $disk = $diskItem->disk();
         $localSyncDisk = $localSyncDiskItem->disk();
 
-        // download zip
         \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
 
-        $stream = $disk->readStream($diskItem->filePath());
-        $localSyncDisk->writeStream($localSyncDiskItem->filePath(), $stream);
-        try {
-            fclose($stream);
-        } catch (\Exception $ex) {
+        // a backup on this server is read where it is; else it is downloaded first (ISS02943:
+        // a copy of the whole file less)
+        $zipPath = $this->localZipPath();
+        $downloaded = false;
+        if ($zipPath === null) {
+            // download zip
+            $stream = $disk->readStream($diskItem->filePath());
+            $localSyncDisk->writeStream($localSyncDiskItem->filePath(), $stream);
+            try {
+                fclose($stream);
+            } catch (\Exception $ex) {
+            }
+            $zipPath = $localSyncDiskItem->fileFullPath();
+            $downloaded = true;
         }
-        $this->progress?->info('zip', ['bytes' => intval($localSyncDisk->size($localSyncDiskItem->filePath()))]);
+        $this->progress?->info('zip', ['bytes' => intval(@filesize($zipPath)), 'downloaded' => $downloaded]);
 
         // open new zip file
         $zip = new \ZipArchive();
-        if ($zip->open($localSyncDiskItem->fileFullPath()) !== true) {
+        if ($zip->open($zipPath) !== true) {
             // an unreadable stored backup must not look like a successful restore:
             // the caller would keep going over an empty folder, restore nothing,
             // and still answer "restore succeeded". same rule as Restore::unzipFile().
@@ -98,9 +106,27 @@ class BackupDiskService extends DiskServiceBase
         static::extract($zip, $localSyncDiskItem->dirFullPath(), $this->progress);
         $zip->close();
 
-        $localSyncDisk->delete($localSyncDiskItem->filePath());
+        if ($downloaded) {
+            $localSyncDisk->delete($localSyncDiskItem->filePath());
+        }
 
         return true;
+    }
+
+    /**
+     * The path of the backup file when it is a file of this server (the local disk), else null.
+     */
+    protected function localZipPath(): ?string
+    {
+        try {
+            $path = $this->diskItem()->disk()->path($this->diskItem()->filePath());
+        } catch (\Throwable $e) {
+            return null;
+        }
+        if ($path === '' || !(str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $path))) {
+            return null;
+        }
+        return is_file($path) && is_readable($path) ? $path : null;
     }
 
     /**
