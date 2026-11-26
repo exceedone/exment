@@ -136,6 +136,25 @@ EOT);
     }
 
     /**
+     * The json of a row as it leaves Exment (the API, MCP): the encrypted columns masked.
+     *
+     * @param mixed $values
+     * @return mixed
+     */
+    public static function maskValues($values, ?CustomTable $table)
+    {
+        if (!is_array($values) || !isset($table)) {
+            return $values;
+        }
+        foreach ($table->custom_columns_cache as $column) {
+            if (static::isEncrypted($column) && array_key_exists($column->column_name, $values)) {
+                $values[$column->column_name] = static::masked($column, $values[$column->column_name]);
+            }
+        }
+        return $values;
+    }
+
+    /**
      * The names of the encrypted columns of a table.
      *
      * @param CustomTable|null $table
