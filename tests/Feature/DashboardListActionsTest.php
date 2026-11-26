@@ -93,6 +93,6 @@ class DashboardListActionsTest extends FeatureTestBase
         $this->assertMatchesRegularExpression('#<th[^>]*column-__actions__[^>]*>\s*' . preg_quote(trans('admin.action'), '#') . '#u', $html);
         // the first header is the actions
         $this->assertSame(1, preg_match('#<th[^>]*>(.*?)</th>#su', $html, $first));
-        $this->assertSame(trans('admin.action'), trim(strip_tags($first[1])));
+        $this->assertSame(trans('admin.action'), trim(strip_tags(strval($first[1] ?? ''))));
     }
 }
