@@ -56,6 +56,15 @@ class AdminCoreTwoTest extends UnitTestBase
         $task = $this->read('resources/views/workflow_task/index.blade.php');
         $this->assertStringContainsString("toPicker.set('minDate', text || null)", $task);
         $this->assertStringContainsString("fromPicker.set('maxDate', text || null)", $task);
+        // the picker has its own function: a "var lang" of it covered the texts of the page (lang.selected)
+        $this->assertSame(1, substr_count($task, 'var lang ='), 'one lang in the script of the page');
+        $this->assertStringContainsString('var pickerLang = ', $task);
+
+        // the native check boxes of the grid take the size and place of the iCheck box
+        $css = $this->read('public/vendor/exment/css/grid_tools.css');
+        $css = str_replace("\r\n", "\n", $css);
+        $this->assertStringContainsString("input.grid-row-checkbox,\ninput.grid-select-all {\n  width: 18px;", $css);
+        $this->assertStringContainsString('.table td:has(> input.grid-row-checkbox)', $css);
     }
 
     public function testTheCiUsesAdminCoreTwo(): void
