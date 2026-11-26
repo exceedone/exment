@@ -124,6 +124,8 @@ class Define
         'scheduled_job_alerted' => ['type' => 'json', 'default' => []],
         // the counts of the data for the tuning page, made every night (Services\SystemRequire\Tuning\DataStats)
         'tuning_data_stats' => ['type' => 'json', 'default' => []],
+        // the columns whose index the tuning page is adding: column id => since when (AddColumnIndexJob)
+        'tuning_index_pending' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],

@@ -65,6 +65,17 @@ abstract class TuningBase extends SystemRequireBase
     }
 
     /**
+     * What the action is run for, chosen on the page (value => label), or null: the action is
+     * for the item as a whole. The chosen values are sent as "choices".
+     *
+     * @return array<int|string, string>|null
+     */
+    public function getChoices(): ?array
+    {
+        return null;
+    }
+
+    /**
      * The action the tuning page can run for this item (TuningController::action), or null.
      *
      * @return string|null
