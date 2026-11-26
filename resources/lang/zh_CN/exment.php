@@ -740,6 +740,19 @@ return [
             'recaptcha_secret_key' => '如需在公开表单中使用 Google reCAPTCHA，请输入私密密钥。※设置后，请在各公开表单中选择是否使用 Google reCAPTCHA。',
         ],
     ],
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => '保存在传输途中被拒绝（防火墙等）',
+        'back_title' => '上次保存可能没有到达 Exment（防火墙等）',
+        'body' => '网站前面的防火墙或代理拒绝了发送的内容。这不是 Exment 的权限问题。正文中的 URL、IP 地址、路径（../）等文字可能是原因。请修改后重新保存，或告诉管理员。您写的内容仍然保留。',
+        'details' => '详细',
+        'help' => '如何判断和解决',
+        'close' => '关闭',
+        'd_status' => '状态',
+        'd_where' => '发送到',
+        'd_headers' => '响应头',
+        'd_text' => '响应的开头几行',
+    ],
     'security_check' => [
         'header' => '安全检查',
         'description' => '检查保障本网站安全的设置。',
@@ -761,6 +774,14 @@ return [
         'after_initialize_high' => '安全检查中有 :count 个项目需要立即修复。',
         'open' => '打开安全检查',
         'item' => [
+            'firewall' => [
+                'label' => '网站前面的防火墙',
+                'explain' => '从此浏览器测试网站前面的防火墙（AWS WAF、Cloudflare、公司代理等）是否会拒绝包含 URL、IP 地址或路径的保存。如果拒绝，用户将无法得知无法保存的原因。',
+                'not_yet' => '尚未测试',
+                'running' => '正在测试…',
+                'run' => '测试',
+                'warning' => '测试发送在网站前面被拒绝。包含这些文字的保存也会被拒绝。请仅对此路径排除防火墙的这些规则。',
+            ],
             'file_permission' => [
                 'label' => '重要文件的权限',
                 'explain' => '.env 和配置缓存中包含数据库密码等机密信息。请确保服务器上的其他用户无法读取（640 等），并且 storage 不能对所有人开放读写。',

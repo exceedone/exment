@@ -740,6 +740,19 @@ return [
             'recaptcha_secret_key' => 'Nếu sử dụng Google reCAPTCHA trong biểu mẫu công khai, vui lòng nhập khóa bí mật. *Sau khi thiết lập, hãy chọn có sử dụng Google reCAPTCHA trong từng biểu mẫu công khai hay không.',
         ],
     ],
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => 'Việc lưu bị từ chối trên đường truyền (tường lửa, v.v.)',
+        'back_title' => 'Lần lưu trước có thể chưa đến được Exment (tường lửa, v.v.)',
+        'body' => 'Tường lửa hoặc proxy phía trước trang đã từ chối nội dung gửi đi. Đây không phải vấn đề quyền của Exment. Các từ như URL, địa chỉ IP hoặc đường dẫn (../) trong nội dung có thể là nguyên nhân. Hãy sửa rồi lưu lại, hoặc báo cho quản trị viên. Nội dung bạn viết vẫn còn.',
+        'details' => 'Chi tiết',
+        'help' => 'Cách nhận biết và cách sửa',
+        'close' => 'Đóng',
+        'd_status' => 'Trạng thái',
+        'd_where' => 'Gửi đến',
+        'd_headers' => 'Header của phản hồi',
+        'd_text' => 'Những dòng đầu của phản hồi',
+    ],
     'security_check' => [
         'header' => 'Kiểm tra bảo mật',
         'description' => 'Kiểm tra các cài đặt giúp trang web này hoạt động an toàn.',
@@ -761,6 +774,14 @@ return [
         'after_initialize_high' => 'Kiểm tra bảo mật phát hiện :count mục nên khắc phục ngay.',
         'open' => 'Mở kiểm tra bảo mật',
         'item' => [
+            'firewall' => [
+                'label' => 'Tường lửa phía trước trang',
+                'explain' => 'Thử từ trình duyệt này xem tường lửa phía trước trang (AWS WAF, Cloudflare, proxy của công ty...) có từ chối việc lưu có URL, địa chỉ IP hoặc đường dẫn hay không. Nếu có, người dùng không biết vì sao không lưu được.',
+                'not_yet' => 'Chưa thử',
+                'running' => 'Đang thử...',
+                'run' => 'Thử',
+                'warning' => 'Lần gửi thử bị từ chối phía trước trang. Việc lưu có những từ đó cũng bị từ chối. Hãy loại trừ các quy tắc đó của tường lửa chỉ cho đường dẫn này.',
+            ],
             'file_permission' => [
                 'label' => 'Quyền của các tệp quan trọng',
                 'explain' => '.env và bộ nhớ đệm cấu hình chứa thông tin bí mật như mật khẩu cơ sở dữ liệu. Vui lòng đảm bảo người dùng khác trên máy chủ không thể đọc được (khoảng 640), và storage không được mở cho mọi người đọc ghi.',
