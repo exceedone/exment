@@ -110,6 +110,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
+        \Exceedone\Exment\Console\LogDbCommand::class,
+        \Exceedone\Exment\Console\TrashPurgeCommand::class,
         \Exceedone\Exment\Console\AuditReportCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
@@ -128,6 +130,8 @@ class ExmentServiceProvider extends ServiceProvider
      */
     // @phpstan-ignore-next-line
     protected $middleware = [
+        // the records of the logs after the response (ISS02903)
+        \Exceedone\Exment\Middleware\WriteLogsAfterResponse::class,
         \Exceedone\Exment\Middleware\TrustProxies::class,
         \Exceedone\Exment\Middleware\ExmentDebug::class,
         // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
@@ -359,6 +363,8 @@ class ExmentServiceProvider extends ServiceProvider
         });
         // the record of the logins of the pages, and the settings of the application log (ISS02839)
         \Exceedone\Exment\Services\LogManagement\LoginRecorder::register();
+        // the reads and the writes of the data (ISS02905)
+        \Exceedone\Exment\Services\LogManagement\DataAccessLogs::register();
         \Exceedone\Exment\Services\LogManagement\LogSettings::apply();
 
         // Perf: publishes() only feeds the `vendor:publish` console command; running it on
@@ -427,6 +433,9 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::register();
         require_once(__DIR__ . '/Services/Helpers.php');
+
+        // "throttle:10,1" counts an IPv6 address as its /64 (ISS02909)
+        $this->app->bind(\Illuminate\Routing\Middleware\ThrottleRequests::class, Middleware\ThrottleRequests::class);
 
         // the class of a custom table is built when it is first used (ISS00413)
         Services\ClassBuilder::registerAutoloader();
@@ -667,6 +676,8 @@ class ExmentServiceProvider extends ServiceProvider
         // the logs older than they are kept (ISS02839)
         $schedule->command('exment:log-maintenance')->dailyAt('03:40')->withoutOverlapping(60);
 
+        // the deleted data past the days of its table: archived, then deleted for good (ISS00147)
+        $schedule->command('exment:trash-purge')->dailyAt('03:50')->withoutOverlapping(120);
         // the IT audit report of the month or the quarter before, when it is set (ISS02840)
         $schedule->command('exment:audit-report')->dailyAt('04:10')->withoutOverlapping(60);
 

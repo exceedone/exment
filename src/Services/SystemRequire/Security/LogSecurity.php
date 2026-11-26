@@ -38,6 +38,10 @@ class LogSecurity extends SecurityBase
         if ($this->readableByEveryone()) {
             $found[] = 'readable';
         }
+        // the logs larger than the limit (ISS02905)
+        if (\Exceedone\Exment\Services\LogManagement\LogSize::over()) {
+            $found[] = 'too_large';
+        }
         return $found;
     }
 
@@ -78,6 +82,9 @@ class LogSecurity extends SecurityBase
     protected function getMessageWarning(): ?string
     {
         return implode(' ', array_map(function ($key) {
+            if ($key === 'too_large') {
+                return strval(\Exceedone\Exment\Services\LogManagement\LogSize::warning('security_check.item.logs.too_large'));
+            }
             return strval(exmtrans('security_check.item.logs.' . $key));
         }, $this->findings()));
     }

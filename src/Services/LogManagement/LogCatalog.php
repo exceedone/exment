@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Services\LogManagement;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Model\BrowserLog;
+use Exceedone\Exment\Model\DataAccessDaily;
+use Exceedone\Exment\Model\DataAccessLog;
 use Exceedone\Exment\Model\LoginLog;
 use Exceedone\Exment\Model\OperationLog;
 use Exceedone\Exment\Model\PermissionChangeLog;
@@ -144,6 +147,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.operation_log',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::operationLog();
+                },
                 'retention' => function () {
                     return boolval(System::operation_log_enable_automatic()) ? max(1, intval(System::operation_log_keep_days())) : null;
                 },
@@ -161,6 +167,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.login_log',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('login_logs');
+                },
                 'retention' => function () {
                     return static::days(System::log_retention_login_log(), static::DEFAULT_LOGIN_LOG_DAYS);
                 },
@@ -202,6 +211,9 @@ class LogCatalog
                 },
                 'label' => 'exment::exment.log_management.types.permission_change',
                 'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('permission_change_logs');
+                },
                 'retention' => function () {
                     return static::days(System::log_retention_permission_change(), static::DEFAULT_PERMISSION_CHANGE_DAYS);
                 },
@@ -230,6 +242,74 @@ class LogCatalog
                 },
                 'count' => function () {
                     return PermissionChangeLog::tableExists() ? PermissionChangeLog::query()->count() : 0;
+                },
+            ],
+            // the reads and the writes of the data (ISS02905): the rows, deleted only once counted
+            'data_access' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
+                'label' => 'exment::exment.log_management.types.data_access',
+                'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('data_access_logs');
+                },
+                'retention' => function () {
+                    return static::days(System::log_retention_data_access(), DataAccessLogs::DEFAULT_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    if (!DataAccessLog::tableExists()) {
+                        return 0;
+                    }
+                    // the days not counted yet stay
+                    $until = DataAccessLogs::summarizedUntil();
+                    if (is_null($until)) {
+                        return 0;
+                    }
+                    if ($until->copy()->addDay()->lt($before)) {
+                        $before = $until->copy()->addDay();
+                    }
+                    $deleted = 0;
+                    do {
+                        $rows = DataAccessLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->get();
+                        $ids = $rows->pluck('id')->all();
+                        if (!empty($ids)) {
+                            if (LogArchiver::enabled()) {
+                                LogArchiver::rows('data_access', DataAccessLogs::COLUMNS, $rows->map(function ($row) {
+                                    return array_map(function ($column) use ($row) {
+                                        return $column === 'created_at' ? optional($row->created_at)->format('Y-m-d H:i:s') : $row->{$column};
+                                    }, DataAccessLogs::COLUMNS);
+                                })->all(), function ($row) {
+                                    return substr(strval($row[1]), 0, 7);
+                                });
+                            }
+                            $deleted += DataAccessLog::query()->whereIn('id', $ids)->delete();
+                        }
+                    } while (count($ids) === 1000);
+                    return $deleted;
+                },
+                'count' => function () {
+                    return DataAccessLog::tableExists() ? DataAccessLog::query()->count() : 0;
+                },
+            ],
+            // their counts of each day, which the IT audit report reads (kept longer)
+            'data_access_daily' => [
+                'label' => 'exment::exment.log_management.types.data_access_daily',
+                'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('data_access_daily');
+                },
+                'retention' => function () {
+                    return static::days(System::log_retention_data_access_daily(), DataAccessLogs::DEFAULT_DAILY_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    return DataAccessLog::tableExists() ? DataAccessDaily::query()->where('date', '<', $before->format('Y-m-d'))->delete() : 0;
+                },
+                'count' => function () {
+                    return DataAccessLog::tableExists() ? DataAccessDaily::query()->count() : 0;
                 },
             ],
             // the files of the application log, one a day (laravel-YYYY-MM-DD.log of Laravel's
@@ -271,6 +351,49 @@ class LogCatalog
                 },
                 'count' => function () {
                     return count(glob(storage_path('logs') . '/*.log') ?: []);
+                },
+            ],
+            // the log of the browsers (ISS02904)
+            'browser_log' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
+                'label' => 'exment::exment.log_management.types.browser_log',
+                'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('browser_logs');
+                },
+                'retention' => function () {
+                    return static::days(System::log_retention_browser_log(), BrowserLogs::DEFAULT_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    if (!BrowserLog::tableExists()) {
+                        return 0;
+                    }
+                    $deleted = 0;
+                    do {
+                        $rows = BrowserLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->get();
+                        $ids = $rows->pluck('id')->all();
+                        if (!empty($ids)) {
+                            if (LogArchiver::enabled()) {
+                                LogArchiver::rows('browser_log', BrowserLogs::COLUMNS, $rows->map(function ($row) {
+                                    return array_map(function ($column) use ($row) {
+                                        return $column === 'created_at' ? optional($row->created_at)->format('Y-m-d H:i:s') : $row->{$column};
+                                    }, BrowserLogs::COLUMNS);
+                                })->all(), function ($row) {
+                                    return substr(strval($row[array_search('created_at', BrowserLogs::COLUMNS, true)]), 0, 7);
+                                });
+                            }
+                            $deleted += BrowserLog::query()->whereIn('id', $ids)->delete();
+                        }
+                    } while (count($ids) === 1000);
+                    return $deleted;
+                },
+                'count' => function () {
+                    return BrowserLog::tableExists() ? BrowserLog::query()->count() : 0;
                 },
             ],
         ];

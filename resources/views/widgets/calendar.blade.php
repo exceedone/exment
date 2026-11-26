@@ -14,6 +14,22 @@
         const date = new UltraDate();
         var calendarEl = document.getElementById('calendar');
 
+        // the day after a date, as YYYY-MM-DD (what moment(value).add(1, 'days').format('YYYY-MM-DD')
+        // gave): FullCalendar's end of an all-day event is exclusive. Plain Date, so the calendar
+        // does not need moment.
+        function nextDay(value) {
+            var m = /^(\d{4})[-\/](\d{1,2})[-\/](\d{1,2})/.exec(String(value));
+            var d = m ? new Date(+m[1], +m[2] - 1, +m[3] + 1) : new Date(value);
+            if (!m) {
+                d.setDate(d.getDate() + 1);
+            }
+            if (isNaN(d.getTime())) {
+                return value;
+            }
+            var pad = function (n) { return (n < 10 ? '0' : '') + n; };
+            return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+        }
+
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale : "{{ $locale }}",
             headerToolbar: {
@@ -39,7 +55,7 @@
             // call when reading event data
             eventDataTransform: function(event) { 
                 if(event.allDayBetween) {
-                    event.end = moment(event.end).add(1, 'days').format('YYYY-MM-DD');
+                    event.end = nextDay(event.end);
                 }
                 
                 // call handle event
