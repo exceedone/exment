@@ -9,13 +9,9 @@ class Checkboxone extends Field
 {
     protected $view = 'exment::form.field.checkboxone';
 
-    protected static $css = [
-        '/vendor/open-admin/AdminLTE/plugins/iCheck/all.css',
-    ];
+    protected static $css = [];
 
-    protected static $js = [
-        '/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js',
-    ];
+    protected static $js = [];
 
     // @phpstan-ignore-next-line
     protected $check_label = '';
@@ -75,8 +71,8 @@ class Checkboxone extends Field
      */
     public function render()
     {
-        // without iCheck (admin-core 2.0) the checkbox stays a native one
-        $this->script = "if ($.fn.iCheck) { $('{$this->getElementClassSelector()}').iCheck({checkboxClass:'icheckbox_minimal-blue'}); }";
+        // a native check box (admin-core 2.0, no iCheck)
+        $this->script = '';
 
         // @phpstan-ignore-next-line
         return parent::render()->with(['check_value' => $this->check_value, 'check_label' => $this->check_label]);

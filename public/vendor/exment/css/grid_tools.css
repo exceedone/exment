@@ -1853,3 +1853,20 @@ body.exm-bulkbar-open .content-wrapper {
 .exm-vc-add {
   margin-bottom: 4px;
 }
+
+/* admin-core 2.0: the check boxes of the grid are native ones. iCheck drew an 18px box in the
+   middle of the cell; the same size and place for the native one. */
+input.grid-row-checkbox,
+input.grid-select-all {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  vertical-align: middle;
+  cursor: pointer;
+}
+.table td:has(> input.grid-row-checkbox),
+.table th:has(> input.grid-select-all),
+.table td:has(> .checkbox input.grid-row-checkbox),
+.table th:has(> .checkbox input.grid-select-all) {
+  vertical-align: middle;
+}

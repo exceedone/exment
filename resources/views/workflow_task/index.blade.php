@@ -165,7 +165,7 @@
                                 </div>
                             </div>
 
-                            {{-- admin::filter.betweenDatetime: text boxes with the datetimepicker set up by
+                            {{-- admin::filter.betweenDatetime: text boxes with the date picker set up by
                                  the script below, like the 更新日時 filter of the data grid. A type=date
                                  input is drawn by the browser, in the date format of the OS, whatever
                                  APP_LOCALE says. --}}
@@ -406,23 +406,35 @@
 
         // The options the data grid gives its 更新日時 filter (see WorkflowTaskController::index):
         // yyyy-mm-dd - the only shape normalizeFilter() accepts -, the calendar in the language
-        // of APP_LOCALE, and each end limiting the other. The picker plugin is part of every
-        // admin page (Form::collectFieldAssets); without it the boxes stay plain text boxes that
-        // still submit yyyy-mm-dd.
+        // of APP_LOCALE, and each end limiting the other. The picker is part of every admin page
+        // (the base assets); without it the boxes stay plain text boxes that still submit
+        // yyyy-mm-dd.
+        // admin-core 2.0: flatpickr, the picker of every admin page. The options keep the moment
+        // format the controller gives (YYYY-MM-DD), written the flatpickr way (Y-m-d).
+        // in a function of its own: its names do not cover the ones of this script (lang, options...)
+        (function () {
         var $dates = $box.find('.workflow-task-dates');
-        if ($dates.length && typeof $.fn.datetimepicker === 'function') {
-            var $from = $dates.find('input[name="from"]');
-            var $to = $dates.find('input[name="to"]');
+        if ($dates.length && typeof window.flatpickr === 'function') {
             var options = {!! json_encode($dateOptions, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) !!};
-            $from.datetimepicker(options);
-            $to.datetimepicker($.extend({ useCurrent: false }, options));
-            $from.on('dp.change', function (e) {
-                $to.data('DateTimePicker').minDate(e.date);
-            });
-            $to.on('dp.change', function (e) {
-                $from.data('DateTimePicker').maxDate(e.date);
-            });
+            var l10ns = window.flatpickr.l10ns || {};
+            var pickerLang = String(options.locale || '').toLowerCase().replace('_', '-');
+            var config = { dateFormat: String(options.format || 'YYYY-MM-DD').replace('YYYY', 'Y').replace('MM', 'm').replace('DD', 'd'), allowInput: true };
+            if (l10ns[pickerLang]) {
+                config.locale = pickerLang;
+            } else if (l10ns[pickerLang.split('-')[0]]) {
+                config.locale = pickerLang.split('-')[0];
+            }
+            var from = $dates.find('input[name="from"]').get(0);
+            var to = $dates.find('input[name="to"]').get(0);
+            if (from && to) {
+                // each end limits the other
+                var fromPicker = from._flatpickr || window.flatpickr(from, config);
+                var toPicker = to._flatpickr || window.flatpickr(to, config);
+                fromPicker.config.onChange.push(function (dates, text) { toPicker.set('minDate', text || null); });
+                toPicker.config.onChange.push(function (dates, text) { fromPicker.set('maxDate', text || null); });
+            }
         }
+        })();
 
         // the page size box of a grid (Grid\Tools\PerPageSelector) reloads through pjax
         $box.find('.workflow-task-per-pager').on('change', function () {

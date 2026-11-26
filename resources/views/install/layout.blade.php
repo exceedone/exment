@@ -14,8 +14,6 @@
  <link rel="stylesheet" href="{{ admin_asset('/vendor/open-admin/font-awesome/css/v4-shims.min.css') }}">
  <!-- toastr (unchanged) -->
  <link rel="stylesheet" href="{{ admin_asset('/vendor/open-admin/toastr/build/toastr.min.css') }}">
- <!-- iCheck (kept for now, but consider replacing with Bootstrap 5 native form controls) -->
- <link rel="stylesheet" href="{{ admin_asset('/vendor/open-admin/AdminLTE/plugins/iCheck/square/blue.css') }}">
  <link rel="stylesheet" href="{{ admin_asset('vendor/exment/css/install.css')}}">
  <link rel="icon" href="{{ asset('images/exment_favicon.png') }}" sizes="32x32">
  <link rel="icon" href="{{ asset('images/exment_mark.svg') }}" type="image/svg+xml">
@@ -36,12 +34,10 @@
 
   </div>
 </div>
-  <!-- jQuery (kept for iCheck and toastr) -->
+  <!-- jQuery (for toastr and the scripts of the pages) -->
   <script src="{{ admin_asset('/vendor/open-admin/AdminLTE/plugins/jQuery/jQuery-3.7.1.min.js') }}"></script>
   <!-- Bootstrap 5 JS -->
   <script src="{{ admin_asset('/vendor/open-admin/open-admin/js/bootstrap.bundle.min.js') }}"></script>
-  <!-- iCheck (kept for now, but consider replacing with native Bootstrap 5 form controls) -->
-  <script src="{{ admin_asset('/vendor/open-admin/AdminLTE/plugins/iCheck/icheck.min.js') }}"></script>
   <!-- toastr -->
   <script src="{{ admin_asset('/vendor/open-admin/toastr/build/toastr.min.js') }}"></script>
   <!-- Exment Common JS -->
@@ -65,15 +61,6 @@
 
   <script>
     $(function () {
-      // admin-core 2.0 no longer ships iCheck; then the inputs stay native
-      if ($.fn.iCheck) {
-        $('input').iCheck({
-          checkboxClass: 'icheckbox_square-blue',
-          radioClass: 'iradio_square-blue',
-          increaseArea: '20%' // optional
-        });
-      }
-
       $("form").submit(function (ev) {
         if($(ev.target).hasClass('check_has_warning') && pBool($('#has_warning').val())){
           if(!window.confirm($('#has_warning_text').val())){

@@ -24,7 +24,6 @@
   <!-- Theme style -->
   <link rel="stylesheet" href="{{ admin_asset("vendor/open-admin/AdminLTE4/css/adminlte.min.css") }}">
 
-  <!-- iCheck -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.css") }}">
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/open-admin/css/button-custom.css") }}">
   {{-- The "modern" screen design (system setting, or EXMENT_UI_DESIGN). It stays before the inline style
@@ -149,8 +148,6 @@
 <script src="{{ admin_asset("/vendor/open-admin/AdminLTE4/js/bootstrap.bundle.min.js")}} "></script>
 <!-- Bootstrap 3.3.5 -->
 <script src="{{ admin_asset("/vendor/open-admin/AdminLTE4/js/adminlte.min.js")}}"></script>
-<!-- iCheck -->
-
 <script src="{{ admin_asset("/vendor/open-admin/toastr/build/toastr.min.js")}}"></script>
 <script src="{{ admin_asset("/vendor/exment/js/common_all.js")}}"></script>
 @if (session('exment_logged_out'))
