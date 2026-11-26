@@ -771,13 +771,15 @@ abstract class CustomItem implements ItemInterface
 
         // an encrypted column (ISS00148): the form never holds its value. The box is empty, its
         // placeholder the masked value; left empty it keeps the value (EncryptedColumns::encryptForSave)
-        if ($this->isEncryptedColumn() && method_exists($field, 'customFormat')) {
+        if ($this->isEncryptedColumn()) {
             $field->customFormat(function () {
                 return '';
             });
             if (isset($this->id) && !is_nullorempty($this->value)) {
                 $field->placeholder(EncryptedColumns::masked($this->custom_column, $this->value));
                 $field->removeRule('required');
+                // the browser must not refuse the box left empty either
+                $field->removeAttribute('required');
                 $field->help(exmtrans('encrypted.form_help'));
             }
         }
