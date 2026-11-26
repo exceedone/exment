@@ -1491,7 +1491,6 @@ return [
         ],
         'run' => [
             'screen' => [
-                'backup_first' => 'Trước khi khôi phục',
                 'backup_first_option' => 'Sao lưu dữ liệu hiện tại (khuyến nghị)',
                 'backup_first_help' => 'Trước khi khôi phục, dữ liệu hiện tại được sao lưu với tên "beforerestore" kèm ngày giờ. Nếu có sự cố, bạn có thể khôi phục lại từ bản này.',
                 'preview' => 'Nội dung sẽ bị thay thế',

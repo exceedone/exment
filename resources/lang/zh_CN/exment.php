@@ -1491,7 +1491,6 @@ return [
         ],
         'run' => [
             'screen' => [
-                'backup_first' => '还原之前',
                 'backup_first_option' => '备份当前数据（推荐）',
                 'backup_first_help' => '还原之前，以“beforerestore＋日期时间”的名称备份当前数据。出现问题时可以用它恢复。',
                 'preview' => '将被替换的内容',

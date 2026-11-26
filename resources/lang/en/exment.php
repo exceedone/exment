@@ -1538,7 +1538,6 @@ return [
         ],
         'run' => [
             'screen' => [
-                'backup_first' => 'Before the restore',
                 'backup_first_option' => 'Back up the current data (recommended)',
                 'backup_first_help' => 'Before the restore, the current data is backed up as "beforerestore" plus the date and time. If something goes wrong, you can restore it.',
                 'preview' => 'What is replaced',

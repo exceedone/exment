@@ -1491,7 +1491,6 @@ return [
         ],
         'run' => [
             'screen' => [
-                'backup_first' => 'Vor der Wiederherstellung',
                 'backup_first_option' => 'Die aktuellen Daten sichern (empfohlen)',
                 'backup_first_help' => 'Vor der Wiederherstellung werden die aktuellen Daten als „beforerestore“ mit Datum und Uhrzeit gesichert. Geht etwas schief, können Sie sie damit wiederherstellen.',
                 'preview' => 'Was ersetzt wird',

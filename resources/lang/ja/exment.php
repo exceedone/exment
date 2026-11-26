@@ -1538,7 +1538,6 @@ return [
         ],
         'run' => [
             'screen' => [
-                'backup_first' => 'リストアの前に',
                 'backup_first_option' => '今のデータをバックアップする（おすすめ）',
                 'backup_first_help' => 'リストアの前に、今のデータを「beforerestore＋日時」の名前でバックアップします。うまくいかなかったときは、それを使って元に戻せます。',
                 'preview' => '置きかわるもの',
