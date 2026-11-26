@@ -35,7 +35,7 @@ class EncryptedValueController extends Controller
             return response()->json(['message' => trans('admin.deny')], 403);
         }
         /** @var CustomValue|null $record */
-        $record = $table->getValueModel($id);
+        $record = $table->getValueModel(intval($id));
         if (!isset($record)) {
             return response()->json(['message' => exmtrans('common.message.notfound')], 404);
         }

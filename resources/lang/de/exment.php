@@ -3894,10 +3894,10 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
                 'help' => 'Sie können Stammdaten aus einer externen Datei importieren.<br />*Dafür ist eine Bearbeitungsberechtigung für die Daten erforderlich.',
             ],
             'custom_value_export' => [
-            'custom_value_reveal' => ['label' => 'Verschlüsselte Werte anzeigen', 'help' => 'Kann den echten Wert einer verschlüsselten Spalte mit der Schaltfläche „Anzeigen“ sehen. Jedes Mal wird im Datenzugriffsprotokoll festgehalten.<br />* Leserecht für die Daten ist erforderlich.'],
                 'label' => 'Export',
                 'help' => 'Sie können die Stammdaten in eine externe Datei exportieren.<br />*Dafür ist eine Leseberechtigung für die Daten erforderlich.',
             ],
+            'custom_value_reveal' => ['label' => 'Verschlüsselte Werte anzeigen', 'help' => 'Kann den echten Wert einer verschlüsselten Spalte mit der Schaltfläche „Anzeigen“ sehen. Jedes Mal wird im Datenzugriffsprotokoll festgehalten.<br />* Leserecht für die Daten ist erforderlich.'],
         ],
         'role_type_option_table' => [
             'custom_table' => [
@@ -3953,10 +3953,10 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
                 'help' => 'Sie können Daten in eine externe Datei exportieren.<br />*Dafür ist eine Leseberechtigung für die Daten erforderlich.',
             ],
             'custom_value_view_trashed' => [
-            'custom_value_reveal' => ['label' => 'Verschlüsselte Werte anzeigen', 'help' => 'Kann den echten Wert einer verschlüsselten Spalte mit der Schaltfläche „Anzeigen“ sehen. Jedes Mal wird im Datenzugriffsprotokoll festgehalten.<br />* Leserecht für die Daten ist erforderlich.'],
                 'label' => 'Gelöschte Daten anzeigen',
                 'help' => 'Sie können gelöschte Daten wieder anzeigen.<br />*Zum Wiederherstellen von Daten ist eine Bearbeitungsberechtigung für die Daten erforderlich.',
             ],
+            'custom_value_reveal' => ['label' => 'Verschlüsselte Werte anzeigen', 'help' => 'Kann den echten Wert einer verschlüsselten Spalte mit der Schaltfläche „Anzeigen“ sehen. Jedes Mal wird im Datenzugriffsprotokoll festgehalten.<br />* Leserecht für die Daten ist erforderlich.'],
         ],
         'role_type_option_value' => [
             'custom_value_edit' => [

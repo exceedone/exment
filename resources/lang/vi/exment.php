@@ -3894,10 +3894,10 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
                 'help' => 'Có thể nhập dữ liệu chủ từ tệp bên ngoài.<br />*Cần có quyền chỉnh sửa đối với dữ liệu đó.',
             ],
             'custom_value_export' => [
-            'custom_value_reveal' => ['label' => 'Xem giá trị đã mã hóa', 'help' => 'Có thể xem giá trị thật của cột đã mã hóa bằng nút "Hiện". Mỗi lần xem đều được ghi vào nhật ký truy cập dữ liệu.<br />* Cần quyền xem dữ liệu đó.'],
                 'label' => 'Xuất',
                 'help' => 'Có thể xuất dữ liệu chủ ra tệp bên ngoài.<br />*Cần có quyền xem đối với dữ liệu đó.',
             ],
+            'custom_value_reveal' => ['label' => 'Xem giá trị đã mã hóa', 'help' => 'Có thể xem giá trị thật của cột đã mã hóa bằng nút "Hiện". Mỗi lần xem đều được ghi vào nhật ký truy cập dữ liệu.<br />* Cần quyền xem dữ liệu đó.'],
         ],
         'role_type_option_table' => [
             'custom_table' => [
@@ -3953,10 +3953,10 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
                 'help' => 'Có thể xuất dữ liệu ra tệp bên ngoài.<br />*Cần có quyền xem đối với dữ liệu đó.',
             ],
             'custom_value_view_trashed' => [
-            'custom_value_reveal' => ['label' => 'Xem giá trị đã mã hóa', 'help' => 'Có thể xem giá trị thật của cột đã mã hóa bằng nút "Hiện". Mỗi lần xem đều được ghi vào nhật ký truy cập dữ liệu.<br />* Cần quyền xem dữ liệu đó.'],
                 'label' => 'Hiển thị dữ liệu đã xóa',
                 'help' => 'Có thể hiển thị lại dữ liệu đã bị xóa tạm.<br />*Để khôi phục dữ liệu, cần có quyền chỉnh sửa đối với dữ liệu đó.',
             ],
+            'custom_value_reveal' => ['label' => 'Xem giá trị đã mã hóa', 'help' => 'Có thể xem giá trị thật của cột đã mã hóa bằng nút "Hiện". Mỗi lần xem đều được ghi vào nhật ký truy cập dữ liệu.<br />* Cần quyền xem dữ liệu đó.'],
         ],
         'role_type_option_value' => [
             'custom_value_edit' => [

@@ -3894,10 +3894,10 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
                 'help' => 'Puede importar datos maestros desde un archivo externo.<br />* Se requiere permiso de edición sobre los datos.',
             ],
             'custom_value_export' => [
-            'custom_value_reveal' => ['label' => 'Ver valores cifrados', 'help' => 'Puede ver el valor real de una columna cifrada con el botón «Mostrar». Cada vez queda en el registro de acceso a los datos.<br />* Se necesita permiso de lectura de los datos.'],
                 'label' => 'Exportar',
                 'help' => 'Puede exportar los datos maestros a un archivo externo.<br />* Se requiere permiso de visualización sobre los datos.',
             ],
+            'custom_value_reveal' => ['label' => 'Ver valores cifrados', 'help' => 'Puede ver el valor real de una columna cifrada con el botón «Mostrar». Cada vez queda en el registro de acceso a los datos.<br />* Se necesita permiso de lectura de los datos.'],
         ],
         'role_type_option_table' => [
             'custom_table' => [
@@ -3953,10 +3953,10 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
                 'help' => 'Puede exportar los datos a un archivo externo.<br />* Se requiere permiso de visualización sobre los datos.',
             ],
             'custom_value_view_trashed' => [
-            'custom_value_reveal' => ['label' => 'Ver valores cifrados', 'help' => 'Puede ver el valor real de una columna cifrada con el botón «Mostrar». Cada vez queda en el registro de acceso a los datos.<br />* Se necesita permiso de lectura de los datos.'],
                 'label' => 'Mostrar datos eliminados',
                 'help' => 'Los usuarios pueden restaurar datos que se han eliminado.<br />*Para restaurar datos, se requiere permiso de edición sobre los datos.',
             ],
+            'custom_value_reveal' => ['label' => 'Ver valores cifrados', 'help' => 'Puede ver el valor real de una columna cifrada con el botón «Mostrar». Cada vez queda en el registro de acceso a los datos.<br />* Se necesita permiso de lectura de los datos.'],
         ],
         'role_type_option_value' => [
             'custom_value_edit' => [
