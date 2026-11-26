@@ -150,7 +150,8 @@ class EncryptedColumnsRevealTest extends UnitTestBase
         $record->setValue('text', null);
         $record->save();
         $this->assertSame('Ito Saburo', $this->record2($record->id)->getValue('text'));
-        $this->assertSame($raw, \DB::table(getDBTableName($this->table()))->where('id', $record->id)->value('value'));
+        // the json as data: MariaDB keeps the keys in the order written, MySQL sorts them
+        $this->assertEquals(json_decode($raw, true), json_decode(\DB::table(getDBTableName($this->table()))->where('id', $record->id)->value('value'), true));
 
         // a new value replaces it
         $record = $this->record2($record->id);
