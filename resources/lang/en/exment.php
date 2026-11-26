@@ -764,7 +764,7 @@ return [
     'blocked_notice' => [
         'title' => 'The save was refused on its way (a firewall or similar)',
         'back_title' => 'The last save may not have reached Exment (a firewall or similar)',
-        'body' => 'A firewall or a proxy in front of the site refused what was sent. This is not a permission of Exment. Words such as an URL, an IP address or a path (../) in the text can cause it. Change them and save again, or tell your administrator. What you wrote is still here.',
+        'body' => 'A firewall or a proxy in front of the site refused what was sent. This is not a permission problem in Exment. Words such as a URL, an IP address or a path (../) in the text can cause it. Change them and save again, or tell your administrator. What you wrote is still here.',
         'details' => 'Details',
         'help' => 'How to tell and how to fix it',
         'close' => 'Close',
@@ -796,7 +796,7 @@ return [
         'item' => [
             'firewall' => [
                 'label' => 'A firewall in front of the site',
-                'explain' => 'Tries from this browser whether a firewall in front of the site (AWS WAF, Cloudflare, a proxy of the company...) refuses a save with an URL, an IP address or a path in it. When it does, users cannot tell why they cannot save.',
+                'explain' => 'Tries from this browser whether a firewall in front of the site (AWS WAF, Cloudflare, a proxy of the company...) refuses a save with a URL, an IP address or a path in it. When it does, users cannot tell why they cannot save.',
                 'not_yet' => 'Not tried yet',
                 'running' => 'Trying...',
                 'run' => 'Try',
