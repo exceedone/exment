@@ -271,6 +271,8 @@ class Backup
             ],
         ];
 
+        // never DATA_ENCRYPTION_KEYS (not matched above): a backup alone must not read the
+        // encrypted columns (ISS00148, Services\Encryption\DataKeys)
         $ignoreKeys = ['EXMENT_COMPOSER_PATH', 'EXMENT_MYSQL_BIN_DIR'];
 
         $results = [];

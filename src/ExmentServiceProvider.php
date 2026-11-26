@@ -112,6 +112,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
         \Exceedone\Exment\Console\LogDbCommand::class,
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
+        \Exceedone\Exment\Console\DataKeyCommand::class,
+        \Exceedone\Exment\Console\EncryptColumnCommand::class,
         \Exceedone\Exment\Console\AuditReportCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
         \Exceedone\Exment\Console\SafetyWatchCommand::class,
