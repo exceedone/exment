@@ -111,7 +111,7 @@ class BackupRuns
         $backup->setProgress($progress);
         try {
             $result = $backup->execute($target ?? $run->targets, $schedule);
-            static::finished($progress, $result === 0 && $run->errors === 0 ? BackupRun::STATUS_SUCCEEDED : BackupRun::STATUS_WARNING, $result === 0 ? null : strval(exmtrans('backup.run.hints.see_log')));
+            static::finished($progress, $result === 0 && intval($run->errors) === 0 ? BackupRun::STATUS_SUCCEEDED : BackupRun::STATUS_WARNING, $result === 0 ? null : strval(exmtrans('backup.run.hints.see_log')));
             return $result;
         } catch (\Throwable $e) {
             static::failed($progress, $e);
@@ -137,7 +137,7 @@ class BackupRuns
             }
             // the start is written now: written before, the restore would have replaced it
             static::operationLog($run, 'start');
-            static::finished($progress, $result === 0 && $run->errors === 0 ? BackupRun::STATUS_SUCCEEDED : BackupRun::STATUS_WARNING, $result === 0 ? null : strval(exmtrans('backup.run.hints.see_log')));
+            static::finished($progress, $result === 0 && intval($run->errors) === 0 ? BackupRun::STATUS_SUCCEEDED : BackupRun::STATUS_WARNING, $result === 0 ? null : strval(exmtrans('backup.run.hints.see_log')));
             return $result;
         } catch (\Throwable $e) {
             static::operationLog($run, 'start');

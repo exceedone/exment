@@ -86,6 +86,19 @@ class BackupRun extends Model
 
     protected $guarded = ['id'];
 
+    /**
+     * As the defaults of the table (a new run counts from 0 before it is read again).
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'progress' => 0,
+        'stage_done' => 0,
+        'stage_total' => 0,
+        'warnings' => 0,
+        'errors' => 0,
+    ];
+
     protected $casts = [
         'progress' => 'integer',
         'stage_done' => 'integer',
