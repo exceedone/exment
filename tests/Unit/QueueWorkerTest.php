@@ -51,6 +51,20 @@ class QueueWorkerTest extends UnitTestBase
         $this->assertNull(Cache::get(QueueWorker::RESTART_KEY));
     }
 
+    public function testLaravelsCacheClearKeepsTheSignal(): void
+    {
+        Cache::forever(QueueWorker::RESTART_KEY, 1800000002);
+        \Artisan::call('cache:clear');
+        $this->assertSame(1800000002, Cache::get(QueueWorker::RESTART_KEY));
+
+        // the events alone, as the command fires them
+        Cache::forever(QueueWorker::RESTART_KEY, 1800000003);
+        event('cache:clearing', [null, []]);
+        Cache::flush();
+        event('cache:cleared', [null, []]);
+        $this->assertSame(1800000003, Cache::get(QueueWorker::RESTART_KEY));
+    }
+
     public function testClearingExmentsCacheKeepsTheSignal(): void
     {
         config(['exment.use_cache' => true]);
