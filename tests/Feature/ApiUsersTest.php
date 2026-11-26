@@ -158,5 +158,22 @@ class ApiUsersTest extends ApiTestBase
         $this->assertSame(AuditReport::text('api_allowed'), $api['user1']);
         $this->assertSame(AuditReport::text('api_not_allowed'), $api['user2']);
         $this->assertSame(AuditReport::text('api_allowed'), $api['admin']);
+
+        // a role group: each user with the organizations of the user, not of the one who reads
+        System::api_allowed_users([]);
+        System::api_allowed_role_groups([TestDefine::TESTDATA_ROLEGROUP_GENERAL]);
+        System::clearCache();
+        System::clearRequestSession();
+        Features::reset();
+        $section = (new AuditReport(Carbon::now()->subDay(), Carbon::now()))->section('users');
+        $api = [];
+        foreach ($section['rows'] as $row) {
+            $api[$row[0]] = end($row);
+        }
+        // the members of the role group: user2, user3 and the organization dev (with the ones below
+        // and above it: company1); company2 is not of it
+        foreach (['user2' => true, 'user3' => true, 'dev0-userB' => true, 'dev1-userC' => true, 'company1-userA' => true, 'user1' => false, 'company2-userF' => false] as $login => $allowed) {
+            $this->assertSame(AuditReport::text($allowed ? 'api_allowed' : 'api_not_allowed'), $api[$login], $login);
+        }
     }
 }
