@@ -48,9 +48,9 @@ class ScreenBundle
      * The item types each part is made from.
      */
     public const SOURCES = [
-        'kanban' => [ColumnType::SELECT],
+        'kanban' => [ColumnType::SELECT, ColumnType::SELECT_VALTEXT],
         'calendar' => [ColumnType::DATE, ColumnType::DATETIME],
-        'chart' => [ColumnType::SELECT, ColumnType::YESNO],
+        'chart' => [ColumnType::SELECT, ColumnType::SELECT_VALTEXT, ColumnType::YESNO],
     ];
 
     /**
@@ -146,6 +146,8 @@ class ScreenBundle
 
         $kanban = $columnOf($bundle['kanban']);
         if (isset($kanban)) {
+            // its lanes' item can be sorted and filtered by in the view (#2270)
+            static::index($kanban);
             $view = static::view($table, ViewKindType::KANBAN, sprintf(exmtrans('studio.bundle_kanban_name'), $name), ['kanban_group_column_id' => intval($kanban->id)]);
             static::addColumns($view, $table, $columnIds);
             $made[] = strval($view->view_view_name);
@@ -155,10 +157,7 @@ class ScreenBundle
         $calendarView = null;
         if (isset($calendar)) {
             // the calendar finds the data by the index of the date (the column setting "index")
-            if (!boolval($calendar->getOption('index_enabled'))) {
-                $calendar->setOption('index_enabled', '1');
-                $calendar->save();
-            }
+            static::index($calendar);
             $calendarView = static::view($table, ViewKindType::CALENDAR, sprintf(exmtrans('studio.bundle_calendar_name'), $name));
             static::viewColumn($calendarView, $table, $calendar, 1, ['color' => '#3c8dbc', 'font_color' => '#ffffff']);
             $made[] = strval($calendarView->view_view_name);
@@ -168,6 +167,7 @@ class ScreenBundle
         $chartView = null;
         $count = null;
         if (isset($chart)) {
+            static::index($chart);
             // the number of data by the choice: grouped by the item, the count of the ids
             $chartView = static::view($table, ViewKindType::AGGREGATE, sprintf(exmtrans('studio.bundle_chart_name'), $name, $chart->column_view_name));
             static::viewColumn($chartView, $table, $chart, 1);
@@ -188,6 +188,28 @@ class ScreenBundle
             }
         }
         return $made;
+    }
+
+    /**
+     * Turn on the column's search index (the column setting "index"), so the views made can
+     * sort and filter by it, within the number of indexes a table may have
+     * (exment.column_index_enabled_count, as the column setting checks).
+     */
+    protected static function index(CustomColumn $column): bool
+    {
+        if (boolval($column->getOption('index_enabled'))) {
+            return true;
+        }
+        $count = CustomColumn::where('custom_table_id', $column->custom_table_id)
+            ->where('id', '<>', $column->id)
+            ->whereIn('options->index_enabled', [1, '1'])
+            ->count();
+        if ($count >= intval(config('exment.column_index_enabled_count', 20))) {
+            return false;
+        }
+        $column->setOption('index_enabled', '1');
+        $column->save();
+        return true;
     }
 
     /**

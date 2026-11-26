@@ -2753,6 +2753,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'required' => 'Pflichtfeld',
         'choices' => 'Optionen',
         'choices_help' => 'Eine pro Zeile',
+        'choices_help_valtext' => 'Ein „Wert,Bezeichnung“ pro Zeile (z. B. 01,Hauptsitz)',
         'move_up' => 'Nach oben',
         'move_down' => 'Nach unten',
         'remove' => 'Entfernen',

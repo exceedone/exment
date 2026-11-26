@@ -2869,6 +2869,7 @@ IPアドレス: :ip
         'required' => '必須',
         'choices' => '選択肢',
         'choices_help' => '1 行に 1 つずつ書きます',
+        'choices_help_valtext' => '1 行に「値,見出し」の形で書きます（例：01,東京本社）',
         'move_up' => '上へ',
         'move_down' => '下へ',
         'remove' => '削除',
