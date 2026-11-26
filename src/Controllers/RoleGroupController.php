@@ -74,7 +74,7 @@ class RoleGroupController extends AdminControllerBase
 
         $grid->column('role_group_name', exmtrans('role_group.role_group_name'));
         $grid->column('role_group_view_name', exmtrans('role_group.role_group_view_name'));
-        $grid->column('role_group_order', exmtrans('role_group.role_group_order'))->sortable()->editable();
+        $grid->column('role_group_order', exmtrans('role_group.role_group_order'))->sortable()->text();
         $grid->column('role_group_users_count', exmtrans('role_group.users_count'));
 
         if (System::organization_available()) {

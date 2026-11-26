@@ -175,7 +175,7 @@ class CustomTableController extends AdminControllerBase
         $grid = new Grid(new CustomTable());
         $grid->column('table_name', exmtrans("custom_table.table_name"))->sortable();
         $grid->column('table_view_name', exmtrans("custom_table.table_view_name"))->sortable();
-        $grid->column('order', exmtrans("custom_table.order"))->sortable()->editable();
+        $grid->column('order', exmtrans("custom_table.order"))->sortable()->text();
 
         $grid->tools(function (Grid\Tools $tools) {
             $tools->disableBatchActions();

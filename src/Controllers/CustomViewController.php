@@ -376,7 +376,7 @@ class CustomViewController extends AdminControllerTableBase
             return ViewKindType::getEnum($view_kind_type)->transKey("custom_view.custom_view_kind_type_options");
         });
         if (config('exment.sort_custom_view_options', 0) > 0) {
-            $grid->column('order', exmtrans("custom_view.order"))->sortable()->editable();
+            $grid->column('order', exmtrans("custom_view.order"))->sortable()->text();
         }
 
         $grid->model()->where('custom_table_id', $this->custom_table->id);

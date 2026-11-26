@@ -91,7 +91,7 @@ class CustomFormController extends AdminControllerTableBase
         $grid->setResource(admin_urls('formpriority', $this->custom_table->table_name));
         $grid->column('form_priority_text', exmtrans("custom_form.priority.form_priority_text"));
         $grid->column('form_view_name', exmtrans("custom_form.priority.form_view_name"));
-        $grid->column('order', exmtrans("custom_form.priority.order"))->editable();
+        $grid->column('order', exmtrans("custom_form.priority.order"))->text();
 
         if (isset($this->custom_table)) {
             $grid->model()
