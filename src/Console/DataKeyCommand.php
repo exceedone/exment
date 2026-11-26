@@ -8,6 +8,8 @@ use Exceedone\Exment\Services\Encryption\ColumnConverter;
 use Exceedone\Exment\Services\Encryption\DataKeys;
 use Exceedone\Exment\Services\Encryption\EncryptedColumns;
 use Exceedone\Exment\Services\Encryption\EncryptedValue;
+use Exceedone\Exment\Services\Encryption\KeyProviders\KeyProviderException;
+use Exceedone\Exment\Services\Encryption\KeyProviders\KeyProviders;
 use Illuminate\Console\Command;
 
 /**
@@ -19,6 +21,10 @@ use Illuminate\Console\Command;
  *                                             value of an older one, after a new key was put first
  *
  * The command never writes .env and never prints a key it did not make.
+ *
+ * With a service of the keys (ISS02929, EXMENT_DATA_KEY_PROVIDER), "generate" makes the key with
+ * it: aws_kms asks KMS for a data key and prints only the wrapped one, vault wraps it with
+ * Transit, aws_secrets_manager prints the new value of the secret (to put there by its owner).
  */
 class DataKeyCommand extends Command
 {
@@ -58,15 +64,30 @@ class DataKeyCommand extends Command
 
     protected function generate(): int
     {
-        $key = DataKeys::generate();
-        $current = strval(config('exment.data_encryption_keys', ''));
-        $this->line('Put this first in DATA_ENCRYPTION_KEYS of .env (the keys there now after it):');
+        $before = DataKeys::all();
+        if (!KeyProviders::isEnv() && DataKeys::unavailable() !== null) {
+            $this->error('The keys cannot be read now: ' . DataKeys::unavailable());
+            return 1;
+        }
+        try {
+            $key = KeyProviders::make()->generate(DataKeys::nextId());
+        } catch (KeyProviderException $e) {
+            $this->error($e->getMessage());
+            return 1;
+        }
+        $this->line(KeyProviders::isEnv()
+            ? 'Put this first in DATA_ENCRYPTION_KEYS of .env (the keys there now after it):'
+            : 'Set this (provider ' . KeyProviders::name() . '), the new key first:');
         $this->line('');
-        $this->line('DATA_ENCRYPTION_KEYS="' . $key['pair'] . ($current === '' ? '' : ',' . $current) . '"');
+        $this->line($key['setting']);
         $this->line('');
-        $this->warn('Keep a copy of the key in a safe place, apart from the server and its backups.');
-        $this->warn('A value whose key is lost cannot be read again. A backup does not keep this key.');
-        if ($current !== '') {
+        if (KeyProviders::isEnv()) {
+            $this->warn('Keep a copy of the key in a safe place, apart from the server and its backups.');
+            $this->warn('A value whose key is lost cannot be read again. A backup does not keep this key.');
+        } else {
+            $this->warn('Only a wrapped key or the value of the secret is shown: the key itself stays in the service.');
+        }
+        if (count($before) > 0) {
             $this->line('Then run "php artisan exment:data-key rotate" to encrypt the values again with it.');
         }
         return 0;
@@ -75,7 +96,10 @@ class DataKeyCommand extends Command
     protected function status(): int
     {
         $keys = DataKeys::all();
-        if (count($keys) === 0) {
+        $this->line('Provider: ' . KeyProviders::name());
+        if (DataKeys::unavailable() !== null) {
+            $this->error('The keys cannot be read now: ' . DataKeys::unavailable());
+        } elseif (count($keys) === 0) {
             $this->warn('No key: DATA_ENCRYPTION_KEYS is empty. A column cannot be encrypted.');
         }
         $counts = [];
@@ -105,7 +129,7 @@ class DataKeyCommand extends Command
     protected function rotate(): int
     {
         if (!DataKeys::hasKey()) {
-            $this->error('No key: set DATA_ENCRYPTION_KEYS first.');
+            $this->error(DataKeys::unavailable() !== null ? 'The keys cannot be read now: ' . DataKeys::unavailable() : 'No key: set DATA_ENCRYPTION_KEYS first.');
             return 1;
         }
         $unreadable = 0;

@@ -825,6 +825,12 @@ return [
                 'explain' => 'Los webhooks de las notificaciones no se envían a direcciones de la red interna del servidor. Si su sitio los envía allí intencionadamente, déjelo como está.',
                 'warning' => 'No se bloquean los webhooks dirigidos a la red interna.',
             ],
+            'data_key' => [
+                'label' => 'Dónde están las claves de cifrado',
+                'explain' => 'Cuando las claves de las columnas cifradas están en un servicio de claves (AWS KMS, Secrets Manager, Vault), si se pueden leer de él ahora. Con las claves en .env (predeterminado), no hay nada que comprobar.',
+                'warning' => 'El servicio de claves se puede usar, pero aún no hay ninguna clave (php artisan exment:data-key generate).',
+                'ng' => 'No se pueden leer las claves del servicio de claves (:provider). Las columnas cifradas no se pueden leer ahora ni guardar. Motivo: :reason',
+            ],
             'version' => [
                 'label' => 'Versiones de Exment y de los plugins',
                 'explain' => 'Mantenga Exment y los plugins oficiales actualizados. Si un plugin tiene una corrección de seguridad, actualícelo de inmediato.',
@@ -5240,6 +5246,8 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
     'encrypted' => [
         'reveal' => 'Mostrar',
         'unreadable' => '(no se puede leer: sin clave)',
+        'unavailable' => '(no se puede leer ahora: no se llega al servicio de claves)',
+        'unavailable_save' => 'La clave de la columna cifrada no se puede leer ahora (no se llega al servicio de claves). Vuelva a guardar más tarde.',
         'form_help' => 'Este valor se guarda cifrado. Si se deja vacío, conserva el valor actual. Escriba un valor nuevo solo para cambiarlo.',
         'masked_input' => 'Un valor oculto (****1234) solo se acepta como «sin cambios», cuando es la forma oculta del valor actual. Para cambiar el valor, escriba el valor nuevo completo.',
         'masked_form' => 'Parece un valor oculto. Escriba el valor completo, o déjelo vacío para conservar el actual.',

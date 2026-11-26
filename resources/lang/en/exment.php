@@ -845,6 +845,12 @@ return [
                 'explain' => 'The webhooks of the notifications do not go to addresses inside the network of the server. A site that sends there on purpose leaves it as it is.',
                 'warning' => 'Webhooks to the inside network are not stopped.',
             ],
+            'data_key' => [
+                'label' => 'Where the encryption keys are',
+                'explain' => 'When the keys of the encrypted columns are in a key service (AWS KMS, Secrets Manager, Vault), whether they can be read from it now. With the keys in .env (the default), there is nothing to check.',
+                'warning' => 'The key service can be used, but there is no key yet (php artisan exment:data-key generate).',
+                'ng' => 'The keys cannot be read from the key service (:provider). The encrypted columns cannot be read now, nor saved. Reason: :reason',
+            ],
             'version' => [
                 'label' => 'Versions of Exment and the plugins',
                 'explain' => 'Keep Exment and the official plugins up to date. A plugin with a fix for safety is updated at once.',
@@ -5268,6 +5274,8 @@ If it was not you, change your password and tell the administrators.",
     'encrypted' => [
         'reveal' => 'Show',
         'unreadable' => '(cannot be read: no key)',
+        'unavailable' => '(cannot be read now: the key service is not reached)',
+        'unavailable_save' => 'The key of the encrypted column cannot be read now (the key service is not reached). Please save again later.',
         'form_help' => 'This value is stored encrypted. Left empty, it keeps the value it has. Enter a new value only to change it.',
         'masked_input' => 'A masked value (****1234) is taken only as "not changed", when it is the masked form of the value there now. To change the value, enter the whole new value.',
         'masked_form' => 'This looks like a masked value. Type the full value, or leave it empty to keep the current one.',

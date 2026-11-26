@@ -825,6 +825,12 @@ return [
                 'explain' => 'Die Webhooks der Benachrichtigungen werden nicht an Adressen im internen Netzwerk des Servers gesendet. Websites, die absichtlich dorthin senden, lassen die Einstellung unverändert.',
                 'warning' => 'Webhooks an das interne Netzwerk werden nicht blockiert.',
             ],
+            'data_key' => [
+                'label' => 'Ort der Verschlüsselungsschlüssel',
+                'explain' => 'Wenn die Schlüssel der verschlüsselten Spalten in einem Schlüsseldienst liegen (AWS KMS, Secrets Manager, Vault): ob sie jetzt daraus gelesen werden können. Mit den Schlüsseln in .env (Standard) gibt es nichts zu prüfen.',
+                'warning' => 'Der Schlüsseldienst ist nutzbar, aber es gibt noch keinen Schlüssel (php artisan exment:data-key generate).',
+                'ng' => 'Die Schlüssel können nicht aus dem Schlüsseldienst (:provider) gelesen werden. Die verschlüsselten Spalten können jetzt weder gelesen noch gespeichert werden. Grund: :reason',
+            ],
             'version' => [
                 'label' => 'Versionen von Exment und den Plugins',
                 'explain' => 'Halten Sie Exment und die offiziellen Plugins auf dem neuesten Stand. Plugins mit einer Sicherheitskorrektur werden umgehend aktualisiert.',
@@ -5240,6 +5246,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
     'encrypted' => [
         'reveal' => 'Anzeigen',
         'unreadable' => '(nicht lesbar: kein Schlüssel)',
+        'unavailable' => '(kann jetzt nicht gelesen werden: der Schlüsseldienst ist nicht erreichbar)',
+        'unavailable_save' => 'Der Schlüssel der verschlüsselten Spalte kann jetzt nicht gelesen werden (der Schlüsseldienst ist nicht erreichbar). Bitte später erneut speichern.',
         'form_help' => 'Dieser Wert ist verschlüsselt gespeichert. Leer gelassen, bleibt der bisherige Wert. Geben Sie nur zum Ändern einen neuen Wert ein.',
         'masked_input' => 'Ein maskierter Wert (****1234) wird nur als „nicht geändert“ angenommen, wenn er die maskierte Form des jetzigen Werts ist. Um den Wert zu ändern, geben Sie den ganzen neuen Wert ein.',
         'masked_form' => 'Das sieht wie ein maskierter Wert aus. Geben Sie den ganzen Wert ein, oder lassen Sie das Feld leer, um den jetzigen zu behalten.',

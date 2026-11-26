@@ -9,6 +9,9 @@ use Exceedone\Exment\Services\Encryption\EncryptedValue;
  * The secrets of the connections of the data sync (ISS00113): with the keys of the encrypted
  * columns (DATA_ENCRYPTION_KEYS) when there are any, which a backup does not keep; else with
  * APP_KEY, which a backup keeps, and the page says so (snoro 2026-11-26).
+ *
+ * "There are keys" is whether they are set (DataKeys::configured), not whether they were read: a
+ * service of the keys that is not reached now (ISS02929) does not make a secret go to APP_KEY.
  */
 class SyncSecrets
 {
@@ -17,12 +20,12 @@ class SyncSecrets
 
     public static function usesAppKey(): bool
     {
-        return !DataKeys::hasKey();
+        return !DataKeys::configured();
     }
 
     public static function encrypt(string $plain): string
     {
-        if (DataKeys::hasKey()) {
+        if (DataKeys::configured()) {
             return EncryptedValue::encrypt($plain);
         }
         return static::APP_PREFIX . encrypt($plain);

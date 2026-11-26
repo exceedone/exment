@@ -44,6 +44,7 @@
         "exceedone/exment-admin-core": "^2.0"
     },
     "suggest": {
+        "aws/aws-sdk-php": "Keep the keys of the encrypted columns in AWS KMS or Secrets Manager (EXMENT_DATA_KEY_PROVIDER=aws_kms / aws_secrets_manager). Install with: composer require aws/aws-sdk-php",
         "directorytree/ldaprecord": "Required to use the LDAP login. Install with: composer require directorytree/ldaprecord",
         "google/recaptcha": "Required to use Google reCAPTCHA (v2 or v3) on public forms. Install with: composer require google/recaptcha",
         "meilisearch/meilisearch-php": "Enable Meilisearch-powered global search (config('meilisearch.global_search')). Requires a guzzlehttp/guzzle compatible HTTP client."
