@@ -202,18 +202,35 @@ class CustomCopy extends ModelBase implements Interfaces\TemplateImporterInterfa
      *
      * The admin picks what the brackets say: the copy-from table, their own label,
      * or "auto" - nothing, or the copy-from table when the form has more than one
-     * such button.
+     * such button (and the button label of each, when two or more copy from the same
+     * table, #2274).
      *
      * @param CustomCopy $copy
      * @param bool $several
+     * @param iterable<CustomCopy>|null $copies the settings whose buttons are on the same form
      * @return string
      */
-    public static function getCreateLabel(CustomCopy $copy, bool $several): string
+    public static function getCreateLabel(CustomCopy $copy, bool $several, ?iterable $copies = null): string
     {
         $type = $copy->getOption('create_label_type') ?? static::CREATE_LABEL_AUTO;
         $label = $copy->getOption('create_label');
         if ($type == static::CREATE_LABEL_LABEL && is_string($label) && trim($label) !== '') {
             return strval(exmtrans('custom_copy.copy_from.button_table', trim($label)));
+        }
+        // Auto, and other settings on the form copy from the same table: the table's name
+        // would be the same on each, so the button label of the setting tells them apart,
+        // unless it is empty or the default "コピー" (#2274).
+        if ($type != static::CREATE_LABEL_TABLE && $several && isset($copies)) {
+            $same = 0;
+            foreach ($copies as $other) {
+                if (intval($other->from_custom_table_id) === intval($copy->from_custom_table_id)) {
+                    $same++;
+                }
+            }
+            $button = $copy->getOption('label');
+            if ($same > 1 && is_string($button) && trim($button) !== '' && trim($button) !== exmtrans('common.copy')) {
+                return strval(exmtrans('custom_copy.copy_from.button_table', trim($button)));
+            }
         }
         if ($type == static::CREATE_LABEL_TABLE || $several) {
             return strval(exmtrans('custom_copy.copy_from.button_table', $copy->from_custom_table->table_view_name));

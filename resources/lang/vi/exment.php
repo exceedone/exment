@@ -4044,7 +4044,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'help' => [
             'to_custom_table_view_name' => 'Vui lòng chọn bảng đích.',
             'use_on_create' => 'Khi bật, biểu mẫu tạo mới của bảng đích sẽ có nút "Sao chép dữ liệu". Với nút này, người dùng tìm trong danh sách của bảng này, chọn một bản ghi và bắt đầu nhập từ các giá trị của bản ghi đó. Dữ liệu chưa được lưu cho đến khi người dùng nhấn lưu.',
-            'create_label_type' => 'Nội dung hiển thị trong ngoặc của nút "Sao chép dữ liệu". Tự động: "Sao chép dữ liệu" ("Sao chép dữ liệu (tên bảng nguồn)" khi có từ hai cài đặt trở lên đặt nút này trên cùng một bảng). Tên bảng nguồn: luôn là "Sao chép dữ liệu (tên bảng nguồn)". Nhãn: "Sao chép dữ liệu (nhãn bên dưới)".',
+            'create_label_type' => 'Nội dung hiển thị trong ngoặc của nút "Sao chép dữ liệu". Tự động: "Sao chép dữ liệu" ("Sao chép dữ liệu (tên bảng nguồn)" khi có từ hai cài đặt trở lên đặt nút này trên cùng một bảng; "Sao chép dữ liệu (nhãn ở trên)" khi có từ hai cài đặt trở lên sao chép từ cùng một bảng nguồn). Tên bảng nguồn: luôn là "Sao chép dữ liệu (tên bảng nguồn)". Nhãn: "Sao chép dữ liệu (nhãn bên dưới)".',
             'create_label' => 'Văn bản trong ngoặc. Ví dụ, nhập "Năm trước" sẽ thành "Sao chép dữ liệu (Năm trước)".',
             'child_copy' => 'Sao chép cùng lúc dữ liệu của bảng con liên kết với dữ liệu đích. Các cài đặt sao chép dữ liệu giữa các bảng con đã đăng ký trước (không có cài đặt hộp thoại nhập) sẽ được hiển thị làm lựa chọn.',
         ],

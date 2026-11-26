@@ -4044,7 +4044,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'help' => [
             'to_custom_table_view_name' => 'Bitte wählen Sie die Zieltabelle.',
             'use_on_create' => 'Wenn aktiviert, hat das Erstellungsformular der Zieltabelle eine Schaltfläche „Kopieren von“. Damit durchsucht der Benutzer die Liste dieser Tabelle, wählt einen Datensatz aus und beginnt mit dessen Werten. Erst wenn der Benutzer speichert, wird etwas gespeichert.',
-            'create_label_type' => 'Was in den Klammern der Schaltfläche „Kopieren von“ steht. Automatisch: „Kopieren von“ („Kopieren von (Name der Quelltabelle)“, wenn zwei oder mehr Einstellungen diese Schaltfläche in derselben Tabelle anzeigen). Name der Quelltabelle: immer „Kopieren von (Name der Quelltabelle)“. Beschriftung: „Kopieren von (die Beschriftung unten)“.',
+            'create_label_type' => 'Was in den Klammern der Schaltfläche „Kopieren von“ steht. Automatisch: „Kopieren von“ („Kopieren von (Name der Quelltabelle)“, wenn zwei oder mehr Einstellungen diese Schaltfläche in derselben Tabelle anzeigen; „Kopieren von (die Beschriftung oben)“, wenn zwei oder mehr davon aus derselben Tabelle kopieren). Name der Quelltabelle: immer „Kopieren von (Name der Quelltabelle)“. Beschriftung: „Kopieren von (die Beschriftung unten)“.',
             'create_label' => 'Der Text in den Klammern. Zum Beispiel ergibt „Vorjahr“ die Schaltfläche „Kopieren von (Vorjahr)“.',
             'child_copy' => 'Kopiert die mit den Zieldaten verknüpften Daten der untergeordneten Tabelle mit. Als Kandidaten werden zuvor registrierte Datenkopie-Einstellungen zwischen untergeordneten Tabellen (ohne Einstellungen für einen Eingabedialog) angezeigt.',
         ],

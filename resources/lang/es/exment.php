@@ -4044,7 +4044,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
         'help' => [
             'to_custom_table_view_name' => 'Seleccione la tabla de destino de la copia.',
             'use_on_create' => 'Si se activa, el formulario de creación de la tabla de destino tiene un botón «Copiar de». Con él, el usuario busca en la lista de esta tabla, elige un registro y empieza con sus valores. No se guarda nada hasta que el usuario guarda.',
-            'create_label_type' => 'Lo que aparece entre los paréntesis del botón «Copiar de». Automático: «Copiar de» («Copiar de (nombre de la tabla de origen)» cuando dos o más configuraciones ponen este botón en la misma tabla). Nombre de la tabla de origen: siempre «Copiar de (nombre de la tabla de origen)». Etiqueta: «Copiar de (la etiqueta de abajo)».',
+            'create_label_type' => 'Lo que aparece entre los paréntesis del botón «Copiar de». Automático: «Copiar de» («Copiar de (nombre de la tabla de origen)» cuando dos o más configuraciones ponen este botón en la misma tabla; «Copiar de (la etiqueta de arriba)» cuando dos o más de ellas copian de la misma tabla). Nombre de la tabla de origen: siempre «Copiar de (nombre de la tabla de origen)». Etiqueta: «Copiar de (la etiqueta de abajo)».',
             'create_label' => 'El texto entre paréntesis. Por ejemplo, «Año anterior» da «Copiar de (Año anterior)».',
             'child_copy' => 'Copia también los datos de las tablas secundarias vinculados a los datos de destino. Se muestran como candidatas las configuraciones de copia de datos entre tablas secundarias registradas previamente (las que no tienen configuración de cuadro de diálogo de entrada).',
         ],
