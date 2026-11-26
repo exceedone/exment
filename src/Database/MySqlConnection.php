@@ -18,6 +18,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     // @phpstan-ignore-next-line
     protected static $isContainsColumnStatistics = null;
 
+    /** @var bool|null */
+    protected static $isContainsSetGtidPurged = null;
+
     /**
      * Tables of the Laravel skeleton that Exment shares or may also create: never Exment's own,
      * so a restore keeps them even when the backup does not have them.
@@ -104,13 +107,8 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $column_statistics = static::isContainsColumnStatistics() ? '--column-statistics=0' : '';
 
         $mysqldump = static::getMysqlDumpPath();
-        $ls_output = shell_exec($mysqldump . ' --help');
-        // @phpstan-ignore-next-line
-        if (strpos($ls_output, '--set-gtid-purged') !== false) {
-            $set_gtid = ' --set-gtid-purged=OFF';
-        } else {
-            $set_gtid = '';
-        }
+        // asked once, not for each table (each asked mysqldump --help again, ISS02943)
+        $set_gtid = static::isContainsSetGtidPurged() ? ' --set-gtid-purged=OFF' : '';
         $command = sprintf(
             '%s %s %s --no-tablespaces --default-character-set=%s -h %s -u %s --password=%s -P %s',
             $mysqldump,
@@ -135,6 +133,21 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         exec($command, $output, $exitCode);
 
         return intval($exitCode);
+    }
+
+    /**
+     * Is Contains "set-gtid-purged" option (asked once)
+     *
+     * @return bool
+     */
+    protected static function isContainsSetGtidPurged(): bool
+    {
+        if (!is_null(static::$isContainsSetGtidPurged)) {
+            return static::$isContainsSetGtidPurged;
+        }
+        $output = shell_exec(static::getMysqlDumpPath() . ' --help');
+
+        return static::$isContainsSetGtidPurged = is_string($output) && strpos($output, '--set-gtid-purged') !== false;
     }
 
     /**

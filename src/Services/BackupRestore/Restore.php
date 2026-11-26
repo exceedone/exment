@@ -330,6 +330,9 @@ class Restore
         $directories = $tmpDisk->allDirectories($this->diskService->tmpDiskItem()->dirName());
         $progress = $this->progress();
         $progress->total(count($directories));
+        // a folder of this server is copied whole once (it was copied again for each of its
+        // folders, ISS02943)
+        $copiedLocal = [];
 
         foreach ($directories as $directory) {
             $progress->advance(1);
@@ -377,12 +380,17 @@ class Restore
                     continue;
                 }
 
-                $success = \File::copyDirectory($fromDirectory, $topath);
+                if (isset($copiedLocal[$keyname])) {
+                    continue;
+                }
+                $copiedLocal[$keyname] = true;
+
+                [$success, $copied, $same] = $this->copyLocalDirectory($fromDirectory, $topath);
                 if (!$success) {
                     $progress->error('a folder was not copied', ['target' => $setting[2] ?? $keyname]);
                     $result = false;
                 } else {
-                    $progress->info('folder', ['target' => $setting[2] ?? $keyname]);
+                    $progress->info('folder', ['target' => $setting[2] ?? $keyname, 'copied' => $copied, 'unchanged' => $same]);
                 }
             }
             // is croud file
@@ -397,6 +405,10 @@ class Restore
                 foreach ($files as $file) {
                     $path = path_ltrim($file, $to);
                     if (!$this->restoresFile($setting[2], $path)) {
+                        continue;
+                    }
+                    // the same file is there already: not written again (ISS02943)
+                    if ($this->isSameOnDisk($disk, $path, $tmpDisk->path($file))) {
                         continue;
                     }
                     // copy from crowd to local
@@ -419,6 +431,79 @@ class Restore
         }
 
         return $result;
+    }
+
+    /**
+     * Copy a folder of the backup over a folder of this server, as File::copyDirectory, without
+     * writing again a file that is the same already (its size and its sha1) (ISS02943).
+     *
+     * @return array{0: bool, 1: int, 2: int} done, the files written, the files the same
+     */
+    protected function copyLocalDirectory(string $from, string $to): array
+    {
+        if (!\File::isDirectory($from)) {
+            return [false, 0, 0];
+        }
+        $skip = boolval(config('exment.backup.skip_unchanged', true));
+        $copied = 0;
+        $same = 0;
+        try {
+            \File::ensureDirectoryExists($to);
+            foreach (\File::allDirectories($from) as $directory) {
+                \File::ensureDirectoryExists(path_join($to, ltrim(substr($directory, strlen($from)), '\\/')));
+            }
+            foreach (\File::allFiles($from, true) as $file) {
+                $dest = path_join($to, $file->getRelativePathname());
+                if ($skip && static::isSameFile($file->getPathname(), $dest)) {
+                    $same++;
+                    continue;
+                }
+                \File::ensureDirectoryExists(dirname($dest));
+                if (!@copy($file->getPathname(), $dest)) {
+                    return [false, $copied, $same];
+                }
+                $copied++;
+            }
+        } catch (\Throwable $e) {
+            return [false, $copied, $same];
+        }
+        return [true, $copied, $same];
+    }
+
+    /**
+     * Whether two files of this server are the same (their size, then their sha1).
+     */
+    public static function isSameFile(string $a, string $b): bool
+    {
+        if (!is_file($a) || !is_file($b) || filesize($a) !== filesize($b)) {
+            return false;
+        }
+        $hashA = hash_file('sha1', $a);
+        return $hashA !== false && $hashA === hash_file('sha1', $b);
+    }
+
+    /**
+     * Whether the file of a disk is the same as the file of the backup (its size, then its md5).
+     *
+     * @param \Illuminate\Contracts\Filesystem\Filesystem $disk
+     */
+    protected function isSameOnDisk($disk, string $path, string $local): bool
+    {
+        if (!boolval(config('exment.backup.skip_unchanged', true))) {
+            return false;
+        }
+        try {
+            if (!is_file($local) || !$disk->exists($path) || intval($disk->size($path)) !== intval(filesize($local))) {
+                return false;
+            }
+            if (!method_exists($disk, 'checksum')) {
+                return false;
+            }
+            $checksum = $disk->checksum($path, ['checksum_algo' => 'md5']);
+            return is_string($checksum) && $checksum !== '' && hash_equals(strval(md5_file($local)), $checksum);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
