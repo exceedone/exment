@@ -58,6 +58,36 @@ class QueueWorker
         }
     }
 
+    /** @var mixed the signal held while "php artisan cache:clear" runs */
+    protected static $held = null;
+
+    /**
+     * Laravel's "php artisan cache:clear" (what a deploy often runs) empties the store and the
+     * signal with it: the command tells "cache:clearing" before and "cache:cleared" after, and
+     * these two hold the signal and put it back.
+     */
+    public static function holdSignal(): void
+    {
+        try {
+            static::$held = Cache::get(static::RESTART_KEY);
+        } catch (\Throwable $e) {
+            static::$held = null;
+        }
+    }
+
+    public static function putBackSignal(): void
+    {
+        if (static::$held === null) {
+            return;
+        }
+        try {
+            Cache::forever(static::RESTART_KEY, static::$held);
+        } catch (\Throwable $e) {
+            // the worker restarts within its --max-time anyway
+        }
+        static::$held = null;
+    }
+
     /** Whether the site uses a queue (else every job runs in the request: nothing to watch). */
     public static function used(): bool
     {

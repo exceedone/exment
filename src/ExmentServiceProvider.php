@@ -367,6 +367,13 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootSchedule();
         $this->bootMeilisearch();
         // when the user signed in to the pages (SSO too): a user of SSO makes an API key only soon after
+        // "php artisan cache:clear" keeps the restart signal of the queue (ISS02908)
+        \Illuminate\Support\Facades\Event::listen('cache:clearing', function () {
+            \Exceedone\Exment\Services\QueueWorker::holdSignal();
+        });
+        \Illuminate\Support\Facades\Event::listen('cache:cleared', function () {
+            \Exceedone\Exment\Services\QueueWorker::putBackSignal();
+        });
         \Illuminate\Support\Facades\Event::listen(\Illuminate\Auth\Events\Login::class, function ($event) {
             \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
         });
