@@ -18,6 +18,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class DataAccessDaily extends Model
 {
+    // on the connection of the logs when one is set (ISS02905)
+    use Traits\UsesLogConnection;
+
     protected $table = 'data_access_daily';
 
     public $timestamps = false;

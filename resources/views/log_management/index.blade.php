@@ -1,4 +1,7 @@
 {{-- The log management (ISS02839): LogManagementController --}}
+@if(!empty($sizeWarning))
+<div class="callout callout-warning" id="log-management-size-warning"><p>{{ $sizeWarning }}</p></div>
+@endif
 <p>
     <a href="{{ admin_urls('log_management', 'audit') }}" class="btn btn-default btn-sm" id="log-management-audit-report"><i class="fa fa-clipboard" aria-hidden="true"></i> {{ exmtrans('audit_report.header') }}</a>
 </p>

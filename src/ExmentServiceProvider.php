@@ -110,6 +110,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\SetupDirCommand::class,
         \Exceedone\Exment\Console\LogClearCommand::class,
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
+        \Exceedone\Exment\Console\LogDbCommand::class,
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
         \Exceedone\Exment\Console\AuditReportCommand::class,
         \Exceedone\Exment\Console\LineLinkCodeCommand::class,
@@ -432,6 +433,9 @@ class ExmentServiceProvider extends ServiceProvider
     {
         parent::register();
         require_once(__DIR__ . '/Services/Helpers.php');
+
+        // "throttle:10,1" counts an IPv6 address as its /64 (ISS02909)
+        $this->app->bind(\Illuminate\Routing\Middleware\ThrottleRequests::class, Middleware\ThrottleRequests::class);
 
         // the class of a custom table is built when it is first used (ISS00413)
         Services\ClassBuilder::registerAutoloader();

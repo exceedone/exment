@@ -70,6 +70,6 @@ class UserApiKey extends Model
      */
     public function ipList(): array
     {
-        return array_values(array_filter(array_map('trim', preg_split('/[\r\n,]+/', (string)$this->allowed_ips) ?: [])));
+        return \Exceedone\Exment\Services\IpAddress::splitRules($this->allowed_ips);
     }
 }

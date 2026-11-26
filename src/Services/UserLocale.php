@@ -389,6 +389,35 @@ class UserLocale
     }
 
     /**
+     * Read the settings of many users at once (one query), for userSetting() after it: a
+     * notification to many users read them one query a user (ISS02906). The same values as
+     * userSetting() reads one by one; a user without settings is kept as none.
+     *
+     * @param array<int, mixed> $userIds
+     */
+    public static function preloadSettings(array $userIds): void
+    {
+        $ids = [];
+        foreach ($userIds as $userId) {
+            if (is_numeric($userId) && !System::hasRequestSession("user_setting_of.{$userId}")) {
+                $ids[intval($userId)] = true;
+            }
+        }
+        if (count($ids) === 0) {
+            return;
+        }
+        try {
+            $found = UserSetting::whereIn('base_user_id', array_keys($ids))->pluck('settings', 'base_user_id')->all();
+        } catch (\Throwable $ex) {
+            // read one by one, as before
+            return;
+        }
+        foreach (array_keys($ids) as $userId) {
+            System::setRequestSession("user_setting_of.{$userId}", $found[$userId] ?? null);
+        }
+    }
+
+    /**
      * Forget the settings read for the users in this request (after a user changed them).
      */
     public static function clearCache(): void

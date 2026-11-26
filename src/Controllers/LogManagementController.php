@@ -71,6 +71,7 @@ class LogManagementController extends AdminControllerBase
 
         $content->row(view('exment::log_management.index', [
             'types' => LogCatalog::types(),
+            'sizeWarning' => \Exceedone\Exment\Services\LogManagement\LogSize::warning(),
             'isSystem' => $isSystem,
             'settingUrl' => admin_urls('log_management', 'setting'),
             'settings' => [

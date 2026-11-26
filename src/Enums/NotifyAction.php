@@ -13,6 +13,8 @@ class NotifyAction extends EnumBase
     public const LINE = "5";
     // a person's Teams chat, through a Teams workflow (ISS02863)
     public const TEAMS_PERSONAL = "6";
+    // the record as JSON to any URL, signed (ISS02912)
+    public const WEBHOOK = "7";
 
     /**
      * Whether this action is chat message.
@@ -28,7 +30,8 @@ class NotifyAction extends EnumBase
         }
         $notify_action = is_array($action_setting) ? array_get($action_setting, 'notify_action') : $action_setting;
 
-        if (in_array($notify_action, [static::SLACK, static::MICROSOFT_TEAMS])) {
+        // a webhook is sent once to its URL, as a chat message is (not to each user)
+        if (in_array($notify_action, [static::SLACK, static::MICROSOFT_TEAMS, static::WEBHOOK])) {
             return true;
         }
 
@@ -106,6 +109,9 @@ class NotifyAction extends EnumBase
         $options = static::transKeyArray('notify.notify_action_options');
         if (!\Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::TEAMS_NOTIFY)) {
             unset($options[static::TEAMS_PERSONAL]);
+        }
+        if (!\Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::WEBHOOK_NOTIFY)) {
+            unset($options[static::WEBHOOK]);
         }
         return $options;
     }

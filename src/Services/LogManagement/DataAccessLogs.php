@@ -212,7 +212,7 @@ class DataAccessLogs
                 ->selectRaw('base_user_id, custom_table_id, kind, via, count(*) as total')
                 ->groupBy('base_user_id', 'custom_table_id', 'kind', 'via')
                 ->get();
-            \DB::transaction(function () use ($rows, $day) {
+            LogConnection::db()->transaction(function () use ($rows, $day) {
                 DataAccessDaily::query()->where('date', $day->format('Y-m-d'))->delete();
                 foreach (array_chunk($rows->all(), 500) as $chunk) {
                     DataAccessDaily::query()->insert(array_map(function ($row) use ($day) {
