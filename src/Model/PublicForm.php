@@ -679,17 +679,22 @@ class PublicForm extends ModelBase
             $data = File::getData($header_logo);
             $header_logo = $data ? File::getUrl($data, ['asPublicForm' => true, 'publicFormKey' => $this->uuid]) : null;
         }
+        // put in a web site (embed.js, ?embed=1): the site has its own header and footer
+        $embedded = $this->isEmbedded();
         $content->setBackgroundColor($this->getOption('background_color') ?? '#FFFFFF')
             ->setBackgroundColorOuter($this->getOption('background_color_outer') ?? '#FFFFFF')
             ->setHeaderBackgroundColor($this->getOption('header_background_color'))
             ->setFooterBackgroundColor($this->getOption('footer_background_color'))
             ->setFooterTextColor($this->getOption('footer_text_color') ?? '#FFFFFF')
-            ->setUseHeader($this->getOption('use_header') ?? true)
-            ->setUseFooter($this->getOption('use_footer') ?? true)
+            ->setUseHeader(!$embedded && ($this->getOption('use_header') ?? true))
+            ->setUseFooter(!$embedded && ($this->getOption('use_footer') ?? true))
             ->setIsContainer($options['isContainer'])
             ->setHeaderLogoUrl($header_logo)
             ->setHeaderLabel($this->getOption('header_label'))
         ;
+
+        // in a frame, the height of the page is told to the page around it (embed.js takes it)
+        \Admin::script(static::heightScript(strval($this->uuid)));
 
         // set analytics
         if ($options['add_analytics']) {
@@ -699,6 +704,82 @@ class PublicForm extends ModelBase
         return $this;
     }
 
+
+    /**
+     * Whether the form is shown in a web site (?embed=1 once, then kept in its session).
+     */
+    public function isEmbedded(): bool
+    {
+        try {
+            $request = request();
+            $key = 'exment_public_form_embed_' . $this->uuid;
+            if ($request->query('embed') === '1') {
+                if ($request->hasSession()) {
+                    $request->session()->put($key, true);
+                }
+                return true;
+            }
+            return $request->hasSession() && boolval($request->session()->get($key));
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * The script of the form page that tells its height to the page it is in (only in a frame).
+     */
+    public static function heightScript(string $uuid): string
+    {
+        $id = json_encode($uuid);
+        return <<<JS
+(function () {
+    if (window.parent === window) { return; }
+    // in a frame the page is as high as the form: the page is at least as high as the window
+    // (min-height 100vh), and the frame follows the page, so it would grow without end
+    var style = document.createElement('style');
+    style.textContent = 'html, body#body-publicform, body#body-publicform .wrapper, body#body-publicform .content-wrapper, body#body-publicform .container-middle, body#body-publicform #container-inner { min-height: 0 !important; height: auto !important; }';
+    document.head.appendChild(style);
+    var send = function () {
+        var h = Math.max(document.documentElement.scrollHeight, document.body ? document.body.scrollHeight : 0);
+        window.parent.postMessage({ exmentPublicForm: {$id}, height: h }, '*');
+    };
+    send();
+    window.addEventListener('load', send);
+    if (window.ResizeObserver && document.body) { new ResizeObserver(send).observe(document.body); }
+    setTimeout(send, 500);
+})();
+JS;
+    }
+
+    /**
+     * The script of embed.js: an iframe of the form after the script tag, as high as the form.
+     */
+    public function embedScript(): string
+    {
+        $url = $this->getUrl();
+        $src = json_encode($url . (str_contains($url, '?') ? '&' : '?') . 'embed=1');
+        $title = json_encode(strval($this->public_form_view_name));
+        $parts = parse_url($url);
+        $origin = json_encode(($parts['scheme'] ?? 'https') . '://' . ($parts['host'] ?? '') . (isset($parts['port']) ? ':' . $parts['port'] : ''));
+        $id = json_encode(strval($this->uuid));
+        return <<<JS
+(function () {
+    var s = document.currentScript;
+    if (!s || !s.parentNode) { return; }
+    var f = document.createElement('iframe');
+    f.src = {$src};
+    f.title = {$title};
+    f.setAttribute('loading', 'lazy');
+    f.style.cssText = 'width:100%;border:0;min-height:300px;';
+    s.parentNode.insertBefore(f, s.nextSibling);
+    window.addEventListener('message', function (e) {
+        if (e.origin !== {$origin} || !e.data || e.data.exmentPublicForm !== {$id}) { return; }
+        var h = parseInt(e.data.height, 10);
+        if (h > 0) { f.style.height = (h + 16) + 'px'; }
+    });
+})();
+JS;
+    }
 
     /**
      * Get secret key for Google reCaptcha
