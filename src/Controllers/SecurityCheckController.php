@@ -28,8 +28,20 @@ class SecurityCheckController extends AdminControllerBase
             'check' => new SecurityCheck(),
             'serverItems' => SecurityCheck::serverItemsShown(),
             'fixUrl' => admin_urls('security_check', 'fix'),
+            'firewallUrl' => admin_urls('security_check', 'firewall'),
         ]));
         return $content;
+    }
+
+    /**
+     * The test send of the item "a firewall in front of the site" (ISS02935): the page posts a
+     * small body with the words firewalls refuse (an URL of localhost, an IP address, a path);
+     * this answers that it arrived. An answer without the mark of Exment means something in
+     * front refused it. Nothing is kept.
+     */
+    public function firewall(Request $request)
+    {
+        return response()->json(['ok' => true, 'length' => mb_strlen(strval($request->input('probe', '')))]);
     }
 
     /**

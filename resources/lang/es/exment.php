@@ -740,6 +740,19 @@ return [
             'recaptcha_secret_key' => 'Si utiliza Google reCAPTCHA en los formularios públicos, introduzca la clave secreta. *Tras configurarla, seleccione en cada formulario público si se usa Google reCAPTCHA.',
         ],
     ],
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => 'El guardado fue rechazado por el camino (un firewall u otro)',
+        'back_title' => 'Puede que el último guardado no llegara a Exment (un firewall u otro)',
+        'body' => 'Un firewall o un proxy delante del sitio rechazó lo enviado. No es un problema de permisos de Exment. Palabras como una URL, una dirección IP o una ruta (../) en el texto pueden causarlo. Cámbielas y guarde de nuevo, o avise a su administrador. Lo que escribió sigue aquí.',
+        'details' => 'Detalles',
+        'help' => 'Cómo reconocerlo y corregirlo',
+        'close' => 'Cerrar',
+        'd_status' => 'Estado',
+        'd_where' => 'Enviado a',
+        'd_headers' => 'Cabeceras de la respuesta',
+        'd_text' => 'Primeras líneas de la respuesta',
+    ],
     'security_check' => [
         'header' => 'Comprobación de seguridad',
         'description' => 'Revise la configuración que mantiene este sitio seguro.',
@@ -761,6 +774,14 @@ return [
         'after_initialize_high' => 'La comprobación de seguridad tiene :count elementos que conviene corregir de inmediato.',
         'open' => 'Abrir la comprobación de seguridad',
         'item' => [
+            'firewall' => [
+                'label' => 'Un firewall delante del sitio',
+                'explain' => 'Prueba desde este navegador si un firewall delante del sitio (AWS WAF, Cloudflare, un proxy de la empresa...) rechaza un guardado con una URL, una dirección IP o una ruta. Si lo hace, los usuarios no saben por qué no pueden guardar.',
+                'not_yet' => 'Aún no probado',
+                'running' => 'Probando...',
+                'run' => 'Probar',
+                'warning' => 'La prueba fue rechazada delante del sitio. Un guardado con esas palabras también se rechaza. Excluya esas reglas del firewall solo para esta ruta.',
+            ],
             'file_permission' => [
                 'label' => 'Permisos de los archivos importantes',
                 'explain' => '.env y la caché de configuración contienen secretos, como la contraseña de la base de datos. Impida que los lean otros usuarios del servidor (640 o similar) y no deje storage abierto a todos.',

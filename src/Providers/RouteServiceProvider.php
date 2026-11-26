@@ -257,6 +257,8 @@ class RouteServiceProvider extends ServiceProvider
             // the security check (ISS02833)
             $router->get('security_check', 'SecurityCheckController@index');
             $router->post('security_check/fix', 'SecurityCheckController@fix');
+            // ISS02935: a small body with an URL, an IP address and a path, sent through what is in front
+            $router->post('security_check/firewall', 'SecurityCheckController@firewall');
             // the scheduled jobs (ISS02832)
             $router->get('scheduled_jobs', 'ScheduledJobController@index');
             // the log management (ISS02839)

@@ -140,6 +140,8 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Middleware\ExmentDebug::class,
         // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
         \Exceedone\Exment\Middleware\MaintenanceOperatorGuard::class,
+        // every answer of Exment says it is (ISS02935): one without the mark was given by a firewall in front
+        \Exceedone\Exment\Middleware\MarkResponse::class,
     ];
 
 

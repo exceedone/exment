@@ -740,6 +740,19 @@ return [
             'recaptcha_secret_key' => 'Wenn Sie Google reCAPTCHA in öffentlichen Formularen verwenden, geben Sie bitte Ihren Geheimschlüssel ein. * Wählen Sie anschließend in jedem öffentlichen Formular, ob Google reCAPTCHA verwendet werden soll.',
         ],
     ],
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => 'Das Speichern wurde unterwegs abgelehnt (z. B. eine Firewall)',
+        'back_title' => 'Das letzte Speichern hat Exment eventuell nicht erreicht (z. B. eine Firewall)',
+        'body' => 'Eine Firewall oder ein Proxy vor der Website hat das Gesendete abgelehnt. Das ist kein Berechtigungsproblem von Exment. Wörter wie eine URL, eine IP-Adresse oder ein Pfad (../) im Text können die Ursache sein. Ändern Sie sie und speichern Sie erneut, oder wenden Sie sich an Ihren Administrator. Ihr Text ist noch da.',
+        'details' => 'Details',
+        'help' => 'Erkennen und beheben',
+        'close' => 'Schließen',
+        'd_status' => 'Status',
+        'd_where' => 'Gesendet an',
+        'd_headers' => 'Header der Antwort',
+        'd_text' => 'Erste Zeilen der Antwort',
+    ],
     'security_check' => [
         'header' => 'Sicherheitsprüfung',
         'description' => 'Prüft die Einstellungen, die diese Website sicher halten.',
@@ -761,6 +774,14 @@ return [
         'after_initialize_high' => 'Die Sicherheitsprüfung hat :count sofort zu behebende Elemente gefunden.',
         'open' => 'Sicherheitsprüfung öffnen',
         'item' => [
+            'firewall' => [
+                'label' => 'Eine Firewall vor der Website',
+                'explain' => 'Prüft von diesem Browser aus, ob eine Firewall vor der Website (AWS WAF, Cloudflare, ein Firmen-Proxy ...) ein Speichern mit einer URL, einer IP-Adresse oder einem Pfad ablehnt. Dann wissen die Benutzer nicht, warum sie nicht speichern können.',
+                'not_yet' => 'Noch nicht geprüft',
+                'running' => 'Wird geprüft ...',
+                'run' => 'Prüfen',
+                'warning' => 'Der Test wurde vor der Website abgelehnt. Ein Speichern mit diesen Wörtern wird ebenfalls abgelehnt. Nehmen Sie diese Regeln der Firewall nur für diesen Pfad aus.',
+            ],
             'file_permission' => [
                 'label' => 'Berechtigungen der wichtigen Dateien',
                 'explain' => '.env und der Konfigurationscache enthalten Geheimnisse wie das Datenbankpasswort. Schützen Sie sie vor anderen Benutzern des Servers (etwa 640) und machen Sie storage nicht für alle zugänglich.',

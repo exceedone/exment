@@ -760,6 +760,19 @@ return [
         ],
     ],
 
+    // a save refused on its way by a firewall in front of the site (ISS02935)
+    'blocked_notice' => [
+        'title' => 'The save was refused on its way (a firewall or similar)',
+        'back_title' => 'The last save may not have reached Exment (a firewall or similar)',
+        'body' => 'A firewall or a proxy in front of the site refused what was sent. This is not a permission of Exment. Words such as an URL, an IP address or a path (../) in the text can cause it. Change them and save again, or tell your administrator. What you wrote is still here.',
+        'details' => 'Details',
+        'help' => 'How to tell and how to fix it',
+        'close' => 'Close',
+        'd_status' => 'Status',
+        'd_where' => 'Sent to',
+        'd_headers' => 'Headers of the answer',
+        'd_text' => 'First lines of the answer',
+    ],
     'security_check' => [
         'header' => 'Security Check',
         'description' => 'Check the settings that keep this site safe.',
@@ -781,6 +794,14 @@ return [
         'after_initialize_high' => 'The security check has :count items to fix at once.',
         'open' => 'Open the security check',
         'item' => [
+            'firewall' => [
+                'label' => 'A firewall in front of the site',
+                'explain' => 'Tries from this browser whether a firewall in front of the site (AWS WAF, Cloudflare, a proxy of the company...) refuses a save with an URL, an IP address or a path in it. When it does, users cannot tell why they cannot save.',
+                'not_yet' => 'Not tried yet',
+                'running' => 'Trying...',
+                'run' => 'Try',
+                'warning' => 'The test was refused in front of the site. A save with those words is refused too. Exclude those rules of the firewall for this path only.',
+            ],
             'file_permission' => [
                 'label' => 'Permissions of the important files',
                 'explain' => '.env and the config cache hold secrets such as the database password. Keep them from the other users of the server (640 or so), and storage not open to everyone.',
