@@ -64,6 +64,21 @@ class Paths
      *        folder they may not see keeps the number (the path would tell its
      *        name, ISS00433). Null: no one in particular (all the paths).
      */
+    /**
+     * The last part of the address of a file whose name ends like a file of the
+     * site (sample.png, app.js): Exment (Bootstrap::isStaticRequest()) and the web
+     * servers' rules for static files (the tuning's "location ~* \.(css|js|png)$")
+     * take an address that ends so for a file to send, not a page, and the page
+     * opened by its address had no CSS and JavaScript of Exment (GitHub #2290).
+     * A file has no folder in it, so the mark is never the name of an item there.
+     */
+    public const PAGE_MARK = '~';
+
+    /**
+     * The endings of the address that the web servers and Exment take for static files.
+     */
+    public const STATIC_EXTENSIONS = ['js', 'css', 'png', 'jpg', 'jpeg', 'gif', 'svg', 'ico', 'webp', 'woff', 'woff2', 'map'];
+
     public function __construct(protected ?Access $access = null)
     {
     }
@@ -207,6 +222,9 @@ class Paths
             }
         }
         $url = admin_url('file_server/' . implode('/', array_map('rawurlencode', $names)));
+        if (static::needsMark($node)) {
+            $url .= '/' . static::PAGE_MARK;
+        }
         // with room for "?n=<id>"
         return strlen($url) + 13 <= static::MAX_URL_LENGTH ? $url : null;
     }
@@ -229,6 +247,31 @@ class Paths
     /**
      * The address with numbers (as before ISS02815).
      */
+    /**
+     * The address of the page of this item ends with PAGE_MARK (a file whose name
+     * ends like a static file).
+     */
+    public static function needsMark(?FileNode $node): bool
+    {
+        return isset($node) && $node->isFile()
+            && in_array(strtolower(pathinfo($node->name, PATHINFO_EXTENSION)), static::STATIC_EXTENSIONS, true);
+    }
+
+    /**
+     * The parts of the address of an item after file_server/ (decoded), as url() makes
+     * them; null when it has none.
+     *
+     * @return string[]|null
+     */
+    public function segments(FileWorkspace $workspace, ?FileNode $node = null): ?array
+    {
+        if ($this->url($workspace, $node) === null) {
+            return null;
+        }
+        $segments = array_merge([strval($this->workspaceSegment($workspace))], isset($node) ? $this->names($node) : []);
+        return static::needsMark($node) ? array_merge($segments, [static::PAGE_MARK]) : $segments;
+    }
+
     public static function numberUrl(FileWorkspace $workspace, ?FileNode $node = null): string
     {
         if (!isset($node)) {
@@ -298,21 +341,28 @@ class Paths
                 }
             }
         }
-        // the paths of now in all the workspaces of the name first, then the old ones
-        foreach ([false, true] as $old) {
-            $found = [];
-            foreach ($workspaces as $workspace) {
-                $node = $this->walk($workspace, $segments, $old);
-                if ($node !== false) {
-                    $found[] = [$workspace, $node];
+        // the path as it is; then, with PAGE_MARK at the end, the file before it
+        $tries = [$segments];
+        if (count($segments) > 1 && end($segments) === static::PAGE_MARK) {
+            $tries[] = array_slice($segments, 0, -1);
+        }
+        foreach ($tries as $try) {
+            // the paths of now in all the workspaces of the name first, then the old ones
+            foreach ([false, true] as $old) {
+                $found = [];
+                foreach ($workspaces as $workspace) {
+                    $node = $this->walk($workspace, $try, $old);
+                    if ($node !== false) {
+                        $found[] = [$workspace, $node];
+                    }
                 }
-            }
-            if (count($found) === 1) {
-                return $this->visible($found[0][0], $found[0][1]);
-            }
-            if (count($found) > 1) {
-                // the path does not say which: none (nor which ones the user may see)
-                break;
+                if (count($found) === 1) {
+                    return $this->visible($found[0][0], $found[0][1]);
+                }
+                if (count($found) > 1) {
+                    // the path does not say which: none (nor which ones the user may see)
+                    throw FileServerException::notFound();
+                }
             }
         }
         throw FileServerException::notFound();

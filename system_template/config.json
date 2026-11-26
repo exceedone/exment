@@ -1478,14 +1478,6 @@
             "menu_target_name": "mail_template"
         },
         {
-            "order": "6",
-            "menu_type": "system",
-            "menu_name": "notify",
-            "title": "Notify",
-            "parent_name": "admin_data",
-            "menu_target_name": "notify"
-        },
-        {
             "order": "7",
             "menu_type": "system",
             "menu_name": "cell_style_preset",

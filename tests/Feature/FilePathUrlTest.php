@@ -414,6 +414,40 @@ class FilePathUrlTest extends FeatureTestBase
         $this->get(admin_urls('file_server', $ws->id, 'nodes', $script->id))->assertOk();
     }
 
+    // GitHub #2290: an address that ends in .png, .js ... is taken for a static file
+    // (Exment did not add its CSS and JavaScript, the web servers' rules send the file)
+    public function testAFileNamedLikeAStaticFileHasAPageWithTheCssOfExment(): void
+    {
+        $lib = $this->admin();
+        $ws = $this->workspace();
+        $folder = $lib->createFolder($ws, null, 'images.png');
+        $png = $lib->storeFile($ws, $folder, 'sample.png', $this->local('not really a png'));
+        $js = $lib->storeFile($ws, null, 'app.JS', $this->local('var a = 1;'));
+        $csv = $lib->storeFile($ws, null, 'list.csv', $this->local('a,b'));
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+
+        $paths = new Paths();
+        $this->assertSame($this->pathUrl($ws, ['images.png', 'sample.png']) . '/~', $paths->url($ws, $png));
+        $this->assertSame($this->pathUrl($ws, ['app.JS']) . '/~', $paths->url($ws, $js));
+        // a folder (its list) and other files: as before
+        $this->assertSame($this->pathUrl($ws, ['images.png']), $paths->url($ws, $folder));
+        $this->assertSame($this->pathUrl($ws, ['list.csv']), $paths->url($ws, $csv));
+        $this->assertStringEndsWith('/~?n=' . $png->id, $paths->link($ws, $png));
+
+        // opened by its address (a reload, a new tab): the page of Exment, with its CSS
+        $page = $this->get(strval($paths->url($ws, $png)));
+        $page->assertOk()->assertSee('sample.png')->assertSee('vendor/exment/css/common.css', false);
+        $this->get(strval($paths->url($ws, $js)))->assertOk()->assertSee('vendor/exment/css/common.css', false);
+        // the address without the mark (links of before) and the number lead there
+        $old = $this->get($this->pathUrl($ws, ['images.png', 'sample.png']));
+        $old->assertStatus(302);
+        $this->assertSame(strval($paths->url($ws, $png)), $this->location($old));
+        $this->assertSame(strval($paths->url($ws, $png)) . '?n=' . $png->id, $this->location($this->get(admin_urls('file_server', $ws->id, 'nodes', $png->id))));
+        // the mark after a folder or after nothing is not a page
+        $this->assertSame(strval($paths->url($ws, $folder)), $this->location($this->get($this->pathUrl($ws, ['images.png']) . '/~')));
+        $this->fetch($this->pathUrl($ws, ['nothing.png']) . '/~')->assertNotFound();
+    }
+
     public function testANumberOfAnItemInTheTrashLeadsByThePath(): void
     {
         $lib = $this->admin();
