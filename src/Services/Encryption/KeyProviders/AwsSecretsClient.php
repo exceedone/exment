@@ -7,7 +7,7 @@ namespace Exceedone\Exment\Services\Encryption\KeyProviders;
  */
 class AwsSecretsClient implements SecretsClient
 {
-    /** @var object|null Aws\SecretsManager\SecretsManagerClient */
+    /** @var mixed Aws\SecretsManager\SecretsManagerClient (the SDK is optional) */
     protected $client;
 
     public function __construct(?string $region)

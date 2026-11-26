@@ -8,7 +8,7 @@ namespace Exceedone\Exment\Services\Encryption\KeyProviders;
  */
 class AwsKmsClient implements KmsClient
 {
-    /** @var object|null Aws\Kms\KmsClient */
+    /** @var mixed Aws\Kms\KmsClient (the SDK is optional: not known to the analysis) */
     protected $client;
 
     public function __construct(?string $region)
