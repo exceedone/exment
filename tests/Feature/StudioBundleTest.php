@@ -203,7 +203,8 @@ class StudioBundleTest extends FeatureTestBase
         $office = CustomColumn::getEloquent('office', $table);
         $this->assertNotNull($office);
         $this->assertSame(ColumnType::SELECT_VALTEXT, $office->column_type);
-        $this->assertSame(['01' => 'Head office', '02' => 'Osaka'], collect($office->createSelectOptions())->toArray());
+        $options = $office->createSelectOptions();
+        $this->assertSame(['01' => 'Head office', '02' => 'Osaka'], $options instanceof \Illuminate\Support\Collection ? $options->all() : (array) $options);
         /** @var CustomView $kanban */
         $kanban = CustomView::where('custom_table_id', $table->id)->where('view_kind_type', ViewKindType::KANBAN)->firstOrFail();
         $this->assertSame(intval($office->id), intval($kanban->getOption('kanban_group_column_id')));

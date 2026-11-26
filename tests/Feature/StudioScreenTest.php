@@ -73,8 +73,9 @@ class StudioScreenTest extends FeatureTestBase
 
         $response = $this->openStudio(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
         $response->assertOk();
-        $response->assertDontSee(admin_urls('view', 'child_table', 'create'), false);
-        $response->assertSee(admin_urls('view', 'parent_table', 'create'), false);
+        // the link "+ view" (a view's copy link is .../create?copy_id=...)
+        $response->assertDontSee('href="' . admin_urls('view', 'child_table', 'create') . '"', false);
+        $response->assertSee('href="' . admin_urls('view', 'parent_table', 'create') . '"', false);
         $response->assertSee(exmtrans('custom_table.one_record_flg'));
 
         $cards = collect((new ScreenList())->tableCards())->keyBy('table_name');
