@@ -39,6 +39,7 @@
     var texts = {!! $json($texts) !!};
     var base = {!! $json($statusUrl) !!};
     var pollMs = {{ intval($pollMs) }};
+    var logoutUrl = {!! $json($logoutUrl ?? null) !!};
     var timer = null;
     var current = null;
     var reloadTimer = null;
@@ -144,6 +145,11 @@
                 if (run && run.active) {
                     timer = setTimeout(function () { poll(run.uuid); }, document.hidden ? pollMs * 3 : pollMs);
                 } else if (run && uuid) {
+                    // a restore replaced the users: sign in again
+                    if (logoutUrl && run.kind === 'restore' && (run.status === 'succeeded' || run.status === 'warning')) {
+                        setTimeout(function () { window.location.href = logoutUrl; }, 1500);
+                        return;
+                    }
                     reloadSoon();
                 } else if (!run && !uuid && waits < 5) {
                     // the run asked for is not recorded yet (or ended already): a few times more

@@ -407,7 +407,7 @@ class RunProgress
      */
     protected function save(bool $force = false): void
     {
-        if (!isset($this->run) || $this->suspended) {
+        if (!isset($this->run)) {
             return;
         }
         $now = microtime(true);
@@ -416,6 +416,11 @@ class RunProgress
         }
         $this->lastSaved = $now;
         $this->run->heartbeat_at = Carbon::now();
+        // the status for the screen, also while a restore replaces the table (the screen polls it)
+        BackupRuns::writeStatusFile($this->run);
+        if ($this->suspended) {
+            return;
+        }
         try {
             $this->run->save();
         } catch (\Throwable $e) {

@@ -70,26 +70,6 @@
     </div>
 </div>
 @if($run['active'])
-<script type="text/javascript">
-(function () {
-    // the run goes on: the page is shown again until it ends
-    var uuid = {!! json_encode($run['uuid']) !!};
-    var url = {!! json_encode($statusUrl) !!} + '/' + encodeURIComponent(uuid) + '/status';
-    var timer = setTimeout(function check() {
-        if (!document.getElementById('backup-run')) {
-            return;
-        }
-        $.ajax({ url: url, type: 'GET', dataType: 'json', cache: false }).done(function (data) {
-            if (data && data.run && !data.run.active) {
-                $.pjax.reload('#pjax-container');
-            } else {
-                timer = setTimeout(check, {{ intval($pollMs) * 2 }});
-            }
-        }).fail(function () {
-            timer = setTimeout(check, {{ intval($pollMs) * 3 }});
-        });
-    }, {{ intval($pollMs) * 2 }});
-    $(document).one('pjax:start', function () { clearTimeout(timer); });
-})();
-</script>
+{{-- the run goes on: its progress, polled (a restore that ends signs out) --}}
+@include('exment::backup.progress', ['active' => $run, 'statusUrl' => $statusUrl, 'pollMs' => $pollMs, 'logoutUrl' => $logoutUrl])
 @endif

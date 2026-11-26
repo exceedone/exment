@@ -85,6 +85,7 @@ class BackupController extends AdminControllerBase
             'active' => isset($active) ? $active->toStatusArray() : null,
             'statusUrl' => admin_urls('backup', 'runs'),
             'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
+            'logoutUrl' => admin_url('auth/logout'),
         ]));
 
         $content->row(view(
@@ -157,7 +158,8 @@ class BackupController extends AdminControllerBase
     protected function historyRows(): array
     {
         $limit = max(1, min(500, intval(config('exment.backup.history_rows', 50))));
-        $runs = BackupRun::query()->orderByDesc('id')->limit($limit)->get();
+        // by the time it was made (a restore puts the runs back with new ids)
+        $runs = BackupRun::query()->orderByDesc('created_at')->orderByDesc('id')->limit($limit)->get();
         $names = [];
         $rows = [];
         foreach ($runs as $run) {
@@ -184,10 +186,8 @@ class BackupController extends AdminControllerBase
     public function runCurrent(Request $request): \Illuminate\Http\JsonResponse
     {
         static::denyUnlessSystem();
-        BackupRuns::markStalled();
-        $run = BackupRuns::active();
 
-        return response()->json(['run' => isset($run) ? $run->toStatusArray() : null]);
+        return response()->json(['run' => BackupRuns::currentStatus()]);
     }
 
     /**
@@ -196,13 +196,13 @@ class BackupController extends AdminControllerBase
     public function runStatus(Request $request, string $uuid): \Illuminate\Http\JsonResponse
     {
         static::denyUnlessSystem();
-        $run = $this->findRun($uuid);
-        if ($run->isActive()) {
-            BackupRuns::markStalled();
-            $run->refresh();
+        // the record, or its status file while a restore has the table replaced
+        $status = BackupRuns::status($uuid);
+        if (!isset($status)) {
+            abort(404);
         }
 
-        return response()->json(['run' => $run->toStatusArray()]);
+        return response()->json(['run' => $status]);
     }
 
     /**
@@ -237,6 +237,7 @@ class BackupController extends AdminControllerBase
             'downloadUrl' => admin_urls('backup', 'runs', $run->uuid, 'log'),
             'statusUrl' => admin_urls('backup', 'runs'),
             'backUrl' => admin_url('backup'),
+            'logoutUrl' => admin_url('auth/logout'),
             'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
         ]));
 
@@ -544,6 +545,12 @@ class BackupController extends AdminControllerBase
             ->setWidth(8, 3)
             ->help(exmtrans('common.message.input_keyword', Define::RESTORE_CONFIRM_KEYWORD));
 
+        if (!BackupRuns::detachAvailable()) {
+            $form->display('restore_command_note', exmtrans('backup.run.screen.restore_in_request'))
+                ->setWidth(8, 3)
+                ->displayText(e(exmtrans('backup.run.screen.restore_command_note')));
+        }
+
         $form->display('restore_caution', exmtrans('backup.restore_caution'))
             ->setWidth(8, 3)
             ->displayText(exmtrans('backup.message.restore_caution'))->escape(false);
@@ -600,6 +607,14 @@ class BackupController extends AdminControllerBase
                 // store uploaded file
                 $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
                 $result = $this->runRestore(strval($filename), true, boolval($request->get('backup_first')));
+            }
+            // it goes on apart: its page shows the progress
+            if (isset($result) && $result instanceof BackupRun) {
+                return response()->json([
+                    'result'  => true,
+                    'toastr' => exmtrans('backup.run.message.restore_started'),
+                    'redirect' => admin_urls('backup', 'runs', $result->uuid),
+                ]);
             }
         } catch (BackupRunLockedException $e) {
             return getAjaxResponse([
@@ -669,6 +684,13 @@ class BackupController extends AdminControllerBase
                     'toastr' => $e->getMessage(),
                 ]);
             }
+            if ($result instanceof BackupRun) {
+                return response()->json([
+                    'result'  => true,
+                    'toastr' => exmtrans('backup.run.message.restore_started'),
+                    'redirect' => admin_urls('backup', 'runs', $result->uuid),
+                ]);
+            }
         }
 
         if (isset($result) && $result === 0) {
@@ -690,19 +712,30 @@ class BackupController extends AdminControllerBase
     }
 
     /**
-     * A restore of the screen, recorded (ISS02943). It runs here, never in the queue: it replaces
-     * the database the queue and the sessions are in.
+     * A restore of the screen, recorded (ISS02943). Never in the queue (it replaces the database
+     * the queue and the sessions are in): in a process of its own (the command), so the request
+     * answers at once and its page shows the progress; where PHP cannot start a command, here.
      *
-     * @return int the result of Restore::execute (0: done)
+     * @return int|BackupRun the result of Restore::execute (0: done), or the run going on apart
      * @throws BackupRunLockedException
      * @throws \Exception a refused file (InvalidZipEntryException) and the others, as before
      */
-    protected function runRestore(string $file, ?bool $tmp = null, bool $backupFirst = false): int
+    protected function runRestore(string $file, ?bool $tmp = null, bool $backupFirst = false)
     {
+        $detach = BackupRuns::detachAvailable();
         $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, [
             'file_name' => pathinfo($file, PATHINFO_FILENAME),
-        ]);
+            // where the file is, the file, and the backup before the restore (the command apart reads them)
+            'targets' => array_merge([boolval($tmp) ? BackupRuns::SOURCE_UPLOAD : BackupRuns::SOURCE_STORED, $file], $backupFirst ? [BackupRuns::BACKUP_FIRST] : []),
+        ], $detach);
 
+        if ($detach && BackupRuns::launchRestore($run)) {
+            return $run;
+        }
+
+        // here: as long as it takes, also when the browser gives up
+        @set_time_limit(0);
+        ignore_user_abort(true);
         return BackupRuns::runRestore($run, $this->restore, $file, $tmp, null, $backupFirst);
     }
 

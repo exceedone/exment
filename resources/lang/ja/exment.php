@@ -1547,6 +1547,10 @@ return [
                 'preview_folder' => ':name：:files 個のファイル（:size）',
                 'preview_env' => '設定（.env の一部）',
                 'preview_versions' => '作ったときの版：Exment :exment / Laravel :laravel（今：Exment :current_exment / Laravel :current_laravel）',
+                'restore_in_request' => '画面からのリストア',
+                'restore_command_note' => 'このサーバーでは、リストアはこの画面の処理の中で動きます。大きなサイトでは時間がかかり、画面が待ちきれずに切れることがあります（リストアは続きます）。大きなサイトでは、サーバーで php artisan exment:restore コマンドを使うのがおすすめです。',
+                'restoring_title' => 'リストア中です',
+                'restoring_text' => 'リストア中です。しばらくお待ちください。終わると、この画面は自動で切りかわります。',
                 'scope' => '入れるもの',
                 'scopes' => [
                     'all' => '設定のとおり（すべての対象）',
@@ -1626,6 +1630,7 @@ return [
                 'verify_sha256' => 'バックアップのファイルが、作ったときと変わっています（sha256 が合いません）。こわれているか、別のファイルです。リストアは行いませんでした。',
                 'verify_read' => 'バックアップのファイルの中身が読めません（:name）。こわれています。リストアは行いませんでした。',
                 'safety_failed' => 'リストアの前のバックアップがうまくいきませんでした。リストアは行いませんでした。くわしいログを確かめてください。',
+                'restore_started' => 'リストアを始めました。進み具合はこの画面で見られます。終わるとログインし直しになります。',
             ],
             'hints' => [
                 'see_log' => 'くわしいログを確かめてください。',

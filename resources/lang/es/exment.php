@@ -1500,6 +1500,10 @@ return [
                 'preview_folder' => ':name: :files archivos (:size)',
                 'preview_env' => 'Configuración (parte de .env)',
                 'preview_versions' => 'Creada con: Exment :exment / Laravel :laravel (ahora: Exment :current_exment / Laravel :current_laravel)',
+                'restore_in_request' => 'Restaurar desde esta pantalla',
+                'restore_command_note' => 'En este servidor, la restauración se ejecuta dentro de la solicitud de esta pantalla. En un sitio grande tarda mucho y la pantalla puede dejar de esperar (la restauración continúa). Para sitios grandes se recomienda el comando php artisan exment:restore en el servidor.',
+                'restoring_title' => 'Restauración en curso',
+                'restoring_text' => 'Hay una restauración en curso. Espere un momento. Esta página se recargará sola cuando termine.',
                 'scope' => 'Qué incluir',
                 'scopes' => [
                     'all' => 'Según la configuración (todos los objetivos)',
@@ -1579,6 +1583,7 @@ return [
                 'verify_sha256' => 'El archivo de la copia de seguridad es distinto del que se creó (el sha256 no coincide). Está dañado o es otro archivo. No se restauró nada.',
                 'verify_read' => 'No se puede leer un archivo de la copia de seguridad (:name). La copia está dañada. No se restauró nada.',
                 'safety_failed' => 'Falló la copia de seguridad previa a la restauración. No se restauró nada. Consulte el registro detallado.',
+                'restore_started' => 'La restauración ha comenzado. Puede seguir su progreso en esta pantalla. Al terminar, deberá iniciar sesión de nuevo.',
             ],
             'hints' => [
                 'see_log' => 'Consulte el registro detallado.',

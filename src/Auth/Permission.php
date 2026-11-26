@@ -162,6 +162,12 @@ class Permission
      */
     public function shouldPassThrough(Request $request): bool
     {
+        // the runs of the backup: the controller checks them and answers 403 (JSON polled by the
+        // screen, also during the maintenance of a restore), not the page "permission denied"
+        if ($request->is(ltrim(admin_base_path('backup/runs'), '/'), ltrim(admin_base_path('backup/runs/*'), '/'))) {
+            return true;
+        }
+
         // get target endpoint
         $endpoint = $this->getEndPoint($request->url());
 
