@@ -1510,7 +1510,7 @@ return [
                     'database' => '데이터베이스만',
                     'files' => '파일만',
                 ],
-                'progress_header' => '백업・복원 진행 상황',
+                'progress_header' => '백업·복원 진행 상황',
                 'started' => '시작',
                 'elapsed' => '걸린 시간',
                 'unknown' => '계산 중',
@@ -1521,7 +1521,7 @@ return [
                 'history_header' => '실행 이력',
                 'history_help' => '백업과 복원의 실행 기록입니다. 최신 :count건까지 보존합니다.',
                 'no_runs' => '아직 기록이 없습니다.',
-                'system_user' => '시스템(자동・명령)',
+                'system_user' => '시스템(자동·명령)',
                 'column' => [
                     'started_at' => '시작',
                     'kind' => '종류',
@@ -1547,7 +1547,7 @@ return [
                 'restore' => '복원',
             ],
             'triggers' => [
-                'screen' => '화면',
+                'screen' => '수동',
                 'command' => '명령',
                 'schedule' => '자동',
             ],
