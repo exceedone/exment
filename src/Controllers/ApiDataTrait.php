@@ -195,6 +195,15 @@ trait ApiDataTrait
     // @phpstan-ignore-next-line
     protected function modifyAfterGetValue(Request $request, $target, $options = [])
     {
+        // who read or listed the data (ISS02905): a list is one row
+        if (isset($this->custom_table)) {
+            if ($target instanceof \Illuminate\Pagination\LengthAwarePaginator) {
+                \Exceedone\Exment\Services\LogManagement\DataAccessLogs::listed($this->custom_table);
+            } elseif ($target instanceof \Exceedone\Exment\Model\CustomValue) {
+                \Exceedone\Exment\Services\LogManagement\DataAccessLogs::read($this->custom_table, $target->id);
+            }
+        }
+
         $options = array_merge(
             [
                 'makeHidden' => true,
