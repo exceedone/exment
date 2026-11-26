@@ -1538,6 +1538,16 @@ return [
         ],
         'run' => [
             'screen' => [
+                'backup_first' => 'リストアの前に',
+                'backup_first_option' => '今のデータをバックアップする（おすすめ）',
+                'backup_first_help' => 'リストアの前に、今のデータを「beforerestore＋日時」の名前でバックアップします。うまくいかなかったときは、それを使って元に戻せます。',
+                'preview' => '置きかわるもの',
+                'preview_none' => 'このバックアップの中身は、ここでは読めません。',
+                'preview_database' => 'データベース（:count 個のテーブル）',
+                'preview_no_database' => 'データベースは入っていません（今のデータベースはそのままです）',
+                'preview_folder' => ':name：:files 個のファイル（:size）',
+                'preview_env' => '設定（.env の一部）',
+                'preview_versions' => '作ったときの版：Exment :exment / Laravel :laravel（今：Exment :current_exment / Laravel :current_laravel）',
                 'scope' => '入れるもの',
                 'scopes' => [
                     'all' => '設定のとおり（すべての対象）',
@@ -1594,6 +1604,7 @@ return [
                 'stalled' => '止まった',
             ],
             'stages' => [
+                'safety' => '今のデータのバックアップ',
                 'prepare' => '準備',
                 'dump' => 'データベースの書き出し',
                 'files' => 'ファイルのコピー',
@@ -1615,6 +1626,7 @@ return [
                 'stalled_restored' => 'リストアしたバックアップの時点で動いていた記録です。',
                 'verify_sha256' => 'バックアップのファイルが、作ったときと変わっています（sha256 が合いません）。こわれているか、別のファイルです。リストアは行いませんでした。',
                 'verify_read' => 'バックアップのファイルの中身が読めません（:name）。こわれています。リストアは行いませんでした。',
+                'safety_failed' => 'リストアの前のバックアップがうまくいきませんでした。リストアは行いませんでした。くわしいログを確かめてください。',
             ],
             'hints' => [
                 'see_log' => 'くわしいログを確かめてください。',

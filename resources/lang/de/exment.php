@@ -1491,6 +1491,16 @@ return [
         ],
         'run' => [
             'screen' => [
+                'backup_first' => 'Vor der Wiederherstellung',
+                'backup_first_option' => 'Die aktuellen Daten sichern (empfohlen)',
+                'backup_first_help' => 'Vor der Wiederherstellung werden die aktuellen Daten als „beforerestore“ mit Datum und Uhrzeit gesichert. Geht etwas schief, können Sie sie damit wiederherstellen.',
+                'preview' => 'Was ersetzt wird',
+                'preview_none' => 'Der Inhalt dieser Sicherung kann hier nicht gelesen werden.',
+                'preview_database' => 'Die Datenbank (:count Tabellen)',
+                'preview_no_database' => 'Keine Datenbank (die aktuelle Datenbank bleibt unverändert)',
+                'preview_folder' => ':name: :files Dateien (:size)',
+                'preview_env' => 'Einstellungen (ein Teil von .env)',
+                'preview_versions' => 'Erstellt mit: Exment :exment / Laravel :laravel (jetzt: Exment :current_exment / Laravel :current_laravel)',
                 'scope' => 'Umfang',
                 'scopes' => [
                     'all' => 'Wie in den Einstellungen (alle Ziele)',
@@ -1547,6 +1557,7 @@ return [
                 'stalled' => 'Angehalten',
             ],
             'stages' => [
+                'safety' => 'Aktuelle Daten sichern',
                 'prepare' => 'Vorbereitung',
                 'dump' => 'Datenbank exportieren',
                 'files' => 'Dateien kopieren',
@@ -1568,6 +1579,7 @@ return [
                 'stalled_restored' => 'Dieser Vorgang lief, als die wiederhergestellte Sicherung erstellt wurde.',
                 'verify_sha256' => 'Die Sicherungsdatei unterscheidet sich von der bei ihrer Erstellung (sha256 stimmt nicht überein). Sie ist beschädigt oder eine andere Datei. Es wurde nichts wiederhergestellt.',
                 'verify_read' => 'Eine Datei der Sicherung kann nicht gelesen werden (:name). Die Sicherung ist beschädigt. Es wurde nichts wiederhergestellt.',
+                'safety_failed' => 'Die Sicherung vor der Wiederherstellung ist fehlgeschlagen. Es wurde nichts wiederhergestellt. Sehen Sie sich das ausführliche Protokoll an.',
             ],
             'hints' => [
                 'see_log' => 'Sehen Sie sich das ausführliche Protokoll an.',

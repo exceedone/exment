@@ -1491,6 +1491,16 @@ return [
         ],
         'run' => [
             'screen' => [
+                'backup_first' => 'Trước khi khôi phục',
+                'backup_first_option' => 'Sao lưu dữ liệu hiện tại (khuyến nghị)',
+                'backup_first_help' => 'Trước khi khôi phục, dữ liệu hiện tại được sao lưu với tên "beforerestore" kèm ngày giờ. Nếu có sự cố, bạn có thể khôi phục lại từ bản này.',
+                'preview' => 'Nội dung sẽ bị thay thế',
+                'preview_none' => 'Không thể đọc nội dung của bản sao lưu này tại đây.',
+                'preview_database' => 'Cơ sở dữ liệu (:count bảng)',
+                'preview_no_database' => 'Không có cơ sở dữ liệu (cơ sở dữ liệu hiện tại được giữ nguyên)',
+                'preview_folder' => ':name: :files tệp (:size)',
+                'preview_env' => 'Cài đặt (một phần của .env)',
+                'preview_versions' => 'Phiên bản khi tạo: Exment :exment / Laravel :laravel (hiện tại: Exment :current_exment / Laravel :current_laravel)',
                 'scope' => 'Nội dung sao lưu',
                 'scopes' => [
                     'all' => 'Theo cài đặt (tất cả đối tượng)',
@@ -1547,6 +1557,7 @@ return [
                 'stalled' => 'Đã dừng',
             ],
             'stages' => [
+                'safety' => 'Sao lưu dữ liệu hiện tại',
                 'prepare' => 'Chuẩn bị',
                 'dump' => 'Xuất cơ sở dữ liệu',
                 'files' => 'Sao chép tệp',
@@ -1568,6 +1579,7 @@ return [
                 'stalled_restored' => 'Lần chạy này đang diễn ra vào lúc tạo bản sao lưu đã được khôi phục.',
                 'verify_sha256' => 'Tệp sao lưu khác với lúc được tạo (sha256 không khớp). Tệp bị hỏng hoặc là tệp khác. Chưa khôi phục gì.',
                 'verify_read' => 'Không đọc được một tệp trong bản sao lưu (:name). Bản sao lưu bị hỏng. Chưa khôi phục gì.',
+                'safety_failed' => 'Sao lưu trước khi khôi phục không thành công. Chưa khôi phục gì. Hãy xem nhật ký chi tiết.',
             ],
             'hints' => [
                 'see_log' => 'Hãy xem nhật ký chi tiết.',

@@ -1491,6 +1491,16 @@ return [
         ],
         'run' => [
             'screen' => [
+                'backup_first' => 'Antes de restaurar',
+                'backup_first_option' => 'Hacer una copia de los datos actuales (recomendado)',
+                'backup_first_help' => 'Antes de restaurar, se hace una copia de los datos actuales con el nombre «beforerestore» más la fecha y la hora. Si algo sale mal, puede restaurarla.',
+                'preview' => 'Qué se reemplaza',
+                'preview_none' => 'El contenido de esta copia de seguridad no se puede leer aquí.',
+                'preview_database' => 'La base de datos (:count tablas)',
+                'preview_no_database' => 'Sin base de datos (la base de datos actual se mantiene)',
+                'preview_folder' => ':name: :files archivos (:size)',
+                'preview_env' => 'Configuración (parte de .env)',
+                'preview_versions' => 'Creada con: Exment :exment / Laravel :laravel (ahora: Exment :current_exment / Laravel :current_laravel)',
                 'scope' => 'Qué incluir',
                 'scopes' => [
                     'all' => 'Según la configuración (todos los objetivos)',
@@ -1547,6 +1557,7 @@ return [
                 'stalled' => 'Detenida',
             ],
             'stages' => [
+                'safety' => 'Copia de los datos actuales',
                 'prepare' => 'Preparación',
                 'dump' => 'Exportar la base de datos',
                 'files' => 'Copiar los archivos',
@@ -1568,6 +1579,7 @@ return [
                 'stalled_restored' => 'Esta ejecución estaba en curso cuando se hizo la copia de seguridad restaurada.',
                 'verify_sha256' => 'El archivo de la copia de seguridad es distinto del que se creó (el sha256 no coincide). Está dañado o es otro archivo. No se restauró nada.',
                 'verify_read' => 'No se puede leer un archivo de la copia de seguridad (:name). La copia está dañada. No se restauró nada.',
+                'safety_failed' => 'Falló la copia de seguridad previa a la restauración. No se restauró nada. Consulte el registro detallado.',
             ],
             'hints' => [
                 'see_log' => 'Consulte el registro detallado.',

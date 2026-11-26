@@ -1538,6 +1538,16 @@ return [
         ],
         'run' => [
             'screen' => [
+                'backup_first' => 'Before the restore',
+                'backup_first_option' => 'Back up the current data (recommended)',
+                'backup_first_help' => 'Before the restore, the current data is backed up as "beforerestore" plus the date and time. If something goes wrong, you can restore it.',
+                'preview' => 'What is replaced',
+                'preview_none' => 'The contents of this backup cannot be read here.',
+                'preview_database' => 'The database (:count tables)',
+                'preview_no_database' => 'No database (the current database stays as it is)',
+                'preview_folder' => ':name: :files files (:size)',
+                'preview_env' => 'Settings (part of .env)',
+                'preview_versions' => 'Made on: Exment :exment / Laravel :laravel (now: Exment :current_exment / Laravel :current_laravel)',
                 'scope' => 'What to include',
                 'scopes' => [
                     'all' => 'As in the settings (all the targets)',
@@ -1594,6 +1604,7 @@ return [
                 'stalled' => 'Stopped',
             ],
             'stages' => [
+                'safety' => 'Backing up the current data',
                 'prepare' => 'Preparing',
                 'dump' => 'Exporting the database',
                 'files' => 'Copying the files',
@@ -1615,6 +1626,7 @@ return [
                 'stalled_restored' => 'This run was in progress when the restored backup was taken.',
                 'verify_sha256' => 'The backup file differs from when it was made (the sha256 does not match). It is broken or another file. Nothing was restored.',
                 'verify_read' => 'A file in the backup cannot be read (:name). The backup is broken. Nothing was restored.',
+                'safety_failed' => 'The backup before the restore failed. Nothing was restored. See the detailed log.',
             ],
             'hints' => [
                 'see_log' => 'See the detailed log.',

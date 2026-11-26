@@ -9,6 +9,7 @@ use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Jobs\BackupRunJob;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\LogManagement\LogWriter;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PluginDistribution\AdminNotices;
@@ -34,6 +35,9 @@ class BackupRuns
     public const LOG_DIR = 'app/backup-runs';
 
     public const LOCK_FILE = '.lock';
+
+    /** The name of the backup made before a restore (then the time). */
+    public const SAFETY_PREFIX = 'beforerestore';
 
     // ---------------------------------------------------------------- start
 
@@ -124,13 +128,16 @@ class BackupRuns
     /**
      * Run a restore of a started run: the result of Restore::execute (0: done).
      */
-    public static function runRestore(BackupRun $run, Restore $restore, ?string $file, ?bool $tmp = null, ?callable $output = null): int
+    public static function runRestore(BackupRun $run, Restore $restore, ?string $file, ?bool $tmp = null, ?callable $output = null, bool $backupFirst = false): int
     {
         $progress = new RunProgress($run, $output);
         $progress->begin();
 
         $restore->setProgress($progress);
         try {
+            if ($backupFirst) {
+                static::backupBeforeRestore($progress, $output);
+            }
             $result = $restore->execute($file, $tmp);
             if ($restore->isConfigSkipped()) {
                 $progress->warn(strval(exmtrans('backup.message.restore_config_skipped')));
@@ -146,6 +153,35 @@ class BackupRuns
         } finally {
             $progress->releaseLock();
         }
+    }
+
+    /**
+     * A backup of the data now, before a restore replaces it (the targets of the settings). The
+     * restore does not start when it fails.
+     *
+     * @throws \RuntimeException
+     */
+    protected static function backupBeforeRestore(RunProgress $progress, ?callable $output = null): string
+    {
+        $progress->stage('safety');
+        $name = static::SAFETY_PREFIX . date('YmdHis');
+        $backup = new Backup();
+        // its own stages are not the restore's: only its output, and its result in the log
+        $backup->setProgress(new RunProgress(null, $output));
+        $backup->setFileName($name);
+        try {
+            $result = $backup->execute(System::backup_target());
+        } catch (\Throwable $e) {
+            $progress->error('the backup before the restore failed: ' . get_class($e) . ': ' . $e->getMessage());
+            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')), 0, $e);
+        }
+        if ($result !== 0) {
+            $progress->error('the backup before the restore failed', ['result' => $result]);
+            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')));
+        }
+        $progress->info('the backup before the restore', ['file' => $name]);
+        $progress->advance(1, 1);
+        return $name;
     }
 
     protected static function finished(RunProgress $progress, string $status, ?string $message): void

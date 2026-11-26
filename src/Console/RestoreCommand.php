@@ -21,7 +21,7 @@ class RestoreCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:restore {file?} {--tmp=} {--yes}';
+    protected $signature = 'exment:restore {file?} {--tmp=} {--yes} {--backup-first : back up the data now before it is replaced}';
 
     /**
      * The console command description.
@@ -76,7 +76,7 @@ class RestoreCommand extends Command
 
             $result = BackupRuns::runRestore($run, $this->restore, $file, $tmp, function (string $line) {
                 $this->line($line);
-            });
+            }, boolval($this->option('backup-first')));
             $this->line('Log: ' . BackupRuns::logRelativePath($run));
 
             if ($this->restore->isConfigSkipped()) {

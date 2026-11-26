@@ -1491,6 +1491,16 @@ return [
         ],
         'run' => [
             'screen' => [
+                'backup_first' => '还原之前',
+                'backup_first_option' => '备份当前数据（推荐）',
+                'backup_first_help' => '还原之前，以“beforerestore＋日期时间”的名称备份当前数据。出现问题时可以用它恢复。',
+                'preview' => '将被替换的内容',
+                'preview_none' => '无法在此读取该备份的内容。',
+                'preview_database' => '数据库（:count 个表）',
+                'preview_no_database' => '不包含数据库（当前数据库保持不变）',
+                'preview_folder' => ':name：:files 个文件（:size）',
+                'preview_env' => '设置（.env 的一部分）',
+                'preview_versions' => '创建时的版本：Exment :exment / Laravel :laravel（当前：Exment :current_exment / Laravel :current_laravel）',
                 'scope' => '备份内容',
                 'scopes' => [
                     'all' => '按设置（全部对象）',
@@ -1547,6 +1557,7 @@ return [
                 'stalled' => '已停止',
             ],
             'stages' => [
+                'safety' => '备份当前数据',
                 'prepare' => '准备',
                 'dump' => '导出数据库',
                 'files' => '复制文件',
@@ -1568,6 +1579,7 @@ return [
                 'stalled_restored' => '这是还原的备份创建时正在执行的记录。',
                 'verify_sha256' => '备份文件与创建时不同（sha256 不一致）。文件已损坏或是其他文件。未执行还原。',
                 'verify_read' => '无法读取备份中的文件（:name）。备份已损坏。未执行还原。',
+                'safety_failed' => '还原前的备份失败。未执行还原。请查看详细日志。',
             ],
             'hints' => [
                 'see_log' => '请查看详细日志。',

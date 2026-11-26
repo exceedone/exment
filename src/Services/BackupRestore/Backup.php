@@ -23,6 +23,18 @@ class Backup
         'woff', 'woff2',
     ];
 
+    /** The name of the backup file (without .zip); null: the time. */
+    protected ?string $fileName = null;
+
+    /**
+     * @return $this
+     */
+    public function setFileName(?string $fileName)
+    {
+        $this->fileName = $fileName;
+        return $this;
+    }
+
     /**
      * Create a new command instance.
      *
@@ -67,7 +79,7 @@ class Backup
                 })->filter()->toArray();
             }
 
-            $this->initBackupRestore($progress->run()?->file_name);
+            $this->initBackupRestore($this->fileName ?? $progress->run()?->file_name);
             $this->recordFileName();
             $progress->info('targets', ['targets' => implode(',', array_map('strval', (array) $target)), 'free_bytes' => static::freeBytes($this->diskService->tmpDiskItem()->dirFullPath())]);
 

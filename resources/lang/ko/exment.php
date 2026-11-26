@@ -1491,6 +1491,16 @@ return [
         ],
         'run' => [
             'screen' => [
+                'backup_first' => '복원 전에',
+                'backup_first_option' => '현재 데이터를 백업하기(권장)',
+                'backup_first_help' => '복원 전에 현재 데이터를 "beforerestore+날짜와 시간" 이름으로 백업합니다. 문제가 생기면 이것으로 되돌릴 수 있습니다.',
+                'preview' => '바뀌는 내용',
+                'preview_none' => '이 백업의 내용은 여기에서 읽을 수 없습니다.',
+                'preview_database' => '데이터베이스(:count개 테이블)',
+                'preview_no_database' => '데이터베이스가 없습니다(현재 데이터베이스는 그대로입니다)',
+                'preview_folder' => ':name: 파일 :files개(:size)',
+                'preview_env' => '설정(.env 일부)',
+                'preview_versions' => '만든 때의 버전: Exment :exment / Laravel :laravel (현재: Exment :current_exment / Laravel :current_laravel)',
                 'scope' => '포함할 내용',
                 'scopes' => [
                     'all' => '설정대로(모든 대상)',
@@ -1547,6 +1557,7 @@ return [
                 'stalled' => '멈춤',
             ],
             'stages' => [
+                'safety' => '현재 데이터 백업',
                 'prepare' => '준비',
                 'dump' => '데이터베이스 내보내기',
                 'files' => '파일 복사',
@@ -1568,6 +1579,7 @@ return [
                 'stalled_restored' => '복원한 백업을 만들 때 실행 중이던 기록입니다.',
                 'verify_sha256' => '백업 파일이 만들었을 때와 다릅니다(sha256이 맞지 않습니다). 손상되었거나 다른 파일입니다. 복원하지 않았습니다.',
                 'verify_read' => '백업 안의 파일을 읽을 수 없습니다(:name). 백업이 손상되었습니다. 복원하지 않았습니다.',
+                'safety_failed' => '복원 전 백업에 실패했습니다. 복원하지 않았습니다. 자세한 로그를 확인해 주세요.',
             ],
             'hints' => [
                 'see_log' => '자세한 로그를 확인해 주세요.',
