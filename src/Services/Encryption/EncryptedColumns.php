@@ -136,6 +136,85 @@ EOT);
     }
 
     /**
+     * Whether a value has the form of a masked value ("****", "****1234"): what an export or the
+     * API gives. It is never written into an encrypted column.
+     *
+     * @param mixed $value
+     */
+    public static function isMaskLike($value): bool
+    {
+        return is_string($value) && preg_match('/^' . preg_quote(EncryptedValue::MASK, '/') . '.{0,4}$/u', $value) === 1;
+    }
+
+    /**
+     * The masked value of what a row keeps now in a column ('' when it keeps none).
+     *
+     * @param mixed $stored the value of the json in the database (encrypted, or plain before the conversion)
+     */
+    public static function currentMask(CustomColumn $column, $stored): string
+    {
+        return is_nullorempty($stored) ? '' : static::masked($column, $stored);
+    }
+
+    /**
+     * The errors of a save (the form, the API, an import: CustomTable::validateValue) that gives an
+     * encrypted column a masked value other than the masked value it has now: it would write
+     * "****" over the real value. The masked value it has now is taken as "not changed".
+     *
+     * @param mixed $input the values of the save (an array; anything else has no errors)
+     * @param mixed $custom_value
+     * @param array<string, mixed> $options
+     * @return array<string, array<int, string>>
+     */
+    public static function maskErrors(CustomTable $table, $input, $custom_value, array $options = []): array
+    {
+        if (!is_array($input) || count(static::namesOf($table)) === 0) {
+            return [];
+        }
+        $valuePrefix = boolval(array_get($options, 'addValue', true)) ? 'value.' : '';
+        $errorPrefix = strval(array_get($options, 'column_name_prefix'));
+        $original = [];
+        if ($custom_value instanceof CustomValue && $custom_value->exists) {
+            $original = json_decode_ex($custom_value->getRawOriginal('value'), true);
+            $original = is_array($original) ? $original : [];
+        }
+        $errors = [];
+        foreach ($table->custom_columns_cache as $column) {
+            if (!static::isEncrypted($column) || !array_has($input, $valuePrefix . $column->column_name)) {
+                continue;
+            }
+            $value = array_get($input, $valuePrefix . $column->column_name);
+            if (!static::isMaskLike($value)) {
+                continue;
+            }
+            if ($value === static::currentMask($column, $original[$column->column_name] ?? null)) {
+                continue;
+            }
+            $errors[$errorPrefix . $column->column_name] = [strval(exmtrans('encrypted.masked_input'))];
+        }
+        return $errors;
+    }
+
+    /**
+     * The json of a row as it leaves Exment (the API, MCP): the encrypted columns masked.
+     *
+     * @param mixed $values
+     * @return mixed
+     */
+    public static function maskValues($values, ?CustomTable $table)
+    {
+        if (!is_array($values) || !isset($table)) {
+            return $values;
+        }
+        foreach ($table->custom_columns_cache as $column) {
+            if (static::isEncrypted($column) && array_key_exists($column->column_name, $values)) {
+                $values[$column->column_name] = static::masked($column, $values[$column->column_name]);
+            }
+        }
+        return $values;
+    }
+
+    /**
      * The names of the encrypted columns of a table.
      *
      * @param CustomTable|null $table
@@ -203,6 +282,17 @@ EOT);
             $before = $original[$name] ?? null;
             if ($keepEmpty && is_nullorempty($value) && EncryptedValue::isEncrypted($before)) {
                 $values[$name] = $before;
+                $changed = true;
+                continue;
+            }
+            // a masked value (an export imported again, the API): the value stays as it was.
+            // One that is not the masked value it has was refused by maskErrors; never written
+            if (static::isMaskLike($value)) {
+                if (isset($before)) {
+                    $values[$name] = $before;
+                } else {
+                    unset($values[$name]);
+                }
                 $changed = true;
                 continue;
             }

@@ -39,6 +39,10 @@ class DocumentMapper
     {
         $fields = [];
         foreach ($columns as $column) {
+            // an encrypted column is not sent to the search server (ISS00148)
+            if (\Exceedone\Exment\Services\Encryption\EncryptedColumns::isEncrypted($column)) {
+                continue;
+            }
             $value = $record->getValue($column, true);
             // A multi-select value may be an array -> merge into a string for easier search.
             if (is_array($value)) {

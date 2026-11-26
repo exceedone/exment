@@ -318,6 +318,18 @@ class ApiDataController extends AdminControllerTableBase
      *
      * @return mixed
      */
+    /**
+     * The plain value of an encrypted column (ISS00148): the API gives these columns masked.
+     * Only for a user with "Show the encrypted values" of the table who may read the record;
+     * written to the data access log (kind reveal, via api) each time.
+     *
+     * @param mixed $id
+     */
+    public function dataReveal(Request $request, string $tableKey, $id, string $column): \Illuminate\Http\JsonResponse
+    {
+        return (new EncryptedValueController())->reveal($tableKey, $id, $column);
+    }
+
     // @phpstan-ignore-next-line
     public function dataCellHtml(Request $request, $tableKey, $id, $columnName)
     {

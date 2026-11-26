@@ -5211,6 +5211,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'reveal' => 'Anzeigen',
         'unreadable' => '(nicht lesbar: kein Schlüssel)',
         'form_help' => 'Dieser Wert ist verschlüsselt gespeichert. Leer gelassen, bleibt der bisherige Wert. Geben Sie nur zum Ändern einen neuen Wert ein.',
+        'masked_input' => 'Ein maskierter Wert (****1234) wird nur als „nicht geändert“ angenommen, wenn er die maskierte Form des jetzigen Werts ist. Um den Wert zu ändern, geben Sie den ganzen neuen Wert ein.',
+        'masked_form' => 'Das sieht wie ein maskierter Wert aus. Geben Sie den ganzen Wert ein, oder lassen Sie das Feld leer, um den jetzigen zu behalten.',
     ],
     'audit_report' => [
         'api_allowed' => 'Darf',

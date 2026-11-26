@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\ConditionType;
 use Exceedone\Exment\Enums\ColumnType;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomColumn;
+use Exceedone\Exment\Services\Encryption\EncryptedColumns;
 use Exceedone\Exment\Model\CustomRelation;
 use Exceedone\Exment\Model\File as ExmentFile;
 use Exceedone\Exment\Services\UserTimezone;
@@ -224,6 +225,11 @@ class DefaultTableProvider extends ProviderBase
                 if ($view_column_type == ConditionType::SYSTEM && in_array($column, ['created_at', 'updated_at', 'deleted_at'], true)) {
                     return UserTimezone::formatToUser($value);
                 }
+            }
+
+            // an encrypted column is exported masked (ISS00148)
+            if ($view_column_type == ConditionType::COLUMN && $column instanceof CustomColumn && EncryptedColumns::isEncrypted($column)) {
+                return EncryptedColumns::masked($column, $value);
             }
 
             // if $view_column_type is column, get customcolumn
