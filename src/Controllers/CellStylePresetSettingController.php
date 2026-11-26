@@ -81,7 +81,7 @@ class CellStylePresetSettingController extends AdminControllerBase
 
         $order_column = $grid->column('order', exmtrans('custom_view.order'));
         $order_column->sortable();
-        $order_column->editable();
+        $order_column->text();
         $grid->column('updated_at', trans('admin.updated_at'))->sortable();
 
         // The pickers list presets in this same order, so the screen that

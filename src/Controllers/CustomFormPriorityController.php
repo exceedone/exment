@@ -93,6 +93,10 @@ class CustomFormPriorityController extends AdminControllerTableBase
         $table_name = $this->custom_table->table_name;
 
         $form->saved(function ($form) use ($table_name) {
+            // the inline edit of the list (the order) takes the JSON answer of the form
+            if (request()->has('_edit_inline')) {
+                return;
+            }
             admin_toastr(trans('admin.update_succeeded'));
             return redirect(admin_url("form/$table_name"));
         });

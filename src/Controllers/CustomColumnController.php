@@ -151,7 +151,7 @@ class CustomColumnController extends AdminControllerTableBase
         $grid->column('unique', exmtrans("custom_column.options.unique"))->display(function ($val) {
             return \Exment::getTrueMark($val);
         })->escape(false);
-        $grid->column('order', exmtrans("custom_column.order"))->sortable()->editable();
+        $grid->column('order', exmtrans("custom_column.order"))->sortable()->text();
 
         if (isset($this->custom_table)) {
             $grid->model()->where('custom_table_id', $this->custom_table->id);
