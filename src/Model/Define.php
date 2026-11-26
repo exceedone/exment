@@ -179,9 +179,11 @@ class Define
         'system_mail_auth' => ['group' => 'mail_oauth'],
         'system_mail_oauth_tenant' => ['group' => 'mail_oauth'],
         'system_mail_oauth_client_id' => ['group' => 'mail_oauth'],
-        'system_mail_oauth_client_secret' => ['type' => 'password', 'group' => 'mail_oauth'],
+        // "data_key": kept with the keys of the encrypted columns when the site has them (ISS02929,
+        // Services\Encryption\Secrets), else with APP_KEY
+        'system_mail_oauth_client_secret' => ['type' => 'password', 'group' => 'mail_oauth', 'data_key' => true],
         // set by connecting the mailbox (Google), not by the setting page
-        'system_mail_oauth_refresh_token' => ['type' => 'password', 'group' => 'mail_oauth_state'],
+        'system_mail_oauth_refresh_token' => ['type' => 'password', 'group' => 'mail_oauth_state', 'data_key' => true],
         'system_mail_oauth_connected_at' => ['group' => 'mail_oauth_state'],
 
         'system_slack_user_column' => ['group' => 'notify'],
@@ -192,9 +194,9 @@ class Define
         'system_teams_workflow_url' => ['type' => 'password', 'group' => 'notify'],
         // the LINE WORKS app (ISS00114): the secret and the private key kept encrypted, never shown again
         'system_lineworks_client_id' => ['group' => 'notify'],
-        'system_lineworks_client_secret' => ['type' => 'password', 'group' => 'notify'],
+        'system_lineworks_client_secret' => ['type' => 'password', 'group' => 'notify', 'data_key' => true],
         'system_lineworks_service_account' => ['group' => 'notify'],
-        'system_lineworks_private_key' => ['type' => 'password', 'group' => 'notify'],
+        'system_lineworks_private_key' => ['type' => 'password', 'group' => 'notify', 'data_key' => true],
         'system_lineworks_bot_id' => ['group' => 'notify'],
         // the column of the users with their LINE WORKS id (the mail address by default)
         'system_lineworks_user_column' => ['group' => 'notify'],

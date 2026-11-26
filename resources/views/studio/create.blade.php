@@ -279,6 +279,7 @@
         'required' => exmtrans('studio.required'),
         'choices' => exmtrans('studio.choices'),
         'choices_help' => exmtrans('studio.choices_help'),
+        'choices_help_valtext' => exmtrans('studio.choices_help_valtext'),
         'auto' => exmtrans('studio.auto_name'),
         'up' => exmtrans('studio.move_up'),
         'down' => exmtrans('studio.move_down'),
@@ -505,7 +506,15 @@
             case 'yesno': case 'boolean':
                 input = el('div', {}, [el('label', { text: '◉ ' + t.yes + '　' }), el('label', { text: '○ ' + t.no })]);
                 break;
-            case 'user': case 'organization': case 'select_table': case 'select_valtext':
+            case 'select_valtext':
+                // "value,label": the label is shown
+                input = el('select', { className: 'form-control', tabindex: '-1' });
+                (choices || '').split('\n').filter(function (c) { return c.trim() !== ''; }).forEach(function (c) {
+                    var pair = c.split(',');
+                    input.appendChild(el('option', { text: (pair.length > 1 ? pair.slice(1).join(',') : pair[0]).trim() }));
+                });
+                break;
+            case 'user': case 'organization': case 'select_table':
                 input = el('select', { className: 'form-control', tabindex: '-1' }); break;
             case 'file': case 'image': input = el('input', { type: 'file', className: 'form-control', tabindex: '-1' }); break;
             case 'calc': input = el('input', { type: 'text', className: 'form-control', tabindex: '-1', placeholder: '= ' + (choices || '') }); break;
@@ -540,6 +549,8 @@
     function choicesOf(field) {
         if (isColumn(field)) { return (columnOf(field.column_id) || {}).choices || []; }
         if (field.type === 'select') { return field.choices.split('\n').map(function (c) { return c.trim(); }).filter(function (c) { return c !== ''; }); }
+        // a "value,label" item is compared by its value
+        if (field.type === 'select_valtext') { return field.choices.split('\n').map(function (c) { return c.split(',')[0].trim(); }).filter(function (c) { return c !== ''; }); }
         return [];
     }
     function isYesNo(field) {
@@ -634,7 +645,7 @@
             ]),
         ]);
         if (part.choices) {
-            var choices = el('textarea', { className: 'form-control', rows: '3', placeholder: t.choices_help });
+            var choices = el('textarea', { className: 'form-control', rows: '3', placeholder: field.type === 'select_valtext' ? t.choices_help_valtext : t.choices_help });
             choices.value = field.choices;
             // only this item's preview is drawn again: drawing the whole list would
             // swallow the click that took the focus away from here
@@ -986,7 +997,7 @@
                     del,
                 ]);
                 if (part.choices) {
-                    var choices = el('textarea', { className: 'form-control input-sm exm-builder-child-choices', rows: '2', placeholder: t.choices_help, 'aria-label': t.choices });
+                    var choices = el('textarea', { className: 'form-control input-sm exm-builder-child-choices', rows: '2', placeholder: field.type === 'select_valtext' ? t.choices_help_valtext : t.choices_help, 'aria-label': t.choices });
                     choices.value = field.choices;
                     choices.addEventListener('input', function () { field.choices = choices.value; });
                     li.appendChild(choices);

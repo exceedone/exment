@@ -93,7 +93,8 @@ class EncryptedColumns
         if (EncryptedValue::isEncrypted($value)) {
             $plain = EncryptedValue::decrypt($value);
             if (!isset($plain)) {
-                return strval(exmtrans('encrypted.unreadable'));
+                // the service of the keys not reached now (ISS02929), or the key is not here
+                return strval(exmtrans(DataKeys::unavailable() !== null ? 'encrypted.unavailable' : 'encrypted.unreadable'));
             }
             $value = $plain;
         }
