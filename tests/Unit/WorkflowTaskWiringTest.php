@@ -594,7 +594,7 @@ class WorkflowTaskWiringTest extends TestCase
 
     /**
      * The date filter is drawn like every other date input of the admin screens: a text box with
-     * the bootstrap datetimepicker, in the format the service reads (yyyy-mm-dd) and in the
+     * flatpickr (admin-core 2.0), in the format the service reads (yyyy-mm-dd) and in the
      * language of APP_LOCALE - the same setup as the 更新日時 filter of the data grid
      * (laravel-admin Grid\Filter\Between::date()).
      *
@@ -608,7 +608,8 @@ class WorkflowTaskWiringTest extends TestCase
         $blade = $this->read('resources/views/workflow_task/index.blade.php');
 
         $this->assertStringNotContainsString('type="date"', $blade, 'the browser draws type=date in the OS locale');
-        $this->assertStringContainsString('.datetimepicker(', $blade);
+        $this->assertStringContainsString('window.flatpickr(from, config)', $blade);
+        $this->assertStringNotContainsString('.datetimepicker(', $blade, 'admin-core 2.0 has no datetimepicker');
         $this->assertStringContainsString('var options = {!! json_encode($dateOptions, ', $blade, 'the pickers must get the options the controller sets up');
         $this->assertStringContainsString('autocomplete="off"', $blade, 'the browser history would cover the calendar');
 

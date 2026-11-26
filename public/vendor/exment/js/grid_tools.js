@@ -2332,6 +2332,10 @@
       && attachDatePicker(td, editor, meta, cfg);
     var showCalendar = function () {
       try {
+        if (editor._flatpickr) {
+          editor._flatpickr.open();
+          return;
+        }
         var picker = window.jQuery(editor).data('DateTimePicker');
         if (picker) picker.show();
       } catch (e) { /* the editor still takes typed text */ }
@@ -2587,10 +2591,11 @@
   /* ----------------------------------------------- date editor calendar --- */
 
   // Exment's own date fields (ExmentAdminCore Form/Field/Date, Datetime) use
-  // eonasdan's bootstrap-datetimepicker with moment, and the admin layout
-  // already loads both. The formats are those fields' formats: the text is
-  // posted as is.
+  // flatpickr from admin-core 2.0, eonasdan's bootstrap-datetimepicker with
+  // moment before. The formats are those fields' formats: the text is posted
+  // as is.
   var DATE_FORMATS = { date: 'YYYY-MM-DD', datetime: 'YYYY-MM-DD HH:mm:ss' };
+  var FLATPICKR_FORMATS = { date: 'Y-m-d', datetime: 'Y-m-d H:i:S' };
   var DATE_ICONS = {
     time: 'fa fa-clock-o',
     date: 'fa fa-calendar',
@@ -2656,6 +2661,7 @@
    * what is typed. Returns whether a calendar was attached.
    */
   function attachDatePicker(td, editor, meta, cfg) {
+    if (typeof window.flatpickr === 'function') return attachFlatpickr(td, editor, meta, cfg);
     if (!datePickerAvailable()) return false;
     var $input = window.jQuery(editor);
     $input.datetimepicker({
@@ -2720,6 +2726,58 @@
       try {
         var picker = $input.data('DateTimePicker');
         if (picker) picker.destroy();
+      } catch (e) {
+        /* already gone with its input */
+      }
+    };
+    return true;
+  }
+
+  /**
+   * The calendar of admin-core 2.0: flatpickr. It puts its calendar on
+   * <body> and places it next to the input itself, so it is not clipped by
+   * the grid's scrolling box.
+   */
+  function attachFlatpickr(td, editor, meta, cfg) {
+    var fp = window.flatpickr;
+    var l10ns = fp.l10ns || {};
+    var lang = String((cfg && cfg.locale) || document.documentElement.lang || '').toLowerCase().replace('_', '-');
+    var locale = l10ns[lang] ? lang : (l10ns[lang.split('-')[0]] ? lang.split('-')[0] : null);
+    var options = {
+      dateFormat: FLATPICKR_FORMATS[meta.type],
+      enableTime: meta.type === 'datetime',
+      enableSeconds: meta.type === 'datetime',
+      time_24hr: true,
+      allowInput: true,
+      // opened by the editor (showCalendar), not by every click in it
+      clickOpens: false,
+      // Picking a day IS the decision for a date, as picking an option is
+      // for a select. A datetime still has its time to set, so it closes the
+      // way a typed input does: Enter, or a click elsewhere.
+      onChange: function () {
+        if (meta.type !== 'date') return;
+        if (!editor._exmPickerDown || Date.now() - editor._exmPickerDown > 1000) return;
+        setTimeout(function () {
+          if (!td.classList.contains('exm-editing')) return;
+          finishInlineEditor(td, true);
+          kbdAfterEdit(td, null);
+        }, 0);
+      }
+    };
+    if (locale) options.locale = locale;
+    var instance = fp(editor, options);
+    if (!instance || !instance.calendarContainer) return false;
+
+    var onDown = function (ev) {
+      if (instance.calendarContainer.contains(ev.target)) editor._exmPickerDown = Date.now();
+    };
+    document.addEventListener('mousedown', onDown, true);
+
+    editor._exmDetachPicker = function () {
+      editor._exmDetachPicker = null;
+      document.removeEventListener('mousedown', onDown, true);
+      try {
+        instance.destroy();
       } catch (e) {
         /* already gone with its input */
       }

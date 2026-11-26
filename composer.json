@@ -41,7 +41,7 @@
         "laravel/socialite": "^5.20",
         "bacon/bacon-qr-code": "^3.0",
         "elibyy/tcpdf-laravel": "^11.4",
-        "exceedone/exment-admin-core": "^1.0.6"
+        "exceedone/exment-admin-core": "^2.0"
     },
     "suggest": {
         "directorytree/ldaprecord": "Required to use the LDAP login. Install with: composer require directorytree/ldaprecord",

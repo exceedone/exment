@@ -1526,6 +1526,14 @@ namespace Exment {
         private static addFieldEvent() {
             var SELECTOR = CommonEvent.DATE_INPUT_SELECTOR;
 
+            // admin-core 2.0: flatpickr. It puts its calendar on <body> and places it itself, so the
+            // positioning fixes of the old datetimepicker below are not needed.
+            if (typeof (window as any).flatpickr === 'function') {
+                CommonEvent.addFlatpickrs(SELECTOR);
+                CommonEvent.addCheckFields();
+                return;
+            }
+
             // Lazy init/show (installed once): covers pages where the datetimepicker plugin loads after the initial AddEvent().
             if (!(window as any).__exment_datepicker_lazy_init) {
                 (window as any).__exment_datepicker_lazy_init = true;
@@ -1651,6 +1659,36 @@ namespace Exment {
                     CommonEvent.initDatePicker($elem);
                 });
             }
+            CommonEvent.addCheckFields();
+        }
+        /**
+         * The date inputs of Exment (DATE_INPUT_SELECTOR) with a flatpickr calendar, once an input,
+         * yyyy-mm-dd, in the language of the screen (<html lang>).
+         */
+        private static addFlatpickrs(selector: string) {
+            var fp: any = (window as any).flatpickr;
+            var l10ns: any = fp.l10ns || {};
+            var lang = String(document.documentElement.lang || '').toLowerCase().replace('_', '-');
+            var config: any = { dateFormat: 'Y-m-d', allowInput: true };
+            if (l10ns[lang]) {
+                config.locale = lang;
+            }
+            else if (l10ns[lang.split('-')[0]]) {
+                config.locale = lang.split('-')[0];
+            }
+            $(selector).each(function (index: number, elem: any) {
+                if (elem.tagName !== 'INPUT' || elem._flatpickr || !CommonEvent.isExmentDatePickerInput($(elem))) {
+                    return;
+                }
+                fp(elem, config);
+                $(elem).addClass('added-datepicker');
+            });
+        }
+        /**
+         * The check boxes added by Exment ([data-add-icheck]): native ones, iCheck only when a page
+         * still loads it.
+         */
+        private static addCheckFields() {
             $('[data-add-icheck]').not('.added-icheck').each(function (index: number, elem: Element) {
                 // without iCheck the checkbox stays a native one
                 if (CommonEvent.hasICheck()) {
