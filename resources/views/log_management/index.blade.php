@@ -28,6 +28,9 @@
                         @if($type['key'] === 'browser_log')
                             <a href="{{ admin_urls('log_management', 'browser') }}" class="small">{{ exmtrans('browser_log.open') }}</a>
                         @endif
+                        @if($type['key'] === 'mcp_log')
+                            <a href="{{ admin_urls('log_management', 'mcp') }}" class="small">{{ exmtrans('mcp_log.open') }}</a>
+                        @endif
                     </td>
                     <td>
                         @if(is_null($type['retention_days']))

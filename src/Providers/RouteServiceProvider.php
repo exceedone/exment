@@ -258,6 +258,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('log_management/logins.csv', 'LogManagementController@loginsCsv');
             $router->get('log_management/browser', 'BrowserLogController@index');
             $router->post('log_management/browser/setting', 'BrowserLogController@postSetting');
+            // the log of the MCP calls (ISS02915)
+            $router->get('log_management/mcp', 'McpLogController@index');
+            $router->post('log_management/mcp/setting', 'McpLogController@postSetting');
             $router->get('log_management/files/{name}', 'LogManagementController@file')->where('name', '[A-Za-z0-9._-]+');
             $router->get('log_management/archives/{kind}/{name}', 'LogManagementController@archive')->where(['kind' => '[a-z0-9_]+', 'name' => '[A-Za-z0-9._-]+']);
             // the IT audit report (ISS02840)

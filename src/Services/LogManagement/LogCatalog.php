@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\LogManagement;
 
 use Carbon\Carbon;
 use Exceedone\Exment\Model\BrowserLog;
+use Exceedone\Exment\Model\McpLog;
 use Exceedone\Exment\Model\DataAccessDaily;
 use Exceedone\Exment\Model\DataAccessLog;
 use Exceedone\Exment\Model\LoginLog;
@@ -394,6 +395,49 @@ class LogCatalog
                 },
                 'count' => function () {
                     return BrowserLog::tableExists() ? BrowserLog::query()->count() : 0;
+                },
+            ],
+            // the log of the MCP calls (ISS02915)
+            'mcp_log' => [
+                'archive' => function () {
+                    return LogArchiver::enabled();
+                },
+                'compress' => function () {
+                    return LogArchiver::enabled();
+                },
+                'label' => 'exment::exment.log_management.types.mcp_log',
+                'location' => 'database',
+                'size' => function () {
+                    return LogSize::logTable('mcp_logs');
+                },
+                'retention' => function () {
+                    return static::days(System::log_retention_mcp_log(), McpLogs::DEFAULT_DAYS);
+                },
+                'prune' => function (Carbon $before) {
+                    if (!McpLog::tableExists()) {
+                        return 0;
+                    }
+                    $deleted = 0;
+                    do {
+                        $rows = McpLog::query()->where('created_at', '<', $before)->orderBy('id')->limit(1000)->get();
+                        $ids = $rows->pluck('id')->all();
+                        if (!empty($ids)) {
+                            if (LogArchiver::enabled()) {
+                                LogArchiver::rows('mcp_log', McpLogs::COLUMNS, $rows->map(function ($row) {
+                                    return array_map(function ($column) use ($row) {
+                                        return $column === 'created_at' ? optional($row->created_at)->format('Y-m-d H:i:s') : $row->{$column};
+                                    }, McpLogs::COLUMNS);
+                                })->all(), function ($row) {
+                                    return substr(strval($row[array_search('created_at', McpLogs::COLUMNS, true)]), 0, 7);
+                                });
+                            }
+                            $deleted += McpLog::query()->whereIn('id', $ids)->delete();
+                        }
+                    } while (count($ids) === 1000);
+                    return $deleted;
+                },
+                'count' => function () {
+                    return McpLog::tableExists() ? McpLog::query()->count() : 0;
                 },
             ],
         ];
