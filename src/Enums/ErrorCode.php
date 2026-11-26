@@ -25,6 +25,7 @@ namespace Exceedone\Exment\Enums;
  * @method static ErrorCode WORKFLOW_END()
  * @method static ErrorCode WORKFLOW_ACTION_DISABLED()
  * @method static ErrorCode DISAPPROVAL_IP()
+ * @method static ErrorCode API_NOT_ALLOWED()
  * @method static ErrorCode NOT_CONTAINS_CUSTOM_FORM()
  * @method static ErrorCode ONE_RECORD_ALREADY()
  * @method static ErrorCode WORKFLOW_NOT_HAS_NEXT_USER()
@@ -54,6 +55,8 @@ class ErrorCode extends EnumBase
     public const WORKFLOW_ACTION_DISABLED = '204';
     public const WORKFLOW_NOT_HAS_NEXT_USER = '205';
     public const DISAPPROVAL_IP = '301';
+    // the user may not use the API (the API setting, ISS02915)
+    public const API_NOT_ALLOWED = '302';
     public const NOT_CONTAINS_CUSTOM_FORM = '401';
     // a refusal told to the user as it is (the message of the exception): a limit of the site
     public const ERROR_CODE_VALIDATION_FAILED = '1000';

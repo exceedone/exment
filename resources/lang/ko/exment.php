@@ -527,6 +527,10 @@ return [
         'ip_filter' => 'IP 필터 설정',
         'web_ip_filters' => 'Web 페이지',
         'api_ip_filters' => 'API',
+        'api_users' => 'API 사용자',
+        'api_allowed_users' => '사용자',
+        'api_allowed_organizations' => '조직',
+        'api_allowed_role_groups' => '역할 그룹',
         'publicform' => '공개 폼 설정',
         'publicform_available' => '공개 폼 사용',
         'recaptcha_type' => 'Google reCAPTCHA',
@@ -711,6 +715,7 @@ return [
             'filter_multi_orguser' => '로그인 사용자가 다른 사용자 및 조직을 볼 수 있는 범위를 설정합니다. ※여러 회사에 걸쳐 사용하는 포털 사이트 등 다른 사용자 정보를 표시하고 싶지 않은 경우에 설정하십시오.',
             'custom_value_save_autoshare' => '사용자가 사용자 정의 데이터를 새로 작성할 때의 자동 공유 방법을 설정합니다. 기본값은 로그인 사용자만이며, 설정에 따라 소속 조직과도 공유할 수 있습니다.',
             'ip_filter' => '통신을 허용할 IP 주소를 설정합니다. 고정 IP(예: 12.3.5.6) 및 범위 지정 형식(예: 123.4.5.0/24, 2001:db8::/32)을 사용할 수 있습니다. 설정하지 않으면 모든 IP 주소를 허용합니다. <br /> 여러 개를 설정하려면 줄바꿈으로 구분하십시오.',
+            'api_users' => 'API를 사용할 수 있는 사람입니다. OAuth 액세스 토큰, API 키, MCP, 플러그인 API에 적용됩니다. 아무것도 선택하지 않으면 지금처럼 모든 사용자가 사용할 수 있습니다. 시스템 관리자는 항상 사용할 수 있습니다. 거부된 호출은 403(오류 코드 302)이 됩니다.',
             'publicform_available' => 'YES로 설정하면 로그인하지 않아도 일반 사용자가 데이터를 입력할 수 있는 공개 폼을 사용할 수 있습니다.',
             'recaptcha_type' => 'Google reCAPTCHA를 사용하는 경우, 사용할 Google reCAPTCHA 버전을 선택하십시오.',
             'recaptcha_site_key' => '공개 폼에서 Google reCAPTCHA를 사용하는 경우 사이트 키를 입력하십시오. ※설정 후 각 공개 폼에서 Google reCAPTCHA 사용 여부를 선택합니다.',
@@ -4648,6 +4653,7 @@ IP 주소: :ip
             'invalid_user' => 'ID:%s 사용자가 존재하지 않습니다.',
             'invalid_organization' => 'ID:%s 조직이 존재하지 않습니다.',
             'disapproval_ip' => '허용되지 않은 IP 주소입니다.',
+            'api_not_allowed' => '이 사용자는 API를 사용할 수 없습니다.',
             'already_deleted' => '이미 삭제된 데이터입니다.',
             'plugin_not_found' => '플러그인을 찾을 수 없습니다.',
             'wrong_view_and_table' => '대상 테이블과 뷰가 서로 다릅니다.',
@@ -5186,6 +5192,8 @@ IP 주소: :ip
     ],
     // ISS02839
     'audit_report' => [
+        'api_allowed' => '사용 가능',
+        'api_not_allowed' => '사용 불가',
         'permission_list' => [
             'system_admin' => '시스템 관리자',
             'no_permission_setting' => '권한 미사용',
@@ -5336,6 +5344,7 @@ IP 주소: :ip
         ],
         'column' => [
             'permission' => '권한',
+            'api' => 'API',
             'can_edit' => '변경 가능',
             'sources' => '출처',
             'editors' => '변경 가능한 사용자',

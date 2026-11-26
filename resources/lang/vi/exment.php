@@ -527,6 +527,10 @@ return [
         'ip_filter' => 'Cài đặt bộ lọc IP',
         'web_ip_filters' => 'Trang web',
         'api_ip_filters' => 'API',
+        'api_users' => 'Người dùng API',
+        'api_allowed_users' => 'Người dùng',
+        'api_allowed_organizations' => 'Tổ chức',
+        'api_allowed_role_groups' => 'Nhóm vai trò',
         'publicform' => 'Cài đặt biểu mẫu công khai',
         'publicform_available' => 'Sử dụng biểu mẫu công khai',
         'recaptcha_type' => 'Google reCAPTCHA',
@@ -711,6 +715,7 @@ return [
             'filter_multi_orguser' => 'Thiết lập phạm vi người dùng/tổ chức khác mà người dùng đăng nhập có thể xem. *Vui lòng thiết lập khi không muốn hiển thị thông tin người dùng khác, chẳng hạn như cổng thông tin dùng chung giữa nhiều công ty.',
             'custom_value_save_autoshare' => 'Thiết lập cách chia sẻ tự động khi người dùng tạo mới dữ liệu tùy chỉnh. Mặc định chỉ người dùng đăng nhập, và tùy theo cài đặt có thể chia sẻ với tổ chức trực thuộc.',
             'ip_filter' => 'Thiết lập địa chỉ IP được phép giao tiếp. Có thể dùng IP cố định (ví dụ: 12.3.5.6) và định dạng chỉ định dải (ví dụ: 123.4.5.0/24, 2001:db8::/32). Nếu không thiết lập, tất cả địa chỉ IP đều được cho phép. <br /> Nếu muốn thiết lập nhiều địa chỉ, vui lòng phân cách bằng xuống dòng.',
+            'api_users' => 'Ai có thể dùng API: mã truy cập OAuth, khóa API, MCP và API của plugin. Nếu không chọn gì, mọi người dùng đều có thể (như trước). Quản trị viên hệ thống luôn có thể. Lời gọi bị từ chối nhận 403 với mã lỗi 302.',
             'publicform_available' => 'Khi chọn YES, có thể sử dụng biểu mẫu công khai cho phép người dùng thông thường nhập dữ liệu mà không cần đăng nhập.',
             'recaptcha_type' => 'Nếu sử dụng Google reCAPTCHA, vui lòng chọn phiên bản Google reCAPTCHA muốn sử dụng.',
             'recaptcha_site_key' => 'Nếu muốn sử dụng Google reCAPTCHA trong biểu mẫu công khai, vui lòng nhập khóa trang web. *Sau khi thiết lập, hãy chọn có sử dụng Google reCAPTCHA trong từng biểu mẫu công khai hay không.',
@@ -4648,6 +4653,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'invalid_user' => 'Không tồn tại người dùng có ID:%s.',
             'invalid_organization' => 'Không tồn tại tổ chức có ID:%s.',
             'disapproval_ip' => 'Địa chỉ IP không được phép.',
+            'api_not_allowed' => 'Người dùng này không được dùng API.',
             'already_deleted' => 'Dữ liệu này đã bị xóa.',
             'plugin_not_found' => 'Không tìm thấy plugin.',
             'wrong_view_and_table' => 'Bảng đối tượng và chế độ xem không khớp nhau.',
@@ -5186,6 +5192,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
     ],
     // ISS02839
     'audit_report' => [
+        'api_allowed' => 'Được dùng',
+        'api_not_allowed' => 'Không được dùng',
         'permission_list' => [
             'system_admin' => 'Quản trị viên hệ thống',
             'no_permission_setting' => 'Không dùng quyền',
@@ -5336,6 +5344,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         ],
         'column' => [
             'permission' => 'Quyền',
+            'api' => 'API',
             'can_edit' => 'Có thể thay đổi',
             'sources' => 'Từ',
             'editors' => 'Người có thể thay đổi',

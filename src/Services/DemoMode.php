@@ -137,6 +137,9 @@ class DemoMode
         // IP filter: could lock every visitor out
         'web_ip_filters',
         'api_ip_filters',
+        'api_allowed_users',
+        'api_allowed_organizations',
+        'api_allowed_role_groups',
         // reCAPTCHA keys
         'recaptcha_type',
         'recaptcha_site_key',

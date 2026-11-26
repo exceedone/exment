@@ -199,7 +199,7 @@ class AuditReport
     {
         switch ($key) {
             case 'users':
-                return ['user_code', 'user_name', 'login_type', 'mfa', 'last_login', 'password_changed', 'created_at', 'system_permissions'];
+                return ['user_code', 'user_name', 'login_type', 'mfa', 'last_login', 'password_changed', 'created_at', 'system_permissions', 'api'];
             case 'inactive':
                 return ['user_code', 'user_name', 'login_type', 'last_login', 'created_at'];
             case 'administrators':
@@ -540,7 +540,7 @@ class AuditReport
     protected function rowsUsers(): array
     {
         return array_map(function ($a) {
-            return [$a['user_code'], $a['user_name'], $a['login_type'], $a['mfa'], $this->date($a['last_login']), $this->date($a['password_changed']), $this->date($a['created_at']), implode(', ', $a['system_permissions'])];
+            return [$a['user_code'], $a['user_name'], $a['login_type'], $a['mfa'], $this->date($a['last_login']), $this->date($a['password_changed']), $this->date($a['created_at']), implode(', ', $a['system_permissions']), static::text($a['api'] ? 'api_allowed' : 'api_not_allowed')];
         }, $this->accounts());
     }
 
@@ -1165,6 +1165,8 @@ class AuditReport
                 'role_groups' => $groups,
                 'base_user_id' => $userId,
                 'audit' => isset($permissions[Permission::SYSTEM]) || isset($permissions[Permission::AUDIT]),
+                // may use the API (the API setting, ISS02915)
+                'api' => \Exceedone\Exment\Services\ApiUsers::allows($login, isset($permissions[Permission::SYSTEM])),
             ];
         }
         return $this->accounts = $accounts;
