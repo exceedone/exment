@@ -652,11 +652,6 @@ class AuditReport
     }
 
     /**
-     * The keys that could be used in the period: made before its end and not stopped before its start.
-     *
-     * @return array<int, array<int, string>>
-     */
-    /**
      * The MCP calls in the period, a user a row (ISS02915): the counts and the tools, never the
      * arguments. The most calls first.
      *
@@ -721,6 +716,11 @@ class AuditReport
         return $rows;
     }
 
+    /**
+     * The keys that could be used in the period: made before its end and not stopped before its start.
+     *
+     * @return array<int, array<int, string>>
+     */
     protected function rowsApiKeys(): array
     {
         if (!Schema::hasTable('user_api_keys')) {

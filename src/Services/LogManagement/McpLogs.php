@@ -107,7 +107,7 @@ class McpLogs
     public static function throttled(\Illuminate\Http\Request $request, ?int $userId, array $headers)
     {
         if (!$request->isMethod('POST') || !str_ends_with(trim($request->path(), '/'), 'api/mcp')) {
-            throw new \Illuminate\Http\Exceptions\ThrottleRequestsException('Too Many Attempts.', $headers);
+            throw new \Illuminate\Http\Exceptions\ThrottleRequestsException('Too Many Attempts.', null, $headers);
         }
         if (!isset($userId)) {
             $bearer = $request->bearerToken();
@@ -138,7 +138,8 @@ class McpLogs
     public static function maskGenericSecrets(array $data): array
     {
         foreach ($data as $key => $value) {
-            if (is_string($key) && in_array(strtolower($key), static::SECRET_NAMES, true) && !is_array($value)) {
+            if (is_string($key) && in_array(strtolower($key), static::SECRET_NAMES, true)) {
+                // the whole value, a list or an object too
                 $data[$key] = is_null($value) || $value === '' ? $value : LogPrivacy::MASK;
             } elseif (is_array($value)) {
                 $data[$key] = static::maskGenericSecrets($value);

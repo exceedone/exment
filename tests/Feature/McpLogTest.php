@@ -191,6 +191,8 @@ class McpLogTest extends ApiTestBase
     public function testRefusedByTheLimitOfTheApi(): void
     {
         $this->useLog(true);
+        // the limit of the API on (ApiTestBase turns ThrottleRequests off)
+        $this->app->forgetInstance(\Illuminate\Routing\Middleware\ThrottleRequests::class);
         config(['exment.api_max_rate_limit' => 2, 'exment.mcp_calls_per_minute' => 100]);
         $key = $this->key();
         $last = $this->last();
@@ -220,11 +222,13 @@ class McpLogTest extends ApiTestBase
             'table' => 'custom_value_edit',
             'token' => 'tok-SECRET333',
             'nested' => ['Authorization' => 'Bearer SECRET444', 'credentials' => 'SECRET555', 'q' => 'kept'],
+            'credential' => ['SECRET666', ['deep' => 'SECRET777']],
         ]);
+        $this->assertSame('***', $masked['credential'], 'a list is masked whole');
         $this->assertSame('custom_value_edit', $masked['table']);
         $this->assertSame('kept', $masked['nested']['q']);
         $text = strval(json_encode($masked));
-        foreach (['SECRET333', 'SECRET444', 'SECRET555'] as $secret) {
+        foreach (['SECRET333', 'SECRET444', 'SECRET555', 'SECRET666', 'SECRET777'] as $secret) {
             $this->assertStringNotContainsString($secret, $text);
         }
     }
