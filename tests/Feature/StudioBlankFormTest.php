@@ -440,7 +440,8 @@ class StudioBlankFormTest extends FeatureTestBase
         $response = $this->from(admin_url('studio/create'))->postScreen([
             ['type' => ColumnType::TEXT, 'label' => '', 'column_name' => ''],
             ['type' => ColumnType::SELECT, 'label' => '区分', 'column_name' => 'id', 'choices' => ''],
-            ['type' => 'select_valtext', 'label' => '番号', 'column_name' => 'no'],
+            // a type the builder does not make (select_valtext is a part since #2272)
+            ['type' => 'boolean', 'label' => '番号', 'column_name' => 'no'],
         ], ['table_view_name' => '', 'table_name' => '1bad']);
         $response->assertRedirect(admin_url('studio/create'));
 
