@@ -29,6 +29,7 @@ class SecurityCheck
         TwoFactorSecurity::class,
         WebhookSecurity::class,
         DataKeySecurity::class,
+        QueueWorkerSecurity::class,
         VersionSecurity::class,
         // the logs and personal data (ISS02839)
         LogSecurity::class,

@@ -112,6 +112,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
         \Exceedone\Exment\Console\LogDbCommand::class,
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
+        \Exceedone\Exment\Console\QueueHeartbeatCommand::class,
         \Exceedone\Exment\Console\TuningDataCommand::class,
         \Exceedone\Exment\Console\DataKeyCommand::class,
         \Exceedone\Exment\Console\SyncCommand::class,
@@ -655,6 +656,10 @@ class ExmentServiceProvider extends ServiceProvider
     public static function registerSchedule(Schedule $schedule): void
     {
         $schedule->command('exment:schedule')->hourly();
+        // the heartbeat of the queue's worker, only while a queue is used (ISS02908)
+        $schedule->command('exment:queue-heartbeat')->everyFiveMinutes()->when(function () {
+            return \Exceedone\Exment\Services\QueueWorker::used();
+        });
         // only when the safety check watches the feed: otherwise it would start PHP every minute for nothing (ISS02823)
         $schedule->command('exment:safetywatch')->cron(static::safetyWatchCron())->withoutOverlapping(10)->when(function () {
             return static::safetyWatchUsed();

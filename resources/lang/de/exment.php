@@ -831,6 +831,13 @@ return [
                 'warning' => 'Der Schlüsseldienst ist nutzbar, aber es gibt noch keinen Schlüssel (php artisan exment:data-key generate).',
                 'ng' => 'Die Schlüssel können nicht aus dem Schlüsseldienst (:provider) gelesen werden. Die verschlüsselten Spalten können jetzt weder gelesen noch gespeichert werden. Grund: :reason',
             ],
+            'queue_worker' => [
+                'label' => 'Queue-Worker',
+                'explain' => 'Bei QUEUE_CONNECTION ungleich sync (Benachrichtigungen, Webhooks, Suchindex usw. laufen über die Queue): ob ein Queue-Worker (php artisan queue:work) läuft. Alle fünf Minuten wird ein kleiner Job eingereiht und gelesen, wann ein Worker ihn ausgeführt hat. Bei sync (Standard) gibt es nichts zu prüfen.',
+                'warning' => 'Noch nicht geprüft. Läuft der Scheduler (php artisan schedule:run jede Minute), wird es in etwa fünf Minuten geprüft.',
+                'unknown_state' => 'Noch nicht geprüft. Läuft der Scheduler (php artisan schedule:run jede Minute), wird es in etwa fünf Minuten geprüft.',
+                'ng' => 'Kein Queue-Worker läuft (seit :minutes Minuten wurden keine Jobs ausgeführt; zuletzt um :last). Benachrichtigungen usw. bleiben unversendet. Starten Sie einen Worker, der nach einem Stopp neu startet (Supervisor, systemd ...).',
+            ],
             'version' => [
                 'label' => 'Versionen von Exment und den Plugins',
                 'explain' => 'Halten Sie Exment und die offiziellen Plugins auf dem neuesten Stand. Plugins mit einer Sicherheitskorrektur werden umgehend aktualisiert.',
@@ -5883,6 +5890,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'log_maintenance' => 'Protokolle: alte löschen',
             'trash_purge' => 'Papierkorb: alte gelöschte Daten endgültig löschen (im Archiv aufbewahrt)',
             'sync' => 'Datensynchronisierung: fällige Zuordnungen ausführen',
+            'queue_heartbeat' => 'Queue: prüfen, ob ein Worker läuft',
             'tuning_data' => 'Geschwindigkeit: Daten zählen (Tuning)',
             'audit_report' => 'IT-Auditbericht: Bericht des Monats oder Quartals erstellen',
             'batch' => 'Plugin-Batch: :name',

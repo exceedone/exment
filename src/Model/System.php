@@ -468,7 +468,10 @@ class System extends ModelBase
         try {
             $driver = static::storeDriver();
             if ($driver === 'file') {
-                static::store()->getStore()->flush();
+                // emptied whole: the restart signal of the queue put back (ISS02908)
+                \Exceedone\Exment\Services\QueueWorker::keepRestartSignal(function () {
+                    static::store()->getStore()->flush();
+                });
             } elseif ($driver === 'database') {
                 $default = strval(config('cache.default'));
                 $prefix = strval(Cache::store()->getStore()->getPrefix()) . static::STORE_KEY_PREFIX;
