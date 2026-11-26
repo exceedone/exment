@@ -112,6 +112,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
         \Exceedone\Exment\Console\LogDbCommand::class,
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
+        \Exceedone\Exment\Console\TuningDataCommand::class,
         \Exceedone\Exment\Console\DataKeyCommand::class,
         \Exceedone\Exment\Console\EncryptColumnCommand::class,
         \Exceedone\Exment\Console\AuditReportCommand::class,
@@ -694,6 +695,8 @@ class ExmentServiceProvider extends ServiceProvider
         $schedule->command('exment:trash-purge')->dailyAt('03:50')->withoutOverlapping(120);
         // the IT audit report of the month or the quarter before, when it is set (ISS02840)
         $schedule->command('exment:audit-report')->dailyAt('04:10')->withoutOverlapping(60);
+        // the counts of the data for the tuning page (ISS02927)
+        $schedule->command('exment:tuning-data')->dailyAt('04:30')->withoutOverlapping(120);
 
         // maintenance mode: the planned start and end (never skipped in a maintenance)
         $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);

@@ -33,6 +33,11 @@ class IpFilterExemptionTest extends FeatureTestBase
     {
         parent::setUp();
         $this->initAllTest();
+        // exemptions left in the database (set by hand) are not the ones of a test
+        System::web_ip_filter_exempt_users([]);
+        System::web_ip_filter_exempt_organizations([]);
+        System::web_ip_filter_exempt_role_groups([]);
+        System::clearCache();
         System::web_ip_filters(static::FILTER);
     }
 

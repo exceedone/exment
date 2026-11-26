@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Services\SystemRequire\Tuning;
 
 use Exceedone\Exment\Enums\SystemRequireResult;
 use Exceedone\Exment\Services\LogManagement\LogCatalog;
+use Exceedone\Exment\Services\LogManagement\LogConnection;
 
 /**
  * The logs take much space (ISS02839): the files of the application log over LIMIT_BYTES, or a
@@ -47,5 +48,26 @@ class LogSizeTuning extends TuningBase
     public function getSettingUrl(): ?string
     {
         return admin_url('log_management');
+    }
+
+    /**
+     * Big logs in the database of the data: a database of their own keeps them from the data
+     * and its backups (ISS02905, ISS02927).
+     */
+    public function getFixText(): ?string
+    {
+        if (!is_null(LogConnection::name())) {
+            return null;
+        }
+        $catalog = LogCatalog::types();
+        $inDatabase = array_filter($this->tooBig(), function ($key) use ($catalog) {
+            return ($catalog[$key]['location'] ?? null) === 'database';
+        });
+        if (count($inDatabase) == 0) {
+            return null;
+        }
+        return exmtrans('tuning.item.log_size.log_db') . "
+EXMENT_LOG_DB_CONNECTION=(the connection of config/database.php)
+php artisan exment:log-db --copy";
     }
 }

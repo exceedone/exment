@@ -122,6 +122,8 @@ class Define
         'admin_notices_sent' => ['type' => 'json', 'default' => []],
         // the scheduled jobs told to the system administrators as failing, until they run well (Services\ScheduledJobs\Recorder)
         'scheduled_job_alerted' => ['type' => 'json', 'default' => []],
+        // the counts of the data for the tuning page, made every night (Services\SystemRequire\Tuning\DataStats)
+        'tuning_data_stats' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],
         'recaptcha_site_key' => ['type' => 'password', 'group' => 'advanced'],
         'recaptcha_secret_key' => ['type' => 'password', 'group' => 'advanced'],
