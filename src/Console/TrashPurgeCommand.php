@@ -42,24 +42,37 @@ class TrashPurgeCommand extends Command
         $tableName = $this->option('table');
         $tableName = is_nullorempty($tableName) ? null : strval($tableName);
 
-        $total = ['target' => 0, 'purged' => 0, 'skipped' => 0];
+        $total = ['target' => 0, 'purged' => 0, 'skipped' => 0, 'skipped_children' => 0];
         foreach (TrashPurge::tables($tableName) as $table) {
             $result = TrashPurge::purgeTable($table, $dryRun);
             foreach ($total as $key => $count) {
-                $total[$key] = $count + $result[$key];
+                $total[$key] = $count + ($result[$key] ?? 0);
             }
             if ($result['target'] > 0) {
-                $this->line(($dryRun ? '[dry-run] ' : '') . "{$table->table_name}: target {$result['target']}, purged {$result['purged']}, skipped {$result['skipped']}");
+                $this->line($table->table_name . ': ' . static::counts($result, $dryRun));
             }
         }
 
         $archives = is_null($tableName) ? TrashPurge::removeExpired($dryRun) : 0;
 
-        $message = ($dryRun ? '[dry-run] ' : '') . "trash purge: target {$total['target']}, purged {$total['purged']}, skipped {$total['skipped']}, archives removed {$archives}";
+        $message = $dryRun
+            ? "[dry-run] trash purge: " . static::counts($total, true) . ", would remove archives {$archives}"
+            : "trash purge: " . static::counts($total, false) . ", archives removed {$archives}";
         $this->info($message);
         if (!$dryRun && ($total['target'] > 0 || $archives > 0)) {
             \Log::info('[Exment] ' . $message);
         }
         return 0;
+    }
+
+    /**
+     * @param array<string, int> $result
+     */
+    protected static function counts(array $result, bool $dryRun): string
+    {
+        if ($dryRun) {
+            return "would purge {$result['purged']}, would skip {$result['skipped']} (children not deleted: " . ($result['skipped_children'] ?? 0) . ')';
+        }
+        return "target {$result['target']}, purged {$result['purged']}, skipped {$result['skipped']}";
     }
 }
