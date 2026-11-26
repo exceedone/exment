@@ -491,7 +491,8 @@ class RoleGroupController extends AdminControllerBase
             $model = RoleGroup::findOrFail($id);
             $form = new AdminForm($model);
             $form->number('role_group_order', exmtrans("role_group.role_group_order"))->rules("integer");
-            $form->update($id);
+            // the answer of the form (JSON) is what the editor shows
+            return $form->update($id);
         } else {
             return request()->get('form_type') == 2 ? $this->saveUserOrganization($id) : $this->saveRolePermission($id);
         }

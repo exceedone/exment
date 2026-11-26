@@ -63,6 +63,8 @@ class OrderInlineEditTest extends FeatureTestBase
 
     public function testTheOrderOfAView(): void
     {
+        // the form of a view has its order only with this setting
+        config(['exment.sort_custom_view_options' => 1]);
         /** @var CustomTable $table */
         $table = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_EDIT);
         /** @var CustomView $view */
@@ -107,6 +109,7 @@ class OrderInlineEditTest extends FeatureTestBase
         ], static::AJAX);
         $this->assertLessThan(400, $response->getStatusCode(), $url . ': ' . substr((string) $response->getContent(), 0, 300));
 
+        /** @var Model $fresh */
         $fresh = $model->newQuery()->findOrFail($model->getKey());
         $this->assertSame(7, (int) $fresh->getAttribute('order'), $url);
         $this->assertEquals($before, $fresh->getAttribute($kept), $url . ': ' . $kept);
