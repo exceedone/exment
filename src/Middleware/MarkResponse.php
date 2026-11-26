@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 /**
  * Marks every answer of Exment with the header X-Exment (ISS02935), so the screen can tell its own
  * answers from one that something in front of the site gave instead: a firewall (AWS WAF,
- * Cloudflare, a proxy of the company) that refused what was sent - a body with an URL, an IP
+ * Cloudflare, a proxy of the company) that refused what was sent - a body with a URL, an IP
  * address or a path in it - and answered with a 403 page of its own. Exment then says so
  * (blocked_notice.js) instead of "no permission".
  *

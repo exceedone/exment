@@ -742,8 +742,8 @@ return [
     ],
     // a save refused on its way by a firewall in front of the site (ISS02935)
     'blocked_notice' => [
-        'title' => 'El guardado fue rechazado por el camino (un firewall u otro)',
-        'back_title' => 'Puede que el último guardado no llegara a Exment (un firewall u otro)',
+        'title' => 'El guardado fue rechazado por el camino (un firewall u otro similar)',
+        'back_title' => 'Puede que el último guardado no llegara a Exment (un firewall u otro similar)',
         'body' => 'Un firewall o un proxy delante del sitio rechazó lo enviado. No es un problema de permisos de Exment. Palabras como una URL, una dirección IP o una ruta (../) en el texto pueden causarlo. Cámbielas y guarde de nuevo, o avise a su administrador. Lo que escribió sigue aquí.',
         'details' => 'Detalles',
         'help' => 'Cómo reconocerlo y corregirlo',

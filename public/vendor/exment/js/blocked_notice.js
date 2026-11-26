@@ -1,7 +1,7 @@
 /*
  * When something in front of the site refused what was sent (ISS02935): a firewall (AWS WAF,
  * Cloudflare, a proxy of the company) answers a save, an ajax call, a pjax page or an upload with a
- * 403 / 406 / 413 ... of its own - often because of an URL, an IP address or a path in the text.
+ * 403 / 406 / 413 ... of its own - often because of a URL, an IP address or a path in the text.
  * Every answer of Exment carries the header X-Exment (MarkResponse); one without it is not
  * Exment's, so it is said as what it is, not as "no permission". The form keeps what was typed (an
  * ajax or pjax save does not leave the page).
