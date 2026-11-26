@@ -5185,6 +5185,14 @@ IP 주소: :ip
     ],
     // ISS02839
     'audit_report' => [
+        'permission_list' => [
+            'system_admin' => '시스템 관리자',
+            'no_permission_setting' => '권한 미사용',
+            'all_tables' => '(모든 테이블)',
+            'all_user_editable_flg' => '모든 사용자가 편집 가능',
+            'all_user_viewable_flg' => '모든 사용자가 열람 가능',
+            'all_user_accessable_flg' => '모든 사용자가 참조 가능',
+        ],
         'filter_table' => '테이블(이름)',
         'filter_user' => '사용자(코드)',
         'data_kind' => [
@@ -5283,6 +5291,9 @@ IP 주소: :ip
             'result_other' => '확인 안 함',
         ],
         'section' => [
+            'user_table_access' => '테이블에 대한 사용자별 권한',
+            'table_access' => '각 테이블을 볼 수 있는 사람과 바꿀 수 있는 사람',
+            'administrator_changes' => '최근 1개월간 관리자 변경',
             'data_access' => '데이터 읽기와 쓰기',
             'mcp_calls' => 'MCP 호출',
             'data_access_heavy' => '평소보다 많이 읽은 사용자',
@@ -5303,6 +5314,9 @@ IP 주소: :ip
             'log_retention' => '로그 보관 기간',
         ],
         'note' => [
+            'user_table_access' => '사용자별로 데이터를 볼 수 있거나 바꿀 수 있는 테이블, 가장 강한 권한, 그 권한이 오는 역할 그룹(조직을 통한 경우 "조직 → 역할 그룹")을 현재 상태로 표시합니다. 모든 테이블에 적용되는 권한은 한 줄로 표시합니다.',
+            'table_access' => '테이블별로 데이터를 바꿀 수 있는 사용자 수와 볼 수 있는 사용자 수(권한별), 그리고 모든 사용자 대상 설정을 현재 상태로 표시합니다.',
+            'administrator_changes' => '보고서 종료일까지 1개월 동안의 시스템 권한 변경과, 시스템 권한을 가진 역할 그룹의 구성원 변경입니다.',
             'data_access' => '기간 중 각 테이블의 레코드를 화면, API, MCP에서 누가 읽고, 목록으로 보고, 내보내고, 만들고, 변경하고, 삭제하고, 복원했는지. 목록은 표시된 레코드마다가 아니라 한 번으로 세며, 몇 분 안에 다시 읽은 것은 한 번으로 셉니다. 읽은 값은 남기지 않습니다.',
             'mcp_calls' => '기간 중 AI(MCP)의 호출. 사용자별 호출 수·오류·거부 수·사용한 도구(인수는 표시하지 않음). MCP 기록을 사용할 때만 표시됩니다.',
             'data_access_heavy' => '기간 중 읽은 횟수가 :min회 이상이고 읽은 사용자의 중앙값의 :factor배를 넘는 사용자.',
@@ -5320,6 +5334,13 @@ IP 주소: :ip
             'public_forms' => 'URL을 아는 사람 누구나 보낼 수 있는 페이지입니다.',
         ],
         'column' => [
+            'permission' => '권한',
+            'can_edit' => '변경 가능',
+            'sources' => '출처',
+            'editors' => '변경 가능한 사용자',
+            'viewers' => '열람 가능한 사용자',
+            'all_users' => '모든 사용자',
+            'by_permission' => '권한별',
             'read' => '읽기',
             'list' => '목록',
             'export' => '내보내기',

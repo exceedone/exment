@@ -80,7 +80,8 @@ class LogDbConnectionTest extends FeatureTestBase
         }
 
         // the command: the tables are there; the same database is not copied into itself
-        $this->assertSame(0, Artisan::call('exment:log-db', ['--copy' => true]));
+        // an error, so that a script sees that nothing was copied
+        $this->assertSame(1, Artisan::call('exment:log-db', ['--copy' => true]));
         $this->assertStringContainsString('nothing to copy', Artisan::output());
     }
 

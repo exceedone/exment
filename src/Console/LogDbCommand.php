@@ -56,8 +56,9 @@ class LogDbCommand extends Command
         // the same database under another name: a copy would double the rows
         if ($from->getName() === $to->getName()
             || ($from->getDatabaseName() === $to->getDatabaseName() && strval($from->getConfig('host')) === strval($to->getConfig('host')) && strval($from->getConfig('port')) === strval($to->getConfig('port')) && $from->getTablePrefix() === $to->getTablePrefix())) {
-            $this->info('The connection of the logs is the database of the data: nothing to copy.');
-            return 0;
+            // an error: a script that copies must see that nothing was copied
+            $this->error('The connection of the logs is the database of the data: nothing to copy.');
+            return 1;
         }
         foreach (LogConnection::TABLES as $table) {
             if (!\Schema::hasTable($table) || !LogConnection::schema()->hasTable($table)) {

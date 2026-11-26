@@ -20,6 +20,7 @@ use Exceedone\Exment\Model\PermissionChangeLog;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\RoleGroup;
+use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\UserApiKey;
 use Exceedone\Exment\Model\UserSetting;
@@ -40,7 +41,7 @@ use Illuminate\Support\Facades\Schema;
  */
 class AuditReport
 {
-    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'data_access', 'data_access_heavy', 'mcp_calls', 'security', 'log_retention'];
+    public const SECTIONS = ['users', 'inactive', 'administrators', 'role_group_permissions', 'role_group_members', 'permission_changes', 'user_table_access', 'table_access', 'administrator_changes', 'logins', 'login_failures', 'lockouts', 'new_ips', 'api_keys', 'file_shares', 'public_forms', 'data_access', 'data_access_heavy', 'mcp_calls', 'security', 'log_retention'];
 
     /** The sections shown only while their log is kept: the MCP calls (ISS02915). */
     public const OPTIONAL_SECTIONS = ['mcp_calls'];
@@ -208,7 +209,12 @@ class AuditReport
             case 'role_group_members':
                 return ['role_group', 'member_type', 'member_code', 'member_name'];
             case 'permission_changes':
+            case 'administrator_changes':
                 return ['created_at', 'changed_user', 'role_group', 'change', 'kind', 'permission_target', 'permissions', 'source'];
+            case 'user_table_access':
+                return ['user_code', 'user_name', 'table', 'permission', 'can_edit', 'sources'];
+            case 'table_access':
+                return ['table', 'editors', 'viewers', 'all_users', 'by_permission'];
             case 'logins':
                 return ['result', 'reason', 'count'];
             case 'login_failures':
@@ -238,6 +244,146 @@ class AuditReport
     }
 
     // the sections ---------------------------------------------------------------------------
+
+    /** @var PermissionMatrix|null */
+    protected $permissionMatrix = null;
+
+    protected function permissionMatrix(): PermissionMatrix
+    {
+        if (!isset($this->permissionMatrix)) {
+            $ids = array_values(array_unique(array_map('intval', array_filter(array_column($this->accounts(), 'base_user_id'), 'is_numeric'))));
+            $admins = collect(System::system_admin_users() ?? [])->map(function ($id) {
+                return strval($id);
+            })->all();
+            $this->permissionMatrix = new PermissionMatrix($ids, $admins);
+        }
+        return $this->permissionMatrix;
+    }
+
+    /**
+     * Who may read and change the data of which table, and from which role group or
+     * organization (ISS02911). Every table: one row.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsUserTableAccess(): array
+    {
+        $matrix = $this->permissionMatrix()->matrix();
+        $rows = [];
+        foreach ($this->accounts() as $account) {
+            $userId = intval($account['base_user_id']);
+            if (isset($this->dataUserId) && $userId !== $this->dataUserId) {
+                continue;
+            }
+            $tables = $matrix[$userId] ?? [];
+            ksort($tables);
+            foreach ($tables as $tableId => $cell) {
+                if (isset($this->dataTableId) && $tableId !== PermissionMatrix::ALL_TABLES && $tableId !== $this->dataTableId) {
+                    continue;
+                }
+                $rows[] = [
+                    $account['user_code'],
+                    $account['user_name'],
+                    $tableId === PermissionMatrix::ALL_TABLES ? static::text('permission_list.all_tables') : $this->tableName($tableId),
+                    static::permissionText($cell['level']),
+                    $this->yesNo(PermissionMatrix::canEdit($cell['level'])),
+                    implode(', ', $cell['sources']),
+                ];
+                if (count($rows) >= static::MAX_LOG_ROWS) {
+                    return $rows;
+                }
+            }
+        }
+        return $rows;
+    }
+
+    /**
+     * Each table: how many may change and read its data, by the permission, and its settings for
+     * every user.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsTableAccess(): array
+    {
+        $matrix = $this->permissionMatrix()->matrix();
+        $rows = [];
+        $tables = CustomTable::allRecords();
+        foreach ($tables as $table) {
+            $tableId = intval($table->id);
+            if (isset($this->dataTableId) && $tableId !== $this->dataTableId) {
+                continue;
+            }
+            $editors = 0;
+            $viewers = 0;
+            $levels = [];
+            foreach ($matrix as $cells) {
+                $cell = $cells[$tableId] ?? null;
+                $all = $cells[PermissionMatrix::ALL_TABLES] ?? null;
+                // the stronger of the table and of every table
+                if (isset($all) && (is_null($cell) || array_search($all['level'], PermissionMatrix::LEVELS, true) < array_search($cell['level'], PermissionMatrix::LEVELS, true))) {
+                    $cell = $all;
+                }
+                if (is_null($cell)) {
+                    continue;
+                }
+                $levels[$cell['level']] = ($levels[$cell['level']] ?? 0) + 1;
+                if (PermissionMatrix::canEdit($cell['level'])) {
+                    $editors++;
+                }
+                if (PermissionMatrix::canView($cell['level'])) {
+                    $viewers++;
+                }
+            }
+            $flags = [];
+            foreach (['all_user_editable_flg', 'all_user_viewable_flg', 'all_user_accessable_flg'] as $flag) {
+                if (boolval($table->getOption($flag))) {
+                    $flags[] = static::text('permission_list.' . $flag);
+                }
+            }
+            $by = [];
+            foreach (PermissionMatrix::LEVELS as $level) {
+                if (isset($levels[$level])) {
+                    $by[] = static::permissionText($level) . ': ' . $levels[$level];
+                }
+            }
+            $rows[] = [strval($table->table_view_name), strval($editors), strval($viewers), implode(', ', $flags), implode(', ', $by)];
+        }
+        return $rows;
+    }
+
+    /**
+     * The changes of the administrators: in the month up to the end of the report, the changes of
+     * the permissions of the system, and of the members of the groups that have one.
+     *
+     * @return array<int, array<int, string>>
+     */
+    protected function rowsAdministratorChanges(): array
+    {
+        if (!PermissionChangeLog::tableExists()) {
+            return [];
+        }
+        $systemGroups = RoleGroupPermission::query()->where('role_group_permission_type', RoleType::SYSTEM)->pluck('role_group_id')->unique()->all();
+        $logs = PermissionChangeLog::query()
+            ->where('created_at', '>=', $this->until->copy()->subMonthNoOverflow())
+            ->where('created_at', '<', $this->until)
+            ->where(function ($query) use ($systemGroups) {
+                $query->where(function ($q) {
+                    $q->where('kind', PermissionChangeLog::KIND_PERMISSION)->where('role_type', strval(RoleType::SYSTEM));
+                })->orWhere(function ($q) use ($systemGroups) {
+                    $q->where('kind', PermissionChangeLog::KIND_MEMBER)->whereIn('role_group_id', $systemGroups);
+                });
+            })
+            ->orderBy('id')
+            ->limit(static::MAX_LOG_ROWS)
+            ->get();
+        return $this->changeRows($logs);
+    }
+
+    protected function tableName(int $tableId): string
+    {
+        $table = CustomTable::getEloquent($tableId);
+        return isset($table) ? strval($table->table_view_name) : '#' . $tableId;
+    }
 
     /**
      * The sections of the data: only a table, only a user (null: all).
@@ -490,13 +636,22 @@ class AuditReport
         if (!PermissionChangeLog::tableExists()) {
             return [];
         }
-        $rows = [];
         $logs = PermissionChangeLog::query()
             ->where('created_at', '>=', $this->from)
             ->where('created_at', '<', $this->until)
             ->orderBy('id')
             ->limit(static::MAX_LOG_ROWS)
             ->get();
+        return $this->changeRows($logs);
+    }
+
+    /**
+     * @param iterable<PermissionChangeLog> $logs
+     * @return array<int, array<int, string>>
+     */
+    protected function changeRows(iterable $logs): array
+    {
+        $rows = [];
         foreach ($logs as $log) {
             [$code, $name] = is_null($log->changed_user_id) ? ['', ''] : $this->userOf($log->changed_user_id);
             if ($log->kind === PermissionChangeLog::KIND_MEMBER) {
