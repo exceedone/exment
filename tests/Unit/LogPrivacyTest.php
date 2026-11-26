@@ -80,13 +80,47 @@ class LogPrivacyTest extends UnitTestBase
         $this->assertSame('203.0.113.7', LogPrivacy::ip('203.0.113.7'));
         $this->set('log_ip_mode', LogPrivacy::IP_TRUNCATE);
         $this->assertSame('203.0.113.0', LogPrivacy::ip('203.0.113.7'));
-        $this->assertSame('2001:db8:1234::/48', LogPrivacy::ip('2001:db8:1234:5678::1'));
+        // IPv6: the /64 of the client (ISS02909); an IPv4-mapped address is the IPv4 address
+        $this->assertSame('2001:db8:1234:5678::/64', LogPrivacy::ip('2001:db8:1234:5678::1'));
+        $this->assertSame('2001:db8:1234:5678::/64', LogPrivacy::ip('2001:DB8:1234:5678:aaaa:bbbb:cccc:dddd'));
+        $this->assertSame('2001:db8::/64', LogPrivacy::ip('2001:db8::1'));
+        $this->assertSame('203.0.113.0', LogPrivacy::ip('::ffff:203.0.113.7'));
+        $this->assertSame('***', LogPrivacy::ip('not-an-ip'));
         $this->set('log_ip_mode', LogPrivacy::IP_HASH);
         $hashed = strval(LogPrivacy::ip('203.0.113.7'));
         $this->assertStringStartsWith('h:', $hashed);
         $this->assertEquals($hashed, LogPrivacy::ip('203.0.113.7'), 'the same address, the same text');
         $this->assertNotSame($hashed, LogPrivacy::ip('203.0.113.8'));
         $this->assertNull(LogPrivacy::ip(null));
+    }
+
+    /**
+     * The IP columns of the logs hold the longest IPv6 text (45 characters:
+     * ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255) (ISS02909).
+     */
+    public function testTheIpColumnsOfTheLogsHoldAnIpv6Address(): void
+    {
+        $columns = [
+            [strval(config('admin.database.operation_log_table', 'admin_operation_log')), 'ip'],
+            ['login_logs', 'ip'],
+            ['user_api_keys', 'last_used_ip'],
+            ['file_audit_logs', 'ip'],
+        ];
+        foreach ($columns as [$table, $column]) {
+            if (!\Schema::hasTable($table)) {
+                continue;
+            }
+            $found = collect(\Schema::getColumns($table))->firstWhere('name', $column);
+            $this->assertNotNull($found, "{$table}.{$column}");
+            $type = strtolower(strval($found['type'] ?? ''));
+            if (preg_match('/\((\d+)\)/', $type, $m)) {
+                $this->assertGreaterThanOrEqual(45, intval($m[1]), "{$table}.{$column}: {$type}");
+            } else {
+                // text, or a type without a length (sqlite, sqlsrv nvarchar(max))
+                $this->assertMatchesRegularExpression('/text|varchar|char|string/', $type, "{$table}.{$column}: {$type}");
+            }
+        }
+        $this->assertSame(45, strlen('ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255'));
     }
 
     public function testTheApplicationLogMasksMailsAndTheValuesOfSql(): void

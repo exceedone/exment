@@ -71,11 +71,14 @@ class LogManagementController extends AdminControllerBase
 
         $content->row(view('exment::log_management.index', [
             'types' => LogCatalog::types(),
+            'sizeWarning' => \Exceedone\Exment\Services\LogManagement\LogSize::warning(),
             'isSystem' => $isSystem,
             'settingUrl' => admin_urls('log_management', 'setting'),
             'settings' => [
                 'log_retention_login_log' => System::log_retention_login_log(),
                 'log_retention_permission_change' => System::log_retention_permission_change(),
+                'log_retention_data_access' => System::log_retention_data_access(),
+                'log_retention_data_access_daily' => System::log_retention_data_access_daily(),
                 'log_retention_app_log' => System::log_retention_app_log(),
                 'log_app_level' => strval(System::log_app_level()),
                 'log_app_daily' => boolval(System::log_app_daily()),
@@ -94,7 +97,7 @@ class LogManagementController extends AdminControllerBase
             'archiveUrl' => admin_urls('log_management', 'archives'),
             'levels' => LogSettings::LEVELS,
             'scopes' => LogSettings::SCOPES,
-            'defaults' => ['login_log' => LogCatalog::DEFAULT_LOGIN_LOG_DAYS, 'permission_change' => LogCatalog::DEFAULT_PERMISSION_CHANGE_DAYS, 'app_log' => LogCatalog::DEFAULT_APP_LOG_DAYS],
+            'defaults' => ['login_log' => LogCatalog::DEFAULT_LOGIN_LOG_DAYS, 'permission_change' => LogCatalog::DEFAULT_PERMISSION_CHANGE_DAYS, 'data_access' => \Exceedone\Exment\Services\LogManagement\DataAccessLogs::DEFAULT_DAYS, 'data_access_daily' => \Exceedone\Exment\Services\LogManagement\DataAccessLogs::DEFAULT_DAILY_DAYS, 'app_log' => LogCatalog::DEFAULT_APP_LOG_DAYS],
             'operationLogUrl' => admin_url('auth/logs'),
             'filter' => $filter,
             'logins' => $logins,
@@ -122,6 +125,8 @@ class LogManagementController extends AdminControllerBase
         $validator = \Validator::make($request->all(), [
             'log_retention_login_log' => 'nullable|integer|min:0|max:36500',
             'log_retention_permission_change' => 'nullable|integer|min:0|max:36500',
+            'log_retention_data_access' => 'nullable|integer|min:0|max:36500',
+            'log_retention_data_access_daily' => 'nullable|integer|min:0|max:36500',
             'log_retention_app_log' => 'nullable|integer|min:0|max:36500',
             'log_app_level' => 'nullable|in:' . implode(',', LogSettings::LEVELS),
             'operation_log_scope' => 'required|in:' . implode(',', LogSettings::SCOPES),
@@ -132,7 +137,7 @@ class LogManagementController extends AdminControllerBase
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
         }
-        foreach (['log_retention_login_log', 'log_retention_permission_change', 'log_retention_app_log'] as $key) {
+        foreach (['log_retention_login_log', 'log_retention_permission_change', 'log_retention_data_access', 'log_retention_data_access_daily', 'log_retention_app_log'] as $key) {
             $value = $request->get($key);
             System::{$key}(is_null($value) || $value === '' ? null : intval($value));
         }

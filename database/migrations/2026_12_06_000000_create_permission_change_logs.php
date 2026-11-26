@@ -15,10 +15,10 @@ return new class extends Migration
      */
     public function up()
     {
-        if (Schema::hasTable('permission_change_logs')) {
+        if (Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->hasTable('permission_change_logs')) {
             return;
         }
-        Schema::create('permission_change_logs', function (Blueprint $table) {
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->create('permission_change_logs', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('role_group_id')->unsigned()->nullable();
             // the name of the group then (the group may be deleted later)
@@ -50,6 +50,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('permission_change_logs');
+        Schema::connection(\Exceedone\Exment\Services\LogManagement\LogConnection::name())->dropIfExists('permission_change_logs');
     }
 };
