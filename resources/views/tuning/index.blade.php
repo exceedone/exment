@@ -80,6 +80,12 @@
                         <form method="post" action="{{ $actionUrl }}" style="display:inline" onsubmit="return window.confirm('{{ exmtrans('tuning.action_confirm') }}');">
                             <input type="hidden" name="_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="action" value="{{ $action }}">
+                            {{-- what the action is for, chosen here (the columns of the search index) --}}
+                            @foreach($check->getChoices() ?? [] as $value => $label)
+                            <div class="checkbox">
+                                <label><input type="checkbox" name="choices[]" value="{{ $value }}"> {{ $label }}</label>
+                            </div>
+                            @endforeach
                             <button type="submit" class="btn btn-sm btn-warning">{{ exmtrans('tuning.action.' . $action) }}</button>
                         </form>
                         @elseif(!is_null($action) && $check->isServerWide())

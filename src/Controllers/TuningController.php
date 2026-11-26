@@ -9,6 +9,7 @@ use Exceedone\Exment\Services\SystemRequire\SystemRequireList;
 use Exceedone\Exment\Services\SystemRequire\Tuning\AutoTuning;
 use Exceedone\Exment\Services\SystemRequire\Tuning\ConfigCacheTuning;
 use Exceedone\Exment\Services\SystemRequire\Tuning\DebugLogTuning;
+use Exceedone\Exment\Services\SystemRequire\Tuning\UnindexedColumnTuning;
 use Illuminate\Http\Request;
 
 /**
@@ -77,6 +78,17 @@ class TuningController extends AdminControllerBase
                 admin_toastr(exmtrans('tuning.action_failed'), 'error');
             } else {
                 admin_toastr(exmtrans('tuning.action_done'));
+            }
+            return redirect(admin_url('tuning'));
+        }
+
+        // the search index of the chosen columns, added in the background (ISS02927)
+        if ($action === UnindexedColumnTuning::ACTION) {
+            $started = (new UnindexedColumnTuning())->addIndexes((array) $request->get('choices', []));
+            if ($started == 0) {
+                admin_toastr(exmtrans('tuning.item.unindexed_columns.none_chosen'), 'error');
+            } else {
+                admin_toastr(exmtrans('tuning.item.unindexed_columns.started', ['count' => $started]));
             }
             return redirect(admin_url('tuning'));
         }

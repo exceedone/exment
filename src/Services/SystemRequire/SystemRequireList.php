@@ -85,6 +85,8 @@ class SystemRequireList
         Tuning\DeletedRowsTuning::class,
         Tuning\AttachmentTuning::class,
         Tuning\DatabaseSettingTuning::class,
+        Tuning\UnindexedColumnTuning::class,
+        Tuning\HeavyViewTuning::class,
     ];
 
     // @phpstan-ignore-next-line
