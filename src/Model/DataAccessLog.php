@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Schema;
  * @property int $custom_table_id
  * @property int|null $record_id
  * @property int|null $custom_view_id
+ * @property int|null $custom_column_id the column of a reveal (ISS00148)
  * @property string $kind
  * @property string $via
  * @property string|null $ip
@@ -31,11 +32,13 @@ class DataAccessLog extends Model
     public const KIND_DELETE = 'delete';
     public const KIND_RESTORE = 'restore';
     public const KIND_FORCE_DELETE = 'force_delete';
+    /** An encrypted value shown on purpose (ISS00148): always written, never deduplicated. */
+    public const KIND_REVEAL = 'reveal';
 
     /** The kinds that read (recorded only when the operation log keeps everything). */
     public const READS = [self::KIND_READ, self::KIND_LIST, self::KIND_EXPORT];
     public const WRITES = [self::KIND_CREATE, self::KIND_UPDATE, self::KIND_DELETE, self::KIND_RESTORE, self::KIND_FORCE_DELETE];
-    public const KINDS = [self::KIND_READ, self::KIND_LIST, self::KIND_EXPORT, self::KIND_CREATE, self::KIND_UPDATE, self::KIND_DELETE, self::KIND_RESTORE, self::KIND_FORCE_DELETE];
+    public const KINDS = [self::KIND_READ, self::KIND_LIST, self::KIND_EXPORT, self::KIND_CREATE, self::KIND_UPDATE, self::KIND_DELETE, self::KIND_RESTORE, self::KIND_FORCE_DELETE, self::KIND_REVEAL];
 
     public const VIA_PAGE = 'page';
     public const VIA_API = 'api';

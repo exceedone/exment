@@ -3894,6 +3894,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
                 'help' => 'Có thể nhập dữ liệu chủ từ tệp bên ngoài.<br />*Cần có quyền chỉnh sửa đối với dữ liệu đó.',
             ],
             'custom_value_export' => [
+            'custom_value_reveal' => ['label' => 'Xem giá trị đã mã hóa', 'help' => 'Có thể xem giá trị thật của cột đã mã hóa bằng nút "Hiện". Mỗi lần xem đều được ghi vào nhật ký truy cập dữ liệu.<br />* Cần quyền xem dữ liệu đó.'],
                 'label' => 'Xuất',
                 'help' => 'Có thể xuất dữ liệu chủ ra tệp bên ngoài.<br />*Cần có quyền xem đối với dữ liệu đó.',
             ],
@@ -3952,6 +3953,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
                 'help' => 'Có thể xuất dữ liệu ra tệp bên ngoài.<br />*Cần có quyền xem đối với dữ liệu đó.',
             ],
             'custom_value_view_trashed' => [
+            'custom_value_reveal' => ['label' => 'Xem giá trị đã mã hóa', 'help' => 'Có thể xem giá trị thật của cột đã mã hóa bằng nút "Hiện". Mỗi lần xem đều được ghi vào nhật ký truy cập dữ liệu.<br />* Cần quyền xem dữ liệu đó.'],
                 'label' => 'Hiển thị dữ liệu đã xóa',
                 'help' => 'Có thể hiển thị lại dữ liệu đã bị xóa tạm.<br />*Để khôi phục dữ liệu, cần có quyền chỉnh sửa đối với dữ liệu đó.',
             ],
@@ -5205,6 +5207,11 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         ],
     ],
     // ISS02839
+    'encrypted' => [
+        'reveal' => 'Hiện',
+        'unreadable' => '(không đọc được: không có khóa)',
+        'form_help' => 'Giá trị này được lưu ở dạng mã hóa. Để trống thì giữ nguyên giá trị hiện tại. Chỉ nhập giá trị mới khi muốn thay đổi.',
+    ],
     'audit_report' => [
         'api_allowed' => 'Được dùng',
         'api_not_allowed' => 'Không được dùng',
@@ -5227,6 +5234,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
             'delete' => 'Đã xóa',
             'restore' => 'Đã khôi phục',
             'force_delete' => 'Đã xóa vĩnh viễn',
+            'reveal' => 'Hiện giá trị đã mã hóa',
         ],
         'via' => [
             'page' => 'Trang',

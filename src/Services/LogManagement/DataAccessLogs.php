@@ -37,7 +37,7 @@ class DataAccessLogs
     /** The columns that change when a record is deleted or restored, not by a change of it. */
     protected const NOT_A_CHANGE = ['deleted_user_id', 'deleted_at', 'updated_at', 'updated_user_id'];
 
-    public const COLUMNS = ['id', 'created_at', 'base_user_id', 'custom_table_id', 'record_id', 'custom_view_id', 'kind', 'via', 'ip'];
+    public const COLUMNS = ['id', 'created_at', 'base_user_id', 'custom_table_id', 'record_id', 'custom_view_id', 'custom_column_id', 'kind', 'via', 'ip'];
 
     /** @var string|null from where, set by the caller (MCP) */
     protected static $via = null;
@@ -93,6 +93,15 @@ class DataAccessLogs
         static::record($table, $kind, null, $viewId);
     }
 
+    /**
+     * An encrypted value of a record shown on purpose (ISS00148): who, when, which column. Every
+     * time (not deduplicated, and kept whatever the operation log keeps).
+     */
+    public static function revealed(CustomTable $table, int $id, int $columnId): void
+    {
+        static::record($table, DataAccessLog::KIND_REVEAL, $id, null, $columnId);
+    }
+
     protected static function written(CustomValue $model, string $kind): void
     {
         try {
@@ -116,7 +125,7 @@ class DataAccessLogs
         }
     }
 
-    protected static function record(CustomTable $table, string $kind, ?int $recordId, ?int $viewId): void
+    protected static function record(CustomTable $table, string $kind, ?int $recordId, ?int $viewId, ?int $columnId = null): void
     {
         try {
             if (!DataAccessLog::tableExists() || in_array($table->table_name, static::NOT_RECORDED, true)) {
@@ -132,7 +141,7 @@ class DataAccessLogs
                 return;
             }
             $ip = $via === DataAccessLog::VIA_SYSTEM ? null : LogPrivacy::ip(request()->ip());
-            LogWriter::insert(DataAccessLog::class, [
+            $row = [
                 'base_user_id' => is_numeric($userId) ? intval($userId) : null,
                 'custom_table_id' => intval($table->id),
                 'record_id' => $recordId,
@@ -141,7 +150,12 @@ class DataAccessLogs
                 'via' => $via,
                 'ip' => is_null($ip) ? null : mb_substr(strval($ip), 0, 64),
                 'created_at' => Carbon::now(),
-            ]);
+            ];
+            if (isset($columnId)) {
+                // only a reveal has it (the column of its migration)
+                $row['custom_column_id'] = $columnId;
+            }
+            LogWriter::insert(DataAccessLog::class, $row);
         } catch (\Throwable $e) {
             \Log::warning('Exment: a read or a write of the data was not recorded: ' . get_class($e));
         }

@@ -19,6 +19,8 @@ class Permission extends EnumBase
     public const CUSTOM_VALUE_VIEW_TRASHED = 'custom_value_view_trashed';
     public const CUSTOM_VALUE_IMPORT = 'custom_value_import';
     public const CUSTOM_VALUE_EXPORT = 'custom_value_export';
+    /** Show the plain value of an encrypted column (ISS00148). */
+    public const CUSTOM_VALUE_REVEAL = 'custom_value_reveal';
     public const PLUGIN_ALL = 'plugin_all';
     public const PLUGIN_ACCESS = 'plugin_access';
     public const PLUGIN_SETTING = 'plugin_setting';
@@ -86,6 +88,7 @@ class Permission extends EnumBase
         self::CUSTOM_VALUE_VIEW_ALL,
         self::CUSTOM_VALUE_IMPORT,
         self::CUSTOM_VALUE_EXPORT,
+        self::CUSTOM_VALUE_REVEAL,
     ];
 
     public const TABLE_ROLE_PERMISSION = [
@@ -102,6 +105,7 @@ class Permission extends EnumBase
         self::CUSTOM_VALUE_IMPORT,
         self::CUSTOM_VALUE_EXPORT,
         self::CUSTOM_VALUE_VIEW_TRASHED,
+        self::CUSTOM_VALUE_REVEAL,
     ];
 
     /**

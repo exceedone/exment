@@ -56,13 +56,29 @@ class RoleGroupType extends EnumBase
                         return !in_array($permission, [Permission::CUSTOM_FORM_PUBLIC]);
                     })->toArray();
                 }
-                return $permissions;
+                return static::withoutReveal($permissions);
             case self::MASTER()->lowerKey():
-                return Permission::MASTER_ROLE_PERMISSION;
+                return static::withoutReveal(Permission::MASTER_ROLE_PERMISSION);
             case self::ROLE_GROUP()->lowerKey():
                 return Permission::ROLE_GROUP_ROLE_PERMISSION;
             case self::PLUGIN()->lowerKey():
                 return Permission::ROLE_GROUP_PLUGIN_PERMISSION;
         }
+    }
+
+    /**
+     * "Show the encrypted values" is offered while the encrypted columns are (ISS00148).
+     *
+     * @param array<mixed> $permissions
+     * @return array<mixed>
+     */
+    protected static function withoutReveal(array $permissions): array
+    {
+        if (\Exceedone\Exment\Services\Encryption\EncryptedColumns::featureOn()) {
+            return $permissions;
+        }
+        return collect($permissions)->filter(function ($permission) {
+            return $permission !== Permission::CUSTOM_VALUE_REVEAL;
+        })->values()->toArray();
     }
 }

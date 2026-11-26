@@ -1661,6 +1661,9 @@ return [
     */
     'data_encryption_keys' => env('DATA_ENCRYPTION_KEYS', ''),
 
+    // the seconds a value shown with the "show" button stays shown before it is masked again
+    'encrypted_reveal_seconds' => env('EXMENT_ENCRYPTED_REVEAL_SECONDS', 30),
+
     /*
     |--------------------------------------------------------------------------
     | The files of the application log (ISS02839)

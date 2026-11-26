@@ -3894,6 +3894,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
                 'help' => 'Sie können Stammdaten aus einer externen Datei importieren.<br />*Dafür ist eine Bearbeitungsberechtigung für die Daten erforderlich.',
             ],
             'custom_value_export' => [
+            'custom_value_reveal' => ['label' => 'Verschlüsselte Werte anzeigen', 'help' => 'Kann den echten Wert einer verschlüsselten Spalte mit der Schaltfläche „Anzeigen“ sehen. Jedes Mal wird im Datenzugriffsprotokoll festgehalten.<br />* Leserecht für die Daten ist erforderlich.'],
                 'label' => 'Export',
                 'help' => 'Sie können die Stammdaten in eine externe Datei exportieren.<br />*Dafür ist eine Leseberechtigung für die Daten erforderlich.',
             ],
@@ -3952,6 +3953,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
                 'help' => 'Sie können Daten in eine externe Datei exportieren.<br />*Dafür ist eine Leseberechtigung für die Daten erforderlich.',
             ],
             'custom_value_view_trashed' => [
+            'custom_value_reveal' => ['label' => 'Verschlüsselte Werte anzeigen', 'help' => 'Kann den echten Wert einer verschlüsselten Spalte mit der Schaltfläche „Anzeigen“ sehen. Jedes Mal wird im Datenzugriffsprotokoll festgehalten.<br />* Leserecht für die Daten ist erforderlich.'],
                 'label' => 'Gelöschte Daten anzeigen',
                 'help' => 'Sie können gelöschte Daten wieder anzeigen.<br />*Zum Wiederherstellen von Daten ist eine Bearbeitungsberechtigung für die Daten erforderlich.',
             ],
@@ -5205,6 +5207,11 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         ],
     ],
     // ISS02839
+    'encrypted' => [
+        'reveal' => 'Anzeigen',
+        'unreadable' => '(nicht lesbar: kein Schlüssel)',
+        'form_help' => 'Dieser Wert ist verschlüsselt gespeichert. Leer gelassen, bleibt der bisherige Wert. Geben Sie nur zum Ändern einen neuen Wert ein.',
+    ],
     'audit_report' => [
         'api_allowed' => 'Darf',
         'api_not_allowed' => 'Darf nicht',
@@ -5227,6 +5234,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'delete' => 'Gelöscht',
             'restore' => 'Wiederhergestellt',
             'force_delete' => 'Endgültig gelöscht',
+            'reveal' => 'Verschlüsselter Wert angezeigt',
         ],
         'via' => [
             'page' => 'Seite',
