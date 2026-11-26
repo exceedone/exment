@@ -367,7 +367,12 @@ class BackupRuns
     {
         try {
             static::ensureLogDirectory();
-            file_put_contents(static::logFullPath($run), sprintf("%s [%s] [%s] %s\n", Carbon::now()->format('Y-m-d H:i:s'), $level, $run->stage ?? '-', SecretMasker::mask($message)), FILE_APPEND | LOCK_EX);
+            $path = static::logFullPath($run);
+            $new = !file_exists($path);
+            file_put_contents($path, sprintf("%s [%s] [%s] %s\n", Carbon::now()->format('Y-m-d H:i:s'), $level, $run->stage ?? '-', SecretMasker::mask($message)), FILE_APPEND | LOCK_EX);
+            if ($new) {
+                @chmod($path, 0600);
+            }
         } catch (\Throwable $e) {
             // the log never stops anything
         }
