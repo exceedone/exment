@@ -1,0 +1,22 @@
+01-pm-dashboard | 2376 ms | width 390/390 | height 2070 | 
+02-project-home | 2877 ms | width 390/390 | height 3284 | 
+03-issue-list-filters | 399 ms | width 390/390 | height 1897 | filter toggle clicked
+04-board | 382 ms | width 390/390 | height 2055 | 
+05-gantt | 377 ms | width 390/390 | height 1449 | 
+06-burndown | 376 ms | width 390/390 | height 1328 | 
+07-issue-detail | 516 ms | width 390/390 | height 2613 | 
+08-comment-dock | 462 ms | width 390/390 | height 3109 | コメントを追加 (comment + 課題を変更 quick edit)
+09-issue-edit | 1272 ms | width 390/390 | height 4852 | 編集 button
+10-new-issue | 380 ms | width 390/390 | height 1897 | 
+11-quick-edit-list | 411 ms | width 390/390 | height 1897 | double-click a due date in the list
+12-project-settings | 389 ms | width 390/390 | height 1940 | 
+13-wiki | 395 ms | width 390/390 | height 1167 | 
+14-wiki-page | 379 ms | width 390/390 | height 1167 | 
+15-files | 377 ms | width 390/390 | height 1170 | 
+16-my-tasks | 370 ms | width 390/390 | height 1410 | 課題 > 自分の課題
+17-pm-notifications | 353 ms | width 390/390 | height 1410 | top bar 通知
+18-bell | the Exment bell is hidden at this width (hidden-xs)
+19-notify-list | 2086 ms | width 390/390 | height 1077 | 
+20-ranking | 2034 ms | width 390/390 | height 1047 | 
+CONSOLE ERRORS (0):
+NETWORK >=400 / failed (0):

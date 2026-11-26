@@ -1,0 +1,22 @@
+01-pm-dashboard | 2147 ms | width 1440/1440 | height 995 | 
+02-project-home | 2310 ms | width 1440/1440 | height 2113 | 
+03-issue-list-filters | 454 ms | width 1440/1440 | height 900 | filter toggle clicked
+04-board | 362 ms | width 1440/1440 | height 1446 | 
+05-gantt | 360 ms | width 1440/1440 | height 952 | 
+06-burndown | 342 ms | width 1440/1440 | height 900 | 
+07-issue-detail | 418 ms | width 1440/1440 | height 1809 | 
+08-comment-dock | 417 ms | width 1440/1440 | height 2221 | コメントを追加 (comment + 課題を変更 quick edit)
+09-issue-edit | 362 ms | width 1440/1440 | height 2875 | 編集 button
+10-new-issue | 344 ms | width 1440/1440 | height 900 | 
+11-quick-edit-list | 371 ms | width 1440/1440 | height 900 | double-click a due date in the list
+12-project-settings | 361 ms | width 1440/1440 | height 972 | 
+13-wiki | 396 ms | width 1440/1440 | height 900 | 
+14-wiki-page | 344 ms | width 1440/1440 | height 900 | 
+15-files | 360 ms | width 1440/1440 | height 900 | 
+16-my-tasks | 368 ms | width 1440/1440 | height 900 | 課題 > 自分の課題
+17-pm-notifications | 332 ms | width 1440/1440 | height 900 | top bar 通知
+18-bell-dropdown | 374 ms | width 1440/1440 | height 900 | 
+19-notify-list | 2246 ms | width 1440/1440 | height 948 | 
+20-ranking | 2044 ms | width 1440/1440 | height 900 | 
+CONSOLE ERRORS (0):
+NETWORK >=400 / failed (0):
