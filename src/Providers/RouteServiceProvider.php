@@ -783,6 +783,8 @@ class RouteServiceProvider extends ServiceProvider
                     // because a public form has no grid and its controller has no such
                     // method - the route would only exist to answer with a 500.
                     $router->get("data/{tableKey}/cell/{id}/{column_name}", "ApiDataController@dataCellHtml")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+                    // the plain value of an encrypted column, on purpose and logged (ISS00148)
+                    $router->get("data/{tableKey}/{id}/reveal/{column}", "ApiDataController@dataReveal")->middleware(ApiScope::getScopeString($route["addScope"], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
                 }
 
                 // Change class name if public form api for segment

@@ -803,6 +803,12 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             $errors
         );
 
+        // an encrypted column given a masked value that is not the one it has (ISS00148)
+        $errors = array_merge(
+            \Exceedone\Exment\Services\Encryption\EncryptedColumns::maskErrors($this, $value, $custom_value, $options),
+            $errors
+        );
+
         if ($validateLock) {
             $errors = array_merge(
                 $this->validatorLock($value, $custom_value, $asApi),

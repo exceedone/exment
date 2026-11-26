@@ -775,6 +775,8 @@ abstract class CustomItem implements ItemInterface
             $field->customFormat(function () {
                 return '';
             });
+            // a masked value typed in is refused (unless it is the one the record has)
+            $field->rules([new \Exceedone\Exment\Validator\EncryptedMaskRule($this->custom_column, $this->id)]);
             if (isset($this->id) && !is_nullorempty($this->value)) {
                 $field->placeholder(EncryptedColumns::masked($this->custom_column, $this->value));
                 $field->removeRule('required');

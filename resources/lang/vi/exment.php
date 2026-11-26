@@ -5233,6 +5233,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'reveal' => 'Hiện',
         'unreadable' => '(không đọc được: không có khóa)',
         'form_help' => 'Giá trị này được lưu ở dạng mã hóa. Để trống thì giữ nguyên giá trị hiện tại. Chỉ nhập giá trị mới khi muốn thay đổi.',
+        'masked_input' => 'Giá trị bị che (****1234) chỉ được nhận là "không đổi" khi nó trùng với dạng che của giá trị hiện tại. Để thay đổi, hãy nhập toàn bộ giá trị mới.',
+        'masked_form' => 'Giá trị này trông như giá trị bị che. Hãy nhập toàn bộ giá trị, hoặc để trống để giữ giá trị hiện tại.',
     ],
     'audit_report' => [
         'api_allowed' => 'Được dùng',

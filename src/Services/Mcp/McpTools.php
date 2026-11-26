@@ -513,7 +513,8 @@ class McpTools
         return [
             'id' => $value->id,
             'label' => $value->getLabel(),
-            'value' => $value->value,
+            // the encrypted columns masked (ISS00148): their plain values are never given to an AI
+            'value' => \Exceedone\Exment\Services\Encryption\EncryptedColumns::maskValues($value->value, $value->custom_table),
             'created_at' => $value->created_at?->format('Y-m-d H:i:s'),
             'updated_at' => $value->updated_at?->format('Y-m-d H:i:s'),
         ];
