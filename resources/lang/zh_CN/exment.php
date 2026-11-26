@@ -1501,7 +1501,7 @@ return [
                     'database' => '仅数据库',
                     'files' => '仅文件',
                 ],
-                'progress_header' => '备份・还原的进度',
+                'progress_header' => '备份/还原的进度',
                 'started' => '开始',
                 'elapsed' => '已用时间',
                 'unknown' => '计算中',
@@ -1512,7 +1512,7 @@ return [
                 'history_header' => '执行历史',
                 'history_help' => '备份和还原的执行记录。保留最新的 :count 条。',
                 'no_runs' => '还没有记录。',
-                'system_user' => '系统（自动・命令）',
+                'system_user' => '系统（自动、命令）',
                 'column' => [
                     'started_at' => '开始',
                     'kind' => '种类',
@@ -1538,7 +1538,7 @@ return [
                 'restore' => '还原',
             ],
             'triggers' => [
-                'screen' => '页面',
+                'screen' => '手动',
                 'command' => '命令',
                 'schedule' => '自动',
             ],
