@@ -1569,6 +1569,13 @@ return [
     // (QUEUE_CONNECTION=sync); a worker waits 60 and 300 seconds (JsonWebhookJob::$backoff)
     'notify_webhook_retry_seconds' => [1, 2],
 
+    // LINE WORKS API 2.0 (ISS00114, Services\LineWorks): the addresses (the test environment of
+    // a region may differ)
+    'lineworks' => [
+        'auth_url' => env('EXMENT_LINEWORKS_AUTH_URL', 'https://auth.worksmobile.com/oauth2/v2.0/token'),
+        'api_url' => env('EXMENT_LINEWORKS_API_URL', 'https://www.worksapis.com/v1.0'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | X-Frame-Options of the admin pages

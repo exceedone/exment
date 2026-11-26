@@ -124,6 +124,13 @@ class DemoMode
         'system_line_oa_basic_id',
         // Teams workflow
         'system_teams_workflow_url',
+        // LINE WORKS
+        'system_lineworks_client_id',
+        'system_lineworks_client_secret',
+        'system_lineworks_service_account',
+        'system_lineworks_private_key',
+        'system_lineworks_bot_id',
+        'system_lineworks_user_column',
         // automatic safety check sends by itself
         'safety_check_auto_enabled',
         // full-text search server
@@ -164,6 +171,8 @@ class DemoMode
         'system_line_channel_token',
         'system_line_channel_secret',
         'system_teams_workflow_url',
+        'system_lineworks_client_secret',
+        'system_lineworks_private_key',
         'meili_key',
         'recaptcha_site_key',
         'recaptcha_secret_key',

@@ -188,6 +188,14 @@ class Define
         'system_line_channel_secret' => ['type' => 'password', 'config' => 'exment.line.channel_secret', 'group' => 'notify'],
         // the address of the Teams workflow (ISS02863): a secret, never shown again
         'system_teams_workflow_url' => ['type' => 'password', 'group' => 'notify'],
+        // the LINE WORKS app (ISS00114): the secret and the private key kept encrypted, never shown again
+        'system_lineworks_client_id' => ['group' => 'notify'],
+        'system_lineworks_client_secret' => ['type' => 'password', 'group' => 'notify'],
+        'system_lineworks_service_account' => ['group' => 'notify'],
+        'system_lineworks_private_key' => ['type' => 'password', 'group' => 'notify'],
+        'system_lineworks_bot_id' => ['group' => 'notify'],
+        // the column of the users with their LINE WORKS id (the mail address by default)
+        'system_lineworks_user_column' => ['group' => 'notify'],
         'system_line_oa_basic_id' => ['config' => 'exment.line.oa_basic_id', 'group' => 'notify'],
 
         // Group "safety_check": the page of its own (SafetyCheckSettingController, #2157)

@@ -232,6 +232,29 @@ trait InitializeFormTrait
         $form->switchbool('system_teams_workflow_url_clear', exmtrans('system.system_teams_workflow_url_clear'))
             ->default(false);
 
+        // the LINE WORKS app (ISS00114), while its feature is used: the secret and the private key
+        // are not put back on the page (a new one replaces it, an empty field keeps it)
+        if (\Exceedone\Exment\Services\Features::enabled(\Exceedone\Exment\Services\Features::LINE_WORKS_NOTIFY)) {
+            $form->exmheader(exmtrans('system.system_lineworks'))->hr();
+            $form->descriptionHtml(exmtrans('system.system_lineworks_help', ['manual' => getManualUrl('notify_lineworks')]));
+            $form->text('system_lineworks_client_id', exmtrans('system.system_lineworks_client_id'));
+            foreach (['system_lineworks_client_secret', 'system_lineworks_private_key'] as $secret) {
+                $form->display($secret . '_state', exmtrans('system.' . $secret))
+                    ->default(is_nullorempty(System::{$secret}()) ? exmtrans('system.system_teams_workflow_unset') : exmtrans('system.system_teams_workflow_set'));
+                if ($secret === 'system_lineworks_private_key') {
+                    $form->textarea($secret . '_new', exmtrans('system.system_lineworks_new', ['name' => exmtrans('system.' . $secret)]))->rows(4)->default('');
+                } else {
+                    $form->password($secret . '_new', exmtrans('system.system_lineworks_new', ['name' => exmtrans('system.' . $secret)]))->default('');
+                }
+                $form->switchbool($secret . '_clear', exmtrans('system.system_lineworks_clear', ['name' => exmtrans('system.' . $secret)]))->default(false);
+            }
+            $form->text('system_lineworks_service_account', exmtrans('system.system_lineworks_service_account'));
+            $form->text('system_lineworks_bot_id', exmtrans('system.system_lineworks_bot_id'));
+            $form->select('system_lineworks_user_column', exmtrans('system.system_lineworks_user_column'))
+                ->help(exmtrans('system.help.system_lineworks_user_column'))
+                ->options($this->getUserOrgSlackColumns('user'));
+        }
+
         // the safety check has a page of its own (Controllers\SafetyCheckSettingController, #2157)
     }
 
@@ -282,6 +305,22 @@ trait InitializeFormTrait
                 $inputs['system_teams_workflow_url'] = $newUrl;
             } elseif (boolval($request->input('system_teams_workflow_url_clear'))) {
                 $inputs['system_teams_workflow_url'] = null;
+            }
+        }
+
+        // the secrets of the LINE WORKS app are never on the page: a new one, or cleared, or kept
+        foreach (['system_lineworks_client_secret', 'system_lineworks_private_key'] as $secret) {
+            if (array_key_exists($secret, $inputs) || $request->has($secret . '_new')) {
+                array_forget($inputs, $secret);
+                $new = trim(strval($request->input($secret . '_new')));
+                if ($new !== '') {
+                    if ($secret === 'system_lineworks_private_key' && openssl_pkey_get_private($new) === false) {
+                        return back()->withInput(array_except(get_flash_input(), [$secret . '_new']))->withErrors([$secret . '_new' => exmtrans('system.system_lineworks_private_key_invalid')]);
+                    }
+                    $inputs[$secret] = $new;
+                } elseif (boolval($request->input($secret . '_clear'))) {
+                    $inputs[$secret] = null;
+                }
             }
         }
 
