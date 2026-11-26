@@ -1495,7 +1495,7 @@ return [
                 'restore' => '还原',
             ],
             'triggers' => [
-                'screen' => '画面',
+                'screen' => '页面',
                 'command' => '命令',
                 'schedule' => '自动',
             ],
@@ -1520,10 +1520,10 @@ return [
             ],
             'warning' => '警告',
             'error' => '错误',
-            'remaining' => '剩余',
+            'remaining' => '剩余时间',
             'message' => [
                 'locked' => '其他备份或还原正在执行。请在其结束后再执行。',
-                'queued' => '备份已开始。可以在此画面查看进度。',
+                'queued' => '备份已开始。可以在此页面查看进度。',
                 'stalled' => '已有 :minutes 分钟以上没有进展，视为已停止。可以再次执行。',
                 'stalled_queued' => '在队列中等待 :minutes 分钟以上仍未开始。请确认队列的 worker 是否在运行。',
                 'stalled_restored' => '这是还原的备份创建时正在执行的记录。',
@@ -1538,7 +1538,7 @@ return [
             'notify' => [
                 'subject' => 'Exment：:kind（:status）',
                 'body' => ":kind 的结果：:status\n开始：:started\n结束：:finished\n文件：:file\n警告：:warnings 条　错误：:errors 条",
-                'next' => '详细日志可在备份画面的历史中查看。请排除原因后再执行。',
+                'next' => '详细日志可在备份页面的历史中查看。请排除原因后再执行。',
             ],
         ],
     ],

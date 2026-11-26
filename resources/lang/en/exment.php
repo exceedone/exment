@@ -1567,7 +1567,7 @@ return [
             ],
             'warning' => 'Warning',
             'error' => 'Error',
-            'remaining' => 'Left',
+            'remaining' => 'Time left',
             'message' => [
                 'locked' => 'Another backup or restore is running. Run it again when it has finished.',
                 'queued' => 'The backup has started. You can follow its progress on this page.',

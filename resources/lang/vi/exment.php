@@ -1520,13 +1520,13 @@ return [
             ],
             'warning' => 'Cảnh báo',
             'error' => 'Lỗi',
-            'remaining' => 'Còn lại',
+            'remaining' => 'Thời gian còn lại',
             'message' => [
                 'locked' => 'Một bản sao lưu hoặc khôi phục khác đang chạy. Hãy chạy lại sau khi nó kết thúc.',
                 'queued' => 'Đã bắt đầu sao lưu. Bạn có thể theo dõi tiến độ trên màn hình này.',
                 'stalled' => 'Không có tiến triển trong :minutes phút trở lên nên được xem là đã dừng. Bạn có thể chạy lại.',
                 'stalled_queued' => 'Đã chờ trong hàng đợi :minutes phút trở lên mà không bắt đầu. Hãy kiểm tra worker của hàng đợi có đang chạy không.',
-                'stalled_restored' => 'Lần chạy này đang diễn ra khi bản sao lưu được khôi phục được tạo.',
+                'stalled_restored' => 'Lần chạy này đang diễn ra vào lúc tạo bản sao lưu đã được khôi phục.',
             ],
             'hints' => [
                 'see_log' => 'Hãy xem nhật ký chi tiết.',

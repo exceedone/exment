@@ -1495,7 +1495,7 @@ return [
                 'restore' => 'Restauración',
             ],
             'triggers' => [
-                'screen' => 'Pantalla',
+                'screen' => 'Manual',
                 'command' => 'Comando',
                 'schedule' => 'Automática',
             ],
@@ -1520,7 +1520,7 @@ return [
             ],
             'warning' => 'Advertencia',
             'error' => 'Error',
-            'remaining' => 'Restante',
+            'remaining' => 'Tiempo restante',
             'message' => [
                 'locked' => 'Se está ejecutando otra copia de seguridad o restauración. Vuelva a ejecutarla cuando termine.',
                 'queued' => 'La copia de seguridad ha comenzado. Puede seguir su progreso en esta pantalla.',

@@ -1495,7 +1495,7 @@ return [
                 'restore' => 'Wiederherstellung',
             ],
             'triggers' => [
-                'screen' => 'Bildschirm',
+                'screen' => 'Manuell',
                 'command' => 'Befehl',
                 'schedule' => 'Automatisch',
             ],
@@ -1520,7 +1520,7 @@ return [
             ],
             'warning' => 'Warnung',
             'error' => 'Fehler',
-            'remaining' => 'Verbleibend',
+            'remaining' => 'Restzeit',
             'message' => [
                 'locked' => 'Eine andere Sicherung oder Wiederherstellung läuft. Führen Sie den Vorgang erneut aus, wenn sie beendet ist.',
                 'queued' => 'Die Sicherung wurde gestartet. Den Fortschritt sehen Sie auf dieser Seite.',
