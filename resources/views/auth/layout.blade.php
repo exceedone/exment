@@ -16,8 +16,6 @@
     @endforeach
   @endif
 
-  <!-- Bootstrap 5 editable -->
-  <link rel="stylesheet" href="{{ admin_asset("vendor/open-admin/bootstrap5-editable/css/bootstrap-editable.css") }}">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/all.min.css") }}">
   <link rel="stylesheet" href="{{ admin_asset("/vendor/open-admin/font-awesome/css/v4-shims.min.css") }}">
