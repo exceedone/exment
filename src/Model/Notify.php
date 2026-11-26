@@ -9,6 +9,7 @@ use Exceedone\Exment\Enums\NotifyAction;
 use Exceedone\Exment\Enums\NotifySavedType;
 use Exceedone\Exment\Enums\NotifyTrigger;
 use Exceedone\Exment\Services\Notify\NotifyTargetBase;
+use Exceedone\Exment\Services\Notify\NotifyRunner;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\Search\SearchService;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -305,6 +306,13 @@ class Notify extends ModelBase
             'create_or_update' => $notifySavedType->getLabel(),
         ];
         $options['prms'] = $prms;
+
+        // the recipients are found and told after the response or by the queue, not while the
+        // save waits (ISS02906, NotifyRunner)
+        if (NotifyRunner::defers($notifySavedType, $options)) {
+            NotifyRunner::later($this, $custom_value, $options);
+            return;
+        }
 
         return $this->notifyUser($custom_value, $options);
     }
