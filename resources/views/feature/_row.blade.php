@@ -50,7 +50,11 @@
             @if (!$f['menu_exists'])<p class="exm-feature-help">{{ exmtrans('feature.menu_missing') }}</p>@endif
         @else
             <input type="hidden" name="features[{{ $key }}][menu]" value="1">
-            <span class="exm-feature-help">{{ exmtrans('feature.menu_none') }} <a href="{{ $menu_url }}">{{ exmtrans('feature.menu_link') }}</a></span>
+            @if (!empty($f['pack']))
+                <span class="exm-feature-help">{{ exmtrans('feature.menu_pack') }} <a href="{{ $menu_url }}">{{ exmtrans('feature.menu_pack_link') }}</a></span>
+            @else
+                <span class="exm-feature-help">{{ exmtrans('feature.menu_none') }} <a href="{{ $menu_url }}">{{ exmtrans('feature.menu_link') }}</a></span>
+            @endif
         @endif
     </td>
 </tr>

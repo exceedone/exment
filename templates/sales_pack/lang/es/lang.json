@@ -1,6 +1,6 @@
 {
     "template_view_name": "Paquete de ventas",
-    "description": "Clientes (con contactos), oportunidades, presupuestos (con líneas) y contratos, un grupo de roles de ventas y un menú \"Ventas y clientes\".",
+    "description": "Clientes (con contactos), oportunidades, presupuestos (con líneas), contratos y actividades, con un kanban de las oportunidades, un panel de ventas, un grupo de roles de ventas y el menú «Ventas y clientes».",
     "custom_tables": [
         {
             "table_name": "sales_customer",
@@ -232,6 +232,44 @@
                     "column_view_name": "Nota"
                 }
             ]
+        },
+        {
+            "table_name": "sales_activity",
+            "table_view_name": "Actividades",
+            "description": "Visitas, llamadas, correos y próximos pasos, por cliente y oportunidad.",
+            "custom_columns": [
+                {
+                    "column_name": "activity_type",
+                    "column_view_name": "Tipo",
+                    "options": {
+                        "select_item_valtext": "visit,Visita\ncall,Llamada\nemail,Correo\nnext,Próximo paso"
+                    }
+                },
+                {
+                    "column_name": "subject",
+                    "column_view_name": "Asunto"
+                },
+                {
+                    "column_name": "activity_at",
+                    "column_view_name": "Fecha y hora"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Cliente"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Oportunidad"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Responsable"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notas"
+                }
+            ]
         }
     ],
     "custom_forms": [
@@ -244,11 +282,94 @@
             "form_view_name": "Formulario"
         }
     ],
+    "custom_views": [
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a01",
+            "view_view_name": "Kanban por etapa"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a02",
+            "view_view_name": "Pedidos previstos por mes",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Importe previsto"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a03",
+            "view_view_name": "Oportunidades abiertas por responsable",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "id",
+                    "view_column_name": "Oportunidades"
+                },
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Importe previsto"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a04",
+            "view_view_name": "Actividades de este mes"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a05",
+            "view_view_name": "Presupuestos que vencen pronto (14 días)"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a06",
+            "view_view_name": "Contratos que terminan pronto (30 días)"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "sales_dashboard",
+            "dashboard_view_name": "Ventas",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Pedidos previstos por mes"
+                },
+                {
+                    "row_no": "1",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Oportunidades abiertas por responsable"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Actividades de este mes"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Presupuestos que vencen pronto (14 días)"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Contratos que terminan pronto (30 días)"
+                }
+            ]
+        }
+    ],
     "admin_menu": [
         {
             "title": "Ventas y clientes",
             "menu_type": "parent_node",
             "menu_name": "sales"
+        },
+        {
+            "title": "Panel de ventas",
+            "menu_type": "custom",
+            "menu_name": "sales_dashboard"
         },
         {
             "title": "Clientes",
@@ -269,13 +390,18 @@
             "title": "Contratos",
             "menu_type": "table",
             "menu_name": "sales_contract"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "sales_activity",
+            "title": "Actividades"
         }
     ],
     "roles": [
         {
             "role_group_name": "sales_member_group",
             "role_group_view_name": "Ventas",
-            "description": "Personas que ven, crean y editan clientes, oportunidades, presupuestos y contratos."
+            "description": "Personas que ven, crean y editan clientes, oportunidades, presupuestos, contratos y actividades."
         }
     ],
     "notifies": [

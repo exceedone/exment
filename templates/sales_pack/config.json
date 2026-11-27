@@ -1,7 +1,8 @@
 {
     "template_name": "sales_pack",
+    "locale": "ja",
     "template_view_name": "営業パック",
-    "description": "顧客（担当者）・案件・見積（明細）・契約と、営業の役割グループ、「営業・顧客」のメニューのセットです。",
+    "description": "顧客（担当者）・案件・見積（明細）・契約・活動の記録と、案件のかんばん、営業のダッシュボード、営業の役割グループ、「営業・顧客」のメニューのセットです。",
     "custom_tables": [
         {
             "table_name": "sales_customer",
@@ -405,7 +406,7 @@
                 },
                 {
                     "column_name": "stage",
-                    "column_view_name": "状態",
+                    "column_view_name": "段階",
                     "column_type": "select_valtext",
                     "description": null,
                     "system_flg": "0",
@@ -1060,6 +1061,145 @@
                     "share_permission": null
                 }
             ]
+        },
+        {
+            "table_name": "sales_activity",
+            "table_view_name": "活動の記録",
+            "description": "訪問・電話・メール・次の予定を、顧客と案件ごとに残します。",
+            "system_flg": "0",
+            "showlist_flg": "1",
+            "order": "0",
+            "options": {
+                "icon": "fa-comments",
+                "comment_flg": "1",
+                "revision_flg": "1",
+                "attachment_flg": "1",
+                "one_record_flg": "0",
+                "revision_count": "100",
+                "search_enabled": "1",
+                "use_label_id_flg": "0",
+                "all_user_editable_flg": "0",
+                "all_user_viewable_flg": "0",
+                "all_user_accessable_flg": "0"
+            },
+            "custom_columns": [
+                {
+                    "column_name": "activity_type",
+                    "column_type": "select_valtext",
+                    "column_view_name": "種類",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_item_valtext": "visit,訪問\ncall,電話\nemail,メール\nnext,次の予定",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "subject",
+                    "column_type": "text",
+                    "column_view_name": "件名",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "1",
+                        "string_length": "256",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "activity_at",
+                    "column_type": "datetime",
+                    "column_view_name": "日時",
+                    "options": {
+                        "required": "1",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "customer",
+                    "column_type": "select_table",
+                    "column_view_name": "顧客",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "sales_customer",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "deal",
+                    "column_type": "select_table",
+                    "column_view_name": "案件",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "select_target_table_name": "sales_deal",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_type": "user",
+                    "column_view_name": "担当者",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "1",
+                        "freeword_search": "0",
+                        "login_user_default": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_type": "textarea",
+                    "column_view_name": "内容",
+                    "options": {
+                        "required": "0",
+                        "index_enabled": "0",
+                        "freeword_search": "1",
+                        "select_import_table_name": null,
+                        "select_import_column_name": null,
+                        "select_export_table_name": null,
+                        "select_export_column_name": null
+                    }
+                }
+            ],
+            "custom_column_multisettings": [
+                {
+                    "suuid": "5a1e5c0a7b3d4e2f9a07",
+                    "multisetting_type": "2",
+                    "options": {
+                        "table_label_table_name": "sales_activity",
+                        "table_label_column_name": "subject"
+                    },
+                    "priority": "1",
+                    "share_trigger_type": null,
+                    "share_permission": null
+                }
+            ]
         }
     ],
     "custom_relations": [
@@ -1601,6 +1741,467 @@
             "table_name": "sales_quote"
         }
     ],
+    "custom_views": [
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a01",
+            "view_type": "0",
+            "view_kind_type": "5",
+            "view_view_name": "段階ごとのかんばん",
+            "default_flg": "0",
+            "options": {
+                "kanban_group_column": "sales_deal.stage",
+                "kanban_sum_column": "sales_deal.expected_amount",
+                "kanban_title_column": "sales_deal.deal_name",
+                "kanban_assignee_column": "sales_deal.owner",
+                "kanban_editable": "1"
+            },
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": null,
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "customer"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": null,
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": null,
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_date"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "4",
+                    "options": null,
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "owner"
+                }
+            ],
+            "custom_view_filters": [],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [],
+            "table_name": "sales_deal"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a02",
+            "view_type": "0",
+            "view_kind_type": "1",
+            "view_view_name": "月ごとの受注見込み",
+            "default_flg": "0",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": {
+                        "view_group_condition": "ym"
+                    },
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_date"
+                }
+            ],
+            "custom_view_filters": [
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "stage",
+                    "view_filter_condition": "2",
+                    "view_filter_condition_value_text": "lost"
+                },
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_date",
+                    "view_filter_condition": "1004",
+                    "view_filter_condition_value_text": null
+                }
+            ],
+            "custom_view_sorts": [
+                {
+                    "view_column_type": "0",
+                    "sort": "1",
+                    "priority": "1",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_date"
+                }
+            ],
+            "custom_view_summaries": [
+                {
+                    "view_column_type": "0",
+                    "view_summary_condition": "1",
+                    "view_column_name": "見込み金額",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount"
+                }
+            ],
+            "table_name": "sales_deal"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a03",
+            "view_type": "0",
+            "view_kind_type": "1",
+            "view_view_name": "担当者ごとの案件（進行中）",
+            "default_flg": "0",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": null,
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "owner"
+                }
+            ],
+            "custom_view_filters": [
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "stage",
+                    "view_filter_condition": "2",
+                    "view_filter_condition_value_text": "won"
+                },
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "stage",
+                    "view_filter_condition": "2",
+                    "view_filter_condition_value_text": "lost"
+                }
+            ],
+            "custom_view_sorts": [],
+            "custom_view_summaries": [
+                {
+                    "view_column_type": "1",
+                    "view_summary_condition": "3",
+                    "view_column_name": "件数",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "id"
+                },
+                {
+                    "view_column_type": "0",
+                    "view_summary_condition": "1",
+                    "view_column_name": "見込み金額",
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount"
+                }
+            ],
+            "table_name": "sales_deal"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a04",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "今月の活動",
+            "default_flg": "0",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": null,
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "activity_at"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": null,
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "activity_type"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": null,
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "subject"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "4",
+                    "options": null,
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "customer"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "5",
+                    "options": null,
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "deal"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "6",
+                    "options": null,
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "owner"
+                }
+            ],
+            "custom_view_filters": [
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "activity_at",
+                    "view_filter_condition": "1021",
+                    "view_filter_condition_value_text": null
+                }
+            ],
+            "custom_view_sorts": [
+                {
+                    "view_column_type": "0",
+                    "sort": "-1",
+                    "priority": "1",
+                    "view_column_table_name": "sales_activity",
+                    "view_column_target_name": "activity_at"
+                }
+            ],
+            "custom_view_summaries": [],
+            "table_name": "sales_activity"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a05",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "有効期限が近い見積（14 日）",
+            "default_flg": "0",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": null,
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "quote_title"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": null,
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "customer"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": null,
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "deal"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "4",
+                    "options": null,
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "valid_until"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "5",
+                    "options": null,
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "total"
+                }
+            ],
+            "custom_view_filters": [
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "valid_until",
+                    "view_filter_condition": "1012",
+                    "view_filter_condition_value_text": null
+                },
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "valid_until",
+                    "view_filter_condition": "1044",
+                    "view_filter_condition_value_text": "14"
+                }
+            ],
+            "custom_view_sorts": [
+                {
+                    "view_column_type": "0",
+                    "sort": "1",
+                    "priority": "1",
+                    "view_column_table_name": "sales_quote",
+                    "view_column_target_name": "valid_until"
+                }
+            ],
+            "custom_view_summaries": [],
+            "table_name": "sales_quote"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a06",
+            "view_type": "0",
+            "view_kind_type": "0",
+            "view_view_name": "終了日が近い契約（30 日）",
+            "default_flg": "0",
+            "options": null,
+            "custom_view_columns": [
+                {
+                    "view_column_type": "0",
+                    "order": "1",
+                    "options": null,
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "contract_name"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "2",
+                    "options": null,
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "customer"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "3",
+                    "options": null,
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "end_date"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "4",
+                    "options": null,
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "auto_renewal"
+                },
+                {
+                    "view_column_type": "0",
+                    "order": "5",
+                    "options": null,
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "amount"
+                }
+            ],
+            "custom_view_filters": [
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "end_date",
+                    "view_filter_condition": "1012",
+                    "view_filter_condition_value_text": null
+                },
+                {
+                    "view_column_type": "0",
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "end_date",
+                    "view_filter_condition": "1044",
+                    "view_filter_condition_value_text": "30"
+                }
+            ],
+            "custom_view_sorts": [
+                {
+                    "view_column_type": "0",
+                    "sort": "1",
+                    "priority": "1",
+                    "view_column_table_name": "sales_contract",
+                    "view_column_target_name": "end_date"
+                }
+            ],
+            "custom_view_summaries": [],
+            "table_name": "sales_contract"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_type": "0",
+            "dashboard_name": "sales_dashboard",
+            "dashboard_view_name": "営業",
+            "default_flg": "0",
+            "options": {
+                "row1": "2",
+                "row2": "1",
+                "row3": "2",
+                "row4": "0"
+            },
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "月ごとの受注見込み",
+                    "dashboard_box_type": "chart",
+                    "options": {
+                        "target_table_name": "sales_deal",
+                        "target_view_suuid": "5a1e5c0a7b3d4e2f9a02",
+                        "chart_type": "bar",
+                        "chart_axisx_table_name": "sales_deal",
+                        "chart_axisx_column_name": "expected_date",
+                        "chart_axisx_view_column_type": "0",
+                        "chart_axisx_type": "0",
+                        "chart_axisy_table_name": "sales_deal",
+                        "chart_axisy_column_name": "expected_amount",
+                        "chart_axisy_view_column_type": "0",
+                        "chart_axisy_type": "1",
+                        "chart_axis_label": [
+                            "1",
+                            "2"
+                        ],
+                        "chart_axis_name": [
+                            "1",
+                            "2"
+                        ],
+                        "chart_options": [
+                            "2"
+                        ]
+                    }
+                },
+                {
+                    "row_no": "1",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "担当者ごとの案件（進行中）",
+                    "dashboard_box_type": "list",
+                    "options": {
+                        "pager_count": "10",
+                        "target_table_name": "sales_deal",
+                        "target_view_suuid": "5a1e5c0a7b3d4e2f9a03"
+                    }
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "今月の活動",
+                    "dashboard_box_type": "list",
+                    "options": {
+                        "pager_count": "10",
+                        "target_table_name": "sales_activity",
+                        "target_view_suuid": "5a1e5c0a7b3d4e2f9a04"
+                    }
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "有効期限が近い見積（14 日）",
+                    "dashboard_box_type": "list",
+                    "options": {
+                        "pager_count": "10",
+                        "target_table_name": "sales_quote",
+                        "target_view_suuid": "5a1e5c0a7b3d4e2f9a05"
+                    }
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "終了日が近い契約（30 日）",
+                    "dashboard_box_type": "list",
+                    "options": {
+                        "pager_count": "10",
+                        "target_table_name": "sales_contract",
+                        "target_view_suuid": "5a1e5c0a7b3d4e2f9a06"
+                    }
+                }
+            ]
+        }
+    ],
     "admin_menu": [
         {
             "order": "20",
@@ -1615,6 +2216,26 @@
             "menu_type": "parent_node",
             "menu_name": "sales",
             "parent_name": null,
+            "menu_target_name": null
+        },
+        {
+            "order": "0",
+            "title": "営業のダッシュボード",
+            "icon": "fa-tachometer",
+            "uri": null,
+            "options": {
+                "menu_target_dashboard_name": "sales_dashboard",
+                "name_locale_ja": "営業のダッシュボード",
+                "name_locale_en": "Sales dashboard",
+                "name_locale_de": "Vertriebs-Dashboard",
+                "name_locale_es": "Panel de ventas",
+                "name_locale_ko": "영업 대시보드",
+                "name_locale_vi": "Bảng điều khiển bán hàng",
+                "name_locale_zh_CN": "销售仪表板"
+            },
+            "menu_type": "custom",
+            "menu_name": "sales_dashboard",
+            "parent_name": "sales",
             "menu_target_name": null
         },
         {
@@ -1660,6 +2281,17 @@
             "menu_name": "sales_contract",
             "parent_name": "sales",
             "menu_target_name": "sales_contract"
+        },
+        {
+            "order": "5",
+            "title": "活動の記録",
+            "icon": "fa-comments",
+            "uri": "sales_activity",
+            "options": null,
+            "menu_type": "table",
+            "menu_name": "sales_activity",
+            "parent_name": "sales",
+            "menu_target_name": "sales_activity"
         }
     ],
     "roles": [
@@ -1667,7 +2299,7 @@
             "role_group_name": "sales_member_group",
             "role_group_view_name": "営業",
             "role_group_order": "0",
-            "description": "顧客・案件・見積・契約を見て、作り、直す人。",
+            "description": "顧客・案件・見積・契約・活動の記録を見て、作り、直す人。",
             "role_group_permissions": [
                 {
                     "role_group_permission_type": "1",
@@ -1710,6 +2342,13 @@
                         "custom_value_edit_all"
                     ],
                     "role_group_target_name": "sales_contract"
+                },
+                {
+                    "role_group_permission_type": "1",
+                    "permissions": [
+                        "custom_value_edit_all"
+                    ],
+                    "role_group_target_name": "sales_activity"
                 }
             ]
         }

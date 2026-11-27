@@ -56,6 +56,7 @@ class Features
     public const WEBHOOK_NOTIFY = 'webhook_notify';
     public const LINE_WORKS_NOTIFY = 'lineworks_notify';
     public const MAIL_OAUTH = 'mail_oauth';
+    public const SALES = 'sales';
 
     /** The key of the menu flag of a plugin in the setting. */
     public const PLUGIN_PREFIX = 'plugin:';
@@ -259,6 +260,16 @@ class Features
             'manual' => 'system_setting',
             'who' => false,
         ]);
+        // sales (CRM, SFA, ISS00321): a feature that installs a set of tables (Services\FeaturePacks).
+        // Off until it is turned on; turning it on adds the tables, views, dashboard, menu, notify
+        // and role group of templates/sales_pack (what the site has already is kept). Who may use
+        // them is the role group "Sales" (the permissions of the tables), not this page.
+        $core[static::SALES] = static::definition([
+            'label' => 'exment::exment.feature.features.sales',
+            'description' => 'exment::exment.feature.features.sales_help',
+            'pack' => 'sales_pack',
+            'who' => false,
+        ]);
         // the advice is about the server (php.ini, .env): a SaaS keeps it from the tenants
         // with EXMENT_FEATURES_LOCKED=tuning (ISS00428)
         $core[static::TUNING] = static::definition([
@@ -345,8 +356,9 @@ class Features
             return;
         }
         $definition['plugin'] = array_get($definition, 'plugin') ?? strtok($key, '.');
-        // on from the start is for Exment's own pages only: a new feature of a plugin starts off
-        unset($definition['default']);
+        // on from the start is for Exment's own pages only: a new feature of a plugin starts off.
+        // A pack is a template of Exment (FeaturePacks): not for a plugin either
+        unset($definition['default'], $definition['pack']);
         static::$registered[$key] = static::definition($definition);
         static::$definitions = null;
     }
@@ -376,7 +388,27 @@ class Features
             'requires' => is_string($requires) && $requires !== '' ? $requires : null,
             'manual' => static::manualOf(array_get($definition, 'manual')),
             'action' => static::actionOf(array_get($definition, 'action')),
+            // a template of Exment (templates/<pack>) installed when the feature is turned on (FeaturePacks)
+            'pack' => static::packOf(array_get($definition, 'pack')),
         ];
+    }
+
+    /**
+     * The pack of a definition as it may be kept: the name of one folder of templates/
+     * (small letters, numbers and "_"). Null otherwise.
+     */
+    protected static function packOf(mixed $pack): ?string
+    {
+        return is_string($pack) && preg_match('/\A[a-z0-9_]+\z/', $pack) === 1 ? $pack : null;
+    }
+
+    /**
+     * The pack (a folder of templates/) a feature installs when it is turned on (null: none).
+     */
+    public static function pack(string $key): ?string
+    {
+        $pack = static::attribute($key, 'pack');
+        return is_string($pack) ? $pack : null;
     }
 
     /**

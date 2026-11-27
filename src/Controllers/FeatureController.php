@@ -10,6 +10,7 @@ use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
 use Exceedone\Exment\Services\DemoMode;
+use Exceedone\Exment\Services\FeaturePacks;
 use Exceedone\Exment\Services\Features;
 use Exceedone\Exment\Services\PluginDistribution\AdminNotices;
 use Exceedone\Exment\Services\PluginDistribution\BundledPlugins;
@@ -212,6 +213,11 @@ class FeatureController extends AdminControllerBase
             ];
         }
 
+        // the features with a pack that are turned on now (they install it, below)
+        $packsOn = array_values(array_filter(FeaturePacks::keys(), function ($key) use ($values) {
+            return boolval($values[$key]['enabled'] ?? false) && !Features::setting($key)['enabled'];
+        }));
+
         $pluginInput = (array)$request->input('plugins', []);
         DB::transaction(function () use (&$values, $pluginInput, $definitions) {
             foreach (Plugin::query()->get() as $plugin) {
@@ -238,6 +244,21 @@ class FeatureController extends AdminControllerBase
             }
         });
 
+        // the packs, after the settings are saved: they make tables (outside of a transaction)
+        foreach ($packsOn as $key) {
+            try {
+                FeaturePacks::install($key);
+                admin_success(e(Features::label($key)), e(exmtrans('feature.pack_installed', ['name' => Features::label($key)]))
+                    . ' <a href="' . e(admin_url('role_group')) . '">' . e(exmtrans('feature.role_group_link')) . '</a>');
+            } catch (\Throwable $e) {
+                \Log::error($e);
+                // off again: the next "use" installs it again
+                FeaturePacks::turnOff($key);
+                admin_toastr(exmtrans('feature.pack_failed', ['name' => esc_html(Features::label($key))]), 'error');
+                return redirect(admin_url('feature'));
+            }
+        }
+
         admin_toastr(exmtrans('common.message.success_execute'));
         return redirect(admin_url('feature'));
     }
@@ -260,12 +281,14 @@ class FeatureController extends AdminControllerBase
             'who' => $definition['who'],
             // who is not asked: for a plugin, those who may use the plugin; for Exment's own
             // (as Tuning), the system administrators (its page is an admin setting)
-            'who_text' => $definition['who'] ? null : exmtrans(isset($definition['plugin']) ? 'feature.who_plugin' : 'feature.who_system_admin'),
+            'who_text' => $definition['who'] ? null : exmtrans(isset($definition['plugin']) ? 'feature.who_plugin' : (isset($definition['pack']) ? 'feature.who_pack' : 'feature.who_system_admin')),
             'requires' => isset($requires) && Features::exists($requires) ? Features::label($requires) : null,
             'has_menu' => isset($definition['menu']),
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
-            'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : null,
+            'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : (isset($definition['pack']) ? exmtrans('feature.pack_note') : null),
             'manual_url' => Features::manualUrl($key),
+            // a feature that installs tables, menus... (FeaturePacks)
+            'pack' => isset($definition['pack']),
             'action' => Features::action($key),
         ];
     }

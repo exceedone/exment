@@ -36,7 +36,7 @@ class SalesPackTemplateTest extends UnitTestBase
     {
         $config = $this->config();
         $tables = array_column($config['custom_tables'], 'table_name');
-        $this->assertSame(['sales_customer', 'sales_customer_contact', 'sales_deal', 'sales_quote', 'sales_quote_detail', 'sales_contract'], $tables);
+        $this->assertSame(['sales_customer', 'sales_customer_contact', 'sales_deal', 'sales_quote', 'sales_quote_detail', 'sales_contract', 'sales_activity'], $tables);
         foreach ($config['custom_tables'] as $table) {
             foreach ($table['custom_columns'] as $column) {
                 if ($column['column_type'] === 'select_table') {
@@ -73,6 +73,61 @@ class SalesPackTemplateTest extends UnitTestBase
             $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]/u', $table['table_view_name'], $table['table_name']);
             foreach ($table['custom_columns'] as $column) {
                 $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}\x{4e00}-\x{9fff}]/u', $column['column_view_name'], $table['table_name'] . '.' . $column['column_name']);
+            }
+        }
+    }
+
+    /**
+     * The views and the dashboard name only the tables and columns of the pack (an import
+     * leaves out what it cannot find), and every language names them.
+     */
+    public function testTheViewsAndTheDashboardNameTheColumnsOfThePack(): void
+    {
+        $config = $this->config();
+        $columns = [];
+        foreach ($config['custom_tables'] as $table) {
+            foreach ($table['custom_columns'] as $column) {
+                $columns[] = $table['table_name'] . '.' . $column['column_name'];
+            }
+        }
+        $suuids = [];
+        foreach ($config['custom_views'] as $view) {
+            $suuids[] = $view['suuid'];
+            foreach (['custom_view_columns', 'custom_view_filters', 'custom_view_sorts', 'custom_view_summaries'] as $kind) {
+                foreach ($view[$kind] as $item) {
+                    $name = $item['view_column_table_name'] . '.' . $item['view_column_target_name'];
+                    $this->assertTrue(in_array($name, $columns, true) || $item['view_column_target_name'] === 'id', $view['view_view_name'] . ': ' . $name);
+                }
+            }
+            foreach ((array) $view['options'] as $key => $value) {
+                if (str_starts_with($key, 'kanban_') && str_ends_with($key, '_column')) {
+                    $this->assertContains($value, $columns, $key);
+                }
+            }
+        }
+        $this->assertCount(1, $config['dashboards']);
+        foreach ($config['dashboards'][0]['dashboard_boxes'] as $box) {
+            $this->assertContains($box['options']['target_view_suuid'], $suuids, $box['dashboard_box_view_name']);
+        }
+
+        foreach (['en', 'de', 'es', 'ko', 'vi', 'zh_CN'] as $locale) {
+            $merged = $this->config($locale);
+            foreach ($merged['custom_views'] as $view) {
+                $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}]/u', $view['view_view_name'], "$locale: " . $view['suuid']);
+            }
+            $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}]/u', $merged['dashboards'][0]['dashboard_view_name'], $locale);
+            foreach ($merged['dashboards'][0]['dashboard_boxes'] as $box) {
+                $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}]/u', $box['dashboard_box_view_name'], $locale);
+            }
+            foreach ($merged['custom_tables'] as $table) {
+                $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}]/u', $table['table_view_name'], "$locale: " . $table['table_name']);
+                foreach ($table['custom_columns'] as $column) {
+                    $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}]/u', $column['column_view_name'], "$locale: " . $table['table_name'] . '.' . $column['column_name']);
+                    $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}]/u', strval(array_get($column, 'options.select_item_valtext')), "$locale: " . $column['column_name']);
+                }
+            }
+            foreach ($merged['admin_menu'] as $menu) {
+                $this->assertDoesNotMatchRegularExpression('/[\x{3040}-\x{30ff}]/u', $menu['title'], "$locale: " . $menu['menu_name']);
             }
         }
     }
