@@ -501,11 +501,6 @@
         },
         {
             "menu_type": "system",
-            "menu_name": "notify",
-            "title": "Notificación"
-        },
-        {
-            "menu_type": "system",
             "menu_name": "cell_style_preset",
             "title": "Estilos de celda predefinidos"
         },
