@@ -1,0 +1,53 @@
+/*
+ * The left menu "to the side" (ISS02958, menu-flyout.js): the items under a first-level item are
+ * shown in a panel to the right of the menu. Only with a fine pointer on a wide screen, the same
+ * condition as the script; on a touch screen or a narrow one the accordion stays.
+ * For the "classic" and the "modern" design alike (the colors fall back without modern.css).
+ */
+@media (min-width: 768px) and (hover: hover) and (pointer: fine) {
+    /* the items do not open below (AdminLTE, also its pop-out of the folded menu on hover:
+       ".sidebar-mini.sidebar-collapse .sidebar-menu>li:hover>.treeview-menu", 0-5-1, which the
+       :not() outweighs) */
+    body.exm-menu-flyout .sidebar-menu > li.treeview:not(.exm-flyout-open) > .treeview-menu {
+        display: none !important;
+    }
+
+    body.exm-menu-flyout .sidebar-menu > li.treeview.exm-flyout-open > .treeview-menu {
+        display: block !important;
+        position: fixed !important;
+        z-index: 1040;
+        width: 240px !important;
+        margin: 0 !important;
+        padding: 6px 0 !important;
+        overflow-y: auto;
+        background-color: var(--exm-ui-bg-sub, #f4f6f8) !important;
+        border: 0 !important;
+        border-radius: 0 6px 6px 0;
+        box-shadow: 0 0 0 1px var(--exm-ui-line, rgba(0, 0, 0, .12)), 0 8px 20px rgba(0, 0, 0, .14);
+    }
+
+    body.exm-menu-flyout .sidebar-menu > li.treeview.exm-flyout-open > .treeview-menu > li > a {
+        padding: 8px 16px 8px 18px;
+        white-space: normal;
+    }
+
+    /* folded: the name of the item (AdminLTE, on hover) as wide as the panel under it */
+    body.exm-menu-flyout.sidebar-mini.sidebar-collapse .sidebar-menu > li.treeview:hover > a > span:not(.pull-right) {
+        width: 240px !important;
+    }
+
+    /* the arrow points to the side */
+    body.exm-menu-flyout .sidebar-menu > li.treeview > a > .fa-angle-left {
+        transform: rotate(180deg);
+    }
+
+    body.exm-menu-flyout .sidebar-menu > li.treeview.exm-flyout-open > a {
+        background-color: var(--exm-ui-bg-hover, rgba(0, 0, 0, .05));
+    }
+
+    body.exm-menu-flyout .sidebar-menu > li.treeview > a:focus-visible,
+    body.exm-menu-flyout .sidebar-menu > li.treeview.exm-flyout-open > .treeview-menu a:focus-visible {
+        outline: 2px solid var(--exm-ui-accent, #3c8dbc);
+        outline-offset: -2px;
+    }
+}
