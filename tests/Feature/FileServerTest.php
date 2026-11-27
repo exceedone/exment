@@ -526,6 +526,40 @@ class FileServerTest extends FeatureTestBase
         $this->assertStringContainsString((string) json_encode(exmtrans('file_server.copy_by_hand')), $show);
     }
 
+    /**
+     * "権限" on the toolbar of a folder and of the details, for those who manage it: it goes to the
+     * permissions of the folder, or to the members of the workspace at its top. A viewer has none.
+     */
+    public function testTheButtonOfThePermissions(): void
+    {
+        $ws = $this->workspace();
+        $folder = $this->admin()->createFolder($ws, null, 'Team');
+        $file = $this->admin()->storeFile($ws, $folder, 'a.txt', $this->local('a'));
+        $this->addMember($ws, TestDefine::TESTDATA_USER_LOGINID_USER1, Level::VIEW);
+        $headers = ['X-Requested-With' => 'XMLHttpRequest'];
+        $label = '<i class="fa fa-key" aria-hidden="true"></i> ' . e(exmtrans('file_server.permissions')) . '</a>';
+
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $root = (string) $this->get(admin_urls('file_server', $ws->id), $headers)->assertOk()->getContent();
+        $this->assertStringContainsString('href="' . admin_urls('file_server', $ws->id, 'settings') . '#exm-fs-members"', $root);
+        $this->assertStringContainsString($label, $root);
+        $inFolder = (string) $this->get(admin_urls('file_server', $ws->id, 'folder', $folder->id), $headers)->assertOk()->getContent();
+        $this->assertStringContainsString('href="' . admin_urls('file_server', $ws->id, 'nodes', $folder->id) . '#exm-fs-permissions"', $inFolder);
+        // the details: the button, the box it goes to, and the line before "stop inheriting"
+        $details = (string) $this->get(admin_urls('file_server', $ws->id, 'nodes', $folder->id), $headers)->assertOk()->getContent();
+        $this->assertStringContainsString('<a href="#exm-fs-permissions"', $details);
+        $this->assertStringContainsString('id="exm-fs-permissions"', $details);
+        $this->assertStringContainsString(e(exmtrans('file_server.break_permissions_help')), $details);
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id), $headers)->assertOk()->assertSee('<a href="#exm-fs-permissions"', false);
+        // the members on the settings
+        $this->get(admin_urls('file_server', $ws->id, 'settings'), $headers)->assertOk()->assertSee('id="exm-fs-members"', false);
+
+        // a viewer: no button
+        $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $this->get(admin_urls('file_server', $ws->id, 'folder', $folder->id), $headers)->assertOk()->assertDontSee($label, false);
+        $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id), $headers)->assertOk()->assertDontSee('<a href="#exm-fs-permissions"', false);
+    }
+
     public function testUploadAndFolderFromThePage(): void
     {
         $ws = $this->workspace();
