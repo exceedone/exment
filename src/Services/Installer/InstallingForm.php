@@ -14,6 +14,16 @@ class InstallingForm
     // @phpstan-ignore-next-line
     public function index()
     {
+        // the install is going on (or stopped with an error): its progress
+        if (!is_null($state = InstallRunner::read())) {
+            return view('exment::install.progress', [
+                'progress' => InstallRunner::toProgress($state),
+                'stepUrl' => admin_urls('install', 'step'),
+                'statusUrl' => admin_urls('install', 'status'),
+                'initializeUrl' => admin_url('initialize'),
+                'pollMs' => max(500, intval(config('exment.install_poll_ms', 1500))),
+            ]);
+        }
         return view('exment::install.installing');
     }
 
@@ -39,6 +49,11 @@ class InstallingForm
     {
         // the installer does not run again on an installed site
         InstalledState::refuseIfInstalled();
+
+        // the install is started already (a second click, a reload of the POST): its progress
+        if (!is_null(InstallRunner::read())) {
+            return redirect(admin_url('install'));
+        }
 
         // Merge session DB inputs with the APP_DEBUG flag from this form,
         // then write everything to .env in one shot (EnvService deduplicates).
@@ -80,14 +95,10 @@ class InstallingForm
             // --force: on a production site key:generate asks, and stops without a terminal
             \Artisan::call('key:generate', ['--force' => true]);
             \Artisan::call('passport:keys');
-            $exitCode = \Artisan::call('exment:install');
-            if ($exitCode !== 0) {
-                $output = trim(\Artisan::output());
-                \Log::error('exment:install failed (exit ' . $exitCode . '): ' . $output);
-                return back()->withInput()->withErrors([
-                    'install_error' => $output ?: exmtrans('install.error.database_canconnection'),
-                ]);
-            }
+            // the rest (the files, the migrations, the first data) in steps: the screen of the
+            // progress calls install/step until it is done (InstallRunner). One long request
+            // would be stopped by a proxy with a short timeout (504 of nginx after 60 seconds).
+            InstallRunner::start();
         } catch (\Exception $ex) {
             \Log::error('Exment install commands failed: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
@@ -97,8 +108,7 @@ class InstallingForm
 
         InstallService::setInitializeStatus(InitializeStatus::INSTALLING);
 
-        admin_toastr(exmtrans('install.help.install_success'));
-        // .env is read again from the next request: go to the URL with the prefix just written
-        return redirect(url($prefix === '' ? 'initialize' : $prefix . '/initialize'));
+        // .env is read again from the next request: the progress, at the URL with the prefix just written
+        return redirect(url($prefix === '' ? 'install' : $prefix . '/install'));
     }
 }

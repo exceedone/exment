@@ -754,6 +754,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('install/reset', 'InstallController@reset');
             $router->get('install', 'InstallController@index');
             $router->post('install', 'InstallController@post');
+            // the install in steps, and its progress (InstallRunner)
+            $router->post('install/step', 'InstallController@step');
+            $router->get('install/status', 'InstallController@status');
         });
     }
 
