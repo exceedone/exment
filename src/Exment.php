@@ -165,6 +165,9 @@ class Exment
             // the form token is expired or missing: the request was not run. A script gets 419; a
             // page (also through pjax) goes back with the message, never an error page with 200.
             if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
+                // the token is checked before the middleware that sets the language of the user
+                // (exment.user-locale) runs: set it here, so the message is in that language
+                $this->applyUserLocale($request);
                 if (!$request->pjax() && ($request->ajax() || $request->expectsJson())) {
                     return response()->json(['message' => exmtrans('common.message.csrf_error')], 419);
                 }
@@ -243,6 +246,26 @@ class Exment
         return \Auth::guard($this->guard)->user();
     }
 
+
+    /**
+     * Use the language of the user of the request (as the middleware exment.user-locale does), for
+     * a message made before that middleware runs. The language of the site when it cannot be known.
+     *
+     * @param \Illuminate\Http\Request $request
+     */
+    protected function applyUserLocale($request): void
+    {
+        try {
+            $user = $this->user();
+        } catch (\Throwable $ex) {
+            $user = null;
+        }
+        try {
+            \Exceedone\Exment\Services\UserLocale::apply(\Exceedone\Exment\Services\UserLocale::resolve($user, $request));
+        } catch (\Throwable $ex) {
+            // before the installation etc.: the language of the site
+        }
+    }
 
     /**
      * set gurad info.
