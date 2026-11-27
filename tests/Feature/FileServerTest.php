@@ -502,6 +502,30 @@ class FileServerTest extends FeatureTestBase
         $upload->assertStatus(403);
     }
 
+    /**
+     * The member picker shows the first page before anything is typed, with texts in the
+     * language of the page (#2276); a share link's URL is copied without the clipboard API
+     * (http) and the page waits for it (#2277, #2278).
+     */
+    public function testThePickerAndTheCopyOfALink(): void
+    {
+        $ws = $this->workspace();
+        $file = $this->admin()->storeFile($ws, null, 'link.csv', $this->local('a,b'));
+        System::clearRequestSession();
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        $headers = ['X-Requested-With' => 'XMLHttpRequest'];
+
+        $settings = (string) $this->get(admin_urls('file_server', $ws->id, 'settings'), $headers)->assertOk()->getContent();
+        $this->assertStringContainsString('minimumInputLength: 0', $settings);
+        $this->assertStringNotContainsString('minimumInputLength: 1', $settings);
+        $this->assertStringContainsString((string) json_encode(exmtrans('file_server.picker_no_result')), $settings);
+
+        $show = (string) $this->get(admin_urls('file_server', $ws->id, 'nodes', $file->id), $headers)->assertOk()->getContent();
+        $this->assertStringContainsString("document.execCommand('copy')", $show);
+        $this->assertStringContainsString('copyText(json.url).then(', $show);
+        $this->assertStringContainsString((string) json_encode(exmtrans('file_server.copy_by_hand')), $show);
+    }
+
     public function testUploadAndFolderFromThePage(): void
     {
         $ws = $this->workspace();
