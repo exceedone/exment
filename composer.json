@@ -41,7 +41,7 @@
         "laravel/socialite": "^5.20",
         "bacon/bacon-qr-code": "^3.0",
         "elibyy/tcpdf-laravel": "^11.4",
-        "exceedone/exment-admin-core": "^2.0"
+        "exceedone/exment-admin-core": "^2.1.1"
     },
     "suggest": {
         "aws/aws-sdk-php": "Keep the keys of the encrypted columns in AWS KMS or Secrets Manager (EXMENT_DATA_KEY_PROVIDER=aws_kms / aws_secrets_manager). Install with: composer require aws/aws-sdk-php",
