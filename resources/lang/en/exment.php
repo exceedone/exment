@@ -1538,6 +1538,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Finished. Please sign in again.',
+                'signin' => 'Sign in',
                 'restore_in_request' => 'Restore from this page',
                 'restore_command_note' => 'On this server, the restore runs inside the request of this page. On a large site it takes long, and the page may give up waiting (the restore goes on). For a large site, the command php artisan exment:restore on the server is recommended.',
                 'restoring_title' => 'Restore in progress',

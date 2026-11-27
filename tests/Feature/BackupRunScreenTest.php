@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Carbon\Carbon;
 use Exceedone\Exment\Controllers\BackupController;
+use Exceedone\Exment\Controllers\BackupRunStateController;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\LoginUser;
@@ -40,9 +41,10 @@ class BackupRunScreenTest extends FeatureTestBase
 
     protected function tearDown(): void
     {
-        foreach (BackupRun::query()->get() as $run) {
-            /** @var BackupRun $run */
-            foreach ([BackupRuns::logFullPath($run), BackupRuns::statusPath($run->uuid), BackupRuns::consolePath($run)] as $path) {
+        /** @var \Illuminate\Support\Collection<int, BackupRun> $runs */
+        $runs = BackupRun::query()->get();
+        foreach ($runs as $run) {
+            foreach ([BackupRuns::logFullPath($run), BackupRuns::statusPath($run->uuid), BackupRuns::consolePath($run), BackupRuns::tokenPath($run->uuid)] as $path) {
                 if (is_file($path)) {
                     @unlink($path);
                 }
@@ -205,8 +207,13 @@ class BackupRunScreenTest extends FeatureTestBase
         foreach ($routes as $route) {
             /** @var \Illuminate\Routing\Route $route */
             // the check of the routes of the admin pages, as the other pages
-            $this->assertContains('admin.permission', $route->gatherMiddleware(), $route->uri() . ' keeps the permission check');
-            $this->assertNotContains('admin.permission', $route->excludedMiddleware(), $route->uri() . ' keeps the permission check');
+            if (str_ends_with($route->uri(), '/state')) {
+                // the state of a restore: no session, no database; its token instead (testTheStateOfARestore...)
+                $this->assertSame('BackupRunStateController@show', class_basename(strval($route->getActionName())), $route->uri());
+                continue;
+            }
+            $middleware = app('router')->gatherRouteMiddleware($route);
+            $this->assertContains(\ExmentAdminCore\Admin\Middleware\Permission::class, $middleware, $route->uri() . ' keeps the permission check');
             // and the action checks it again
             $action = $route->getActionName();
             $this->assertStringContainsString('BackupController@', $action, $route->uri());
@@ -221,6 +228,9 @@ class BackupRunScreenTest extends FeatureTestBase
             System::clearRequestSession();
             $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
             foreach ($routes as $route) {
+                if (str_ends_with($route->uri(), '/state')) {
+                    continue;
+                }
                 $url = url(str_replace('{uuid}', $run->uuid, $route->uri()));
                 $this->get($url, self::AJAX)->assertForbidden();
             }
@@ -233,6 +243,69 @@ class BackupRunScreenTest extends FeatureTestBase
         $this->get(admin_url('backup/runs/current'), self::AJAX)->assertOk();
         $this->get(admin_urls('backup', 'runs', $run->uuid, 'status'), self::AJAX)->assertOk();
         $this->get(admin_urls('backup', 'runs', $run->uuid))->assertOk();
+    }
+
+    public function testTheStateOfARestoreNeedsItsTokenAndNoSessionNorDatabase(): void
+    {
+        $password = 'Claude-State-Pw-' . Str::random(8);
+        config(['database.connections.mysql.password' => $password]);
+        SecretMasker::flush();
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, ['file_name' => 'claudestate', 'targets' => [BackupRuns::SOURCE_STORED, 'claudestate']]);
+        $progress = new RunProgress($run);
+        $progress->begin();
+        $progress->stage('load', 10);
+        $progress->advance(3);
+        $progress->warn("mysql --password={$password} failed");
+        $token = BackupRuns::issueStateToken($run);
+        if (DIRECTORY_SEPARATOR === '/') {
+            $this->assertSame('0600', substr(sprintf('%o', fileperms(BackupRuns::tokenPath($run->uuid))), -4));
+        }
+        $url = admin_urls('backup', 'runs', $run->uuid, 'state');
+        $header = [BackupRunStateController::HEADER => $token];
+
+        // no session, no login: the token only
+        \Auth::guard('admin')->logout();
+        $this->flushSession();
+        $queries = 0;
+        \DB::listen(function () use (&$queries) {
+            $queries++;
+        });
+        $response = $this->get($url, $header)->assertOk();
+        $this->assertSame(0, $queries, 'the state reads no database');
+        $response->assertJson(['run' => ['uuid' => $run->uuid, 'stage' => 'load', 'stage_done' => 3, 'active' => true, 'kind' => 'restore']]);
+        $body = strval($response->getContent());
+        foreach (['log_path', 'file_name', storage_path(), base_path(), $password, $token] as $text) {
+            $this->assertStringNotContainsString(str_replace('/', '\/', $text), $body);
+            $this->assertStringNotContainsString($text, $body);
+        }
+        $this->assertNull($response->headers->get('Set-Cookie'), 'no session');
+
+        // a token missing, wrong, or of another run: 404
+        $this->get($url)->assertNotFound();
+        $this->get($url, [BackupRunStateController::HEADER => str_repeat('0', 64)])->assertNotFound();
+        $this->get($url, [BackupRunStateController::HEADER => 'abc'])->assertNotFound();
+        $this->get(admin_urls('backup', 'runs', (string) Str::uuid(), 'state'), $header)->assertNotFound();
+
+        // the end: it lasts a few minutes, then it is gone
+        $progress->finish(BackupRun::STATUS_SUCCEEDED);
+        BackupRuns::expireStateToken($run->uuid);
+        $this->get($url, $header)->assertOk()->assertJson(['run' => ['status' => 'succeeded', 'active' => false]]);
+        $data = (array) json_decode(strval(file_get_contents(BackupRuns::tokenPath($run->uuid))), true);
+        $data['expires'] = time() - 1;
+        file_put_contents(BackupRuns::tokenPath($run->uuid), strval(json_encode($data)));
+        $this->get($url, $header)->assertNotFound();
+        $this->assertFileDoesNotExist(BackupRuns::tokenPath($run->uuid));
+    }
+
+    public function testTheOutputOfTheRestoreApartIsNotReadableByOthers(): void
+    {
+        if (DIRECTORY_SEPARATOR !== '/') {
+            $this->markTestSkipped('the permissions of a file on Windows');
+        }
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, [], true);
+        $line = BackupRuns::restoreCommandLine($run);
+        $this->assertStringStartsWith('umask 077; nohup ', $line);
+        $this->assertSame('0600', substr(sprintf('%o', fileperms(BackupRuns::consolePath($run))), -4));
     }
 
     public function testTheOtherAdminPagesStillNeedTheirPermissions(): void

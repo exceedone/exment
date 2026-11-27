@@ -399,14 +399,9 @@ class ExmentServiceProvider extends ServiceProvider
     }
 
     /**
-     * Apply the System-screen settings to config + set up realtime index sync.
-     *
-     * @return void
-     */
-    /**
      * The runs of the backup and the restore (ISS02943): during the maintenance of a restore, the
      * pages of the runs still answer (the screen polls the progress; the controller lets the
-     * system administrators only).
+     * system administrators only; the state of a restore, BackupRunStateController, needs its token).
      */
     protected function bootBackupRuns(): void
     {
@@ -415,6 +410,11 @@ class ExmentServiceProvider extends ServiceProvider
         \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::except([$base . '/*']);
     }
 
+    /**
+     * Apply the System-screen settings to config + set up realtime index sync.
+     *
+     * @return void
+     */
     protected function bootMeilisearch()
     {
         // Push the saved values (systems table) into config('meilisearch.*').

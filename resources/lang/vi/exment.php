@@ -1491,6 +1491,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Đã hoàn tất. Vui lòng đăng nhập lại.',
+                'signin' => 'Đăng nhập',
                 'restore_in_request' => 'Khôi phục từ màn hình này',
                 'restore_command_note' => 'Trên máy chủ này, việc khôi phục chạy trong yêu cầu của màn hình này. Với trang web lớn, việc này mất nhiều thời gian và màn hình có thể ngừng chờ (việc khôi phục vẫn tiếp tục). Với trang web lớn, nên dùng lệnh php artisan exment:restore trên máy chủ.',
                 'restoring_title' => 'Đang khôi phục',

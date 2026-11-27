@@ -1491,6 +1491,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Terminado. Vuelva a iniciar sesión.',
+                'signin' => 'Iniciar sesión',
                 'restore_in_request' => 'Restaurar desde esta pantalla',
                 'restore_command_note' => 'En este servidor, la restauración se ejecuta dentro de la solicitud de esta pantalla. En un sitio grande tarda mucho y la pantalla puede dejar de esperar (la restauración continúa). Para sitios grandes se recomienda el comando php artisan exment:restore en el servidor.',
                 'restoring_title' => 'Restauración en curso',

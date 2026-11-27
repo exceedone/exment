@@ -1491,6 +1491,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => '已完成。请重新登录。',
+                'signin' => '登录',
                 'restore_in_request' => '从此页面还原',
                 'restore_command_note' => '在此服务器上，还原在此页面的请求中执行。大型网站耗时较长，页面可能会等待超时（还原仍会继续）。大型网站建议在服务器上使用 php artisan exment:restore 命令。',
                 'restoring_title' => '正在还原',

@@ -1538,6 +1538,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => '完了しました。もう一度ログインしてください。',
+                'signin' => 'ログイン',
                 'restore_in_request' => '画面からのリストア',
                 'restore_command_note' => 'このサーバーでは、リストアはこの画面の処理の中で動きます。大きなサイトでは時間がかかり、画面が待ちきれずに切れることがあります（リストアは続きます）。大きなサイトでは、サーバーで php artisan exment:restore コマンドを使うのがおすすめです。',
                 'restoring_title' => 'リストア中です',

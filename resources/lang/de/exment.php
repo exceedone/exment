@@ -1491,6 +1491,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Abgeschlossen. Bitte melden Sie sich erneut an.',
+                'signin' => 'Anmelden',
                 'restore_in_request' => 'Wiederherstellung über diese Seite',
                 'restore_command_note' => 'Auf diesem Server läuft die Wiederherstellung innerhalb der Anfrage dieser Seite. Bei einer großen Website dauert das lange, und die Seite kann das Warten abbrechen (die Wiederherstellung läuft weiter). Für große Websites wird der Befehl php artisan exment:restore auf dem Server empfohlen.',
                 'restoring_title' => 'Wiederherstellung läuft',

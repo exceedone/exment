@@ -64,6 +64,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function map()
     {
+        $this->mapExmentBackupRunStateRoute();
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
         $this->mapExmentLineWebhookRoute();
@@ -92,6 +93,19 @@ class RouteServiceProvider extends ServiceProvider
             ->where('legacy_admin_path', '.*')
             ->middleware('web')
             ->name('exment.legacy_admin_redirect');
+    }
+
+    /**
+     * The state of a restore while the site is in maintenance (ISS02943): no session, no login,
+     * no database (the restore replaces it); the token of the run instead.
+     *
+     * @return void
+     */
+    protected function mapExmentBackupRunStateRoute()
+    {
+        Route::get(url_join(config('admin.route.prefix'), 'backup/runs/{uuid}/state'), [\Exceedone\Exment\Controllers\BackupRunStateController::class, 'show'])
+            ->where('uuid', '[0-9a-f\-]{36}')
+            ->name('exment.backup_run_state');
     }
 
     /**

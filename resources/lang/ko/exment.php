@@ -1491,6 +1491,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => '완료되었습니다. 다시 로그인해 주세요.',
+                'signin' => '로그인',
                 'restore_in_request' => '이 화면에서 복원',
                 'restore_command_note' => '이 서버에서는 복원이 이 화면의 요청 안에서 실행됩니다. 큰 사이트에서는 시간이 오래 걸려 화면이 기다리다 끊길 수 있습니다(복원은 계속됩니다). 큰 사이트에서는 서버에서 php artisan exment:restore 명령을 사용하는 것을 권장합니다.',
                 'restoring_title' => '복원 중입니다',
