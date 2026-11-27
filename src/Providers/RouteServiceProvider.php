@@ -594,6 +594,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('form/{tableKey}/preview', 'CustomFormController@preview');
             $router->get('form/{tableKey}/preview', 'CustomFormController@previewError');
             $router->get('formpublic/{tableKey}/notify_action_target', 'CustomFormPublicController@notify_action_target');
+            // the easy setup and the tags (ISS02942)
+            $router->get('formpublic/{tableKey}/easy', 'CustomFormPublicController@easy');
+            $router->post('formpublic/{tableKey}/easy', 'CustomFormPublicController@easyStore');
+            $router->get('formpublic/{tableKey}/{id}/embed', 'CustomFormPublicController@embed');
             $router->post('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
             $router->put('formpublic/{tableKey}/preview', 'CustomFormPublicController@preview');
             $router->post('formpublic/{tableKey}/{id}/preview', 'CustomFormPublicController@preview');
