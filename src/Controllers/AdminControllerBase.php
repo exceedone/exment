@@ -34,6 +34,8 @@ class AdminControllerBase extends Controller
         // The host's base controller (App\Http\Controllers\Controller) is an empty abstract class in a
         // Laravel 11/12 skeleton, without callAction(): call the action the same way Laravel does.
         $parent = get_parent_class(self::class);
+        // phpstan sees the parent of CI's host, whose Controller extends Illuminate\Routing\Controller.
+        // @phpstan-ignore function.alreadyNarrowedType, notIdentical.alwaysTrue
         if ($parent !== false && method_exists($parent, 'callAction')) {
             return parent::callAction($method, $parameters);
         }
