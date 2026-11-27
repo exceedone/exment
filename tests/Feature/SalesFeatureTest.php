@@ -308,10 +308,10 @@ class SalesFeatureTest extends FeatureTestBase
         $this->assertSame('?dashboard=' . $dashboard->suuid, strval($item->uri));
         $options = is_array($item->options) ? $item->options : (array) json_decode(strval($item->options), true);
         foreach (['ja', 'en', 'de', 'es', 'ko', 'vi', 'zh_CN'] as $locale) {
-            $this->assertNotEmpty($options['name_locale_' . $locale] ?? null, $locale);
+            $this->assertNotEmpty(array_get($options, 'name_locale_' . $locale), $locale);
         }
-        $this->assertSame('営業のダッシュボード', $options['name_locale_ja'] ?? null);
-        $this->assertSame('Sales dashboard', $options['name_locale_en'] ?? null);
+        $this->assertSame('営業のダッシュボード', array_get($options, 'name_locale_ja'));
+        $this->assertSame('Sales dashboard', array_get($options, 'name_locale_en'));
         return $item;
     }
 
