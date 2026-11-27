@@ -6011,6 +6011,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'job' => 'Aufgabe',
         'plugin' => 'Plugin',
         'opened' => 'Geöffnet',
+        'more_plugins' => '%s weitere',
         'sections' => [
             'use' => 'Nutzung',
             'safety' => 'Sicherheit',

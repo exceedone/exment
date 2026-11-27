@@ -6011,6 +6011,7 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'job' => 'Tác vụ',
         'plugin' => 'Plugin',
         'opened' => 'Số lần mở',
+        'more_plugins' => 'và %s plugin khác',
         'sections' => [
             'use' => 'Mức sử dụng',
             'safety' => 'An toàn',

@@ -109,6 +109,10 @@ class InsightsTest extends FeatureTestBase
 
     public function testOffByDefault(): void
     {
+        // a site that never set it
+        System::features([]);
+        System::clearCache();
+        Features::reset();
         $this->assertFalse(Features::enabled(Insights::FEATURE));
         $this->assertFalse(Insights::enabled());
         // not counted when the feature is off

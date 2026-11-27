@@ -6039,6 +6039,7 @@ If it was not you, change your password and tell the administrators.",
         'job' => 'Job',
         'plugin' => 'Plugin',
         'opened' => 'Opened',
+        'more_plugins' => '%s more',
         'sections' => [
             'use' => 'Use',
             'safety' => 'Safety',

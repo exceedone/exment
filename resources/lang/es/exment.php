@@ -6011,6 +6011,7 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
         'job' => 'Tarea',
         'plugin' => 'Plugin',
         'opened' => 'Abierto',
+        'more_plugins' => '%s más',
         'sections' => [
             'use' => 'Uso',
             'safety' => 'Seguridad',

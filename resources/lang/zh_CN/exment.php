@@ -6011,6 +6011,7 @@ IP 地址: :ip
         'job' => '任务',
         'plugin' => '插件',
         'opened' => '打开次数',
+        'more_plugins' => '另外 %s 个',
         'sections' => [
             'use' => '使用情况',
             'safety' => '安全',

@@ -6011,6 +6011,7 @@ IP 주소: :ip
         'job' => '작업',
         'plugin' => '플러그인',
         'opened' => '연 횟수',
+        'more_plugins' => '외 %s개',
         'sections' => [
             'use' => '이용 현황',
             'safety' => '안전',

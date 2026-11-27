@@ -6038,6 +6038,7 @@ IPアドレス: :ip
         'job' => 'ジョブ',
         'plugin' => 'プラグイン',
         'opened' => '開いた回数',
+        'more_plugins' => 'ほか %s 個',
         'sections' => [
             'use' => '使われ方',
             'safety' => '安全',
