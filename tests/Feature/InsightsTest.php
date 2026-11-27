@@ -231,12 +231,12 @@ class InsightsTest extends FeatureTestBase
     public function testTheCommand(): void
     {
         // off: nothing counted
-        $this->artisan('exment:insights')->assertExitCode(0);
+        $this->assertSame(0, \Artisan::call('exment:insights'));
         $this->assertSame(0, InsightDaily::query()->where('date', static::DAY)->count());
         // the days asked are counted even when it is off
         $this->logsOf(Carbon::parse(static::DAY));
-        $this->artisan('exment:insights', ['--from' => static::DAY, '--to' => static::DAY])->assertExitCode(0);
+        $this->assertSame(0, \Artisan::call('exment:insights', ['--from' => static::DAY, '--to' => static::DAY]));
         $this->assertEquals(['ok' => 2, 'error' => 1], $this->kept('mcp'));
-        $this->artisan('exment:insights', ['--from' => 'yesterday'])->assertExitCode(1);
+        $this->assertSame(1, \Artisan::call('exment:insights', ['--from' => 'yesterday']));
     }
 }
