@@ -250,17 +250,11 @@ class BackupRunScreenTest extends FeatureTestBase
         $password = 'Claude-State-Pw-' . Str::random(8);
         config(['database.connections.mysql.password' => $password]);
         SecretMasker::flush();
-        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, ['file_name' => 'claudestate', 'targets' => [BackupRuns::SOURCE_STORED, 'claudestate']]);
-        $progress = new RunProgress($run);
-        $progress->begin();
-        $progress->stage('load', 10);
-        $progress->advance(3);
-        $progress->warn("mysql --password={$password} failed");
-        $token = BackupRuns::issueStateToken($run);
+        [$run, $progress, $token, $url] = $this->restoreWithState();
+        $progress->warn("a file of the backup cannot be read: storage/app/admin/claude/secret.txt --password={$password}");
         if (DIRECTORY_SEPARATOR === '/') {
             $this->assertSame('0600', substr(sprintf('%o', fileperms(BackupRuns::tokenPath($run->uuid))), -4));
         }
-        $url = admin_urls('backup', 'runs', $run->uuid, 'state');
         $header = [BackupRunStateController::HEADER => $token];
 
         // no session, no login: the token only
@@ -272,29 +266,107 @@ class BackupRunScreenTest extends FeatureTestBase
         });
         $response = $this->get($url, $header)->assertOk();
         $this->assertSame(0, $queries, 'the state reads no database');
-        $response->assertJson(['run' => ['uuid' => $run->uuid, 'stage' => 'load', 'stage_done' => 3, 'active' => true, 'kind' => 'restore']]);
+        $this->assertNull($response->headers->get('Set-Cookie'), 'no session');
+
+        // the progress only: no text but the fixed labels, no id, no kind, no message, no path
+        $response->assertJson(['run' => ['stage' => 'load', 'stage_done' => 3, 'stage_total' => 10, 'active' => true, 'status' => 'running', 'warnings' => 1]]);
+        $state = (array) $response->json('run');
+        $this->assertSame([], array_values(array_diff(array_keys($state), [
+            'status', 'active', 'stage', 'stage_label', 'progress', 'stage_done', 'stage_total', 'started_at',
+            'finished_at', 'elapsed_seconds', 'remaining_seconds', 'warnings', 'errors', 'stages',
+        ])), 'only the fields of the progress');
+        foreach ((array) $state['stages'] as $stage) {
+            $this->assertSame([], array_values(array_diff(array_keys((array) $stage), ['name', 'label', 'state', 'seconds', 'count'])));
+        }
         $body = strval($response->getContent());
-        foreach (['log_path', 'file_name', storage_path(), base_path(), $password, $token] as $text) {
-            $this->assertStringNotContainsString(str_replace('/', '\/', $text), $body);
+        foreach (['claude/secret.txt', 'storage', $password, $token, $run->uuid, 'claudestate'] as $text) {
             $this->assertStringNotContainsString($text, $body);
         }
-        $this->assertNull($response->headers->get('Set-Cookie'), 'no session');
 
         // a token missing, wrong, or of another run: 404
         $this->get($url)->assertNotFound();
         $this->get($url, [BackupRunStateController::HEADER => str_repeat('0', 64)])->assertNotFound();
         $this->get($url, [BackupRunStateController::HEADER => 'abc'])->assertNotFound();
         $this->get(admin_urls('backup', 'runs', (string) Str::uuid(), 'state'), $header)->assertNotFound();
+        $progress->releaseLock();
+    }
 
-        // the end: it lasts a few minutes, then it is gone
-        $progress->finish(BackupRun::STATUS_SUCCEEDED);
+    public function testTheEndOfARestoreIsGivenOnceThenTheTokenIsGone(): void
+    {
+        [$run, $progress, $token, $url] = $this->restoreWithState();
+        $header = [BackupRunStateController::HEADER => $token];
+        $progress->finish(BackupRun::STATUS_SUCCEEDED, 'a message with storage/app/admin/claude.txt');
         BackupRuns::expireStateToken($run->uuid);
-        $this->get($url, $header)->assertOk()->assertJson(['run' => ['status' => 'succeeded', 'active' => false]]);
+
+        // its status and its percent, nothing else
+        $response = $this->get($url, $header)->assertOk();
+        $this->assertSame(['status' => 'succeeded', 'progress' => 100], $response->json('run'));
+        $this->assertFileDoesNotExist(BackupRuns::tokenPath($run->uuid), 'the token is used up');
+        $this->get($url, $header)->assertNotFound();
+
+        // a failed one: its status and the percent it reached
+        [$run, $progress, $token, $url] = $this->restoreWithState();
+        $progress->finish(BackupRun::STATUS_FAILED, 'why');
+        $reached = intval($run->progress);
+        $this->assertSame(['status' => 'failed', 'progress' => $reached], $this->get($url, [BackupRunStateController::HEADER => $token])->assertOk()->json('run'));
+
+        // a token not read after the end expires all the same
+        [$run, $progress, $token, $url] = $this->restoreWithState();
         $data = (array) json_decode(strval(file_get_contents(BackupRuns::tokenPath($run->uuid))), true);
         $data['expires'] = time() - 1;
         file_put_contents(BackupRuns::tokenPath($run->uuid), strval(json_encode($data)));
-        $this->get($url, $header)->assertNotFound();
+        $this->get($url, [BackupRunStateController::HEADER => $token])->assertNotFound();
         $this->assertFileDoesNotExist(BackupRuns::tokenPath($run->uuid));
+        $progress->releaseLock();
+    }
+
+    public function testTheReadsOfTheStateAreLimited(): void
+    {
+        config(['exment.backup.state_per_minute' => 3]);
+        [$run, $progress, $token, $url] = $this->restoreWithState();
+        $header = [BackupRunStateController::HEADER => $token];
+        foreach (range(1, 3) as $i) {
+            $this->get($url, $header)->assertOk();
+        }
+        $this->get($url, $header)->assertStatus(429);
+        // a wrong token counts too
+        $this->get($url)->assertStatus(429);
+        $progress->releaseLock();
+    }
+
+    public function testTheTokenIsHandedOverOnceFromTheSession(): void
+    {
+        [$run, $progress, $token] = $this->restoreWithState();
+        session()->put(BackupController::STATE_TOKEN_SESSION . $run->uuid, $token);
+
+        $page = $this->get(admin_urls('backup', 'runs', $run->uuid))->assertOk();
+        $this->assertStringNotContainsString($token, strval($page->getContent()), 'not in the HTML of the page');
+
+        $this->get(admin_urls('backup', 'runs', $run->uuid, 'token'), self::AJAX)->assertOk()->assertJson(['token' => $token]);
+        $this->assertNull(session(BackupController::STATE_TOKEN_SESSION . $run->uuid), 'no longer in the session');
+        $this->get(admin_urls('backup', 'runs', $run->uuid, 'token'), self::AJAX)->assertOk()->assertJson(['token' => null]);
+        $progress->releaseLock();
+    }
+
+    /**
+     * A restore going on with a token of its state.
+     *
+     * @return array{0: BackupRun, 1: RunProgress, 2: string, 3: string}
+     */
+    private function restoreWithState(): array
+    {
+        \DB::table(BackupRun::TABLE)->whereIn('status', BackupRun::ACTIVE)->update(['status' => BackupRun::STATUS_SUCCEEDED]);
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, ['file_name' => 'claudestate', 'targets' => [BackupRuns::SOURCE_STORED, 'claudestate']]);
+        $progress = new RunProgress($run);
+        $progress->begin();
+        $progress->stage('verify');
+        $progress->stage('extract');
+        $progress->stage('load', 10);
+        $progress->advance(3);
+        $progress->releaseLock();
+        $token = BackupRuns::issueStateToken($run);
+
+        return [$run, $progress, $token, admin_urls('backup', 'runs', $run->uuid, 'state')];
     }
 
     public function testTheOutputOfTheRestoreApartIsNotReadableByOthers(): void

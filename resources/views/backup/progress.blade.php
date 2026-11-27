@@ -12,6 +12,14 @@
         'finished' => exmtrans('backup.run.screen.finished'),
         'signin_again' => exmtrans('backup.run.screen.signin_again'),
         'signin' => exmtrans('backup.run.screen.signin'),
+        'restore' => exmtrans('backup.run.kinds.restore'),
+        'statuses' => collect(\Exceedone\Exment\Model\BackupRun::STATUSES)->mapWithKeys(fn ($status) => [$status => exmtrans("backup.run.statuses.{$status}")])->all(),
+        'reasons' => [
+            'succeeded' => exmtrans('backup.run.screen.signin_again'),
+            'warning' => exmtrans('backup.run.screen.reasons.warning'),
+            'failed' => exmtrans('backup.run.screen.reasons.failed'),
+            'stalled' => exmtrans('backup.run.screen.reasons.stalled'),
+        ],
     ];
 @endphp
 <div class="box box-default backup-progress" id="backup-progress" style="{{ isset($active) ? '' : 'display:none;' }}" aria-live="polite">
@@ -132,34 +140,67 @@
         }
     }
 
-    // the token of the state of a restore started by this admin (given by the page, kept in the
-    // tab): the state is read with it while the site is in maintenance
-    var givenToken = {!! $json($stateToken ?? null) !!};
-    var givenFor = givenToken && active ? active.uuid : null;
+    // the token of the state of a restore started by this admin: asked once of the session (then it
+    // is gone there), kept in the tab only; the state is read with it while the site is in maintenance
+    var tokens = {};
+    function tokenKey(uuid) {
+        return 'exment_backup_state_' + uuid;
+    }
     function stateToken(uuid) {
-        var key = 'exment_backup_state_' + uuid;
+        if (tokens[uuid]) {
+            return tokens[uuid];
+        }
         try {
-            if (givenToken && givenFor === uuid) {
-                window.sessionStorage.setItem(key, givenToken);
-            }
-            return window.sessionStorage.getItem(key);
+            return window.sessionStorage.getItem(tokenKey(uuid));
         } catch (e) {
-            return givenFor === uuid ? givenToken : null;
+            return null;
         }
     }
-
+    function fetchToken(uuid, then) {
+        if (stateToken(uuid)) {
+            then();
+            return;
+        }
+        $.ajax({ url: base + '/' + encodeURIComponent(uuid) + '/token', type: 'GET', dataType: 'json', cache: false })
+            .done(function (data) {
+                if (data && typeof data.token === 'string' && /^[0-9a-f]{64}$/.test(data.token)) {
+                    tokens[uuid] = data.token;
+                    try {
+                        window.sessionStorage.setItem(tokenKey(uuid), data.token);
+                    } catch (e) {
+                        // kept in memory
+                    }
+                }
+            })
+            .always(then);
+    }
     function forgetToken(uuid) {
+        delete tokens[uuid];
         try {
-            window.sessionStorage.removeItem('exment_backup_state_' + uuid);
+            window.sessionStorage.removeItem(tokenKey(uuid));
         } catch (e) {
             // nothing
         }
     }
 
-    // a restore ended: the users were replaced, the session is gone
+    // a restore ended (the state says its status and its percent only): the users were replaced,
+    // the session is gone
     function restoreEnded(run) {
+        stop();
         var $box = $('#backup-progress');
-        $box.find('.backup-progress-message').show().text(run.status === 'failed' || run.status === 'stalled' ? (run.message || '') : texts.signin_again);
+        var percent = Math.max(0, Math.min(100, parseInt(run.progress, 10) || 0));
+        var ok = run.status === null || run.status === 'succeeded' || run.status === 'warning';
+        $box.find('.backup-progress-bar').css('width', percent + '%').attr('aria-valuenow', percent).text(percent + '%')
+            .removeClass('active progress-bar-striped')
+            .toggleClass('progress-bar-success bg-success', run.status === 'succeeded')
+            .toggleClass('progress-bar-warning bg-warning', run.status === 'warning')
+            .toggleClass('progress-bar-danger bg-danger', !ok);
+        $box.find('.backup-progress-spinner').hide();
+        var label = run.status ? (texts.statuses[run.status] || '') : texts.finished;
+        $box.find('.backup-progress-status').text(label);
+        $box.find('.backup-progress-stage').text(label);
+        $box.find('.backup-progress-remaining').text('-');
+        $box.find('.backup-progress-message').show().text((run.status && texts.reasons[run.status]) || texts.signin_again);
         if (loginUrl) {
             $box.find('.backup-progress-log').attr('href', loginUrl).text(texts.signin).show();
         }
@@ -177,6 +218,18 @@
         $.ajax({ url: url, type: 'GET', dataType: 'json', cache: false, headers: headers })
             .done(function (data) {
                 var run = data ? data.run : null;
+                if (run && token) {
+                    // the state has no id, no kind and no text: they are known here
+                    run.uuid = uuid;
+                    run.kind = 'restore';
+                    run.kind_label = texts.restore;
+                    run.status_label = texts.statuses[run.status] || run.status;
+                    if (!run.active) {
+                        forgetToken(uuid);
+                        restoreEnded(run);
+                        return;
+                    }
+                }
                 if (run) {
                     render(run);
                 }
@@ -186,7 +239,7 @@
                     // a restore replaced the users and the sessions: sign in again
                     if (run.kind === 'restore') {
                         forgetToken(uuid);
-                        restoreEnded(run);
+                        restoreEnded({ status: run.status, progress: run.progress });
                         return;
                     }
                     reloadSoon();
@@ -201,7 +254,13 @@
                 if (xhr && xhr.status === 503) {
                     $('#backup-progress').show().find('.backup-progress-stage').text(texts.restoring);
                 }
-                timer = setTimeout(function () { poll(uuid); }, pollMs * 2);
+                // the token is used up or expired: the state is no longer given
+                if (token && xhr && xhr.status === 404) {
+                    forgetToken(uuid);
+                    restoreEnded({ status: null, progress: current ? current.progress : 0 });
+                    return;
+                }
+                timer = setTimeout(function () { poll(uuid); }, pollMs * (xhr && xhr.status === 429 ? 5 : 2));
             });
     }
 
@@ -218,7 +277,15 @@
     if (active) {
         render(active);
         if (active.active) {
-            timer = setTimeout(function () { poll(active.uuid); }, pollMs);
+            var start = function () {
+                timer = setTimeout(function () { poll(active.uuid); }, pollMs);
+            };
+            // a restore: its token first, while the session still answers
+            if (active.kind === 'restore') {
+                fetchToken(active.uuid, start);
+            } else {
+                start();
+            }
         }
     }
 })();

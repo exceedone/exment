@@ -1493,6 +1493,11 @@ return [
         ],
         'run' => [
             'screen' => [
+                'reasons' => [
+                    'warning' => 'Die Wiederherstellung ist mit Problemen beendet. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
+                    'failed' => 'Die Wiederherstellung ist fehlgeschlagen. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
+                    'stalled' => 'Die Wiederherstellung wurde unterbrochen. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
+                ],
                 'signin_again' => 'Abgeschlossen. Bitte melden Sie sich erneut an.',
                 'signin' => 'Anmelden',
                 'used_space' => ':count Sicherungen, insgesamt :size',
