@@ -104,7 +104,7 @@ class InsightsTest extends FeatureTestBase
     /** @return array<string, int> */
     protected function kept(string $metric, string $date = self::DAY): array
     {
-        return InsightDaily::query()->where('date', $date)->where('metric', $metric)->pluck('value', 'key')->map('intval')->all();
+        return InsightDaily::query()->where('date', $date)->where('metric', $metric)->pluck('value', 'key')->map(function ($v) { return intval($v); })->all();
     }
 
     public function testOffByDefault(): void

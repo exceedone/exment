@@ -408,7 +408,7 @@ class InsightReport
             $failures = LoginLog::query()->whereIn('result', [LoginLog::RESULT_FAILURE, LoginLog::RESULT_LOCKOUT])
                 ->where('created_at', '>=', $this->from)->where('created_at', '<', $this->to->copy()->addDay())
                 ->selectRaw('login_name, count(*) as total')->groupBy('login_name')->orderByDesc('total')->limit(static::TOP)
-                ->pluck('total', 'login_name')->map('intval')->all();
+                ->pluck('total', 'login_name')->map(function ($v) { return intval($v); })->all();
         }
         return [
             'login' => [
