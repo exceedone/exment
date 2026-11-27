@@ -506,7 +506,7 @@ class Plugin extends ModelBase
      */
 
     // @phpstan-ignore-next-line
-    protected function initPluginDisk(string $path = null, ?PluginDiskService $diskService = null, array $options = [])
+    protected function initPluginDisk(?string $path = null, ?PluginDiskService $diskService = null, array $options = [])
     {
         $options = array_merge([
             'sync' => false,

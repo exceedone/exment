@@ -50,7 +50,7 @@ class GridBulkBar extends AbstractTool
      * @param CustomTable|null $custom_table
      * @param CustomView|null $custom_view
      */
-    public function __construct(CustomTable $custom_table = null, CustomView $custom_view = null)
+    public function __construct(?CustomTable $custom_table = null, ?CustomView $custom_view = null)
     {
         $this->custom_table = $custom_table;
         $this->custom_view = $custom_view;

@@ -4241,7 +4241,7 @@ class KanbanGrid extends GridBase
      *        limit loads only what is selected in it.
      * @return array<int|string, string>
      */
-    protected static function columnValueOptions($custom_column, array $scope = null, ?array $keys = null)
+    protected static function columnValueOptions($custom_column, ?array $scope = null, ?array $keys = null)
     {
         if (!isset($custom_column)) {
             return [];
