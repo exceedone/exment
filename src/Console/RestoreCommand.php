@@ -7,6 +7,9 @@ use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
+use Exceedone\Exment\Exceptions\BackupRunLockedException;
+use Exceedone\Exment\Model\BackupRun;
+use Exceedone\Exment\Services\BackupRestore\BackupRuns;
 
 class RestoreCommand extends Command
 {
@@ -65,11 +68,23 @@ class RestoreCommand extends Command
             $file = $this->getFile();
             $tmp = boolval($this->option("tmp"));
 
-            $result = $this->restore->execute($file, $tmp);
+            // the run is recorded as the ones of the screen (ISS02943): the history, the lock, the log
+            $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_COMMAND, [
+                'file_name' => is_string($file) ? pathinfo($file, PATHINFO_FILENAME) : null,
+            ]);
+            $this->info('Restore started: ' . $run->uuid);
+
+            $result = BackupRuns::runRestore($run, $this->restore, $file, $tmp, function (string $line) {
+                $this->line($line);
+            });
+            $this->line('Log: ' . BackupRuns::logRelativePath($run));
 
             if ($this->restore->isConfigSkipped()) {
                 $this->warn(exmtrans('backup.message.restore_config_skipped'));
             }
+        } catch (BackupRunLockedException $e) {
+            $this->error($e->getMessage());
+            return 1;
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
             return 1;
@@ -81,7 +96,7 @@ class RestoreCommand extends Command
         } catch (\Exception $e) {
             throw $e;
         } finally {
-            $this->restore->diskService()->deleteTmpDirectory();
+            $this->restore->diskService()?->deleteTmpDirectory();
         }
 
         // execute() returns non-zero when a step went wrong (a folder that could not be

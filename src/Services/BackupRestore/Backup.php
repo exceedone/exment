@@ -40,7 +40,10 @@ class Backup
     // @phpstan-ignore-next-line
     public function execute($target = null, bool $schedule = false)
     {
+        $progress = $this->progress();
         try {
+            $progress->stage('prepare');
+
             // check backup execute
             \ExmentDB::checkBackup();
 
@@ -53,14 +56,24 @@ class Backup
                 })->filter()->toArray();
             }
 
-            $this->initBackupRestore();
+            $this->initBackupRestore($progress->run()?->file_name);
+            $this->recordFileName();
+            $progress->info('targets', ['targets' => implode(',', array_map('strval', (array) $target)), 'free_bytes' => static::freeBytes($this->diskService->tmpDiskItem()->dirFullPath())]);
 
             // backup database tables
+            $progress->stage('dump');
             if (in_array(BackupTarget::DATABASE, $target)) {
-                \ExmentDB::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+                $dir = $this->diskService->tmpDiskItem()->dirFullPath();
+                \Exment::makeDirectoryDisk($this->tmpDisk(), $this->diskService->tmpDiskItem()->dirName());
+                \ExmentDB::backupDatabase($dir, function (array $info) use ($progress) {
+                    $this->databaseProgress($progress, $info);
+                });
+            } else {
+                $progress->info('skipped: not a target');
             }
 
             // backup directory
+            $progress->stage('files');
             if (!$this->copyFiles($target)) {
                 return -1;
             }
@@ -80,8 +93,53 @@ class Backup
         } catch (\Exception $e) {
             throw $e;
         } finally {
-            $this->diskService->deleteTmpDirectory();
+            $this->diskService?->deleteTmpDirectory();
         }
+    }
+
+    /**
+     * The name of the backup file in the run (the screen and the history show it).
+     */
+    protected function recordFileName(): void
+    {
+        $run = $this->progress()->run();
+        if (isset($run)) {
+            $run->file_name = strval($this->diskService->diskItem()->fileNameNoExtension());
+        }
+    }
+
+    /**
+     * A table of the database is written (ExmentDB::backupDatabase).
+     *
+     * @param array<string, mixed> $info
+     */
+    protected function databaseProgress(RunProgress $progress, array $info): void
+    {
+        if (isset($info['total'])) {
+            $progress->total(intval($info['total']));
+        }
+        $path = $info['path'] ?? null;
+        $bytes = is_string($path) && is_file($path) ? intval(filesize($path)) : 0;
+        $table = $info['table'] ?? '(definition)';
+        $exitCode = intval($info['exit_code'] ?? 0);
+        if ($exitCode !== 0) {
+            $progress->error('the dump of a table failed', ['table' => $table, 'exit_code' => $exitCode]);
+        }
+        $progress->info('table', array_filter(['table' => $table, 'rows' => $info['rows'] ?? null, 'bytes' => $bytes], fn ($v) => $v !== null));
+        $progress->advance(1, 1, $bytes);
+    }
+
+    /**
+     * The free bytes of the disk of a folder (null: not known).
+     */
+    public static function freeBytes(string $dir): ?int
+    {
+        $path = $dir;
+        while (!is_dir($path) && dirname($path) !== $path) {
+            $path = dirname($path);
+        }
+        $free = @disk_free_space($path);
+        return $free === false ? null : intval($free);
     }
 
     /**
@@ -99,13 +157,32 @@ class Backup
             return $val !== null;
         })->toArray();
 
-        foreach ($settings as $setting) {
+        $progress = $this->progress();
+
+        // the files first: the total of the stage
+        $lists = [];
+        $total = 0;
+        foreach ($settings as $index => $setting) {
             $s = $setting[0];
+            if (is_string($s)) {
+                $lists[$index] = \File::exists($s) ? \File::allFiles($s, true) : [];
+            } else {
+                $lists[$index] = $s->allFiles('');
+            }
+            $total += count($lists[$index]);
+        }
+        $progress->total($total);
+
+        foreach ($settings as $index => $setting) {
+            $s = $setting[0];
+            $count = 0;
+            $bytes = 0;
 
             // is local file
             if (is_string($s)) {
                 $from = $s;
                 if (!\File::exists($from)) {
+                    $progress->info('folder not found, skipped', ['target' => $setting[2] ?? $setting[1]]);
                     continue;
                 }
 
@@ -113,7 +190,25 @@ class Backup
 
                 \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
 
-                \File::copyDirectory($from, $this->tmpDisk()->path($to));
+                // as File::copyDirectory, a file at a time (the progress), the empty folders too
+                $toFull = $this->tmpDisk()->path($to);
+                foreach (\File::allDirectories($from) as $directory) {
+                    \File::ensureDirectoryExists(path_join($toFull, ltrim(substr($directory, strlen($from)), '\\/')));
+                }
+                foreach ($lists[$index] as $file) {
+                    /** @var \Symfony\Component\Finder\SplFileInfo $file */
+                    $dest = path_join($toFull, $file->getRelativePathname());
+                    \File::ensureDirectoryExists(dirname($dest));
+                    $size = intval($file->getSize());
+                    if (!@copy($file->getPathname(), $dest)) {
+                        $progress->warn('a file was not copied', ['target' => $setting[2] ?? $setting[1], 'file' => $file->getRelativePathname()]);
+                        $progress->advance(1);
+                        continue;
+                    }
+                    $count++;
+                    $bytes += $size;
+                    $progress->advance(1, 1, $size);
+                }
             }
             // is croud file
             else {
@@ -123,10 +218,10 @@ class Backup
 
                 \Exment::makeDirectoryDisk($this->tmpDisk(), $to);
 
-                $files = $disk->allFiles('');
-                foreach ($files as $file) {
+                foreach ($lists[$index] as $file) {
                     // Check file exists
                     if (!$disk->exists($file)) {
+                        $progress->advance(1);
                         continue;
                     }
                     // copy from crowd to local
@@ -137,8 +232,13 @@ class Backup
                         fclose($stream);
                     } catch (\Exception $ex) {
                     }
+                    $size = intval($this->tmpDisk()->size(path_join($to, $file)));
+                    $count++;
+                    $bytes += $size;
+                    $progress->advance(1, 1, $size);
                 }
             }
+            $progress->info('folder', ['target' => $setting[2] ?? $setting[1], 'files' => $count, 'bytes' => $bytes]);
         }
 
         // if contains 'config' in $settings, copy env file
@@ -183,11 +283,15 @@ class Backup
     // @phpstan-ignore-next-line
     protected function createZip()
     {
+        $progress = $this->progress();
+        $progress->stage('archive', 100);
+
         // open new zip file
         $zip = new \ZipArchive();
         $res = $zip->open($this->diskService->tmpDiskItem()->fileFullPath(), \ZipArchive::CREATE);
 
         if ($res === true) {
+            $count = 0;
             // iterator all files in folder
             $files = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($this->diskService->tmpDiskItem()->dirFullPath()));
             foreach ($files as $name => $file) {
@@ -198,17 +302,38 @@ class Backup
                 $relativePath = substr($filePath, strlen($this->diskService->tmpDiskItem()->dirFullPath()) + 1);
                 $relativePath = \Exment::replaceBackToSlash($relativePath);
                 $zip->addFile($filePath, $relativePath);
+                $count++;
             }
-            $zip->close();
+            // the files are compressed when the zip is closed: its progress (0 to 1) as percent
+            $zip->registerProgressCallback(0.02, function ($rate) use ($progress) {
+                $done = intval(round(floatval($rate) * 100));
+                $run = $progress->run();
+                if (isset($run) && $done > $run->stage_done) {
+                    $progress->advance($done - $run->stage_done);
+                }
+            });
+            if (!$zip->close()) {
+                throw new \RuntimeException('the zip file could not be written: ' . $zip->getStatusString());
+            }
+            $size = intval(@filesize($this->diskService->tmpDiskItem()->fileFullPath()));
+            $progress->info('zip', ['files' => $count, 'bytes' => $size]);
+            $run = $progress->run();
+            if (isset($run)) {
+                $run->file_size = $size;
+            }
+        } else {
+            throw new \RuntimeException('the zip file could not be made: ' . strval($res));
         }
 
         // upload file
+        $progress->stage('upload', 1);
 
         $uploadPaths = [
             $this->diskService->tmpDiskItem()->filePath() => $this->diskService->diskItem()->filePath()
         ];
 
         $this->diskService->upload($uploadPaths);
+        $progress->advance(1, 1, intval($progress->run()?->file_size));
     }
 
     /**

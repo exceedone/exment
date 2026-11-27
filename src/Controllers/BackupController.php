@@ -14,6 +14,9 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupRunLockedException;
+use Exceedone\Exment\Model\BackupRun;
+use Exceedone\Exment\Services\BackupRestore\BackupRuns;
 use Validator;
 use DB;
 
@@ -206,20 +209,54 @@ class BackupController extends AdminControllerBase
     public function save(Request $request)
     {
         \Exment::setTimeLimitLong();
-        $data = $request->all();
 
         $target = System::backup_target();
 
-        $result = $this->backup->execute($target);
+        // one at a time; to the queue when its worker runs, else here as before (ISS02943)
+        $queued = BackupRuns::queueAvailable();
+        try {
+            $run = BackupRuns::start(BackupRun::KIND_BACKUP, BackupRun::TRIGGER_SCREEN, ['targets' => (array) $target], $queued);
+        } catch (BackupRunLockedException $e) {
+            return response()->json([
+                'result'  => false,
+                'message' => $e->getMessage(),
+                'run' => $e->active?->uuid,
+            ]);
+        }
 
-        if (isset($result) && $result === 0) {
+        if ($queued) {
+            BackupRuns::dispatch($run);
             return response()->json([
                 'result'  => true,
+                'queued' => true,
+                'run' => $run->uuid,
+                'message' => exmtrans('backup.run.message.queued'),
+            ]);
+        }
+
+        try {
+            $result = BackupRuns::runBackup($run, $target);
+        } catch (BackupRestoreCheckException $e) {
+            return response()->json([
+                'result'  => false,
+                'run' => $run->uuid,
+                'message' => $e->getMessage(),
+            ]);
+        } catch (\Exception $e) {
+            // told in the run (its log, the bell and the mail)
+            $result = -1;
+        }
+
+        if ($result === 0) {
+            return response()->json([
+                'result'  => true,
+                'run' => $run->uuid,
                 'message' => trans('admin.save_succeeded'),
             ]);
         } else {
             return response()->json([
                 'result'  => false,
+                'run' => $run->uuid,
                 'message' => exmtrans("backup.message.backup_error"),
             ]);
         }
@@ -346,21 +383,23 @@ class BackupController extends AdminControllerBase
             ]);
         }
 
-        if ($request->has('restore_zipfile')) {
-            $filename = $request->get('restore_zipfile');
-            try {
-                $result = $this->restore->execute($filename);
-            } finally {
+        try {
+            if ($request->has('restore_zipfile')) {
+                $filename = $request->get('restore_zipfile');
+                $result = $this->runRestore(strval($filename));
+            } elseif ($request->has('upload_zipfile')) {
+                // get upload file
+                $file = $request->file('upload_zipfile');
+                // store uploaded file
+                $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
+                $result = $this->runRestore(strval($filename), true);
             }
-        } elseif ($request->has('upload_zipfile')) {
-            // get upload file
-            $file = $request->file('upload_zipfile');
-            // store uploaded file
-            $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
-            try {
-                $result = $this->restore->execute($filename, true);
-            } finally {
-            }
+        } catch (BackupRunLockedException $e) {
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => $e->getMessage(),
+                'errors' => [],
+            ]);
         }
 
         if (isset($result) && $result === 0) {
@@ -415,8 +454,12 @@ class BackupController extends AdminControllerBase
 
         if ($validator->passes()) {
             try {
-                $result = $this->restore->execute($data['file']);
-            } finally {
+                $result = $this->runRestore(strval($data['file']));
+            } catch (BackupRunLockedException $e) {
+                return response()->json([
+                    'result'  => false,
+                    'toastr' => $e->getMessage(),
+                ]);
             }
         }
 
@@ -436,6 +479,23 @@ class BackupController extends AdminControllerBase
                 'toastr' => exmtrans("backup.message.restore_error"),
             ]);
         }
+    }
+
+    /**
+     * A restore of the screen, recorded (ISS02943). It runs here, never in the queue: it replaces
+     * the database the queue and the sessions are in.
+     *
+     * @return int the result of Restore::execute (0: done)
+     * @throws BackupRunLockedException
+     * @throws \Exception a refused file (InvalidZipEntryException) and the others, as before
+     */
+    protected function runRestore(string $file, ?bool $tmp = null): int
+    {
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, [
+            'file_name' => pathinfo($file, PATHINFO_FILENAME),
+        ]);
+
+        return BackupRuns::runRestore($run, $this->restore, $file, $tmp);
     }
 
     /**
