@@ -35,6 +35,10 @@ class BackupRuns
 
     public const LOCK_FILE = '.lock';
 
+    /** Where the file of a restore of the screen is (the first of its targets, then the file). */
+    public const SOURCE_UPLOAD = 'upload';
+    public const SOURCE_STORED = 'stored';
+
     // ---------------------------------------------------------------- start
 
     /**
@@ -92,6 +96,389 @@ class BackupRuns
     public static function dispatch(BackupRun $run): void
     {
         BackupRunJob::dispatch($run->uuid);
+    }
+
+    // ---------------------------------------------------------------- a restore of the screen, apart
+
+    /**
+     * Whether a restore of the screen runs in a process of its own (the command), so the request
+     * answers at once: PHP may start a command here (not on a shared host without proc_open).
+     */
+    public static function detachAvailable(): bool
+    {
+        if (!boolval(config('exment.backup.detach_restore', true))) {
+            return false;
+        }
+        return \Exceedone\Exment\Services\ScheduledJobs\ScheduledJobs::processAvailable();
+    }
+
+    /**
+     * The command line of a restore apart: fixed, only the uuid of the run in it (no secret, nothing
+     * the user wrote). The output goes to a file next to the log.
+     */
+    public static function restoreCommandLine(BackupRun $run): string
+    {
+        if (preg_match('/^[0-9a-f\-]{36}$/D', $run->uuid) !== 1) {
+            throw new \InvalidArgumentException('the uuid of the run');
+        }
+        static::ensureLogDirectory();
+        // made here, 600, before the command writes to it
+        $console = static::consolePath($run);
+        @touch($console);
+        @chmod($console, 0600);
+        $php = \Exceedone\Exment\Services\SystemRequire\Tuning\CliPhp::path();
+        $artisan = escapeshellarg(base_path('artisan'));
+        $output = escapeshellarg(static::consolePath($run));
+        $command = "{$php} {$artisan} exment:restore --run={$run->uuid} --yes";
+        if (windows_os()) {
+            return 'start /b "" ' . $command . ' >> ' . $output . ' 2>&1';
+        }
+        return 'umask 077; nohup ' . $command . ' >> ' . $output . ' 2>&1 < /dev/null &';
+    }
+
+    /**
+     * Start the restore of a queued run in a process of its own, and wait a little for it to take
+     * the run. False when it did not: the run is taken back (running), for the caller to run here.
+     *
+     * @param callable|null $launcher fn (string $line): void (tests)
+     */
+    public static function launchRestore(BackupRun $run, ?callable $launcher = null): bool
+    {
+        // its page reads the state from the start
+        static::writeStatusFile($run);
+        try {
+            $line = static::restoreCommandLine($run);
+            $launcher = $launcher ?? function (string $line) {
+                \Symfony\Component\Process\Process::fromShellCommandline($line, base_path(), null, null, 30)->run();
+            };
+            $launcher($line);
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] backup run, the restore apart did not start: ' . SecretMasker::mask($e->getMessage()));
+        }
+
+        $wait = max(0, intval(config('exment.backup.detach_wait_seconds', 10)));
+        $until = microtime(true) + $wait;
+        do {
+            $status = BackupRun::query()->where('uuid', $run->uuid)->value('status');
+            if ($status !== BackupRun::STATUS_QUEUED) {
+                return true;
+            }
+            if (microtime(true) >= $until) {
+                break;
+            }
+            usleep(250000);
+        } while (true);
+
+        // not taken: the caller runs it (a process that starts later finds it running)
+        $taken = BackupRun::query()->where('uuid', $run->uuid)->where('status', BackupRun::STATUS_QUEUED)
+            ->update(['status' => BackupRun::STATUS_RUNNING, 'heartbeat_at' => Carbon::now()]);
+        if ($taken !== 1) {
+            return true;
+        }
+        $run->refresh();
+        return false;
+    }
+
+    /**
+     * Take a queued restore (the command started apart): false when it is not waiting.
+     */
+    public static function takeQueued(string $uuid, string $kind): ?BackupRun
+    {
+        if (preg_match('/^[0-9a-f\-]{36}$/D', $uuid) !== 1) {
+            return null;
+        }
+        $taken = BackupRun::query()->where('uuid', $uuid)->where('kind', $kind)->where('status', BackupRun::STATUS_QUEUED)
+            ->update(['status' => BackupRun::STATUS_RUNNING, 'heartbeat_at' => Carbon::now()]);
+        if ($taken !== 1) {
+            return null;
+        }
+        /** @var BackupRun|null $run */
+        $run = BackupRun::query()->where('uuid', $uuid)->first();
+        return $run;
+    }
+
+    // ---------------------------------------------------------------- the status file
+
+    /**
+     * The status of a run, written next to its log: the screen reads it while a restore has the
+     * table of the runs replaced (and the site in maintenance).
+     */
+    public static function writeStatusFile(BackupRun $run): void
+    {
+        try {
+            static::ensureLogDirectory();
+            $path = static::statusPath($run->uuid);
+            $temp = $path . '.' . getmypid() . '.tmp';
+            if (file_put_contents($temp, strval(json_encode($run->toStatusArray(), JSON_UNESCAPED_UNICODE))) !== false) {
+                @chmod($temp, 0600);
+                @rename($temp, $path);
+            }
+        } catch (\Throwable $e) {
+            // the status file never stops the run
+        }
+    }
+
+    /**
+     * The status of the status file (null: none, or not a run).
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function readStatusFile(string $uuid): ?array
+    {
+        if (preg_match('/^[0-9a-f\-]{36}$/D', $uuid) !== 1) {
+            return null;
+        }
+        $path = static::statusPath($uuid);
+        if (!is_file($path)) {
+            return null;
+        }
+        $data = json_decode(strval(@file_get_contents($path)), true);
+        return is_array($data) && ($data['uuid'] ?? null) === $uuid ? $data : null;
+    }
+
+    /**
+     * The status of a run for the screen: the record, or its status file while it goes on (a
+     * restore replaces the record), null when neither is there.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function status(string $uuid): ?array
+    {
+        $file = static::readStatusFile($uuid);
+        try {
+            /** @var BackupRun|null $run */
+            $run = BackupRun::query()->where('uuid', $uuid)->first();
+            if (isset($run) && $run->isActive()) {
+                static::markStalled();
+                $run->refresh();
+            }
+        } catch (\Throwable $e) {
+            $run = null;
+        }
+        if (isset($file) && boolval($file['active'] ?? false) && (!isset($run) || $run->isActive())) {
+            return $file;
+        }
+        if (isset($run)) {
+            return $run->toStatusArray();
+        }
+        return $file;
+    }
+
+    /**
+     * The run going on, for the screen: the record, else a status file written in the last minute
+     * (a restore has the table replaced).
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function currentStatus(): ?array
+    {
+        try {
+            static::markStalled();
+            $run = static::active();
+            if (isset($run)) {
+                return static::status($run->uuid);
+            }
+        } catch (\Throwable $e) {
+            // the table is being replaced: the files say
+        }
+        foreach (glob(path_join(storage_path(static::LOG_DIR), '*.json')) ?: [] as $path) {
+            if (@filemtime($path) < time() - 60) {
+                continue;
+            }
+            $data = static::readStatusFile(basename($path, '.json'));
+            if (isset($data) && boolval($data['active'] ?? false)) {
+                return $data;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * A token for the state of a restore of the screen (BackupRunStateController): its page reads
+     * the state while the site is in maintenance, without the session and the database. The hash
+     * is kept in a file (600); the token itself goes to the page of the admin only.
+     */
+    public static function issueStateToken(BackupRun $run): string
+    {
+        $token = bin2hex(random_bytes(32));
+        static::ensureLogDirectory();
+        $path = static::tokenPath($run->uuid);
+        @touch($path);
+        @chmod($path, 0600);
+        file_put_contents($path, strval(json_encode(['hash' => hash('sha256', $token), 'expires' => null])));
+        return $token;
+    }
+
+    /**
+     * Whether the run has a token of its state (its file is there): nothing is written for a run
+     * without one.
+     */
+    public static function hasStateToken(string $uuid): bool
+    {
+        return preg_match('/^[0-9a-f\-]{36}$/D', $uuid) === 1 && is_file(static::tokenPath($uuid));
+    }
+
+    /**
+     * Whether a token is the one of the state of the run (and not expired).
+     */
+    public static function checkStateToken(string $uuid, string $token): bool
+    {
+        if (preg_match('/^[0-9a-f\-]{36}$/D', $uuid) !== 1 || preg_match('/^[0-9a-f]{64}$/D', $token) !== 1) {
+            return false;
+        }
+        $path = static::tokenPath($uuid);
+        if (!is_file($path)) {
+            return false;
+        }
+        $data = json_decode(strval(@file_get_contents($path)), true);
+        if (!is_array($data) || !is_string($data['hash'] ?? null)) {
+            return false;
+        }
+        if (isset($data['expires']) && intval($data['expires']) < time()) {
+            static::forgetStateToken($uuid);
+            return false;
+        }
+        return hash_equals($data['hash'], hash('sha256', $token));
+    }
+
+    /**
+     * The run ended: its token lasts a few minutes more (the page reads the end), then it is gone.
+     */
+    public static function expireStateToken(string $uuid): void
+    {
+        $path = static::tokenPath($uuid);
+        if (!is_file($path)) {
+            return;
+        }
+        $data = json_decode(strval(@file_get_contents($path)), true);
+        if (!is_array($data)) {
+            @unlink($path);
+            return;
+        }
+        $data['expires'] = time() + max(60, intval(config('exment.backup.state_token_seconds', 600)));
+        @file_put_contents($path, strval(json_encode($data)));
+    }
+
+    public static function tokenPath(string $uuid): string
+    {
+        return storage_path(path_join(static::LOG_DIR, $uuid . '.token'));
+    }
+
+    /**
+     * The fields of the state given with the token while the run goes on: the progress only (no
+     * text but the fixed labels, no log, no path, no file, no id).
+     *
+     * @param array<string, mixed> $status
+     * @return array<string, mixed>
+     */
+    public static function stateFields(array $status): array
+    {
+        $keys = ['status', 'active', 'stage', 'stage_label', 'progress', 'stage_done', 'stage_total',
+            'started_at', 'finished_at', 'elapsed_seconds', 'remaining_seconds', 'warnings', 'errors'];
+        $result = array_intersect_key($status, array_flip($keys));
+        $result['stages'] = array_map(function ($stage) {
+            return is_array($stage) ? array_intersect_key($stage, array_flip(['name', 'label', 'state', 'seconds', 'count'])) : [];
+        }, is_array($status['stages'] ?? null) ? $status['stages'] : []);
+        return $result;
+    }
+
+    /**
+     * The state of a run that ended, given with the token once: its status and its percent only.
+     *
+     * @param array<string, mixed> $status
+     * @return array<string, mixed>
+     */
+    public static function endedStateFields(array $status): array
+    {
+        $done = in_array($status['status'] ?? null, [BackupRun::STATUS_SUCCEEDED, BackupRun::STATUS_WARNING], true);
+        return [
+            'status' => strval($status['status'] ?? BackupRun::STATUS_FAILED),
+            'progress' => $done ? 100 : intval($status['progress'] ?? 0),
+        ];
+    }
+
+    /**
+     * A cheap limit of the reads of the state (a file: no cache, no database, which a restore
+     * replaces): exment.backup.state_per_minute (60) a minute for an address and a run.
+     */
+    public static function stateRateAllowed(string $uuid, string $ip): bool
+    {
+        $limit = max(1, intval(config('exment.backup.state_per_minute', 60)));
+        try {
+            static::ensureLogDirectory();
+            $path = storage_path(path_join(static::LOG_DIR, $uuid . '.rate'));
+            $handle = fopen($path, 'c+');
+            if ($handle === false) {
+                return true;
+            }
+            try {
+                flock($handle, LOCK_EX);
+                $data = json_decode(strval(stream_get_contents($handle)), true);
+                $data = is_array($data) ? $data : [];
+                $key = hash('sha256', $ip);
+                $now = time();
+                [$start, $count] = isset($data[$key]) && is_array($data[$key]) ? [intval($data[$key][0] ?? 0), intval($data[$key][1] ?? 0)] : [$now, 0];
+                if ($now - $start >= 60) {
+                    [$start, $count] = [$now, 0];
+                }
+                $count++;
+                $data[$key] = [$start, $count];
+                ftruncate($handle, 0);
+                rewind($handle);
+                fwrite($handle, strval(json_encode($data)));
+                @chmod($path, 0600);
+                return $count <= $limit;
+            } finally {
+                flock($handle, LOCK_UN);
+                fclose($handle);
+            }
+        } catch (\Throwable $e) {
+            // the token still guards it
+            return true;
+        }
+    }
+
+    /**
+     * The token is used up (the end of the run was read).
+     */
+    public static function forgetStateToken(string $uuid): void
+    {
+        foreach ([static::tokenPath($uuid), storage_path(path_join(static::LOG_DIR, $uuid . '.rate'))] as $path) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+    }
+
+    /**
+     * The restore going on, from the status files only (no database: a restore replaces it): a
+     * file of a restore not over, written in the last exment.backup.stale_minutes.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function restoringStatus(): ?array
+    {
+        $limit = time() - static::staleMinutes() * 60;
+        foreach (glob(path_join(storage_path(static::LOG_DIR), '*.json')) ?: [] as $path) {
+            if (@filemtime($path) < $limit) {
+                continue;
+            }
+            $data = static::readStatusFile(basename($path, '.json'));
+            if (isset($data) && boolval($data['active'] ?? false) && ($data['kind'] ?? null) === BackupRun::KIND_RESTORE) {
+                return $data;
+            }
+        }
+        return null;
+    }
+
+    public static function statusPath(string $uuid): string
+    {
+        return storage_path(path_join(static::LOG_DIR, $uuid . '.json'));
+    }
+
+    public static function consolePath(BackupRun $run): string
+    {
+        return storage_path(path_join(static::LOG_DIR, $run->uuid . '.console.log'));
     }
 
     // ---------------------------------------------------------------- the runs
@@ -160,7 +547,8 @@ class BackupRuns
 
     protected static function failed(RunProgress $progress, \Throwable $e): void
     {
-        $progress->error(get_class($e) . ': ' . $e->getMessage());
+        // the class goes to the log only (the screen and the command show the message)
+        $progress->error($e->getMessage(), ['exception' => get_class($e)]);
         \Log::error('[Exment] ' . ($progress->run()->kind ?? 'backup') . ' failed: ' . SecretMasker::mask($e->getMessage()));
         $progress->finish(BackupRun::STATUS_FAILED, static::reason($e) . ' ' . strval(exmtrans('backup.run.hints.' . static::hint($e))));
         $run = $progress->run();
@@ -171,6 +559,7 @@ class BackupRuns
 
     protected static function afterFinish(BackupRun $run): void
     {
+        static::expireStateToken($run->uuid);
         foreach ([fn () => static::operationLog($run, 'finish'), fn () => static::notify($run), fn () => static::keep()] as $step) {
             try {
                 $step();
@@ -239,6 +628,7 @@ class BackupRuns
             $run->finished_at = $now;
             $run->message = strval(exmtrans($run->started_at === null ? 'backup.run.message.stalled_queued' : 'backup.run.message.stalled', ['minutes' => static::staleMinutes()]));
             $run->save();
+            static::writeStatusFile($run);
             static::appendLog($run, 'ERROR', 'stalled: no heartbeat since ' . (isset($last) ? $last->format('Y-m-d H:i:s') : '-'));
             $count++;
             static::afterFinish($run);
@@ -386,15 +776,18 @@ class BackupRuns
     public static function keep(): int
     {
         $keep = max(1, intval(config('exment.backup.keep_runs', 100)));
-        $ids = BackupRun::query()->whereNotIn('status', BackupRun::ACTIVE)->orderByDesc('id')->skip($keep)->take(1000)->pluck('id')->all();
+        // by the time it was made (a restore puts the runs back with new ids)
+        $ids = BackupRun::query()->whereNotIn('status', BackupRun::ACTIVE)->orderByDesc('created_at')->orderByDesc('id')->skip($keep)->take(1000)->pluck('id')->all();
         if (count($ids) === 0) {
             return 0;
         }
-        foreach (BackupRun::query()->whereIn('id', $ids)->get() as $run) {
-            /** @var BackupRun $run */
-            $path = static::logFullPath($run);
-            if (is_file($path)) {
-                @unlink($path);
+        /** @var \Illuminate\Support\Collection<int, BackupRun> $old */
+        $old = BackupRun::query()->whereIn('id', $ids)->get();
+        foreach ($old as $run) {
+            foreach ([static::logFullPath($run), static::statusPath($run->uuid), static::consolePath($run), static::tokenPath($run->uuid), storage_path(path_join(static::LOG_DIR, $run->uuid . '.rate'))] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
             }
         }
         return intval(BackupRun::query()->whereIn('id', $ids)->delete());

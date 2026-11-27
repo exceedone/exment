@@ -64,6 +64,7 @@ class RouteServiceProvider extends ServiceProvider
      */
     public function map()
     {
+        $this->mapExmentBackupRunStateRoute();
         $this->mapExmentWebRotes();
         $this->mapExmentAnonymousWebRotes();
         $this->mapExmentLineWebhookRoute();
@@ -92,6 +93,19 @@ class RouteServiceProvider extends ServiceProvider
             ->where('legacy_admin_path', '.*')
             ->middleware('web')
             ->name('exment.legacy_admin_redirect');
+    }
+
+    /**
+     * The state of a restore while the site is in maintenance (ISS02943): no session, no login,
+     * no database (the restore replaces it); the token of the run instead.
+     *
+     * @return void
+     */
+    protected function mapExmentBackupRunStateRoute()
+    {
+        Route::get(url_join(config('admin.route.prefix'), 'backup/runs/{uuid}/state'), [\Exceedone\Exment\Controllers\BackupRunStateController::class, 'show'])
+            ->where('uuid', '[0-9a-f\-]{36}')
+            ->name('exment.backup_run_state');
     }
 
     /**
@@ -523,6 +537,11 @@ class RouteServiceProvider extends ServiceProvider
             $router->get('backup/importModal', 'BackupController@importModal');
             $router->get('backup/importModal/{file_key}', 'BackupController@importModal');
             $router->get('backup/download/{ymdhms}', 'BackupController@download');
+            // the runs of the backup and the restore (ISS02943)
+            $router->get('backup/runs/current', 'BackupController@runCurrent');
+            $router->get('backup/runs/{uuid}/status', 'BackupController@runStatus')->where('uuid', '[0-9a-fA-F\-]{36}');
+            $router->get('backup/runs/{uuid}/log', 'BackupController@runLog')->where('uuid', '[0-9a-fA-F\-]{36}');
+            $router->get('backup/runs/{uuid}', 'BackupController@runShow')->where('uuid', '[0-9a-fA-F\-]{36}');
 
             $router->get("data/{tableKey}/importModal", 'CustomValueController@importModal');
             $router->post("data/{tableKey}/import", 'CustomValueController@import');

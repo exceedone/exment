@@ -78,7 +78,14 @@ class Restore
 
         try {
             $progress->stage('verify');
-            \Artisan::call('down');
+            // the page of the maintenance tells a restore is going on (and comes again by itself);
+            // the screen of the runs still answers (ExmentServiceProvider::bootBackupRuns)
+            try {
+                \Artisan::call('down', static::downOptions());
+            } catch (\Throwable $e) {
+                // the page could not be made: the plain one
+                \Artisan::call('down');
+            }
 
             // check backup execute
             \ExmentDB::checkBackup();
@@ -142,6 +149,16 @@ class Restore
         }
     }
 
+
+    /**
+     * The options of "down" during a restore (ISS02943): the page "a restore is going on".
+     *
+     * @return array<string, mixed>
+     */
+    public static function downOptions(): array
+    {
+        return ['--render' => 'exment::backup.restoring', '--retry' => 30, '--refresh' => 15];
+    }
 
     /**
      * Bring the restored schema up to the version the running code expects.
@@ -274,6 +291,15 @@ class Restore
             // config files of another Laravel version would overwrite the current ones and
             // stop the application from starting (e.g. config/app.php listing providers
             // a Laravel 12 skeleton no longer has)
+            // the logs of now are kept: what this restore logs, and what came before it
+            if ($setting[2] == BackupTarget::LOG) {
+                if (!isset($logsKept)) {
+                    $logsKept = true;
+                    $progress->info('the log files of now are kept (not replaced)');
+                }
+                continue;
+            }
+
             if ($setting[2] == BackupTarget::CONFIG && !$this->canRestoreConfig()) {
                 $this->configSkipped = true;
                 continue;

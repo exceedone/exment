@@ -118,6 +118,10 @@ class Backup
         if (isset($info['total'])) {
             $progress->total(intval($info['total']));
         }
+        if (boolval($info['start'] ?? false)) {
+            $progress->info('tables', ['count' => intval($info['total'] ?? 0)]);
+            return;
+        }
         $path = $info['path'] ?? null;
         $bytes = is_string($path) && is_file($path) ? intval(filesize($path)) : 0;
         $table = $info['table'] ?? '(definition)';
