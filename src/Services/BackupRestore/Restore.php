@@ -79,7 +79,7 @@ class Restore
         try {
             $progress->stage('verify');
             // the page of the maintenance tells a restore is going on (and comes again by itself);
-            // the screen of the runs still answers (ExmentServiceProvider::bootBackupRuns)
+            // the pages of the backup still answer (BackupRestoreGuard, before the maintenance)
             try {
                 \Artisan::call('down', static::downOptions());
             } catch (\Throwable $e) {

@@ -1472,6 +1472,7 @@ return [
             'restore_error' => '복원에 실패했습니다.',
             'restore_file_success' => '복원에 성공했습니다. 로그인 페이지로 이동합니다.',
             'restore_file_error' => '복원에 실패했습니다. 업로드한 파일을 확인하십시오.',
+            'restore_file_not_found' => '백업 파일을 찾을 수 없습니다: :name',
             'restore_config_skipped' => '백업 시의 Laravel 버전이 현재와 다르기 때문에(또는 버전 정보가 기록되지 않았기 때문에) 백업의 설정 파일은 복원하지 않았습니다. 필요한 경우 백업 zip 파일에서 꺼내 직접 반영하십시오.',
             'edit_filename_confirm' => '파일 이름 편집',
             'edit_filename_text' => '백업 파일의 파일 이름을 입력하십시오. ※일부 문자는 사용할 수 없습니다.',
