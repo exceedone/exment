@@ -220,6 +220,47 @@ class NotifyTarget
         return $notifyTarget;
     }
 
+    /**
+     * The records of a table with these ids, read without the login user's visibility
+     * (CustomValueModelScope). Deleted records are not read. For the records a notification
+     * goes to: who gets it does not depend on who saved the record.
+     *
+     * @param CustomTable|null $custom_table
+     * @param mixed $ids an id, a list of ids, or a list as JSON (the stored value of a column)
+     * @return Collection<int, CustomValue>
+     */
+    public static function getTargetValues(?CustomTable $custom_table, $ids): Collection
+    {
+        if (is_string($ids) && preg_match('/^\s*\[.*\]\s*$/s', $ids)) {
+            $ids = json_decode_ex($ids);
+        }
+        $ids = collect(is_list($ids) ? $ids : [$ids])
+            ->map(function ($id) {
+                return $id instanceof CustomValue ? $id->id : $id;
+            })
+            ->filter(function ($id) {
+                return is_numeric($id);
+            })
+            ->map(function ($id) {
+                return intval($id);
+            })
+            ->unique()
+            ->values();
+        if (is_null($custom_table) || $ids->isEmpty()) {
+            return collect();
+        }
+
+        $values = getModelName($custom_table)::withoutGlobalScope(CustomValueModelScope::class)
+            ->whereIn('id', $ids->all())
+            ->get()
+            ->keyBy('id');
+
+        // in the order of the column's value
+        return $ids->map(function ($id) use ($values) {
+            return $values->get($id);
+        })->filter()->values();
+    }
+
     public static function getModelAsUser(?CustomValue $target_value, ?CustomColumn $custom_column = null): ?NotifyTarget
     {
         if (is_null($custom_column)) {
@@ -229,12 +270,34 @@ class NotifyTarget
     }
 
 
+    /**
+     * The users of an organization, as notify targets.
+     *
+     * @param CustomValue|null $target_value the organization
+     * @param CustomColumn|null $custom_column
+     * @param bool $allMembers true: all the users of the organization, not only those the login
+     *   user can see (see Services\Notify\Column::readsStoredTargets())
+     * @return Collection
+     */
     // @phpstan-ignore-next-line
-    public static function getModelsAsOrganization(?CustomValue $target_value, ?CustomColumn $custom_column = null): Collection
+    public static function getModelsAsOrganization(?CustomValue $target_value, ?CustomColumn $custom_column = null, bool $allMembers = false): Collection
     {
         // get organization user
         $result = collect();
-        foreach ($target_value->users as $user) {
+        if (is_null($target_value)) {
+            return $result;
+        }
+
+        if ($allMembers) {
+            $pivot = CustomRelation::getRelationNameByTables(SystemTableName::ORGANIZATION, SystemTableName::USER);
+            $users = static::getTargetValues(
+                CustomTable::getEloquent(SystemTableName::USER),
+                \DB::table($pivot)->where('parent_id', $target_value->id)->orderBy('child_id')->pluck('child_id')->all()
+            );
+        } else {
+            $users = $target_value->users;
+        }
+        foreach ($users as $user) {
             // get email address
             $item = NotifyTarget::getModelAsUser($user);
             if (!is_nullorempty($item)) {
