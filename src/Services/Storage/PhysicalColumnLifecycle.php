@@ -227,7 +227,7 @@ final class PhysicalColumnLifecycle
         $db = getDBTableName($table);
         $path = '$."' . $columnName . '"';
         if (PhysicalSchemaManager::driverFamily() === 'sqlsrv') {
-            return DB::table($db)->whereRaw("(JSON_VALUE([value], '$path') IS NOT NULL OR JSON_QUERY([value], '$path') IS NOT NULL)")->exists();
+            return DB::table($db)->whereRaw('(JSON_VALUE([value], ?) IS NOT NULL OR JSON_QUERY([value], ?) IS NOT NULL)', [$path, $path])->exists();
         }
         return DB::table($db)->whereRaw('JSON_EXTRACT(`value`, ?) IS NOT NULL', [$path])->exists();
     }
