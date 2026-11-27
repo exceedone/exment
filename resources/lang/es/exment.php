@@ -1507,6 +1507,7 @@ return [
                 'preview_no_database' => 'Sin base de datos (la base de datos actual se mantiene)',
                 'preview_folder' => ':name: :files archivos (:size)',
                 'preview_env' => 'Configuración (parte de .env)',
+                'preview_logs_kept' => 'Archivos de registro: no se reemplazan (se conservan los actuales)',
                 'preview_versions' => 'Creada con: Exment :exment / Laravel :laravel (ahora: Exment :current_exment / Laravel :current_laravel)',
                 'restore_in_request' => 'Restaurar desde esta pantalla',
                 'restore_command_note' => 'En este servidor, la restauración se ejecuta dentro de la solicitud de esta pantalla. En un sitio grande tarda mucho y la pantalla puede dejar de esperar (la restauración continúa). Para sitios grandes se recomienda el comando php artisan exment:restore en el servidor.',

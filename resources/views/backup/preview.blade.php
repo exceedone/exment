@@ -11,6 +11,11 @@
             @endif
         </li>
         @foreach($preview['folders'] as $key => $folder)
+        @if($key === \Exceedone\Exment\Enums\BackupTarget::LOG)
+        {{-- a restore keeps the log files of now --}}
+        <li>{{ exmtrans('backup.run.screen.preview_logs_kept') }}</li>
+        @continue
+        @endif
         <li>{{ exmtrans('backup.run.screen.preview_folder', ['name' => \Illuminate\Support\Facades\Lang::has('exment::exment.backup.backup_target_options.' . $key) ? exmtrans('backup.backup_target_options.' . $key) : $key, 'files' => number_format($folder['files']), 'size' => bytesToHuman($folder['bytes'])]) }}</li>
         @endforeach
         @if($preview['env'])
