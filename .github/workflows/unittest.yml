@@ -29,6 +29,13 @@ jobs:
         # databases: master runs MySQL only (fewer jobs waiting for a runner)
         db: ${{ github.base_ref == 'master' && fromJSON('["mysql"]') || fromJSON('["mysql", "mariadb"]') }}
         test: ["feature", "unit", "browser"]
+        # one more host: its App\Http\Controllers\Controller is the empty abstract class of the
+        # Laravel 11/12 skeleton (the zip of exment.net, "composer create-project laravel/laravel"),
+        # not exment-boilerplate's, which extends Illuminate\Routing\Controller. The admin screens
+        # and exment:publish outside the console are run on it (one database, one PHP version).
+        include:
+          - db: mysql
+            test: skeleton
     steps:
       - uses: actions/checkout@v4
         with:
@@ -94,6 +101,12 @@ jobs:
           cache-from: type=gha,scope=docker-exment-php-${{ steps.php.outputs.version }}
           cache-to: type=gha,mode=max,scope=docker-exment-php-${{ steps.php.outputs.version }}
 
+      - name: The host's base controller is the Laravel 11/12 skeleton's
+        if: matrix.test == 'skeleton'
+        run: |
+          printf '%s\n' '<?php' '' 'namespace App\Http\Controllers;' '' 'abstract class Controller' '{' '    //' '}' > docker-exment/exment-boilerplate/app/Http/Controllers/Controller.php
+          cat docker-exment/exment-boilerplate/app/Http/Controllers/Controller.php
+
       - name: Docker Compose Version
         run: docker compose --version
 
@@ -142,6 +155,7 @@ jobs:
           exit 1
 
       - name: PHPUnit Test
+        if: matrix.test != 'skeleton'
         working-directory: docker-exment
         # A test that ends the process (exit in the code it calls) stops PHPUnit with code 0 and
         # no summary, so the job looked green with half of the tests not run. The job now also
@@ -154,3 +168,34 @@ jobs:
             tail -20 "$RUNNER_TEMP/phpunit.log"
             exit 1
           fi
+
+      # the skeleton's host: every admin screen (AdminScreensSmokeTest: no 5xx, the dashboard among
+      # them) and the files to publish known in a web request (PublishOnWebTest, when it is there)
+      - name: PHPUnit Test (the skeleton's base controller)
+        if: matrix.test == 'skeleton'
+        working-directory: docker-exment
+        run: |
+          set -o pipefail
+          docker compose -f docker-compose.yml exec -T php composer run exment:test:init
+          docker compose -f docker-compose.yml exec -T php ./vendor/bin/phpunit --filter '(AdminScreensSmokeTest|PublishOnWebTest)' ./vendor/exceedone/exment/tests/Feature 2>&1 | tee "$RUNNER_TEMP/phpunit.log"
+          if ! grep -qE '^(OK \(|Tests: [0-9]+)' "$RUNNER_TEMP/phpunit.log"; then
+            echo "::error::PHPUnit ended without its summary: a test ended the process before the end. The last lines:"
+            tail -20 "$RUNNER_TEMP/phpunit.log"
+            exit 1
+          fi
+
+      # the web installer and the update screens run exment:publish inside a web request, where
+      # runningInConsole() is false: APP_RUNNING_IN_CONSOLE=false makes it so here. The published
+      # files are removed first, so the check sees only what this run copies.
+      - name: exment:publish outside the console copies the files
+        if: matrix.test == 'skeleton'
+        working-directory: docker-exment
+        run: |
+          docker compose -f docker-compose.yml exec -T php rm -rf public/vendor/exment public/vendor/open-admin
+          docker compose -f docker-compose.yml exec -T -e APP_RUNNING_IN_CONSOLE=false php php artisan exment:publish
+          docker compose -f docker-compose.yml exec -T php sh -c '
+            missing=0
+            for f in public/vendor/exment/chartjs/chart.min.js public/vendor/open-admin/open-admin/open-admin.js; do
+              if [ -s "$f" ]; then echo "published: $f"; else echo "::error::exment:publish outside the console did not publish $f"; missing=1; fi
+            done
+            exit $missing'
