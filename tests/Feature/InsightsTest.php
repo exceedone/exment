@@ -126,16 +126,16 @@ class InsightsTest extends FeatureTestBase
         $days = Insights::collectUntilYesterday($day, $day);
         $this->assertSame([static::DAY], $days);
 
-        $this->assertSame(['success' => 2, 'failure' => 1], array_intersect_key($this->kept('login'), ['success' => 0, 'failure' => 0]));
+        $this->assertEquals(['success' => 2, 'failure' => 1], array_intersect_key($this->kept('login'), ['success' => 0, 'failure' => 0]));
         $this->assertGreaterThanOrEqual(2, $this->kept('active_day')[''] ?? 0, 'the two who signed in');
-        $this->assertSame(['ok' => 2, 'error' => 1], $this->kept('mcp'));
-        $this->assertSame(['search_data' => 3], $this->kept('mcp_tool'));
+        $this->assertEquals(['ok' => 2, 'error' => 1], $this->kept('mcp'));
+        $this->assertEquals(['search_data' => 3], $this->kept('mcp_tool'));
         $this->assertSame(3, $this->kept('browser')[BrowserLog::KIND_ERROR] ?? 0);
-        $this->assertSame(['/admin/slow' => 2], $this->kept('slow_page'), 'only the page above the time');
-        $this->assertSame(['success' => 1, 'failed' => 1], array_intersect_key($this->kept('job'), ['success' => 0, 'failed' => 0]));
-        $this->assertSame(['exment:sync' => 1], $this->kept('job_failed'));
-        $this->assertSame(['role_group' => 1], $this->kept('admin_change'), 'the change, not the read');
-        $this->assertSame(['my_page' => 1], $this->kept('plugin_use'));
+        $this->assertEquals(['/admin/slow' => 2], $this->kept('slow_page'), 'only the page above the time');
+        $this->assertEquals(['success' => 1, 'failed' => 1], array_intersect_key($this->kept('job'), ['success' => 0, 'failed' => 0]));
+        $this->assertEquals(['exment:sync' => 1], $this->kept('job_failed'));
+        $this->assertEquals(['role_group' => 1], $this->kept('admin_change'), 'the change, not the read');
+        $this->assertEquals(['my_page' => 1], $this->kept('plugin_use'));
 
         // counted again: the same numbers, not twice; a counter of the day stays
         Insights::hit('webhook_failed', 'hooks.example.com');
@@ -143,9 +143,9 @@ class InsightsTest extends FeatureTestBase
         Insights::hit('webhook_failed', 'hooks.example.com');
         Insights::$now = $day->copy()->addDay()->setTime(4, 50);
         Insights::collect($day);
-        $this->assertSame(['ok' => 2, 'error' => 1], $this->kept('mcp'));
-        $this->assertSame(['hooks.example.com' => 1], $this->kept('webhook_failed'));
-        $this->assertSame(['hooks.example.com' => 1], $this->kept('webhook_failed', $day->copy()->addDay()->format('Y-m-d')));
+        $this->assertEquals(['ok' => 2, 'error' => 1], $this->kept('mcp'));
+        $this->assertEquals(['hooks.example.com' => 1], $this->kept('webhook_failed'));
+        $this->assertEquals(['hooks.example.com' => 1], $this->kept('webhook_failed', $day->copy()->addDay()->format('Y-m-d')));
     }
 
     public function testTheReportAndThePeople(): void
@@ -232,7 +232,7 @@ class InsightsTest extends FeatureTestBase
         // the days asked are counted even when it is off
         $this->logsOf(Carbon::parse(static::DAY));
         $this->artisan('exment:insights', ['--from' => static::DAY, '--to' => static::DAY])->assertExitCode(0);
-        $this->assertSame(['ok' => 2, 'error' => 1], $this->kept('mcp'));
+        $this->assertEquals(['ok' => 2, 'error' => 1], $this->kept('mcp'));
         $this->artisan('exment:insights', ['--from' => 'yesterday'])->assertExitCode(1);
     }
 }
