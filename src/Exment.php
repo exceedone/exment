@@ -162,14 +162,18 @@ class Exment
                 return $errorController->maintenance();
             }
 
+            // the form token is expired or missing: the request was not run. A script gets 419; a
+            // page (also through pjax) goes back with the message, never an error page with 200.
             if ($exception instanceof \Illuminate\Session\TokenMismatchException) {
+                if (!$request->pjax() && ($request->ajax() || $request->expectsJson())) {
+                    return response()->json(['message' => exmtrans('common.message.csrf_error')], 419);
+                }
                 admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
                 if ($this->isPublicFormEndpoint()) {
                     $public_form = PublicForm::getPublicFormByRequest();
                     return $public_form ? redirect($public_form->getUrl()) : back();
-                } else {
-                    back();
                 }
+                return back();
             }
 
             if ($this->isPublicFormEndpoint()) {
