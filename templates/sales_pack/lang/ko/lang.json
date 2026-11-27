@@ -367,6 +367,11 @@
             "menu_name": "sales"
         },
         {
+            "title": "영업 대시보드",
+            "menu_type": "custom",
+            "menu_name": "sales_dashboard"
+        },
+        {
             "title": "고객",
             "menu_type": "table",
             "menu_name": "sales_customer"

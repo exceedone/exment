@@ -538,6 +538,16 @@ class Menu extends AdminMenu implements Interfaces\TemplateImporterInterface
         }
 
         ///// uri
+        // a link to a dashboard of the template (its suuid is made on the import): the dashboard
+        // by its name ("options.menu_target_dashboard_name", the dashboards are imported first)
+        $dashboardName = array_get($json, 'options.menu_target_dashboard_name');
+        if ($json['menu_type'] == MenuType::CUSTOM && is_string($dashboardName) && $dashboardName !== '') {
+            $dashboard = Dashboard::where('dashboard_name', $dashboardName)->first();
+            if (!isset($dashboard)) {
+                return TemplateImportResult::CONITNUE;
+            }
+            $json['uri'] = '?dashboard=' . $dashboard->suuid;
+        }
         if (!isset($json['uri'])) {
             switch ($json['menu_type']) {
                 case MenuType::SYSTEM:

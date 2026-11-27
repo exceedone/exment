@@ -2219,6 +2219,26 @@
             "menu_target_name": null
         },
         {
+            "order": "0",
+            "title": "営業のダッシュボード",
+            "icon": "fa-tachometer",
+            "uri": null,
+            "options": {
+                "menu_target_dashboard_name": "sales_dashboard",
+                "name_locale_ja": "営業のダッシュボード",
+                "name_locale_en": "Sales dashboard",
+                "name_locale_de": "Vertriebs-Dashboard",
+                "name_locale_es": "Panel de ventas",
+                "name_locale_ko": "영업 대시보드",
+                "name_locale_vi": "Bảng điều khiển bán hàng",
+                "name_locale_zh_CN": "销售仪表板"
+            },
+            "menu_type": "custom",
+            "menu_name": "sales_dashboard",
+            "parent_name": "sales",
+            "menu_target_name": null
+        },
+        {
             "order": "1",
             "title": "顧客",
             "icon": "fa-building",

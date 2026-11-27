@@ -367,6 +367,11 @@
             "menu_name": "sales"
         },
         {
+            "title": "Bảng điều khiển bán hàng",
+            "menu_type": "custom",
+            "menu_name": "sales_dashboard"
+        },
+        {
             "title": "Khách hàng",
             "menu_type": "table",
             "menu_name": "sales_customer"

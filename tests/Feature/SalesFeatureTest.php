@@ -81,7 +81,7 @@ class SalesFeatureTest extends FeatureTestBase
             RoleGroupPermission::query()->where('role_group_id', $group->id)->delete();
             $group->delete();
         });
-        Menu::query()->where('menu_name', 'sales')->delete();
+        Menu::query()->whereIn('menu_name', ['sales', 'sales_dashboard'])->delete();
         Notify::query()->where('suuid', static::NOTIFY)->delete();
         System::clearCache();
     }
@@ -112,7 +112,7 @@ class SalesFeatureTest extends FeatureTestBase
             'boxes' => Dashboard::query()->where('dashboard_name', 'sales_dashboard')->get()->sum(function ($d) {
                 return $d->dashboard_boxes()->count();
             }),
-            'menus' => Menu::query()->whereIn('menu_name', array_merge(['sales'], static::TABLES))->count(),
+            'menus' => Menu::query()->whereIn('menu_name', array_merge(['sales', 'sales_dashboard'], static::TABLES))->count(),
             'notifies' => Notify::query()->where('suuid', static::NOTIFY)->count(),
             'role_groups' => RoleGroup::query()->where('role_group_name', 'sales_member_group')->count(),
             'permissions' => RoleGroupPermission::query()->whereIn('role_group_id', RoleGroup::query()->where('role_group_name', 'sales_member_group')->pluck('id'))->count(),
@@ -195,7 +195,8 @@ class SalesFeatureTest extends FeatureTestBase
 
         // the menu, the notice, the role group
         $parent = Menu::query()->where('menu_name', 'sales')->where('menu_type', 'parent_node')->firstOrFail();
-        $this->assertSame(5, Menu::query()->where('parent_id', $parent->id)->count());
+        $this->assertSame(6, Menu::query()->where('parent_id', $parent->id)->count());
+        $this->assertTheDashboardIsTheFirstItemOfTheMenu();
         $notify = Notify::query()->where('suuid', static::NOTIFY)->firstOrFail();
         $this->assertSame(strval(CustomTable::getEloquent('sales_contract')->id), strval($notify->target_id));
         $group = RoleGroup::query()->where('role_group_name', 'sales_member_group')->firstOrFail();
@@ -288,6 +289,62 @@ class SalesFeatureTest extends FeatureTestBase
         $this->assertTrue(Features::enabled(Features::SALES));
         $this->assertSame(7, $this->counts()['tables']);
         $this->assertSame(1, $this->counts()['dashboards']);
+    }
+
+    /**
+     * The first item of the menu "営業・顧客" is the link to the sales dashboard, named in the 7 languages.
+     */
+    protected function assertTheDashboardIsTheFirstItemOfTheMenu(): Menu
+    {
+        $parent = Menu::query()->where('menu_name', 'sales')->where('menu_type', 'parent_node')->firstOrFail();
+        $items = Menu::query()->where('menu_name', 'sales_dashboard')->get();
+        $this->assertCount(1, $items);
+        $item = $items->first();
+        $this->assertSame('custom', strval($item->menu_type));
+        $this->assertSame(intval($parent->id), intval($item->parent_id));
+        $first = Menu::query()->where('parent_id', $parent->id)->orderBy('order')->orderBy('id')->first();
+        $this->assertSame(intval($item->id), intval($first->id), 'the first item of the menu');
+        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        $this->assertSame('?dashboard=' . $dashboard->suuid, strval($item->uri));
+        $options = is_array($item->options) ? $item->options : (array) json_decode(strval($item->options), true);
+        foreach (['ja', 'en', 'de', 'es', 'ko', 'vi', 'zh_CN'] as $locale) {
+            $this->assertNotEmpty($options['name_locale_' . $locale] ?? null, $locale);
+        }
+        $this->assertSame('営業のダッシュボード', $options['name_locale_ja'] ?? null);
+        $this->assertSame('Sales dashboard', $options['name_locale_en'] ?? null);
+        return $item;
+    }
+
+    public function testTheMenuLinksToTheDashboardOnceAndAddsItToAMenuThatLacksIt(): void
+    {
+        FeaturePacks::turnOn(Features::SALES);
+        $item = $this->assertTheDashboardIsTheFirstItemOfTheMenu();
+        $parentId = intval($item->parent_id);
+
+        // again: not twice, and as the site left it
+        $item->title = '私のダッシュボード';
+        $item->save();
+        FeaturePacks::install(Features::SALES);
+        System::clearCache();
+        $this->assertSame('私のダッシュボード', $this->assertTheDashboardIsTheFirstItemOfTheMenu()->title);
+
+        // a menu "営業・顧客" without the link (as made before it): the link is added to it, first
+        Menu::query()->where('menu_name', 'sales_dashboard')->delete();
+        $children = Menu::query()->where('parent_id', $parentId)->count();
+        FeaturePacks::install(Features::SALES);
+        System::clearCache();
+        $this->assertSame($parentId, intval($this->assertTheDashboardIsTheFirstItemOfTheMenu()->parent_id));
+        $this->assertSame($children + 1, Menu::query()->where('parent_id', $parentId)->count());
+        $this->assertSame(1, Menu::query()->where('menu_name', 'sales')->count());
+
+        // the link opens the sales dashboard
+        $this->login();
+        $menu = Menu::query()->where('menu_name', 'sales_dashboard')->firstOrFail();
+        $html = (string) $this->get(admin_url(strval($menu->uri)))->assertOk()->getContent();
+        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        foreach ($dashboard->dashboard_boxes()->get() as $box) {
+            $this->assertStringContainsString(e(strval($box->dashboard_box_view_name)), $html);
+        }
     }
 
     public function testTheKanbanAndTheDashboardRender(): void

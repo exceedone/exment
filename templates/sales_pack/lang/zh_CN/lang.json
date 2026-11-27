@@ -367,6 +367,11 @@
             "menu_name": "sales"
         },
         {
+            "title": "销售仪表板",
+            "menu_type": "custom",
+            "menu_name": "sales_dashboard"
+        },
+        {
             "title": "客户",
             "menu_type": "table",
             "menu_name": "sales_customer"

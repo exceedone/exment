@@ -367,6 +367,11 @@
             "menu_name": "sales"
         },
         {
+            "title": "Vertriebs-Dashboard",
+            "menu_type": "custom",
+            "menu_name": "sales_dashboard"
+        },
+        {
             "title": "Kunden",
             "menu_type": "table",
             "menu_name": "sales_customer"
