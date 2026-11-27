@@ -396,6 +396,10 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 if (\Exceedone\Exment\Services\Features::allowed(\Exceedone\Exment\Services\Features::API_KEYS)) {
                     $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('auth/api_keys')) . '" title="' . esc_html(exmtrans('api_key.button_tooltip')) . '"><i class="fa fa-key"></i> ' . esc_html(exmtrans('api_key.button')) . '</a>');
                 }
+                // "My insights", when the administrators allow it (ISS02964)
+                if (\Exceedone\Exment\Services\Features::allowed(\Exceedone\Exment\Services\Insights\Insights::MY_FEATURE)) {
+                    $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('auth/insights')) . '"><i class="fa fa-line-chart"></i> ' . esc_html(exmtrans('my_insights.header')) . '</a>');
+                }
             });
 
             $form->saving(function (Form $form) {

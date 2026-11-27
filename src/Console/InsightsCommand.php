@@ -47,7 +47,7 @@ class InsightsCommand extends Command
             $this->error('insights: a day is Y-m-d');
             return 1;
         }
-        if (!isset($from) && !Insights::enabled()) {
+        if (!isset($from) && !Insights::counted()) {
             $this->info('insights: not used (Feature management)');
             return 0;
         }

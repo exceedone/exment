@@ -48,7 +48,6 @@ class ScheduledJobs
     public const JOB_FEATURES = [
         'exment:safetywatch' => Features::SAFETY_CHECK,
         'exment:sync' => \Exceedone\Exment\Services\Sync\SyncEngine::FEATURE,
-        'exment:insights' => \Exceedone\Exment\Services\Insights\Insights::FEATURE,
     ];
 
     /** A run of "Run now" still running after this many minutes is not waited for. */

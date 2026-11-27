@@ -41,6 +41,12 @@ class Insights
 {
     public const FEATURE = 'insights';
 
+    /** "My insights": the numbers of the user who looks, only (ISS02964). */
+    public const MY_FEATURE = 'my_insights';
+
+    /** The metrics of one user (key "user id|..."): read only by that user, never on the page of the site. */
+    public const USER_METRICS = ['user_login_hour', 'user_view', 'user_file'];
+
     /** A page shown in more time than this is slow (milliseconds). */
     public const SLOW_PAGE_MS = 3000;
 
@@ -71,6 +77,12 @@ class Insights
     public static function enabled(): bool
     {
         return Features::enabled(static::FEATURE) && InsightDaily::tableExists();
+    }
+
+    /** Whether the nightly count runs: the page of the site or "My insights" is used. */
+    public static function counted(): bool
+    {
+        return (Features::enabled(static::FEATURE) || Features::enabled(static::MY_FEATURE)) && InsightDaily::tableExists();
     }
 
     // ============================================================ the nightly count
@@ -238,6 +250,38 @@ class Insights
                 ->where('created_at', '>=', $from)->where('created_at', '<', $to)
                 ->selectRaw('path, sum(count) as total')->groupBy('path')->orderByDesc('total')->limit(static::TOP_PATHS)->pluck('total', 'path')->all();
         });
+        // the numbers of each user, for "My insights" only, while it is used
+        if (!$live && Features::enabled(static::MY_FEATURE)) {
+            $add('user_login_hour', function () use ($from, $to) {
+                return static::userLoginHours($from, $to);
+            });
+            $add('user_view', function () use ($from, $to) {
+                if (!DataAccessLog::tableExists()) {
+                    return [];
+                }
+                $counts = [];
+                DataAccessLog::query()->whereNotNull('custom_view_id')->whereNotNull('base_user_id')->where('via', '<>', DataAccessLog::VIA_SYSTEM)
+                    ->where('created_at', '>=', $from)->where('created_at', '<', $to)
+                    ->selectRaw('base_user_id, custom_view_id, count(*) as total')->groupBy('base_user_id', 'custom_view_id')->get()
+                    ->each(function ($row) use (&$counts) {
+                        $counts[intval($row->base_user_id) . '|' . intval($row->custom_view_id)] = intval($row->total);
+                    });
+                return $counts;
+            });
+            $add('user_file', function () use ($from, $to) {
+                if (!\Schema::hasTable('file_audit_logs')) {
+                    return [];
+                }
+                $counts = [];
+                \DB::table('file_audit_logs')->whereIn('action', ['view', 'download'])->whereNotNull('user_id')->whereNotNull('node_id')
+                    ->where('created_at', '>=', $from)->where('created_at', '<', $to)
+                    ->selectRaw('user_id, node_id, count(*) as total')->groupBy('user_id', 'node_id')->get()
+                    ->each(function ($row) use (&$counts) {
+                        $counts[intval($row->user_id) . '|' . intval($row->node_id)] = intval($row->total);
+                    });
+                return $counts;
+            });
+        }
         $add('job', function () use ($from, $to) {
             if (!\Schema::hasTable(ScheduledJobRun::TABLE)) {
                 return [];
@@ -254,6 +298,26 @@ class Insights
                 ->selectRaw('job_key, count(*) as total')->groupBy('job_key')->pluck('total', 'job_key')->all();
         });
         return $rows;
+    }
+
+    /**
+     * The sign-ins of each user by the hour of the day: "user id|hour".
+     *
+     * @return array<string, int>
+     */
+    protected static function userLoginHours(Carbon $from, Carbon $to): array
+    {
+        if (!LoginLog::tableExists()) {
+            return [];
+        }
+        $counts = [];
+        LoginLog::query()->where('result', LoginLog::RESULT_SUCCESS)->whereNotNull('base_user_id')
+            ->where('created_at', '>=', $from)->where('created_at', '<', $to)->select(['base_user_id', 'created_at'])->get()
+            ->each(function ($row) use (&$counts) {
+                $key = intval($row->base_user_id) . '|' . $row->created_at->format('H');
+                $counts[$key] = ($counts[$key] ?? 0) + 1;
+            });
+        return $counts;
     }
 
     /**

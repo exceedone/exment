@@ -241,6 +241,8 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('auth/setting/locale', 'AuthController@postLocale');
             // the API keys of the users (ISS00437): of the login user, and of the site
             $router->get('auth/api_keys', 'UserApiKeyController@index');
+            // "My insights": the user's own numbers (ISS02964)
+            $router->get('auth/insights', 'MyInsightsController@index');
             $router->post('auth/api_keys', 'UserApiKeyController@store');
             $router->post('auth/api_keys/{id}/revoke', 'UserApiKeyController@revoke')->where('id', '[0-9]+');
             $router->get('api_keys', 'UserApiKeyController@adminIndex');

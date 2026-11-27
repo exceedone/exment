@@ -300,6 +300,13 @@ class Features
             'menu' => 'insights',
             'who' => false,
         ]);
+        // "My insights" (Insights\MyInsights, ISS02964): each user sees only their own numbers. Off until it is
+        // turned on; the role groups may be chosen
+        $core[Insights\Insights::MY_FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.my_insights',
+            'description' => 'exment::exment.feature.features.my_insights_help',
+            'endpoints' => ['auth/insights'],
+        ]);
         // temporary raises of the API rate limit (ApiRateRaises, ISS00442): the system
         // administrators only. Off until it is turned on
         $core[ApiRateRaises::FEATURE] = static::definition([
