@@ -15,7 +15,7 @@ trait UseRequestSessionTrait
      * @param array<int|string, mixed> $with
      * @return \Illuminate\Support\Collection<int, static>|static|null
      */
-    public static function allRecords(Closure $filter = null, $isGetAll = true, $with = [])
+    public static function allRecords(?Closure $filter = null, $isGetAll = true, $with = [])
     {
         return static::_allRecords('requestSession', $filter, $isGetAll, $with);
     }
@@ -27,7 +27,7 @@ trait UseRequestSessionTrait
      * @param array<int|string, mixed> $with
      * @return \Illuminate\Support\Collection<int, static>|static|null
      */
-    public static function allRecordsCache(Closure $filter = null, $isGetAll = true, $with = [])
+    public static function allRecordsCache(?Closure $filter = null, $isGetAll = true, $with = [])
     {
         return static::_allRecords('cache', $filter, $isGetAll, $with);
     }
@@ -39,7 +39,7 @@ trait UseRequestSessionTrait
      * @param array<int|string, mixed> $with
      * @return static|null
      */
-    public static function firstRecord(Closure $filter = null, $isGetAll = true, $with = [])
+    public static function firstRecord(?Closure $filter = null, $isGetAll = true, $with = [])
     {
 
         // @phpstan-ignore-next-line
@@ -53,7 +53,7 @@ trait UseRequestSessionTrait
      * @param array<int|string, mixed> $with
      * @return static|null
      */
-    public static function firstRecordCache(Closure $filter = null, $isGetAll = true, $with = [])
+    public static function firstRecordCache(?Closure $filter = null, $isGetAll = true, $with = [])
     {
 
         // @phpstan-ignore-next-line
@@ -223,7 +223,7 @@ trait UseRequestSessionTrait
      * @param bool $first
      * @return \Illuminate\Support\Collection<int, static>|static|null
      */
-    protected static function _allRecords($func, Closure $filter = null, $isGetAll = true, $with = [], $first = false)
+    protected static function _allRecords($func, ?Closure $filter = null, $isGetAll = true, $with = [], $first = false)
     {
         $key = sprintf(Define::SYSTEM_KEY_SESSION_ALL_RECORDS, self::getTableName());
         // get from request session
