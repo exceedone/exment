@@ -316,6 +316,15 @@ class BackupRuns
     }
 
     /**
+     * Whether the run has a token of its state (its file is there): nothing is written for a run
+     * without one.
+     */
+    public static function hasStateToken(string $uuid): bool
+    {
+        return preg_match('/^[0-9a-f\-]{36}$/D', $uuid) === 1 && is_file(static::tokenPath($uuid));
+    }
+
+    /**
      * Whether a token is the one of the state of the run (and not expired).
      */
     public static function checkStateToken(string $uuid, string $token): bool
@@ -332,7 +341,7 @@ class BackupRuns
             return false;
         }
         if (isset($data['expires']) && intval($data['expires']) < time()) {
-            @unlink($path);
+            static::forgetStateToken($uuid);
             return false;
         }
         return hash_equals($data['hash'], hash('sha256', $token));
@@ -445,6 +454,27 @@ class BackupRuns
                 @unlink($path);
             }
         }
+    }
+
+    /**
+     * The restore going on, from the status files only (no database: a restore replaces it): a
+     * file of a restore not over, written in the last exment.backup.stale_minutes.
+     *
+     * @return array<string, mixed>|null
+     */
+    public static function restoringStatus(): ?array
+    {
+        $limit = time() - static::staleMinutes() * 60;
+        foreach (glob(path_join(storage_path(static::LOG_DIR), '*.json')) ?: [] as $path) {
+            if (@filemtime($path) < $limit) {
+                continue;
+            }
+            $data = static::readStatusFile(basename($path, '.json'));
+            if (isset($data) && boolval($data['active'] ?? false) && ($data['kind'] ?? null) === BackupRun::KIND_RESTORE) {
+                return $data;
+            }
+        }
+        return null;
     }
 
     public static function statusPath(string $uuid): string
@@ -579,7 +609,8 @@ class BackupRuns
 
     protected static function failed(RunProgress $progress, \Throwable $e): void
     {
-        $progress->error(get_class($e) . ': ' . $e->getMessage());
+        // the class goes to the log only (the screen and the command show the message)
+        $progress->error($e->getMessage(), ['exception' => get_class($e)]);
         \Log::error('[Exment] ' . ($progress->run()->kind ?? 'backup') . ' failed: ' . SecretMasker::mask($e->getMessage()));
         $progress->finish(BackupRun::STATUS_FAILED, static::reason($e) . ' ' . strval(exmtrans('backup.run.hints.' . static::hint($e))));
         $run = $progress->run();

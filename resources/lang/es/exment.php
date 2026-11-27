@@ -1491,6 +1491,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => 'Hay una restauración en curso. Cuando termine, vuelva a iniciar sesión.',
                 'reasons' => [
                     'warning' => 'La restauración terminó con problemas. Inicie sesión y consulte el registro detallado en el historial de la pantalla de copias de seguridad.',
                     'failed' => 'La restauración falló. Inicie sesión y consulte el registro detallado en el historial de la pantalla de copias de seguridad.',

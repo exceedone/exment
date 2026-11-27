@@ -156,23 +156,21 @@
             return null;
         }
     }
-    function fetchToken(uuid, then) {
-        if (stateToken(uuid)) {
-            then();
+    // the token given after "#t=" of the address (never sent to a server): kept in the tab
+    function takeToken(uuid) {
+        var match = /[#&]t=([0-9a-f]{64})/.exec(window.location.hash || '');
+        if (!match) {
             return;
         }
-        $.ajax({ url: base + '/' + encodeURIComponent(uuid) + '/token', type: 'GET', dataType: 'json', cache: false })
-            .done(function (data) {
-                if (data && typeof data.token === 'string' && /^[0-9a-f]{64}$/.test(data.token)) {
-                    tokens[uuid] = data.token;
-                    try {
-                        window.sessionStorage.setItem(tokenKey(uuid), data.token);
-                    } catch (e) {
-                        // kept in memory
-                    }
-                }
-            })
-            .always(then);
+        tokens[uuid] = match[1];
+        try {
+            window.sessionStorage.setItem(tokenKey(uuid), match[1]);
+        } catch (e) {
+            // kept in memory
+        }
+        if (window.history && window.history.replaceState) {
+            window.history.replaceState(window.history.state, '', window.location.pathname + window.location.search);
+        }
     }
     function forgetToken(uuid) {
         delete tokens[uuid];
@@ -280,12 +278,10 @@
             var start = function () {
                 timer = setTimeout(function () { poll(active.uuid); }, pollMs);
             };
-            // a restore: its token first, while the session still answers
             if (active.kind === 'restore') {
-                fetchToken(active.uuid, start);
-            } else {
-                start();
+                takeToken(active.uuid);
             }
+            start();
         }
     }
 })();

@@ -23,7 +23,6 @@ use DB;
 
 class BackupController extends AdminControllerBase
 {
-    public const STATE_TOKEN_SESSION = 'exment_backup_state_token_';
 
     // @phpstan-ignore-next-line
     protected $backup;
@@ -247,21 +246,6 @@ class BackupController extends AdminControllerBase
     }
 
     /**
-     * The token of the state of a restore this admin started, handed over once (then it is no
-     * longer in the session): the page keeps it in the tab, never in its HTML.
-     */
-    public function runToken(Request $request, string $uuid): \Illuminate\Http\JsonResponse
-    {
-        static::denyUnlessSystem();
-        if (preg_match('/^[0-9a-f\-]{36}$/D', $uuid) !== 1) {
-            abort(404);
-        }
-        $token = session()->pull(static::STATE_TOKEN_SESSION . $uuid);
-
-        return response()->json(['token' => is_string($token) ? $token : null], 200, ['Cache-Control' => 'no-store']);
-    }
-
-    /**
      * Download the log of a run (masked), written in the operation log.
      *
      * @return \Symfony\Component\HttpFoundation\Response
@@ -288,12 +272,14 @@ class BackupController extends AdminControllerBase
     }
 
     /**
-     * The token of the state of a restore started here (BackupRunStateController), kept in the
-     * session of this admin: the page of the run gives it to its script.
+     * The page of a restore started here, with the token of its state after "#": a browser never
+     * sends that part to a server (nor in a Referer), the page keeps it in the tab and takes it out
+     * of the address. A path, so the screen opens it as a whole page.
      */
-    protected static function keepStateToken(BackupRun $run): void
+    protected static function restorePageUrl(BackupRun $run): string
     {
-        session()->put(static::STATE_TOKEN_SESSION . $run->uuid, BackupRuns::issueStateToken($run));
+        $path = strval(parse_url(admin_urls('backup', 'runs', $run->uuid), PHP_URL_PATH));
+        return $path . '#t=' . BackupRuns::issueStateToken($run);
     }
 
     protected function findRun(string $uuid): BackupRun
@@ -636,11 +622,10 @@ class BackupController extends AdminControllerBase
             }
             // it goes on apart: its page shows the progress
             if (isset($result) && $result instanceof BackupRun) {
-                static::keepStateToken($result);
                 return response()->json([
                     'result'  => true,
                     'toastr' => exmtrans('backup.run.message.restore_started'),
-                    'redirect' => admin_urls('backup', 'runs', $result->uuid),
+                    'redirect' => static::restorePageUrl($result),
                 ]);
             }
         } catch (BackupRunLockedException $e) {
@@ -712,11 +697,10 @@ class BackupController extends AdminControllerBase
                 ]);
             }
             if ($result instanceof BackupRun) {
-                static::keepStateToken($result);
                 return response()->json([
                     'result'  => true,
                     'toastr' => exmtrans('backup.run.message.restore_started'),
-                    'redirect' => admin_urls('backup', 'runs', $result->uuid),
+                    'redirect' => static::restorePageUrl($result),
                 ]);
             }
         }

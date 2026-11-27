@@ -23,6 +23,10 @@ class BackupRunStateController extends Controller
 
     public function show(Request $request, string $uuid): \Illuminate\Http\JsonResponse
     {
+        // no state for this run (nor a token): nothing is written, nothing is said
+        if (!BackupRuns::hasStateToken($uuid)) {
+            abort(404);
+        }
         if (!BackupRuns::stateRateAllowed($uuid, strval($request->ip()))) {
             abort(429);
         }
