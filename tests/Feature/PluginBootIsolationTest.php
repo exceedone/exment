@@ -86,7 +86,9 @@ class PluginBootIsolationTest extends FeatureTestBase
 
         // the other plugins are loaded: the views and the routes of TestPluginPage
         $page = Plugin::where('plugin_name', 'TestPluginPage')->firstOrFail();
-        $this->assertArrayHasKey('exment_test_plugin_page', view()->getFinder()->getHints());
+        /** @var \Illuminate\View\FileViewFinder $finder */
+        $finder = view()->getFinder();
+        $this->assertArrayHasKey('exment_test_plugin_page', $finder->getHints());
         $this->assertTrue(app('router')->has("exment.plugins.{$page->id}.get.index"), 'the routes of TestPluginPage');
 
         // the schedule: the batch whose cron cannot be read is left out, the others are kept
@@ -141,20 +143,20 @@ class PluginBootIsolationTest extends FeatureTestBase
         // the row of the site still "page", so that the class made is the class "Plugin" of the
         // new version, which is no page
         $ns = 'App\\Plugins\\' . static::TYPES;
-        $disk->put(static::TYPES . '/config.json', json_encode([
+        $disk->put(static::TYPES . '/config.json', strval(json_encode([
             'plugin_name' => static::TYPES,
             'plugin_view_name' => static::TYPES,
             'uuid' => '9d6f1d0e-3b8a-4c39-9a51-2f3c7f0b0a01',
             'version' => '2.0.0',
             'plugin_type' => 'page,batch',
-        ]));
+        ])));
         $disk->put(static::TYPES . '/Plugin.php', "<?php\nnamespace {$ns};\n\nclass Plugin\n{\n}\n");
         $disk->put(static::TYPES . '/PluginPage.php', "<?php\nnamespace {$ns};\n\nclass PluginPage extends \\Exceedone\\Exment\\Services\\Plugin\\PluginPageBase\n{\n}\n");
         $disk->put(static::TYPES . '/PluginBatch.php', "<?php\nnamespace {$ns};\n\nclass PluginBatch extends \\Exceedone\\Exment\\Services\\Plugin\\PluginBatchBase\n{\n    public function execute()\n    {\n        return true;\n    }\n}\n");
         $this->plugins[static::TYPES] = $this->savePlugin(static::TYPES, '9d6f1d0e-3b8a-4c39-9a51-2f3c7f0b0a01', PluginType::PAGE);
 
         $ns = 'App\\Plugins\\' . static::THROWS;
-        $disk->put(static::THROWS . '/config.json', json_encode([
+        $disk->put(static::THROWS . '/config.json', strval(json_encode([
             'plugin_name' => static::THROWS,
             'plugin_view_name' => static::THROWS,
             'uuid' => '9d6f1d0e-3b8a-4c39-9a51-2f3c7f0b0a02',
@@ -162,17 +164,17 @@ class PluginBootIsolationTest extends FeatureTestBase
             'plugin_type' => 'page',
             // a route without its method: an error inside the route group of the plugin
             'route' => [['uri' => 'broken', 'function' => 'index']],
-        ]));
+        ])));
         $disk->put(static::THROWS . '/Plugin.php', "<?php\nnamespace {$ns};\n\nclass Plugin extends \\Exceedone\\Exment\\Services\\Plugin\\PluginPageBase\n{\n    public function _getLoadView()\n    {\n        throw new \\RuntimeException('broken in the boot');\n    }\n}\n");
         $this->plugins[static::THROWS] = $this->savePlugin(static::THROWS, '9d6f1d0e-3b8a-4c39-9a51-2f3c7f0b0a02', PluginType::PAGE);
 
-        $disk->put(static::SCRIPT . '/config.json', json_encode([
+        $disk->put(static::SCRIPT . '/config.json', strval(json_encode([
             'plugin_name' => static::SCRIPT,
             'plugin_view_name' => static::SCRIPT,
             'uuid' => '9d6f1d0e-3b8a-4c39-9a51-2f3c7f0b0a05',
             'version' => '1.0.0',
             'plugin_type' => 'script',
-        ]));
+        ])));
         $disk->put(static::SCRIPT . '/public/script.js', "// test\n");
         // its CDNs not a list: a warning (an ErrorException) when the scripts are put on the page
         $this->plugins[static::SCRIPT] = $this->savePlugin(static::SCRIPT, '9d6f1d0e-3b8a-4c39-9a51-2f3c7f0b0a05', PluginType::SCRIPT, ['cdns' => 'https://cdn.example.invalid/x.js']);

@@ -120,6 +120,9 @@ class PluginBootGuard
                 return null;
             }
             $json = json_decode_ex(\File::get($path), true);
+            if (!is_array($json)) {
+                return null;
+            }
             $files = static::normalizeTypes(array_get($json, 'plugin_type'));
             $site = static::normalizeTypes($plugin->plugin_types);
             if (empty($files) || static::sorted($files) === static::sorted($site)) {
