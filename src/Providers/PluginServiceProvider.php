@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Enums\PluginType;
 use Exceedone\Exment\Services\Plugin\PluginPageBase;
+use Exceedone\Exment\Services\Plugin\PluginBootGuard;
 
 class PluginServiceProvider extends ServiceProvider
 {
@@ -46,9 +47,11 @@ class PluginServiceProvider extends ServiceProvider
         foreach (PluginType::PLUGIN_TYPE_PLUGIN_PAGE() as $plugin_type) {
             $pluginPages = Plugin::getByPluginTypes($plugin_type, true);
 
-            // loop
+            // loop: an error of one plugin leaves out its routes only
             foreach ($pluginPages as $pluginPage) {
-                $this->pluginRoute($plugin_type, $pluginPage);
+                $this->guardRoutes($pluginPage, function () use ($plugin_type, $pluginPage) {
+                    $this->pluginRoute($plugin_type, $pluginPage);
+                });
             }
         }
 
@@ -57,7 +60,31 @@ class PluginServiceProvider extends ServiceProvider
 
         // loop
         foreach ($pluginPublics as $pluginScriptStyle) {
-            $this->pluginScriptStyleRoute($pluginScriptStyle->_plugin(), config('admin.route.prefix'), 'admin_plugin_public');
+            $this->guardRoutes($pluginScriptStyle, function () use ($pluginScriptStyle) {
+                $this->pluginScriptStyleRoute($pluginScriptStyle->_plugin(), config('admin.route.prefix'), 'admin_plugin_public');
+            });
+        }
+    }
+
+    /**
+     * Make the routes of one plugin. When it throws, the error is logged once and the routes of
+     * the others are made as before: the groups the plugin opened are closed again (the router
+     * closes a group only when its routes were made), so that no other route gets its prefix.
+     *
+     * @param mixed $pluginPage the class of the plugin
+     * @param \Closure $callback
+     * @return void
+     */
+    protected function guardRoutes($pluginPage, \Closure $callback): void
+    {
+        $router = $this->app->make('router');
+        $depth = count($router->getGroupStack());
+        PluginBootGuard::run($pluginPage, 'routes', $callback);
+
+        if (count($router->getGroupStack()) > $depth) {
+            \Closure::bind(function () use ($depth) {
+                $this->groupStack = array_slice($this->groupStack, 0, $depth);
+            }, $router, Router::class)();
         }
     }
 
