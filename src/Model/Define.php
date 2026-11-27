@@ -78,6 +78,8 @@ class Define
         'default_date_format' => ['default' => 'format_default', 'group' => 'advanced'],
         'grid_pager_count' => ['type' => 'int', 'default' => '20', 'group' => 'advanced'],
         'datalist_pager_count' => ['type' => 'int', 'default' => '5', 'group' => 'advanced'],
+        // how an item of the left menu with items under it opens: "flyout" (to the side) or "inline" (ISS02958)
+        'menu_open' => ['type' => 'string', 'default' => 'flyout', 'group' => 'advanced'],
         'data_submit_redirect' => ['type' => 'string', 'default' => null, 'group' => 'advanced'],
         'header_user_info' => ['type' => 'array', 'default' => SystemColumn::CREATED_AT, 'group' => 'advanced'],
         // the languages the users can choose (ISS02835). Empty: all the installed languages

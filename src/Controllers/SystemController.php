@@ -221,6 +221,13 @@ class SystemController extends AdminControllerBase
             ->default(5)
             ->help(exmtrans("system.help.datalist_pager_count"));
 
+        // the default of how the left menu opens (ISS02958); a user's own choice wins
+        $form->select('menu_open', exmtrans("system.menu_open"))
+            ->options(\Exceedone\Exment\Services\MenuOpen::options())
+            ->disableClear()
+            ->default(\Exceedone\Exment\Services\MenuOpen::FLYOUT)
+            ->help(exmtrans("system.help.menu_open"));
+
         $form->select('default_date_format', exmtrans("system.default_date_format"))
             ->options(getTransArray(Define::SYSTEM_DATE_FORMAT, "system.date_format_options"))
             ->disableClear()

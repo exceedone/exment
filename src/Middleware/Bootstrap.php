@@ -25,6 +25,8 @@ class Bootstrap
     {
         $this->setCssJs($request, $next);
         $this->setBackButton($request);
+        // how the left menu opens, a class of <body> (ISS02958)
+        \Exceedone\Exment\Services\MenuOpen::applyLayout();
 
         return $next($request);
     }
@@ -107,6 +109,7 @@ class Bootstrap
         // through csslast or it silently loses every specificity tie.
         static::setCssJsList([
             'vendor/exment/css/grid_tools.css',
+            'vendor/exment/css/menu-flyout.css',
         ], true, true);
 
         // The "modern" screen design (system setting "Screen design", or
@@ -138,6 +141,7 @@ class Bootstrap
             'vendor/exment/fullcalendar/UltraDate.min.js',
             'vendor/exment/jstree/jstree.min.js',
             'vendor/exment/js/common_all.js',
+            'vendor/exment/js/menu-flyout.js',
             'vendor/exment/js/common.js',
             'vendor/exment/js/grid_tools.js',
             'vendor/exment/js/cellstyle_preset.js',

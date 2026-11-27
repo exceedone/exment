@@ -50,6 +50,7 @@ use Cache;
  * @method static string|void default_date_format($arg = null)
  * @method static int|void grid_pager_count($arg = null)
  * @method static int|void datalist_pager_count($arg = null)
+ * @method static string|null|void menu_open($arg = null)
  * @method static array|void grid_filter_disable_flg($arg = null)
  * @method static string|void system_values_pos($arg = null)
  * @method static string|void data_submit_redirect($arg = null)

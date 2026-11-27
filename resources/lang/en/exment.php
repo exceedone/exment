@@ -511,6 +511,11 @@ return [
         'safety_check_excluded_users' => 'Excluded Users',
         'grid_pager_count' => 'Number of displayed data list',
         'datalist_pager_count' => 'Number of displayed search and dashboard',
+        'menu_open' => 'Opening the menu (default)',
+        'menu_open_options' => [
+            'flyout' => 'To the side',
+            'inline' => 'Below (as before)',
+        ],
         'userdashboard_available' => 'Use User Dashboard',
         'userview_available' => 'Use User View',
         'template' => 'Install Template',
@@ -690,6 +695,7 @@ return [
             'outside_api' => 'When set to YES, you can perform processing that performs external server communication, such as notification of the latest version of Exment. It only receives data. * If you do not perform communication, such as when using in an environment where you can not connect to an external network, set this to NO.',
             'grid_pager_count' => 'This is the default number of items displayed on the list page. It is reflected in the whole system.',
             'datalist_pager_count' => 'It is the default number of display of data that is displayed in keyword search and data list of dashboard. It is reflected in the whole system.',
+            'menu_open' => 'The default of how an item of the left menu with items under it opens. When a user chooses in the personal settings, their choice is used. On a phone or other touch screen they always open below.',
             'meili_host' => 'e.g. http://127.0.0.1:7700',
             'meili_key' => 'Master API key of the Meilisearch server. Stored encrypted. Clearing this field saves an empty key, and the MEILISEARCH_KEY value in .env is used instead.',
             'meili_index' => 'Combined index name, e.g. exment_global. After changing it, run `php artisan exment:meili-index` to rebuild.',
@@ -1565,6 +1571,8 @@ return [
         'locale_auto' => 'Automatic (the language of the browser)',
         'timezone' => 'Time zone',
         'timezone_site' => 'The time zone of the site (:timezone)',
+        'menu_open' => 'Opening the menu',
+        'menu_open_site' => 'The site default (:value)',
         'help' =>[
             'user_name' => 'The name is displayed on the window.',
             'email' => 'Please enter an email address that can receive system notifications.',
@@ -1572,6 +1580,7 @@ return [
             'change_only' => 'Enter only when making changes.',
             'locale' => 'The language of the pages and the mails. When not chosen, the language of the browser (or of the site, when that one cannot be used).',
             'timezone' => 'The time zone of the date and times shown and typed. The data is saved in the time zone of the site. The columns of only a date do not change.',
+            'menu_open' => 'How an item of the left menu with items under it opens. "To the side" shows them on the right when the mouse is over it or it is clicked. On a phone or other touch screen they always open below.',
             
             'use_loginuser' => 'By checking, this user will be able to log in to the system.',
             'reset_password' => 'By checking, the password will be reset.',
