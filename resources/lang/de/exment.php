@@ -1297,6 +1297,7 @@ return [
             'restore_error' => 'Die Wiederherstellung ist fehlgeschlagen.',
             'restore_file_success' => 'Die Wiederherstellung war erfolgreich. Sie werden zur Anmeldeseite weitergeleitet.',
             'restore_file_error' => 'Die Wiederherstellung ist fehlgeschlagen. Bitte prüfen Sie die hochgeladene Datei.',
+            'restore_file_not_found' => 'Die Sicherungsdatei wurde nicht gefunden: :name',
             'restore_config_skipped' => 'Die Konfigurationsdateien der Sicherung wurden nicht wiederhergestellt, da die Sicherung mit einer anderen Laravel-Version erstellt wurde (oder bevor Versionsinformationen aufgezeichnet wurden). Entnehmen Sie sie bei Bedarf der Sicherungs-zip-Datei und übernehmen Sie sie manuell.',
             'edit_filename_confirm' => 'Dateiname bearbeiten',
             'edit_filename_text' => 'Geben Sie den Dateinamen der Sicherungsdatei ein. Einige Zeichen können nicht verwendet werden.',

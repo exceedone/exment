@@ -1297,6 +1297,7 @@ return [
             'restore_error' => '还原失败。',
             'restore_file_success' => '还原成功。即将跳转到登录页面。',
             'restore_file_error' => '还原失败。请检查上传的文件。',
+            'restore_file_not_found' => '找不到备份文件：:name',
             'restore_config_skipped' => '未还原备份中的配置文件，因为备份时的 Laravel 版本与当前不同（或未记录版本信息）。如有需要，请从备份 zip 文件中取出并手动合并。',
             'edit_filename_confirm' => '编辑文件名',
             'edit_filename_text' => '请输入备份文件的文件名。※部分字符不可使用。',

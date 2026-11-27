@@ -1297,6 +1297,7 @@ return [
             'restore_error' => 'Khôi phục thất bại.',
             'restore_file_success' => 'Khôi phục thành công. Đang chuyển đến trang đăng nhập.',
             'restore_file_error' => 'Khôi phục thất bại. Vui lòng kiểm tra tệp đã tải lên.',
+            'restore_file_not_found' => 'Không tìm thấy tệp sao lưu: :name',
             'restore_config_skipped' => 'Các tệp cấu hình trong bản sao lưu không được khôi phục, vì phiên bản Laravel khi sao lưu khác với hiện tại (hoặc chưa ghi lại thông tin phiên bản). Nếu cần, vui lòng lấy chúng ra từ tệp zip sao lưu và áp dụng thủ công.',
             'edit_filename_confirm' => 'Sửa tên tệp',
             'edit_filename_text' => 'Vui lòng nhập tên tệp của bản sao lưu. *Không thể sử dụng một số ký tự.',

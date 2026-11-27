@@ -65,6 +65,13 @@ class RestoreCommand extends Command
             $file = $this->getFile();
             $tmp = boolval($this->option("tmp"));
 
+            // a backup file that is not there: said before anything starts (the site is not put
+            // into maintenance), instead of an error from the disk in the middle of the restore
+            if (!$this->backupFileExists(strval($file), $tmp)) {
+                $this->error(strval(exmtrans('backup.message.restore_file_not_found', ['name' => strval($file)])));
+                return 1;
+            }
+
             $result = $this->restore->execute($file, $tmp);
 
             if ($this->restore->isConfigSkipped()) {
@@ -92,6 +99,26 @@ class RestoreCommand extends Command
         }
 
         return 0;
+    }
+
+    /**
+     * Whether the backup file is there: a stored backup (list/<name>.zip), or with --tmp a file of
+     * the temporary folder.
+     */
+    protected function backupFileExists(string $file, bool $tmp): bool
+    {
+        if ($file === '') {
+            return false;
+        }
+        try {
+            if ($tmp) {
+                return \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_ADMIN_TMP)->exists($file);
+            }
+            $name = pathinfo($file, PATHINFO_FILENAME);
+            return \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_BACKUP_SYNC)->exists(path_join('list', $name . '.zip'));
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     // @phpstan-ignore-next-line
