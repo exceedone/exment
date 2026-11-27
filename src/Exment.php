@@ -169,11 +169,13 @@ class Exment
                     return response()->json(['message' => exmtrans('common.message.csrf_error')], 419);
                 }
                 admin_error(exmtrans('common.error'), exmtrans('error.expired_error_reinput'));
+                // what was typed comes back with the page (no password, token or file)
+                $input = static::inputToKeep($request->all());
                 if ($this->isPublicFormEndpoint()) {
                     $public_form = PublicForm::getPublicFormByRequest();
-                    return $public_form ? redirect($public_form->getUrl()) : back();
+                    return ($public_form ? redirect($public_form->getUrl()) : back())->withInput($input);
                 }
-                return back();
+                return back()->withInput($input);
             }
 
             if ($this->isPublicFormEndpoint()) {
@@ -976,6 +978,25 @@ class Exment
         $basePath = ltrim(admin_base_path(), '/');
         $route = config('exment.publicformapi_route_prefix', 'publicformapi');
         return request()->is($basePath . '/api/*') || request()->is($basePath . '/webapi/*') || request()->is("{$route}/*");
+    }
+
+    /**
+     * The input of a request to give back to the page (old()) when it could not be run: without
+     * passwords, tokens, secrets and keys, at any depth. Files are left out by withInput().
+     *
+     * @param array<mixed> $input
+     * @return array<mixed>
+     */
+    public static function inputToKeep(array $input): array
+    {
+        $kept = [];
+        foreach ($input as $key => $value) {
+            if (is_string($key) && preg_match('/pass(word)?|token|secret|api_?key|private_?key/i', $key)) {
+                continue;
+            }
+            $kept[$key] = is_array($value) ? static::inputToKeep($value) : $value;
+        }
+        return $kept;
     }
 
     /**
