@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\Dashboard;
 use Exceedone\Exment\Model\DashboardBox;
+use Exceedone\Exment\Model\Menu;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
@@ -136,8 +137,16 @@ class FeaturePacks
         $existingGroups = RoleGroup::query()->whereIn('role_group_name', array_filter(array_column($roles, 'role_group_name')))
             ->get()->keyBy('role_group_name');
 
+        // the menus that are there (a menu made now is placed below)
+        $menusBefore = Menu::query()->whereIn('menu_name', array_filter(array_column((array) array_get($json, 'admin_menu', []), 'menu_name')))
+            ->get(['menu_type', 'menu_name'])->map(function ($menu) {
+                return $menu->menu_type . ':' . $menu->menu_name;
+            })->all();
+
         // true: what is there is left as it is (only what is missing is made)
         (new TemplateImporter())->import($json, false, true);
+
+        static::placeNewMenus($json, $menusBefore);
 
         // an install stopped on the way (an error, a timeout) may have left a view or a dashboard
         // of the pack without its parts: they are made again
@@ -162,6 +171,55 @@ class FeaturePacks
             }
         });
         System::clearCache();
+    }
+
+    /**
+     * A menu made now that is the first of its group in the pack (as the link to the sales
+     * dashboard) is first in the group of the site too: a group that was there (a site that
+     * imported the pack before) has its items from 1, so they are moved down by one (their order
+     * among them stays). A menu of order 0 comes last in Exment, so 1 is the first place.
+     *
+     * @param array<string, mixed> $json the pack
+     * @param string[] $menusBefore "menu_type:menu_name" of the menus that were there
+     */
+    protected static function placeNewMenus(array $json, array $menusBefore): void
+    {
+        $menus = array_values(array_filter((array) array_get($json, 'admin_menu', []), 'is_array'));
+        foreach ($menus as $item) {
+            $parentName = array_get($item, 'parent_name');
+            $key = array_get($item, 'menu_type') . ':' . array_get($item, 'menu_name');
+            if (is_nullorempty($parentName) || in_array($key, $menusBefore, true)) {
+                continue;
+            }
+            $orders = array_map('intval', array_column(array_filter($menus, function ($other) use ($parentName, $item) {
+                return array_get($other, 'parent_name') === $parentName && array_get($other, 'menu_name') !== array_get($item, 'menu_name');
+            }), 'order'));
+            $order = intval(array_get($item, 'order'));
+            if ($order < 1 || (count($orders) > 0 && $order >= min($orders))) {
+                continue;
+            }
+            $menu = Menu::query()->where('menu_type', array_get($item, 'menu_type'))->where('menu_name', array_get($item, 'menu_name'))->first();
+            if (!isset($menu) || intval($menu->parent_id) === 0) {
+                continue;
+            }
+            $siblings = Menu::query()->where('parent_id', $menu->parent_id)->where('id', '<>', $menu->id)->where('order', '>', 0);
+            $first = (clone $siblings)->min('order');
+            if (!isset($first) || intval($first) > 1) {
+                if (intval($menu->order) !== 1) {
+                    $menu->order = 1;
+                    $menu->save();
+                }
+                continue;
+            }
+            \ExmentDB::transaction(function () use ($siblings, $menu) {
+                foreach ($siblings->orderBy('order')->get() as $sibling) {
+                    $sibling->order = intval($sibling->order) + 1;
+                    $sibling->save();
+                }
+                $menu->order = 1;
+                $menu->save();
+            });
+        }
     }
 
     /**

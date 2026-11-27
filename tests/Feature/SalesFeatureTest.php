@@ -307,7 +307,12 @@ class SalesFeatureTest extends FeatureTestBase
         $item = $items->first();
         $this->assertSame('custom', strval($item->menu_type));
         $this->assertSame(intval($parent->id), intval($item->parent_id));
-        $first = Menu::query()->where('parent_id', $parent->id)->orderBy('order')->orderBy('id')->first();
+        // as the menu shows them (Menu::getAllNodesFromDatabase): order 0 last, then the order, then the id
+        $first = Menu::query()->where('parent_id', $parent->id)->get()->sortBy(function ($menu) {
+            return sprintf('%d-%010d-%010d', intval($menu->order) === 0 ? 1 : 0, intval($menu->order), intval($menu->id));
+        })->first();
+        $this->assertNotNull($first);
+        $this->assertGreaterThan(0, intval($item->order), 'order 0 comes last');
         $this->assertSame(intval($item->id), intval($first->id), 'the first item of the menu');
         $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
         $this->assertSame('?dashboard=' . $dashboard->suuid, strval($item->uri));
@@ -335,12 +340,19 @@ class SalesFeatureTest extends FeatureTestBase
 
         // a menu "営業・顧客" without the link (as made before it): the link is added to it, first
         Menu::query()->where('menu_name', 'sales_dashboard')->delete();
+        // the orders of a menu made by the template page before (from 1)
+        $old = Menu::query()->where('parent_id', $parentId)->orderBy('order')->orderBy('id')->pluck('menu_name')->all();
+        foreach ($old as $index => $name) {
+            Menu::query()->where('parent_id', $parentId)->where('menu_name', $name)->update(['order' => $index + 1]);
+        }
         $children = Menu::query()->where('parent_id', $parentId)->count();
         FeaturePacks::install(Features::SALES);
         System::clearCache();
         $this->assertSame($parentId, intval($this->assertTheDashboardIsTheFirstItemOfTheMenu()->parent_id));
         $this->assertSame($children + 1, Menu::query()->where('parent_id', $parentId)->count());
         $this->assertSame(1, Menu::query()->where('menu_name', 'sales')->count());
+        // the others keep their order among them
+        $this->assertSame($old, Menu::query()->where('parent_id', $parentId)->where('menu_name', '<>', 'sales_dashboard')->orderBy('order')->orderBy('id')->pluck('menu_name')->all());
 
         // the link opens the sales dashboard
         $this->login();
