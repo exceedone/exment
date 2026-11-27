@@ -350,6 +350,8 @@ class Restore
         // a folder of this server is copied whole once (it was copied again for each of its
         // folders, ISS02943)
         $copiedLocal = [];
+        // the files of a disk (attachments, plugins): written and the same, for each target
+        $diskCounts = [];
 
         foreach ($directories as $directory) {
             $progress->advance(1);
@@ -433,10 +435,14 @@ class Restore
                     if (!$this->restoresFile($setting[2], $path)) {
                         continue;
                     }
+                    $target = strval($setting[2]);
+                    $diskCounts[$target] = $diskCounts[$target] ?? ['copied' => 0, 'unchanged' => 0];
                     // the same file is there already: not written again (ISS02943)
                     if ($this->isSameOnDisk($disk, $path, $tmpDisk->path($file))) {
+                        $diskCounts[$target]['unchanged']++;
                         continue;
                     }
+                    $diskCounts[$target]['copied']++;
                     // copy from crowd to local
                     $stream = $tmpDisk->readStream($file);
                     $disk->delete($path);
@@ -449,6 +455,10 @@ class Restore
                     }
                 }
             }
+        }
+
+        foreach ($diskCounts as $target => $counts) {
+            $progress->info('folder', ['target' => $target, 'copied' => $counts['copied'], 'unchanged' => $counts['unchanged']]);
         }
 
         if ($this->configSkipped) {
