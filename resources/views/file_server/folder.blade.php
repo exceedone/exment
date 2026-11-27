@@ -58,6 +58,9 @@
         @if (isset($folder))
             <a href="{{ $base_url }}/nodes/{{ $folder->id }}" class="btn btn-sm btn-default"><i class="fa fa-info-circle" aria-hidden="true"></i> {{ exmtrans('file_server.folder_detail') }}</a>
         @endif
+        @if (isset($permissions_url))
+            <a href="{{ $permissions_url }}" class="btn btn-sm btn-default" data-fs-permissions title="{{ isset($folder) ? exmtrans('file_server.permissions_button_help') : exmtrans('file_server.permissions_button_help_root') }}"><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</a>
+        @endif
         <button type="button" class="btn btn-sm btn-default" data-fs-follow="{{ $follow_url }}" aria-pressed="{{ $following ? 'true' : 'false' }}"><i class="fa {{ $following ? 'fa-bell' : 'fa-bell-o' }}" aria-hidden="true"></i> {{ $following ? exmtrans('file_server.following') : exmtrans('file_server.follow') }}</button>
         @if ($waiting_count > 0)
             <a href="{{ $approvals_url }}" class="btn btn-sm btn-warning"><i class="fa fa-check-square-o" aria-hidden="true"></i> {{ exmtrans('file_server.approvals') }} ({{ $waiting_count }})</a>

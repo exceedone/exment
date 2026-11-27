@@ -34,6 +34,8 @@
 .exm-fs-preview iframe { width: 100%; height: 75vh; border: 0; background: #fff; }
 .exm-fs-preview pre { width: 100%; max-height: 75vh; margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 .exm-fs-section { margin-bottom: 16px; }
+/* the place the button "権限" goes to, shown for a moment */
+.exm-fs-flash { box-shadow: 0 0 0 3px rgba(243, 156, 18, .8); transition: box-shadow .3s; }
 .exm-fs-section h4 { font-size: 1.05rem; margin: 0 0 8px; }
 .exm-fs-quota { font-size: .85rem; opacity: .8; }
 .exm-fs-perm-row { display: flex; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
@@ -176,6 +178,27 @@ window.ExmFs = window.ExmFs || (function () {
     }
 
     return { post: post, send: send, notify: notify, done: done, fail: fail, size: size, token: token, escape: escape, confirm: confirmIt, ask: ask, show: show, copy: copy, report: report };
+})();
+</script>
+<script>
+// "権限": go to the permissions (#exm-fs-permissions) or the members (#exm-fs-members), on
+// the page that opens (pjax too) and on a link inside the page, and show the place a moment
+(function () {
+    function goToPermissions() {
+        var hash = window.location.hash;
+        if (hash !== '#exm-fs-permissions' && hash !== '#exm-fs-members') { return; }
+        var target = document.querySelector(hash);
+        if (!target) { return; }
+        var box = target.closest('.box, .form-group') || target;
+        box.scrollIntoView({ block: 'start', behavior: 'smooth' });
+        box.classList.add('exm-fs-flash');
+        setTimeout(function () { box.classList.remove('exm-fs-flash'); }, 2000);
+    }
+    setTimeout(goToPermissions, 100);
+    if (!window.ExmFsPermissionsHash) {
+        window.ExmFsPermissionsHash = true;
+        window.addEventListener('hashchange', goToPermissions);
+    }
 })();
 </script>
 <script>

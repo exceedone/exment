@@ -394,7 +394,7 @@ class AuthController extends \ExmentAdminCore\Admin\Controllers\AuthController
                 $tools->disableDelete();
                 // the API keys of the user, when the administrators allow it (ISS00437)
                 if (\Exceedone\Exment\Services\Features::allowed(\Exceedone\Exment\Services\Features::API_KEYS)) {
-                    $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('auth/api_keys')) . '"><i class="fa fa-key"></i> ' . esc_html(exmtrans('api_key.header')) . '</a>');
+                    $tools->append('<a class="btn btn-sm btn-default" href="' . esc_html(admin_url('auth/api_keys')) . '" title="' . esc_html(exmtrans('api_key.button_tooltip')) . '"><i class="fa fa-key"></i> ' . esc_html(exmtrans('api_key.button')) . '</a>');
                 }
             });
 

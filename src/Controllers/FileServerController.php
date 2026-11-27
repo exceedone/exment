@@ -299,6 +299,10 @@ class FileServerController extends AdminControllerBase
             'can_upload' => $level >= Level::UPLOAD,
             'can_edit' => $level >= Level::EDIT,
             'can_manage_workspace' => $access->can($ws, null, Level::MANAGE),
+            // "権限": the permissions of the folder, or the members of the workspace at its top
+            'permissions_url' => $level >= Level::MANAGE
+                ? (isset($folder) ? $this->nodeUrl($ws, $folder) . '#exm-fs-permissions' : $this->url($ws, 'settings') . '#exm-fs-members')
+                : null,
             // phase 5 (ISS00379)
             'following' => (new Collaboration($library))->isFollowing($ws, $folder),
             'follow_url' => isset($folder) ? $this->nodeUrl($ws, $folder, 'follow') : $this->url($ws, 'follow'),
