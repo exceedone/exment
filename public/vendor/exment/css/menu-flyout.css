@@ -5,8 +5,10 @@
  * For the "classic" and the "modern" design alike (the colors fall back without modern.css).
  */
 @media (min-width: 768px) and (hover: hover) and (pointer: fine) {
-    /* the items do not open below (AdminLTE, also its pop-out of the folded menu) */
-    body.exm-menu-flyout .sidebar-menu > li.treeview > .treeview-menu {
+    /* the items do not open below (AdminLTE, also its pop-out of the folded menu on hover:
+       ".sidebar-mini.sidebar-collapse .sidebar-menu>li:hover>.treeview-menu", 0-5-1, which the
+       :not() outweighs) */
+    body.exm-menu-flyout .sidebar-menu > li.treeview:not(.exm-flyout-open) > .treeview-menu {
         display: none !important;
     }
 
