@@ -4,6 +4,7 @@ namespace Exceedone\Exment\Controllers;
 
 use Exceedone\Exment\Services\Mcp\McpGuide;
 use Carbon\Carbon;
+use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\LoginType;
 use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -29,6 +30,25 @@ class UserApiKeyController extends AdminControllerBase
     /** The end dates offered on the form (days). */
     public const DAYS = [7, 30, 90, 180, 365];
 
+    /** The system tables shown with the others in the list of tables of a key. */
+    protected const SHOWN_SYSTEM_TABLES = [SystemTableName::USER, SystemTableName::ORGANIZATION];
+
+    /** The scopes by what they are about, in the order of the page. */
+    protected const SCOPE_GROUPS = [
+        'data' => [ApiScope::TABLE_READ, ApiScope::VIEW_READ, ApiScope::VALUE_READ, ApiScope::VALUE_WRITE],
+        'workflow' => [ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE],
+        'notify' => [ApiScope::NOTIFY_READ, ApiScope::NOTIFY_WRITE],
+        'user_org' => [ApiScope::ME, ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE, ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE],
+        'plugin' => [ApiScope::PLUGIN],
+        'log' => [ApiScope::LOG],
+    ];
+
+    /** The scopes of "from another system by the API": read, and write the data and the workflow. */
+    protected const API_SCOPES = [
+        ApiScope::ME, ApiScope::TABLE_READ, ApiScope::VIEW_READ, ApiScope::VALUE_READ, ApiScope::VALUE_WRITE,
+        ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE, ApiScope::NOTIFY_READ,
+    ];
+
     /** Tries of the password when making keys, in PASSWORD_DECAY_SECONDS. */
     public const PASSWORD_TRIES = 5;
     public const PASSWORD_DECAY_SECONDS = 15 * 60;
@@ -51,8 +71,21 @@ class UserApiKeyController extends AdminControllerBase
 
         $tables = CustomTable::filterList(null, ['permissions' => Permission::AVAILABLE_VIEW_CUSTOM_VALUE])
             ->map(function ($table) {
-                return ['name' => strval($table->table_name), 'label' => strval($table->table_view_name)];
+                return [
+                    'name' => strval($table->table_name),
+                    'label' => strval($table->table_view_name),
+                    // the tables of Exment itself (mail templates, mail logs...): hidden until asked; not the users and organizations
+                    'system' => boolval($table->system_flg) && !in_array(strval($table->table_name), static::SHOWN_SYSTEM_TABLES, true),
+                ];
             })->values()->all();
+
+        // the purposes preset the scopes; the boxes show what was sent, or the preset of the purpose
+        $purposes = static::purposes();
+        $purpose = static::text($request, 'purpose');
+        if (!array_key_exists($purpose, $purposes)) {
+            $purpose = McpGuide::allowed() ? 'mcp' : 'read_only';
+        }
+        $checkedScopes = $request->has('scopes') ? static::texts($request, 'scopes') : $purposes[$purpose]['scopes'];
 
         $this->AdminContent($content);
         $content->row(view('exment::api_key.mine', [
@@ -64,7 +97,6 @@ class UserApiKeyController extends AdminControllerBase
             // what was sent, as text only (never the password)
             'old' => [
                 'name' => static::text($request, 'name'),
-                'scope_type' => static::text($request, 'scope_type'),
                 'scopes' => static::texts($request, 'scopes'),
                 'table_type' => static::text($request, 'table_type'),
                 'tables' => static::texts($request, 'tables'),
@@ -72,8 +104,10 @@ class UserApiKeyController extends AdminControllerBase
                 'days' => static::text($request, 'days'),
                 'client_cert_fingerprint' => static::text($request, 'client_cert_fingerprint'),
             ],
-            'scopes' => UserApiKeys::availableScopes(),
-            'read_only_scopes' => UserApiKeys::readOnlyScopes(),
+            'purposes' => $purposes,
+            'purpose' => $purpose,
+            'scope_groups' => static::scopeGroups(),
+            'checked_scopes' => $checkedScopes,
             'tables' => $tables,
             'days' => static::days(),
             'default_days' => min(UserApiKeys::DEFAULT_DAYS, static::maxDaysOfLogin()),
@@ -87,6 +121,7 @@ class UserApiKeyController extends AdminControllerBase
                 'url' => McpGuide::url(),
                 'scopes' => McpGuide::scopes(),
                 'configs' => McpGuide::configs(isset($newKey) && McpGuide::covers($newScopes) ? $newKey : null),
+                'placeholder_configs' => McpGuide::configs(),
                 'for_new_key' => isset($newKey) && McpGuide::covers($newScopes),
             ],
         ]));
@@ -383,4 +418,40 @@ class UserApiKeyController extends AdminControllerBase
         }
         return $rows;
     }
+
+    /**
+     * What a key is for: each presets its scopes (the user may change them).
+     *
+     * @return array<string, array{icon: string, scopes: array<int, string>}>
+     */
+    protected static function purposes(): array
+    {
+        return [
+            'mcp' => ['icon' => 'fa-robot', 'scopes' => McpGuide::scopes()],
+            'api' => ['icon' => 'fa-plug', 'scopes' => static::API_SCOPES],
+            'read_only' => ['icon' => 'fa-eye', 'scopes' => UserApiKeys::readOnlyScopes()],
+        ];
+    }
+
+    /**
+     * The scopes of the page by group, only those the site has (a scope added later goes to "others").
+     *
+     * @return array<string, array<int, string>>
+     */
+    protected static function scopeGroups(): array
+    {
+        $available = UserApiKeys::availableScopes();
+        $groups = [];
+        foreach (static::SCOPE_GROUPS as $group => $scopes) {
+            $groups[$group] = array_values(array_intersect($scopes, $available));
+        }
+        $rest = array_values(array_diff($available, array_merge(...array_values(static::SCOPE_GROUPS))));
+        if (count($rest) > 0) {
+            $groups['others'] = $rest;
+        }
+        return array_filter($groups, function ($scopes) {
+            return count($scopes) > 0;
+        });
+    }
+
 }
