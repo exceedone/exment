@@ -217,9 +217,10 @@ class InstallRunner
         }
 
         try {
-            // read again under the lock: the call that had it may have moved on
+            // read again under the lock: the call that had it may have moved on (at the end
+            // it removes the file: the site is installed)
             $state = static::read();
-            if (is_null($state) || InstalledState::isInstalled()) {
+            if (is_null($state)) {
                 return static::toProgress(null);
             }
             if ($state['status'] === static::STATUS_FAILED) {
@@ -281,7 +282,7 @@ class InstallRunner
                     $state['status'] = static::STATUS_SUCCEEDED;
                 } else {
                     // the next phase in the next call: it reads the tables made here afresh
-                    $state['phase'] = static::PHASES[array_search($state['phase'], static::PHASES, true) + 1];
+                    $state['phase'] = $state['phase'] === static::PHASE_PUBLISH ? static::PHASE_MIGRATE : static::PHASE_FINISH;
                 }
                 return $state;
         }
