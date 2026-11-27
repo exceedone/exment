@@ -294,7 +294,17 @@
     <script>
     (function () {
         var root = document.currentScript ? document.currentScript.closest('.exm-insights') : document.querySelector('.exm-insights');
-        if (!root || !window.Chart) { return; }
+        if (!root) { return; }
+        // Chart.js comes at the end of the page: on the first load, draw when it is there
+        if (!window.Chart) {
+            var later = function () { draw(); };
+            document.addEventListener('DOMContentLoaded', later, { once: true });
+            return;
+        }
+        draw();
+        function draw() {
+        if (!window.Chart || root.dataset.drawn) { return; }
+        root.dataset.drawn = '1';
         var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark' || document.body.classList.contains('dark-mode');
         var grid = dark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.08)';
         var text = dark ? '#cbd5e1' : '#555';
@@ -332,6 +342,7 @@
                 }
             });
         });
+        }
     })();
     </script>
 </div>
