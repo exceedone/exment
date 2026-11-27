@@ -828,7 +828,8 @@ class Plugin extends ModelBase
                     }
                 }
             } catch (\Throwable $e) {
-                \Log::error('Plugin load failed, skipping plugin [' . $plugin->plugin_name . ']: ' . $e->getMessage());
+                // asked on every page: logged once, not each time
+                \Exceedone\Exment\Services\Plugin\PluginBootGuard::report($plugin, 'plugins loaded', $e);
                 return null;
             }
         })->filter();

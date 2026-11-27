@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Middleware;
 use ExmentAdminCore\Admin\Facades\Admin as Ad;
 use Exceedone\Exment\Model\Plugin;
 use Exceedone\Exment\Enums\PluginType;
+use Exceedone\Exment\Services\Plugin\PluginBootGuard;
 
 trait BootstrapTrait
 {
@@ -52,14 +53,29 @@ trait BootstrapTrait
 
     /**
      * append Style and sript to page
+     * (an error of the plugin is logged, and its scripts and styles are left out)
      *
+     * @param mixed $pl
+     * @param bool $asPublicForm
+     * @return void
+     * @phpstan-ignore-next-line
+     */
+    protected static function appendStyleScript($pl, bool $asPublicForm = false)
+    {
+        // on every page: an error of one plugin leaves out its scripts and styles only
+        PluginBootGuard::run($pl, 'scripts and styles', function () use ($pl, $asPublicForm) {
+            static::appendPluginStyleScript($pl, $asPublicForm);
+        });
+    }
+
+    /**
      * @param mixed $pl
      * @param bool $asPublicForm
      * @return void
      * @throws \Exception
      * @phpstan-ignore-next-line
      */
-    protected static function appendStyleScript($pl, bool $asPublicForm = false)
+    protected static function appendPluginStyleScript($pl, bool $asPublicForm = false)
     {
         // get each scripts
         foreach (['css', 'js'] as $p) {
