@@ -49,6 +49,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: exceedone/exment-admin-core
+          ref: 1.x
           path: ./docker-exment/exment-boilerplate/exment-admin-core
 
       # the downloads of composer are kept between runs (fewer downloads: faster, and fewer
@@ -106,6 +107,8 @@ jobs:
         run: |
           # composer reads the versions of the path packages (./exment, ./exment-admin-core) from their git branches
           git -C exment-boilerplate/exment checkout -B master
+          # admin-core is checked out from 1.x: named master here too, as the boilerplate requires dev-master
+          git -C exment-boilerplate/exment-admin-core checkout -B master
           docker compose -f docker-compose.yml exec -T php git config --global --add safe.directory '*'
           docker compose -f docker-compose.yml exec -T php composer require --dev --no-interaction --with-all-dependencies "phpstan/phpstan:${{ env.PHPSTAN_VERSION }}" "larastan/larastan:${{ env.LARASTAN_VERSION }}" "meilisearch/meilisearch-php:${{ env.MEILISEARCH_VERSION }}"
           docker compose -f docker-compose.yml exec -T php cp vendor/exceedone/exment/phpstan.neon.dist .
