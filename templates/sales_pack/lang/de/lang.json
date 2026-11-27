@@ -1,6 +1,6 @@
 {
     "template_view_name": "Vertriebs-Paket",
-    "description": "Kunden (mit Ansprechpartnern), Verkaufschancen, Angebote (mit Positionen) und Verträge, eine Vertriebs-Rollengruppe und ein Menü „Vertrieb & Kunden“.",
+    "description": "Kunden (mit Ansprechpartnern), Verkaufschancen, Angebote (mit Positionen), Verträge und Aktivitäten, mit einem Kanban der Verkaufschancen, einem Vertriebs-Dashboard, einer Vertriebs-Rollengruppe und dem Menü „Vertrieb & Kunden“.",
     "custom_tables": [
         {
             "table_name": "sales_customer",
@@ -232,6 +232,44 @@
                     "column_view_name": "Notiz"
                 }
             ]
+        },
+        {
+            "table_name": "sales_activity",
+            "table_view_name": "Aktivitäten",
+            "description": "Besuche, Anrufe, E-Mails und nächste Schritte, je Kunde und Verkaufschance.",
+            "custom_columns": [
+                {
+                    "column_name": "activity_type",
+                    "column_view_name": "Art",
+                    "options": {
+                        "select_item_valtext": "visit,Besuch\ncall,Anruf\nemail,E-Mail\nnext,Nächster Schritt"
+                    }
+                },
+                {
+                    "column_name": "subject",
+                    "column_view_name": "Betreff"
+                },
+                {
+                    "column_name": "activity_at",
+                    "column_view_name": "Datum und Uhrzeit"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Kunde"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Verkaufschance"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Verantwortlich"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notizen"
+                }
+            ]
         }
     ],
     "custom_forms": [
@@ -242,6 +280,84 @@
         {
             "suuid": "1e9cf01d6433f6d1e818",
             "form_view_name": "Formular"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a01",
+            "view_view_name": "Kanban nach Phase"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a02",
+            "view_view_name": "Erwartete Aufträge je Monat",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Erwarteter Betrag"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a03",
+            "view_view_name": "Offene Verkaufschancen je Verantwortlichem",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "id",
+                    "view_column_name": "Verkaufschancen"
+                },
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Erwarteter Betrag"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a04",
+            "view_view_name": "Aktivitäten in diesem Monat"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a05",
+            "view_view_name": "Bald ablaufende Angebote (14 Tage)"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a06",
+            "view_view_name": "Bald endende Verträge (30 Tage)"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "sales_dashboard",
+            "dashboard_view_name": "Vertrieb",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Erwartete Aufträge je Monat"
+                },
+                {
+                    "row_no": "1",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Offene Verkaufschancen je Verantwortlichem"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Aktivitäten in diesem Monat"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Bald ablaufende Angebote (14 Tage)"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Bald endende Verträge (30 Tage)"
+                }
+            ]
         }
     ],
     "admin_menu": [
@@ -269,13 +385,18 @@
             "title": "Verträge",
             "menu_type": "table",
             "menu_name": "sales_contract"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "sales_activity",
+            "title": "Aktivitäten"
         }
     ],
     "roles": [
         {
             "role_group_name": "sales_member_group",
             "role_group_view_name": "Vertrieb",
-            "description": "Personen, die Kunden, Verkaufschancen, Angebote und Verträge sehen, anlegen und bearbeiten."
+            "description": "Personen, die Kunden, Verkaufschancen, Angebote, Verträge und Aktivitäten sehen, anlegen und bearbeiten."
         }
     ],
     "notifies": [

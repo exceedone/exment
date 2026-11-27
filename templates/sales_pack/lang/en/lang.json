@@ -1,6 +1,6 @@
 {
     "template_view_name": "Sales pack",
-    "description": "Customers (with contacts), deals, quotes (with lines) and contracts, a sales role group and a \"Sales & customers\" menu.",
+    "description": "Customers (with contacts), deals, quotes (with lines), contracts and activities, with a kanban of the deals, a sales dashboard, a sales role group and the menu \"Sales & customers\".",
     "custom_tables": [
         {
             "table_name": "sales_customer",
@@ -232,6 +232,44 @@
                     "column_view_name": "Note"
                 }
             ]
+        },
+        {
+            "table_name": "sales_activity",
+            "table_view_name": "Activities",
+            "description": "Visits, calls, mails and next steps, by customer and deal.",
+            "custom_columns": [
+                {
+                    "column_name": "activity_type",
+                    "column_view_name": "Type",
+                    "options": {
+                        "select_item_valtext": "visit,Visit\ncall,Call\nemail,Mail\nnext,Next step"
+                    }
+                },
+                {
+                    "column_name": "subject",
+                    "column_view_name": "Subject"
+                },
+                {
+                    "column_name": "activity_at",
+                    "column_view_name": "Date and time"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Customer"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Deal"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Owner"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Notes"
+                }
+            ]
         }
     ],
     "custom_forms": [
@@ -242,6 +280,84 @@
         {
             "suuid": "1e9cf01d6433f6d1e818",
             "form_view_name": "Form"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a01",
+            "view_view_name": "Kanban by stage"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a02",
+            "view_view_name": "Expected orders by month",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Expected amount"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a03",
+            "view_view_name": "Open deals by owner",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "id",
+                    "view_column_name": "Deals"
+                },
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Expected amount"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a04",
+            "view_view_name": "Activities this month"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a05",
+            "view_view_name": "Quotes expiring soon (14 days)"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a06",
+            "view_view_name": "Contracts ending soon (30 days)"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "sales_dashboard",
+            "dashboard_view_name": "Sales",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Expected orders by month"
+                },
+                {
+                    "row_no": "1",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Open deals by owner"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Activities this month"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Quotes expiring soon (14 days)"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Contracts ending soon (30 days)"
+                }
+            ]
         }
     ],
     "admin_menu": [
@@ -269,13 +385,18 @@
             "title": "Contracts",
             "menu_type": "table",
             "menu_name": "sales_contract"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "sales_activity",
+            "title": "Activities"
         }
     ],
     "roles": [
         {
             "role_group_name": "sales_member_group",
             "role_group_view_name": "Sales",
-            "description": "People who see, make and edit customers, deals, quotes and contracts."
+            "description": "People who see, make and edit customers, deals, quotes, contracts and activities."
         }
     ],
     "notifies": [

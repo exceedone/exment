@@ -1,6 +1,6 @@
 {
     "template_view_name": "Gói bán hàng",
-    "description": "Bộ gồm khách hàng (có người liên hệ), cơ hội bán hàng, báo giá (có chi tiết) và hợp đồng, nhóm vai trò bán hàng và menu \"Bán hàng & khách hàng\".",
+    "description": "Khách hàng (kèm người liên hệ), cơ hội bán hàng, báo giá (kèm chi tiết), hợp đồng và hoạt động, cùng kanban cơ hội bán hàng, bảng điều khiển bán hàng, nhóm vai trò bán hàng và menu \"Bán hàng & khách hàng\".",
     "custom_tables": [
         {
             "table_name": "sales_customer",
@@ -232,6 +232,44 @@
                     "column_view_name": "Ghi chú"
                 }
             ]
+        },
+        {
+            "table_name": "sales_activity",
+            "table_view_name": "Hoạt động",
+            "description": "Ghi lại các lần thăm, cuộc gọi, email và việc tiếp theo theo khách hàng và cơ hội bán hàng.",
+            "custom_columns": [
+                {
+                    "column_name": "activity_type",
+                    "column_view_name": "Loại",
+                    "options": {
+                        "select_item_valtext": "visit,Thăm\ncall,Gọi điện\nemail,Email\nnext,Việc tiếp theo"
+                    }
+                },
+                {
+                    "column_name": "subject",
+                    "column_view_name": "Tiêu đề"
+                },
+                {
+                    "column_name": "activity_at",
+                    "column_view_name": "Ngày giờ"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "Khách hàng"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "Cơ hội bán hàng"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Người phụ trách"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nội dung"
+                }
+            ]
         }
     ],
     "custom_forms": [
@@ -242,6 +280,84 @@
         {
             "suuid": "1e9cf01d6433f6d1e818",
             "form_view_name": "Biểu mẫu"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a01",
+            "view_view_name": "Kanban theo giai đoạn"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a02",
+            "view_view_name": "Đơn hàng dự kiến theo tháng",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Số tiền dự kiến"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a03",
+            "view_view_name": "Cơ hội đang mở theo người phụ trách",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "id",
+                    "view_column_name": "Số cơ hội"
+                },
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "Số tiền dự kiến"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a04",
+            "view_view_name": "Hoạt động tháng này"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a05",
+            "view_view_name": "Báo giá sắp hết hạn (14 ngày)"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a06",
+            "view_view_name": "Hợp đồng sắp kết thúc (30 ngày)"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "sales_dashboard",
+            "dashboard_view_name": "Bán hàng",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Đơn hàng dự kiến theo tháng"
+                },
+                {
+                    "row_no": "1",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Cơ hội đang mở theo người phụ trách"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Hoạt động tháng này"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "Báo giá sắp hết hạn (14 ngày)"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "Hợp đồng sắp kết thúc (30 ngày)"
+                }
+            ]
         }
     ],
     "admin_menu": [
@@ -269,13 +385,18 @@
             "title": "Hợp đồng",
             "menu_type": "table",
             "menu_name": "sales_contract"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "sales_activity",
+            "title": "Hoạt động"
         }
     ],
     "roles": [
         {
             "role_group_name": "sales_member_group",
             "role_group_view_name": "Bán hàng",
-            "description": "Người xem, tạo và chỉnh sửa khách hàng, cơ hội bán hàng, báo giá và hợp đồng."
+            "description": "Người xem, tạo và chỉnh sửa khách hàng, cơ hội bán hàng, báo giá, hợp đồng và hoạt động."
         }
     ],
     "notifies": [

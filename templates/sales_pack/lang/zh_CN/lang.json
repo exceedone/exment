@@ -1,6 +1,6 @@
 {
     "template_view_name": "销售包",
-    "description": "客户（含联系人）、商机、报价（含明细）和合同，以及销售角色组和“销售与客户”菜单。",
+    "description": "客户（联系人）、商机、报价（明细）、合同和活动记录，以及商机看板、销售仪表板、销售角色组和「销售与客户」菜单。",
     "custom_tables": [
         {
             "table_name": "sales_customer",
@@ -232,6 +232,44 @@
                     "column_view_name": "备注"
                 }
             ]
+        },
+        {
+            "table_name": "sales_activity",
+            "table_view_name": "活动记录",
+            "description": "按客户和商机记录拜访、电话、邮件和下一步计划。",
+            "custom_columns": [
+                {
+                    "column_name": "activity_type",
+                    "column_view_name": "类型",
+                    "options": {
+                        "select_item_valtext": "visit,拜访\ncall,电话\nemail,邮件\nnext,下一步计划"
+                    }
+                },
+                {
+                    "column_name": "subject",
+                    "column_view_name": "主题"
+                },
+                {
+                    "column_name": "activity_at",
+                    "column_view_name": "日期时间"
+                },
+                {
+                    "column_name": "customer",
+                    "column_view_name": "客户"
+                },
+                {
+                    "column_name": "deal",
+                    "column_view_name": "商机"
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "负责人"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "内容"
+                }
+            ]
         }
     ],
     "custom_forms": [
@@ -242,6 +280,84 @@
         {
             "suuid": "1e9cf01d6433f6d1e818",
             "form_view_name": "表单"
+        }
+    ],
+    "custom_views": [
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a01",
+            "view_view_name": "按阶段的看板"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a02",
+            "view_view_name": "每月预计订单",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "预计金额"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a03",
+            "view_view_name": "按负责人的进行中商机",
+            "custom_view_summaries": [
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "id",
+                    "view_column_name": "件数"
+                },
+                {
+                    "view_column_table_name": "sales_deal",
+                    "view_column_target_name": "expected_amount",
+                    "view_column_name": "预计金额"
+                }
+            ]
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a04",
+            "view_view_name": "本月活动"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a05",
+            "view_view_name": "即将到期的报价（14 天）"
+        },
+        {
+            "suuid": "5a1e5c0a7b3d4e2f9a06",
+            "view_view_name": "即将结束的合同（30 天）"
+        }
+    ],
+    "dashboards": [
+        {
+            "dashboard_name": "sales_dashboard",
+            "dashboard_view_name": "销售",
+            "dashboard_boxes": [
+                {
+                    "row_no": "1",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "每月预计订单"
+                },
+                {
+                    "row_no": "1",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "按负责人的进行中商机"
+                },
+                {
+                    "row_no": "2",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "本月活动"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "1",
+                    "dashboard_box_view_name": "即将到期的报价（14 天）"
+                },
+                {
+                    "row_no": "3",
+                    "column_no": "2",
+                    "dashboard_box_view_name": "即将结束的合同（30 天）"
+                }
+            ]
         }
     ],
     "admin_menu": [
@@ -269,13 +385,18 @@
             "title": "合同",
             "menu_type": "table",
             "menu_name": "sales_contract"
+        },
+        {
+            "menu_type": "table",
+            "menu_name": "sales_activity",
+            "title": "活动记录"
         }
     ],
     "roles": [
         {
             "role_group_name": "sales_member_group",
             "role_group_view_name": "销售",
-            "description": "可查看、创建和编辑客户、商机、报价和合同的人员。"
+            "description": "可查看、创建和编辑客户、商机、报价、合同和活动记录的人员。"
         }
     ],
     "notifies": [
