@@ -78,7 +78,7 @@ class Column extends NotifyTargetBase
      *
      * @param CustomValue $custom_value
      * @param CustomColumn $custom_column
-     * @return Collection
+     * @return Collection<int, NotifyTarget|null>
      */
     protected function getSelectTableModels(CustomValue $custom_value, CustomColumn $custom_column): Collection
     {

@@ -20,6 +20,7 @@ use Exceedone\Exment\Services\Notify\NotifyRunner;
 use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
+use Illuminate\Support\Collection;
 
 /**
  * A notification to a user or organization column, when the user who saves the record cannot
@@ -117,8 +118,8 @@ class NotifyColumnHiddenTargetTest extends FeatureTestBase
         });
         $organization = $organizationOf($hidden);
 
-        $ids = function ($targets) {
-            return collect($targets)->map(fn ($target) => intval($target->id()))->all();
+        $ids = function (Collection $targets): array {
+            return $targets->map(fn ($target) => intval($target->id()))->all();
         };
         $this->assertContains(intval($hidden->id), $ids(NotifyTarget::getModelsAsOrganization($organization, null, true)));
         $this->assertNotContains(intval($hidden->id), $ids(NotifyTarget::getModelsAsOrganization($organization)));
