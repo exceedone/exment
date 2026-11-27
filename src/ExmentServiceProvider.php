@@ -353,11 +353,10 @@ class ExmentServiceProvider extends ServiceProvider
             \Exceedone\Exment\Services\UserApiKeys::rememberSignIn($event->guard);
         });
 
-        // Perf: publishes() only feeds the `vendor:publish` console command; running it on
-        // every web request is pure waste (matches open-admin-core's console-guarded publishing).
-        if ($this->app->runningInConsole()) {
-            $this->publish();
-        }
+        // Always: the web installer and the update screens run exment:publish (vendor:publish)
+        // inside a web request, and without these lists it copies nothing and says nothing (the
+        // site then has no CSS / JS). It only registers a few paths, nothing is copied here.
+        $this->publish();
         $this->load();
 
         $this->registerPolicies();
