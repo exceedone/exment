@@ -143,13 +143,50 @@ class MyInsightsTest extends FeatureTestBase
         $this->assertSame(0, InsightDaily::query()->where('date', static::DAY)->whereIn('metric', Insights::USER_METRICS)->count());
     }
 
+    /**
+     * A card of a plugin or of other code: called with the user who looks and the period; text only;
+     * a link of another kind is dropped; a card that fails does not stop the page.
+     */
+    public function testTheCardsOfOthers(): void
+    {
+        $this->features([Insights::MY_FEATURE => true]);
+        $seen = [];
+        MyInsights::registerCard('test.tasks', function (LoginUser $user, Carbon $from, Carbon $to) use (&$seen) {
+            $seen[] = [intval($user->base_user_id), $from->format('Y-m-d'), $to->format('Y-m-d')];
+            return [
+                'title' => 'My tasks <b>', 'url' => '/admin/data/tasks', 'url_label' => 'Open',
+                'rows' => [['label' => 'Overdue', 'value' => 2, 'warn' => true], ['label' => 'Open', 'value' => 5], 'not a row'],
+                'help' => 'From the plugin',
+            ];
+        });
+        MyInsights::registerCard('test.bad_link', function () {
+            return ['title' => 'Bad link', 'url' => 'javascript:alert(1)', 'rows' => []];
+        });
+        MyInsights::registerCard('test.fails', function () {
+            throw new \RuntimeException('down');
+        });
+        try {
+            $user1 = $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
+            $page = $this->get(admin_url('auth/insights') . '?days=7', ['X-Requested-With' => 'XMLHttpRequest']);
+            $page->assertOk()->assertSee('My tasks &lt;b&gt;', false)->assertSee('href="/admin/data/tasks"', false)
+                ->assertSee('From the plugin')->assertSee('Bad link')->assertDontSee('javascript:alert', false);
+            $this->assertSame([[intval($user1->base_user_id), Carbon::today()->subDays(6)->format('Y-m-d'), Carbon::today()->format('Y-m-d')]], $seen);
+            $cards = (new MyInsights($user1, Carbon::today(), Carbon::today()))->extraCards();
+            $this->assertCount(2, $cards);
+            $this->assertSame([['label' => 'Overdue', 'value' => '2', 'warn' => true], ['label' => 'Open', 'value' => '5', 'warn' => false]], $cards[0]['rows']);
+            $this->assertNull($cards[1]['url']);
+        } finally {
+            MyInsights::resetCards();
+        }
+    }
+
     public function testTheCardsOfWhatTheSiteDoesNotHave(): void
     {
         $user1 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $this->loginAs(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $mine = new MyInsights($user1, Carbon::today()->subDays(6), Carbon::today());
-        // no ExmentPM in the test data: no card
-        $this->assertNull($mine->pmIssues());
+        // no plugin with a card in the test data
+        $this->assertSame([], $mine->extraCards());
         $workflow = $mine->workflow();
         $this->assertIsArray($workflow);
         $this->assertGreaterThanOrEqual(0, $workflow['waiting']);

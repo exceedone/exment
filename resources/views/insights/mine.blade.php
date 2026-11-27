@@ -28,9 +28,6 @@
             <div class="exm-in-tile {{ $workflow['waiting'] > 0 ? 'is-warn' : '' }}"><div class="exm-in-sub"><a href="{{ $workflow['url'] }}">{{ exmtrans('my_insights.waiting') }}</a></div><div class="exm-in-num">{{ number_format($workflow['waiting']) }}</div></div>
             <div class="exm-in-tile"><div class="exm-in-sub">{{ exmtrans('my_insights.requests') }}</div><div class="exm-in-num">{{ number_format($workflow['requests']) }}</div></div>
         @endif
-        @if (isset($pm))
-            <div class="exm-in-tile {{ $pm['late'] > 0 ? 'is-warn' : '' }}"><div class="exm-in-sub"><a href="{{ $pm['url'] }}">{{ exmtrans('my_insights.pm_late') }}</a></div><div class="exm-in-num">{{ number_format($pm['late']) }}</div><div class="exm-in-sub">{{ exmtrans('my_insights.pm_open', number_format($pm['open'])) }}</div></div>
-        @endif
         <div class="exm-in-tile {{ count($logins['failures']) > 0 || count($logins['new_places']) > 0 ? 'is-warn' : '' }}"><div class="exm-in-sub">{{ exmtrans('my_insights.attention') }}</div><div class="exm-in-num">{{ count($logins['failures']) + count($logins['new_places']) }}</div><div class="exm-in-sub">{{ exmtrans('my_insights.attention_help') }}</div></div>
     </div>
 
@@ -94,23 +91,20 @@
                 </tbody></table>
             </div>
         </div>
-        @if (isset($pm))
+        {{-- the cards of the plugins (as ExmentPM) and of other code: MyInsights::extraCards --}}
+        @foreach ($cards as $card)
         <div class="box card exm-in-card">
-            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('my_insights.cards.pm') }}</h3><a class="exm-in-source" href="{{ $pm['url'] }}">{{ exmtrans('my_insights.open_list') }}</a></div>
+            <div class="box-header with-border"><h3 class="box-title">{{ $card['title'] }}</h3>@if ($card['url'])<a class="exm-in-source" href="{{ $card['url'] }}">{{ $card['url_label'] ?? exmtrans('my_insights.open_list') }}</a>@endif</div>
             <div class="box-body">
                 <table class="exm-in-table"><tbody>
-                    <tr><td>{{ exmtrans('my_insights.pm_open_label') }}</td><td class="num">{{ number_format($pm['open']) }}</td></tr>
-                    <tr><td>{{ exmtrans('my_insights.pm_late') }}</td><td class="num" style="{{ $pm['late'] > 0 ? 'color:#d97706;font-weight:bold' : '' }}">{{ number_format($pm['late']) }}</td></tr>
-                    <tr><td>{{ exmtrans('my_insights.pm_soon', $dueSoonDays) }}</td><td class="num">{{ number_format($pm['soon']) }}</td></tr>
-                    <tr><td>{{ exmtrans('my_insights.pm_done') }}</td><td class="num">{{ number_format($pm['done']) }}</td></tr>
-                    @if (!is_null($pm['hours']))
-                        <tr><td>{{ exmtrans('my_insights.pm_hours') }}</td><td class="num">{{ number_format($pm['hours'], 1) }} h</td></tr>
-                    @endif
+                @foreach ($card['rows'] as $row)
+                    <tr><td>{{ $row['label'] }}</td><td class="num" style="{{ $row['warn'] ? 'color:#d97706;font-weight:bold' : '' }}">{{ $row['value'] }}</td></tr>
+                @endforeach
                 </tbody></table>
-                <p class="exm-in-help">{{ exmtrans('my_insights.pm_help') }}</p>
+                @if ($card['help'])<p class="exm-in-help">{{ $card['help'] }}</p>@endif
             </div>
         </div>
-        @endif
+        @endforeach
         @if (isset($files))
         <div class="box card exm-in-card">
             <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('my_insights.cards.files') }}</h3><a class="exm-in-source" href="{{ $files['url'] }}">{{ exmtrans('my_insights.open_list') }}</a></div>

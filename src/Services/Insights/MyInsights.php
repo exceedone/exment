@@ -3,7 +3,6 @@
 namespace Exceedone\Exment\Services\Insights;
 
 use Carbon\Carbon;
-use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\DataAccessDaily;
@@ -27,9 +26,6 @@ class MyInsights
 {
     /** A sign-in from an address not used in this many days before: a new place. */
     public const NEW_PLACE_DAYS = 90;
-
-    /** A task due within this many days: due soon. */
-    public const DUE_SOON_DAYS = 7;
 
     public const TOP = 8;
 
@@ -234,55 +230,90 @@ class MyInsights
         ];
     }
 
+    /** @var array<string, callable> the cards other code adds (registerCard()) */
+    protected static $cards = [];
+
     /**
-     * The tasks of ExmentPM assigned to me (its table pm_issue), when the site has it and I may see it.
+     * Add a card to "My insights" (an application, a package). A plugin page may instead have a
+     * method myInsightsCard(LoginUser $user, Carbon $from, Carbon $to). Both return the card of
+     * the user who looks, or null for none:
+     * ['title' => string, 'rows' => [['label' => string, 'value' => string|int|float, 'warn' => bool], ...],
+     *  'url' => a link (a path of the site or http(s)), 'url_label' => string, 'help' => string]
      *
-     * @return array<string, mixed>|null
+     * @param callable $card function (LoginUser $user, Carbon $from, Carbon $to): ?array
      */
-    public function pmIssues(): ?array
+    public static function registerCard(string $key, callable $card): void
     {
-        $table = CustomTable::getEloquent('pm_issue');
-        if (!isset($table) || !$table->hasPermission(Permission::AVAILABLE_VIEW_CUSTOM_VALUE)) {
-            return null;
-        }
-        $columns = $table->custom_columns_cache->pluck('column_name')->map(function ($name) {
-            return strval($name);
-        })->all();
-        foreach (['assignees', 'status', 'due_date'] as $name) {
-            if (!in_array($name, $columns, true)) {
-                return null;
-            }
-        }
-        $done = ['resolved', 'closed'];
-        $today = Insights::now()->startOfDay();
-        $mine = function () use ($table) {
-            return getModelName($table)::query()->whereInArrayString('value->assignees', $this->userId);
-        };
+        static::$cards[$key] = $card;
+    }
+
+    /** Forget the cards added (tests). */
+    public static function resetCards(): void
+    {
+        static::$cards = [];
+    }
+
+    /**
+     * The cards of the plugins and of the code that added one, for this user and period.
+     *
+     * @return array<int, array{title: string, rows: array<int, array{label: string, value: string, warn: bool}>, url: string|null, url_label: string|null, help: string|null}>
+     */
+    public function extraCards(): array
+    {
+        $sources = static::$cards;
         try {
-            $open = (clone $mine())->whereNotIn('value->status', $done);
-            $count = (clone $open)->count();
-            $late = (clone $open)->whereNotNull('value->due_date')->where('value->due_date', '<', $today->format('Y-m-d'))->count();
-            $soon = (clone $open)->where('value->due_date', '>=', $today->format('Y-m-d'))
-                ->where('value->due_date', '<=', $today->copy()->addDays(static::DUE_SOON_DAYS)->format('Y-m-d'))->count();
-            $finished = (clone $mine())->whereIn('value->status', $done)->where('updated_at', '>=', $this->from)->where('updated_at', '<', $this->end());
-            $finishedCount = (clone $finished)->count();
-            $hours = null;
-            if (in_array('actual_h', $columns, true)) {
-                $hours = 0.0;
-                foreach ((clone $finished)->get() as $issue) {
-                    $hours += floatval($issue->getValue('actual_h'));
-                }
-                foreach ((clone $open)->get() as $issue) {
-                    $hours += floatval($issue->getValue('actual_h'));
+            foreach (\Exceedone\Exment\Model\Plugin::getPluginPages() as $page) {
+                if (is_object($page) && method_exists($page, 'myInsightsCard')) {
+                    $sources[get_class($page)] = [$page, 'myInsightsCard'];
                 }
             }
         } catch (\Throwable $e) {
-            \Log::debug('[Exment] my insights: pm_issue: ' . $e->getMessage());
+            \Log::debug('[Exment] my insights: the plugins: ' . $e->getMessage());
+        }
+        $cards = [];
+        foreach ($sources as $key => $source) {
+            try {
+                $card = call_user_func($source, $this->user, $this->from->copy(), $this->to->copy());
+            } catch (\Throwable $e) {
+                \Log::warning('[Exment] my insights: the card ' . $key . ': ' . $e->getMessage());
+                continue;
+            }
+            $card = static::card($card);
+            if (isset($card)) {
+                $cards[] = $card;
+            }
+        }
+        return $cards;
+    }
+
+    /**
+     * A card as the page shows it: text only, a link of the site or http(s).
+     *
+     * @return array{title: string, rows: array<int, array{label: string, value: string, warn: bool}>, url: string|null, url_label: string|null, help: string|null}|null
+     */
+    protected static function card(mixed $card): ?array
+    {
+        if (!is_array($card) || !is_string($card['title'] ?? null) || trim($card['title']) === '') {
             return null;
         }
+        $rows = [];
+        foreach (array_slice((array)($card['rows'] ?? []), 0, 20) as $row) {
+            if (!is_array($row) || !is_scalar($row['label'] ?? null) || !is_scalar($row['value'] ?? null)) {
+                continue;
+            }
+            $rows[] = ['label' => mb_substr(strval($row['label']), 0, 100), 'value' => mb_substr(strval($row['value']), 0, 50), 'warn' => boolval($row['warn'] ?? false)];
+        }
+        $url = is_string($card['url'] ?? null) ? $card['url'] : null;
+        // a link of the site (a path) or http(s); no quote, no space, not "//host"
+        if (isset($url) && preg_match('#\A(https?://[^\s"\'<>]+|/[^/\s"\'<>][^\s"\'<>]*)\z#i', $url) !== 1) {
+            $url = null;
+        }
         return [
-            'open' => $count, 'late' => $late, 'soon' => $soon, 'done' => $finishedCount, 'hours' => $hours,
-            'url' => admin_urls('data', 'pm_issue'),
+            'title' => mb_substr(trim($card['title']), 0, 100),
+            'rows' => $rows,
+            'url' => $url,
+            'url_label' => is_string($card['url_label'] ?? null) ? mb_substr($card['url_label'], 0, 50) : null,
+            'help' => is_string($card['help'] ?? null) ? mb_substr($card['help'], 0, 300) : null,
         ];
     }
 

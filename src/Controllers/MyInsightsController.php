@@ -38,7 +38,7 @@ class MyInsightsController extends AdminControllerBase
             'dates' => $mine->dates(),
             'logins' => $mine->logins(),
             'data' => $mine->data(),
-            'pm' => $mine->pmIssues(),
+            'cards' => $mine->extraCards(),
             'workflow' => $mine->workflow(),
             'files' => Features::enabled(Features::FILE_SERVER) ? $mine->files() : null,
             'api' => $mine->api(),
@@ -46,7 +46,6 @@ class MyInsightsController extends AdminControllerBase
             'days' => intval($request->query('days', 0)),
             'counted' => InsightDaily::tableExists(),
             'newPlaceDays' => MyInsights::NEW_PLACE_DAYS,
-            'dueSoonDays' => MyInsights::DUE_SOON_DAYS,
             'url' => admin_url('auth/insights'),
         ]));
         return $content;
