@@ -35,7 +35,7 @@ class UserApiKeyController extends AdminControllerBase
 
     public function __construct()
     {
-        $this->setPageInfo(exmtrans('api_key.header'), exmtrans('api_key.header'), exmtrans('api_key.description'), 'fa-key');
+        $this->setPageInfo(exmtrans('api_key.page_header'), exmtrans('api_key.page_header'), exmtrans('api_key.description'), 'fa-key');
     }
 
     /**
