@@ -132,7 +132,7 @@ class SalesFeatureTest extends FeatureTestBase
         $this->assertStringContainsString(e(Features::label(Features::SALES)), $html);
         // the switch of the row is not checked
         $this->assertSame(1, preg_match('/<input[^>]*name="features\[sales\]\[enabled\]"[^>]*>/', $html, $input));
-        $this->assertStringNotContainsString('checked', $input[0]);
+        $this->assertStringNotContainsString('checked', strval($input[0] ?? ''));
     }
 
     public function testTheWordsOfTheRowAreInEveryLanguageWithoutPack(): void
