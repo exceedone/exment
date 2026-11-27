@@ -48,7 +48,7 @@ class CustomValueDeleteTest extends FeatureTestBase
      * @param \Closure $setValueCallback
      * @return CustomValue
      */
-    protected function initTestData(CustomTable $custom_table, CustomColumn $custom_column, \Closure $setValueCallback = null)
+    protected function initTestData(CustomTable $custom_table, CustomColumn $custom_column, ?\Closure $setValueCallback = null)
     {
         $custom_value = $custom_table->getValueModel();
 
