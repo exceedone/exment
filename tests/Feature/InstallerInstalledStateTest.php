@@ -107,13 +107,17 @@ class InstallerInstalledStateTest extends FeatureTestBase
         $this->get(admin_base_path('install/reset'))->assertRedirect(admin_url('install'));
     }
 
-    public function testInstalledAndDatabaseUpTheInstallPagesGoToTheLogin(): void
+    public function testInstalledAndDatabaseUpTheInstallPagesAreNotFound(): void
     {
         $this->useInstalledState(true);
 
-        $this->get(admin_base_path('install'))->assertRedirect(admin_base_path('auth/login'));
-        $this->get(admin_base_path('install/reset'))->assertRedirect(admin_base_path('auth/login'));
-        $this->post(admin_base_path('install'), ['locale' => 'en'])->assertRedirect(admin_base_path('auth/login'));
+        // every install page, whatever the request has (InstallRunnerTest: with the cookie of an install)
+        $this->get(admin_base_path('install'))->assertNotFound();
+        $this->get(admin_base_path('install/reset'))->assertNotFound();
+        $this->post(admin_base_path('install/reset'))->assertNotFound();
+        $this->post(admin_base_path('install'), ['locale' => 'en'])->assertNotFound();
+        $this->postJson(admin_base_path('install/step'))->assertNotFound();
+        $this->getJson(admin_base_path('install/status'))->assertNotFound();
     }
 
     public function testTheInstallerRefusesToRunWhenInstalled(): void

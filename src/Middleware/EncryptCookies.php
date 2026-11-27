@@ -12,6 +12,7 @@ class EncryptCookies extends Middleware
      * @var array<int, string>
      */
     protected $except = [
-        //
+        // the token of the web installer: set in the request that makes the key of the application
+        \Exceedone\Exment\Services\Installer\InstallRunner::COOKIE,
     ];
 }

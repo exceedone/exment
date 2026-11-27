@@ -71,6 +71,12 @@ class InstallService
     {
         static::setSettingTmp();
 
+        // the install of the last step is going on (InstallRunner): its progress. The session
+        // does not tell: it is a new one after the key of the application is made.
+        if (InstallRunner::inProgress()) {
+            return InitializeStatus::INSTALLING;
+        }
+
         // Hoist session status so we can use it in the shortcut check below.
         $status = static::getInitializeStatus();
 
