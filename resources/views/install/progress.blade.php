@@ -34,7 +34,11 @@
 
         <div class="row">
             <div class="col-xs-12 col-sm-4">
-                <a href="{{ admin_urls('install', 'reset') }}" class="btn btn-default btn-block w-100 install-progress-reset" style="{{ $progress['status'] === 'failed' ? '' : 'display:none;' }}">{{ trans('admin.reset') }}</a>
+                {{-- only after a failure (the server refuses it while the install goes on) --}}
+                <form action="{{ $resetUrl }}" method="post" class="install-progress-reset" style="margin: 0; {{ $progress['status'] === 'failed' ? '' : 'display:none;' }}">
+                    <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-default btn-block w-100">{{ trans('admin.reset') }}</button>
+                </form>
             </div>
             <div class="col-xs-12 col-sm-8">
                 {{-- without script: one step per click; with script: "run again" after a failure --}}
@@ -175,8 +179,13 @@
             finish(res.url);
             return null;
         }
-        // the session is gone (a new token is needed): the page again
-        if (res.status === 419) {
+        // the install pages are closed: the site is installed (another call ended the install)
+        if (res.status === 404) {
+            finish(initializeUrl);
+            return null;
+        }
+        // the session is gone (a new token is needed), or this browser does not run the install: the page again
+        if (res.status === 419 || res.status === 403) {
             stopped = true;
             window.location.reload();
             return null;

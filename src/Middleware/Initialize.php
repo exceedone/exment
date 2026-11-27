@@ -62,9 +62,9 @@ class Initialize
                 InstalledState::markInstalled();
             }
 
-            // the install pages are closed on an installed site
+            // the install pages are closed on an installed site: not found, whatever the request has
             if ($this->isInstallPath($request) && InstalledState::isInstalled()) {
-                return redirect()->guest(admin_base_path($initialized ? 'auth/login' : 'initialize'));
+                abort(404);
             }
 
             // if path is not "initialize" and not installed, then redirect to initialize

@@ -16,7 +16,13 @@ class InstallingForm
     {
         // the install is going on (or stopped with an error): its progress
         if (!is_null($state = InstallRunner::read())) {
+            // another browser: only that an install is going on
+            $token = request()->cookie(InstallRunner::COOKIE);
+            if (!InstallRunner::isOwner(is_string($token) ? $token : null)) {
+                return view('exment::install.in_progress');
+            }
             return view('exment::install.progress', [
+                'resetUrl' => admin_urls('install', 'reset'),
                 'progress' => InstallRunner::toProgress($state),
                 'stepUrl' => admin_urls('install', 'step'),
                 'statusUrl' => admin_urls('install', 'status'),
@@ -98,7 +104,8 @@ class InstallingForm
             // the rest (the files, the migrations, the first data) in steps: the screen of the
             // progress calls install/step until it is done (InstallRunner). One long request
             // would be stopped by a proxy with a short timeout (504 of nginx after 60 seconds).
-            InstallRunner::start();
+            // the token of this browser: only it runs the install (a cookie, see InstallRunner)
+            $token = InstallRunner::start();
         } catch (\Exception $ex) {
             \Log::error('Exment install commands failed: ' . $ex->getMessage());
             return back()->withInput()->withErrors([
@@ -109,6 +116,7 @@ class InstallingForm
         InstallService::setInitializeStatus(InitializeStatus::INSTALLING);
 
         // .env is read again from the next request: the progress, at the URL with the prefix just written
-        return redirect(url($prefix === '' ? 'install' : $prefix . '/install'));
+        $response = redirect(url($prefix === '' ? 'install' : $prefix . '/install'));
+        return is_null($token) ? $response : $response->withCookie(InstallRunner::cookie($token));
     }
 }

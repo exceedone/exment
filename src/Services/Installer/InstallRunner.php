@@ -11,10 +11,16 @@ namespace Exceedone\Exment\Services\Installer;
  * - The state is a file (storage/app/.exment_install_run.json): the session is not kept
  *   across the install (the key of the application is made in it), and the database is
  *   what is being made.
- * - Resumable: the migrations done are those in the table of the migrations; a call that
- *   stopped (a timeout, a reload, a closed browser) is taken up by the next one.
+ * - It goes on from where it stopped: the migrations done are those in the table of the
+ *   migrations; a call that stopped (a timeout, a reload, a closed browser) is taken up by the
+ *   next one. A migration that failed half way may have left a table behind (MySQL does not
+ *   undo its DDL): the error names the migration, and such a table may have to be removed by
+ *   hand before "run again".
  * - One runner at a time: a lock on a file (flock), let go by the system when the process
  *   ends in any way. A call that finds it taken answers the progress only ("busy").
+ * - The browser that started the install runs it: the state keeps the hash of a random
+ *   token, the browser the token (the cookie COOKIE). Other browsers are only told that an
+ *   install is going on.
  *
  * The command "php artisan exment:install" does not use it.
  */
@@ -41,6 +47,12 @@ class InstallRunner
 
     /** The lock file, under storage_path(). */
     public const LOCK = 'app/.exment_install_run.lock';
+
+    /**
+     * The cookie with the token of the browser that started the install. Not encrypted
+     * (EncryptCookies): the key of the application is made in the request that sets it.
+     */
+    public const COOKIE = 'exment_install_run';
 
     /** @var string|null for tests: the state file (null: the real one) */
     public static $statePath = null;
@@ -119,8 +131,14 @@ class InstallRunner
         if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
-        if (@file_put_contents($path, json_encode($state, JSON_UNESCAPED_UNICODE), LOCK_EX) === false) {
-            throw new \RuntimeException('Cannot write ' . $path);
+        // a file of its own, then renamed: a reader never sees a file written half way
+        $tmp = $path . '.' . bin2hex(random_bytes(6)) . '.tmp';
+        if (@file_put_contents($tmp, json_encode($state, JSON_UNESCAPED_UNICODE)) === false) {
+            throw new \RuntimeException('Cannot write ' . $tmp . ': check that storage/app can be written.');
+        }
+        if (!@rename($tmp, $path)) {
+            @unlink($tmp);
+            throw new \RuntimeException('Cannot write ' . $path . ': check that storage/app can be written.');
         }
     }
 
@@ -133,6 +151,8 @@ class InstallRunner
             'phase' => static::PHASE_PUBLISH,
             'status' => static::STATUS_RUNNING,
             'error' => null,
+            'token_hash' => null,
+            'migration' => null,
             'migrations_done' => 0,
             'migrations_total' => 0,
             'started_at' => time(),
@@ -141,30 +161,78 @@ class InstallRunner
     }
 
     /**
-     * Start the install (the form of the installer, after .env is written). Again while one
-     * is there: that one is kept (the same install, not a second one).
+     * Start the install (the form of the installer, after .env is written).
+     *
+     * @return string|null the token for the cookie of the browser (cookie()); null: an install
+     *         is there already, it is kept (the same install, not a second one)
      */
-    public static function start(): void
+    public static function start(): ?string
     {
         if (!is_null(static::read())) {
-            return;
+            return null;
         }
-        static::write(static::emptyState());
+        $token = bin2hex(random_bytes(32));
+        $state = static::emptyState();
+        $state['token_hash'] = static::hashToken($token);
+        static::write($state);
+        return $token;
+    }
+
+    protected static function hashToken(string $token): string
+    {
+        return hash('sha256', $token);
     }
 
     /**
-     * Forget the install (the "reset" of the installer). Not while a call is working on it.
+     * The browser with this token started the install that is there.
      */
-    public static function forget(): bool
+    public static function isOwner(?string $token): bool
+    {
+        $state = static::read();
+        if (is_null($state) || !is_string($state['token_hash']) || !is_string($token) || $token === '') {
+            return false;
+        }
+        return hash_equals($state['token_hash'], static::hashToken($token));
+    }
+
+    /**
+     * The cookie with the token: for the folder of the site, until the browser is closed,
+     * not read by scripts.
+     */
+    public static function cookie(string $token, ?string $basePath = null): \Symfony\Component\HttpFoundation\Cookie
+    {
+        return cookie(static::COOKIE, $token, 0, static::cookiePath($basePath), null, request()->isSecure(), true, false, 'lax');
+    }
+
+    /**
+     * The cookie removed (the install ended, or was reset).
+     */
+    public static function forgetCookie(?string $basePath = null): \Symfony\Component\HttpFoundation\Cookie
+    {
+        return cookie()->forget(static::COOKIE, static::cookiePath($basePath));
+    }
+
+    protected static function cookiePath(?string $basePath): string
+    {
+        $basePath = rtrim($basePath ?? request()->getBasePath(), '/');
+        return $basePath === '' ? '/' : $basePath;
+    }
+
+    /**
+     * Forget an install that failed (the "reset" of the installer). Never one going on.
+     */
+    public static function forgetFailed(): bool
     {
         $runner = new self();
         if (!$runner->acquire()) {
             return false;
         }
         try {
-            if (is_file(static::statePath())) {
-                @unlink(static::statePath());
+            $state = static::read();
+            if (is_null($state) || $state['status'] !== static::STATUS_FAILED) {
+                return false;
             }
+            @unlink(static::statePath());
             return true;
         } finally {
             $runner->release();
@@ -172,12 +240,12 @@ class InstallRunner
     }
 
     /**
-     * A call is working on the install now (the lock is taken).
+     * A call is working on the install now. A shared lock: it does not keep a runner out.
      */
     public static function isBusy(): bool
     {
         $runner = new self();
-        if (!$runner->acquire()) {
+        if (!$runner->acquire(LOCK_SH)) {
             return true;
         }
         $runner->release();
@@ -243,11 +311,12 @@ class InstallRunner
             try {
                 $state = $this->runPhase($state, $started);
             } catch (\Throwable $ex) {
-                \Log::error('Exment install (' . $state['phase'] . ') failed: ' . $ex->getMessage(), ['exception' => $ex]);
-                // the progress written up to the failure (the migrations done in this call)
+                // the progress written up to the failure (the migrations done in this call, the one failed)
                 $state = static::read() ?? $state;
+                $migration = $state['phase'] === static::PHASE_MIGRATE && is_string($state['migration']) ? $state['migration'] : null;
+                \Log::error('Exment install (' . $state['phase'] . (is_null($migration) ? '' : ', migration ' . $migration) . ') failed: ' . $ex->getMessage(), ['exception' => $ex]);
                 $state['status'] = static::STATUS_FAILED;
-                $state['error'] = static::errorText($ex->getMessage());
+                $state['error'] = (is_null($migration) ? '' : $migration . ': ') . static::errorText($ex->getMessage());
             }
 
             if ($state['status'] === static::STATUS_SUCCEEDED) {
@@ -301,13 +370,18 @@ class InstallRunner
         $pending = array_values(array_diff(array_keys($all), $ran));
         $state['migrations_total'] = count($all);
         $state['migrations_done'] = count($all) - count($pending);
+        $state['migration'] = null;
         static::write($state);
 
         foreach ($pending as $name) {
             if (microtime(true) - $started >= static::budgetSeconds()) {
                 return $state;
             }
+            // the migration going on, written: a failure reads it to name it
+            $state['migration'] = $name;
+            static::write($state);
             $this->runMigration($all[$name]);
+            $state['migration'] = null;
             $state['migrations_done']++;
             // the progress for the calls that wait (busy)
             static::write($state);
@@ -372,7 +446,7 @@ class InstallRunner
     }
 
     /**
-     * The progress for the screen.
+     * The progress for the screen (of the browser that started the install).
      *
      * @param array<string, mixed>|null $state
      * @return array<string, mixed>
@@ -421,19 +495,26 @@ class InstallRunner
     }
 
     /**
-     * The reason to show: the first lines, without the password of the database.
+     * The reason to show: its first line, without the details of the connection and the SQL
+     * that Laravel adds ("(Connection: ..., Host: ..., SQL: ...)") and without the password of
+     * the database. All of it is in the log.
      */
-    protected static function errorText(string $message): string
+    public static function errorText(string $message): string
     {
+        $line = trim(explode("\n", str_replace("\r", "\n", trim($message)))[0]);
+        $line = trim(preg_replace('/\s*\(Connection: .*$/s', '', $line) ?? $line);
         $password = config('database.connections.' . config('database.default') . '.password');
         if (!is_nullorempty($password)) {
-            $message = str_replace(strval($password), '********', $message);
+            $line = str_replace(strval($password), '********', $line);
         }
-        $lines = array_slice(preg_split('/\r\n|\n/', trim($message)) ?: [], 0, 5);
-        return mb_strimwidth(implode("\n", $lines), 0, 1000, '...');
+        return mb_strimwidth($line, 0, 300, '...');
     }
 
-    protected function acquire(): bool
+    /**
+     * @param int $operation LOCK_EX (to run) or LOCK_SH (to see whether a call runs)
+     * @return bool false: another process holds the lock
+     */
+    protected function acquire(int $operation = LOCK_EX): bool
     {
         $path = static::lockPath();
         $dir = dirname($path);
@@ -442,11 +523,15 @@ class InstallRunner
         }
         $handle = @fopen($path, 'c');
         if ($handle === false) {
-            throw new \RuntimeException('Cannot open ' . $path);
+            throw new \RuntimeException('Cannot open the lock file ' . $path . ': check that storage/app can be written.');
         }
-        if (!flock($handle, LOCK_EX | LOCK_NB)) {
+        $wouldBlock = 0;
+        if (!flock($handle, $operation | LOCK_NB, $wouldBlock)) {
             fclose($handle);
-            return false;
+            if ($wouldBlock) {
+                return false;
+            }
+            throw new \RuntimeException('Cannot lock the file ' . $path . ': the file system of storage/app may not support file locks.');
         }
         $this->lock = $handle;
         return true;

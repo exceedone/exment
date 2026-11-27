@@ -35,6 +35,9 @@ class InstallRunnerTest extends FeatureTestBase
     /** @var int the micro seconds each migration takes */
     private $migrationSleep = 0;
 
+    /** @var string the token of the browser that started the install */
+    private $token = '';
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -95,6 +98,28 @@ class InstallRunnerTest extends FeatureTestBase
     }
 
     /**
+     * Start the install, as the browser that started it (its cookie).
+     */
+    private function begin(): void
+    {
+        $token = InstallRunner::start();
+        $this->assertIsString($token);
+        $this->token = $token;
+        $this->asBrowser($token);
+    }
+
+    /**
+     * The next requests with this token in the cookie of the install (null: no cookie).
+     */
+    private function asBrowser(?string $token): void
+    {
+        $this->unencryptedCookies = [];
+        if (!is_null($token)) {
+            $this->withUnencryptedCookie(InstallRunner::COOKIE, $token);
+        }
+    }
+
+    /**
      * @param array<string, mixed> $data
      * @return array<string, mixed>
      */
@@ -108,7 +133,7 @@ class InstallRunnerTest extends FeatureTestBase
     public function testTheStepsRunInTurnWithTheProgress(): void
     {
         $this->ran = ['m1', 'm2'];
-        InstallRunner::start();
+        $this->begin();
 
         // the files to publish
         $p = $this->step();
@@ -140,8 +165,8 @@ class InstallRunnerTest extends FeatureTestBase
         $this->assertFileDoesNotExist(InstallRunner::statePath());
         $this->assertTrue(InstalledState::isInstalled());
 
-        // again after the end: nothing is run again
-        $this->postJson(admin_base_path('install/step'))->assertRedirect();
+        // again after the end: the install pages are closed, nothing is run again
+        $this->postJson(admin_base_path('install/step'))->assertNotFound();
         $this->assertCount(6, $this->calls);
     }
 
@@ -149,7 +174,7 @@ class InstallRunnerTest extends FeatureTestBase
     {
         config(['exment.install_step_seconds' => 1]);
         $this->migrationSleep = 400000;
-        InstallRunner::start();
+        $this->begin();
         $this->step();
 
         // 1 second: 3 migrations of 0.4 seconds at most (the one going on ends)
@@ -171,7 +196,7 @@ class InstallRunnerTest extends FeatureTestBase
     public function testAFailureIsShownAndTheRetryGoesOnFromThere(): void
     {
         $this->failOnce = 'm3';
-        InstallRunner::start();
+        $this->begin();
         $this->step();
 
         $p = $this->step();
@@ -198,7 +223,7 @@ class InstallRunnerTest extends FeatureTestBase
 
     public function testTheLockKeepsASecondRunnerOut(): void
     {
-        InstallRunner::start();
+        $this->begin();
 
         // another call works on the install (it holds the lock)
         $handle = fopen(InstallRunner::lockPath(), 'c');
@@ -226,7 +251,7 @@ class InstallRunnerTest extends FeatureTestBase
 
     public function testTheStatusRunsNothing(): void
     {
-        InstallRunner::start();
+        $this->begin();
         $this->step();
 
         $status = $this->getJson(admin_base_path('install/status'))->assertStatus(200)->json();
@@ -239,7 +264,7 @@ class InstallRunnerTest extends FeatureTestBase
 
     public function testTheInstallPagesFollowTheRun(): void
     {
-        InstallRunner::start();
+        $this->begin();
 
         // the progress, whatever the session says (a new one after the key is made)
         $this->get(admin_base_path('install'))->assertStatus(200)->assertSee(exmtrans('install.progress.header'));
@@ -251,25 +276,190 @@ class InstallRunnerTest extends FeatureTestBase
         // the other pages of the site wait for the install
         $this->get(admin_base_path('auth/login'))->assertRedirect(admin_base_path('install'));
 
-        // "reset": the install is forgotten
+        // "reset" while the install goes on: nothing (by the link, or the form)
         $this->get(admin_base_path('install/reset'))->assertRedirect(admin_url('install'));
-        $this->assertFileDoesNotExist(InstallRunner::statePath());
+        $this->post(admin_base_path('install/reset'))->assertRedirect(admin_url('install'));
+        $this->assertFileExists(InstallRunner::statePath());
     }
 
-    public function testAnInstalledSiteNeverRunsTheInstallAgain(): void
+    public function testOnlyTheBrowserThatStartedItRunsTheInstall(): void
     {
-        // a state left from before, on a site installed since
-        InstallRunner::start();
+        $this->failOnce = 'm2';
+        $this->begin();
+
+        // another browser (no cookie, or another token): nothing runs, nothing is told
+        foreach ([null, str_repeat('0', 64)] as $other) {
+            $this->asBrowser($other);
+            $this->postJson(admin_base_path('install/step'))->assertStatus(403)->assertExactJson(['status' => 'in_progress']);
+            $this->postJson(admin_base_path('install/step'), ['retry' => 1])->assertStatus(403);
+            $this->getJson(admin_base_path('install/status'))->assertStatus(403)->assertExactJson(['status' => 'in_progress']);
+            $this->post(admin_base_path('install/step'))->assertRedirect(admin_url('install'));
+            $this->get(admin_base_path('install'))->assertStatus(200)
+                ->assertSee(exmtrans('install.progress.other_browser'))
+                ->assertDontSee('install-progress-bar', false);
+        }
+        $this->assertSame([], $this->calls);
+
+        // the browser that started it
+        $this->asBrowser($this->token);
+        $this->step();
+        $p = $this->step();
+        $this->assertSame('failed', $p['status']);
+        $this->assertSame(['publish', 'm1'], $this->calls);
+
+        // the failure is not shown to another browser
+        $this->asBrowser(null);
+        $this->get(admin_base_path('install'))->assertStatus(200)->assertDontSee('already exists');
+        $this->postJson(admin_base_path('install/step'), ['retry' => 1])->assertStatus(403);
+        $this->assertSame(['publish', 'm1'], $this->calls);
+    }
+
+    public function testTheCookieOfTheInstall(): void
+    {
+        $cookie = InstallRunner::cookie('abc', '/exment');
+        $this->assertSame(InstallRunner::COOKIE, $cookie->getName());
+        $this->assertSame('abc', $cookie->getValue());
+        $this->assertSame('/exment', $cookie->getPath());
+        $this->assertTrue($cookie->isHttpOnly());
+        $this->assertSame('lax', $cookie->getSameSite());
+        $this->assertSame(0, $cookie->getExpiresTime(), 'until the browser is closed');
+        $this->assertSame('/', InstallRunner::cookie('abc', '')->getPath());
+
+        // not encrypted: the key of the application is made in the request that sets it
+        $this->assertTrue((new \Exceedone\Exment\Middleware\EncryptCookies(app('encrypter')))->isDisabled(InstallRunner::COOKIE));
+
+        // only the hash of the token is kept
+        $token = InstallRunner::start();
+        $this->assertIsString($token);
+        $this->assertStringNotContainsString($token, (string) file_get_contents(InstallRunner::statePath()));
+        $this->assertTrue(InstallRunner::isOwner($token));
+        $this->assertFalse(InstallRunner::isOwner(null));
+        $this->assertFalse(InstallRunner::isOwner(''));
+        $this->assertFalse(InstallRunner::isOwner($token . 'x'));
+        $this->assertNull(InstallRunner::start(), 'a second start keeps the install there');
+        $this->assertTrue(InstallRunner::isOwner($token));
+    }
+
+    public function testResetOnlyAfterAFailureByTheBrowserThatStartedIt(): void
+    {
+        $this->failOnce = 'm1';
+        $this->begin();
+        $this->step();
+        $this->assertSame('failed', $this->step()['status']);
+
+        // by the link (GET): nothing
+        $this->get(admin_base_path('install/reset'))->assertRedirect(admin_url('install'));
+        $this->assertFileExists(InstallRunner::statePath());
+
+        // by another browser: nothing
+        $this->asBrowser(null);
+        $this->post(admin_base_path('install/reset'))->assertRedirect(admin_url('install'));
+        $this->assertFileExists(InstallRunner::statePath());
+
+        // by the form of the browser that started it: forgotten, and its cookie too
+        $this->asBrowser($this->token);
+        $response = $this->post(admin_base_path('install/reset'))->assertRedirect(admin_url('install'));
+        $this->assertFileDoesNotExist(InstallRunner::statePath());
+        $forgotten = collect($response->headers->getCookies())->first(fn ($c) => $c->getName() === InstallRunner::COOKIE);
+        $this->assertNotNull($forgotten);
+        $this->assertTrue($forgotten->isCleared());
+    }
+
+    public function testTheErrorShownIsItsFirstLineWithTheMigration(): void
+    {
+        InstallRunner::$migrationRunner = function (string $name) {
+            $this->ran[] = $name;
+            if ($name === 'm2') {
+                // as a migration that fails on MySQL: Laravel adds the connection and the SQL
+                throw new \Illuminate\Database\QueryException(
+                    'mysql',
+                    'create table `custom_tables` (`id` int)',
+                    [],
+                    new \PDOException("SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'custom_tables' already exists\nmore lines")
+                );
+            }
+        };
+        $this->begin();
+        $this->step();
+        $p = $this->step();
+
+        $this->assertSame('failed', $p['status']);
+        $this->assertSame("m2: SQLSTATE[42S01]: Base table or view already exists: 1050 Table 'custom_tables' already exists", $p['error']);
+        $this->assertStringNotContainsString('Connection:', $p['error']);
+        $this->assertStringNotContainsString('create table', $p['error']);
+
+        $this->assertSame('SQLSTATE[HY000] [2002] Connection refused', InstallRunner::errorText("SQLSTATE[HY000] [2002] Connection refused (Connection: mysql, Host: db, Port: 3306, Database: exment, SQL: select 1)\n#0 trace"));
+    }
+
+    public function testTheFirstDataIsNeverPutOverASiteSetUp(): void
+    {
+        // the database of the tests is a site set up (System::initialized), the marker is not there
+        $this->assertTrue(boolval(System::initialized()));
+        $this->assertFalse(InstalledState::isInstalled());
+        $menus = \DB::table(config('admin.database.menu_table'))->count();
+        $this->assertGreaterThan(0, $menus);
+
+        // the command itself
+        $exitCode = \Artisan::call('exment:install-step', ['step' => InstallRunner::PHASE_SEED]);
+        $this->assertSame(1, $exitCode);
+        $this->assertStringContainsString('set up already', \Artisan::output());
+
+        // through the steps (the real command)
+        InstallRunner::$phaseRunner = null;
+        $this->begin();
+        $state = json_decode((string) file_get_contents(InstallRunner::statePath()), true);
+        $state['phase'] = InstallRunner::PHASE_SEED;
+        file_put_contents(InstallRunner::statePath(), json_encode($state));
+        $p = $this->step();
+        $this->assertSame('failed', $p['status']);
+        $this->assertSame('seed', $p['phase']);
+        $this->assertStringContainsString('set up already', $p['error']);
+
+        $this->assertSame($menus, \DB::table(config('admin.database.menu_table'))->count(), 'the menus are kept');
+        System::clearCache();
+        $this->assertTrue(boolval(System::initialized()));
+    }
+
+    public function testTheStatusDoesNotKeepARunnerOut(): void
+    {
+        $this->begin();
+
+        // a reader of the status holds a shared lock: no runner is working
+        $handle = fopen(InstallRunner::lockPath(), 'c');
+        $this->assertNotFalse($handle);
+        $this->assertTrue(flock($handle, LOCK_SH | LOCK_NB));
+        try {
+            $this->assertFalse(InstallRunner::isBusy());
+        } finally {
+            flock($handle, LOCK_UN);
+            fclose($handle);
+        }
+    }
+
+    public function testAnInstalledSiteAnswersNotFoundOnEveryInstallPage(): void
+    {
+        // a state left from before, on a site installed since, and the cookie of that install
+        $this->failOnce = 'm1';
+        $this->begin();
+        $this->step();
+        $this->step();
         $this->restoreInstalledState();
         $this->useInstalledState(true);
         $this->assertFalse(InstallRunner::inProgress());
+        $calls = $this->calls;
 
-        $this->postJson(admin_base_path('install/step'))->assertRedirect();
-        $this->getJson(admin_base_path('install/status'))->assertRedirect();
+        $this->get(admin_base_path('install'))->assertNotFound();
+        $this->post(admin_base_path('install'), ['ADMIN_ROUTE_PREFIX' => ''])->assertNotFound();
+        $this->postJson(admin_base_path('install/step'))->assertNotFound();
+        $this->postJson(admin_base_path('install/step'), ['retry' => 1])->assertNotFound();
+        $this->getJson(admin_base_path('install/status'))->assertNotFound();
+        $this->get(admin_base_path('install/reset'))->assertNotFound();
+        $this->post(admin_base_path('install/reset'))->assertNotFound();
+        $this->assertFileExists(InstallRunner::statePath());
 
         $runner = new InstallRunner();
         $p = $runner->step(true);
         $this->assertSame('succeeded', $p['status']);
-        $this->assertSame([], $this->calls);
+        $this->assertSame($calls, $this->calls);
     }
 }

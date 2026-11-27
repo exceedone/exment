@@ -38,6 +38,15 @@ class InstallStepCommand extends InstallCommand
                 return 0;
 
             case InstallRunner::PHASE_SEED:
+                // never the first data over a site set up (the seeder removes its menus and the
+                // tables of laravel-admin), even when the marker of an installed site is missing
+                if (\Schema::hasTable(\Exceedone\Exment\Enums\SystemTableName::SYSTEM)) {
+                    \Exceedone\Exment\Model\System::clearCache();
+                    if (boolval(\Exceedone\Exment\Model\System::initialized())) {
+                        $this->error('exment:install-step seed: this site is set up already. Nothing was changed.');
+                        return 1;
+                    }
+                }
                 // as exment:install, after its migrations
                 $exitCode = intval($this->call('db:seed', ['--class' => \Exceedone\Exment\Database\Seeder\InstallSeeder::class, '--force' => true]));
                 if ($exitCode !== 0) {
