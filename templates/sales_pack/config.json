@@ -1761,32 +1761,25 @@
                     "order": "1",
                     "options": null,
                     "view_column_table_name": "sales_deal",
-                    "view_column_target_name": "deal_name"
+                    "view_column_target_name": "customer"
                 },
                 {
                     "view_column_type": "0",
                     "order": "2",
                     "options": null,
                     "view_column_table_name": "sales_deal",
-                    "view_column_target_name": "customer"
+                    "view_column_target_name": "expected_amount"
                 },
                 {
                     "view_column_type": "0",
                     "order": "3",
                     "options": null,
                     "view_column_table_name": "sales_deal",
-                    "view_column_target_name": "expected_amount"
-                },
-                {
-                    "view_column_type": "0",
-                    "order": "4",
-                    "options": null,
-                    "view_column_table_name": "sales_deal",
                     "view_column_target_name": "expected_date"
                 },
                 {
                     "view_column_type": "0",
-                    "order": "5",
+                    "order": "4",
                     "options": null,
                     "view_column_table_name": "sales_deal",
                     "view_column_target_name": "owner"
