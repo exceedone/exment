@@ -18,6 +18,8 @@ class OfficialReleasesTest extends FeatureTestBase
 {
     /**
      * The releases of exment-plugins-release 7.2.0.
+     * They are signed records of releases already published, so they keep
+     * the names they were released with (ExmentITSupport is now ExmentSupportDesk).
      */
     public const RELEASES = [
         'ExmentPM' => ['version' => '1.7.1', 'uuid' => '00da3e93-1a24-4f44-b993-d61367e43649'],

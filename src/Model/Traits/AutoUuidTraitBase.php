@@ -6,7 +6,7 @@ namespace Exceedone\Exment\Model\Traits;
  * set uuid automatic
  *
  * @property static $key
- * @method static function firstRecord(\Closure $filter = null, $isGetAll = true, $with = [])
+ * @method static function firstRecord(?\Closure $filter = null, $isGetAll = true, $with = [])
  */
 trait AutoUuidTraitBase
 {
