@@ -419,7 +419,7 @@ class UserApiKeyPageTest extends FeatureTestBase
         $page = $this->get(admin_url('auth/api_keys'));
         $page->assertOk()->assertSee(exmtrans('api_key.mcp.header'))->assertSee(McpGuide::url())
             // the purpose "AI (MCP)" first and checked, with its scopes
-            ->assertSee('name="purpose" value="mcp" data-scopes="' . e(json_encode(McpGuide::scopes())) . '" checked', false)
+            ->assertSee('name="purpose" value="mcp" data-scopes="' . e(strval(json_encode(McpGuide::scopes()))) . '" checked', false)
             ->assertDontSee(exmtrans('api_key.mcp.off'));
         // without a new key: the settings with a placeholder
         $page->assertSee('claude mcp add --transport http exment ' . McpGuide::url() . ' --header &quot;Authorization: Bearer exk_...&quot;', false);
