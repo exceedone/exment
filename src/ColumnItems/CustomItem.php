@@ -999,7 +999,7 @@ abstract class CustomItem implements ItemInterface
             return new $className($custom_column, $custom_value, $view_column_target);
         }
 
-        admin_error('Error', 'Field type [' . e($column_type) . '] does not exist.');
+        admin_error('Error', admin_html_message('Field type [' . e($column_type) . '] does not exist.'));
 
         return null;
     }

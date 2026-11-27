@@ -123,13 +123,14 @@ class FeatureController extends AdminControllerBase
         }
         try {
             $plugin = $action === 'rollback' ? BundledPlugins::rollback($uuid) : BundledPlugins::install($uuid);
-            admin_toastr(exmtrans($action === 'rollback' ? 'plugin_distribution.rolled_back' : 'plugin_distribution.installed', [
+            // as HTML: the name and the version escaped
+            admin_toastr(admin_html_message(exmtrans($action === 'rollback' ? 'plugin_distribution.rolled_back' : 'plugin_distribution.installed', [
                 'name' => esc_html($plugin->plugin_view_name),
                 'version' => esc_html($plugin->version),
-            ]));
+            ])));
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the bundled plugin ' . $uuid . ': ' . $e->getMessage());
-            admin_toastr(esc_html($e->getMessage()), 'error');
+            admin_toastr(admin_html_message(esc_html($e->getMessage())), 'error');
         }
         return redirect(admin_url('feature'));
     }
@@ -158,13 +159,13 @@ class FeatureController extends AdminControllerBase
         }
         try {
             $plugin = BundledPlugins::installUploaded(strval($zip->getRealPath()), strval($json->getRealPath()));
-            admin_toastr(exmtrans('plugin_distribution.installed', [
+            admin_toastr(admin_html_message(exmtrans('plugin_distribution.installed', [
                 'name' => esc_html($plugin->plugin_view_name),
                 'version' => esc_html($plugin->version),
-            ]));
+            ])));
         } catch (\Throwable $e) {
             \Log::warning('[Exment] an uploaded official plugin: ' . $e->getMessage());
-            admin_toastr(esc_html($e->getMessage()), 'error');
+            admin_toastr(admin_html_message(esc_html($e->getMessage())), 'error');
         }
         return redirect(admin_url('feature'));
     }

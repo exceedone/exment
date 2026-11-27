@@ -81,6 +81,29 @@ if (!function_exists('esc_html')) {
     }
 }
 
+if (!function_exists('admin_html_message')) {
+    /**
+     * A message of admin_info(), admin_success(), admin_warning(), admin_error() (and their *_once())
+     * or admin_toastr() that is shown as HTML. The other messages are shown as text by exment-admin-core.
+     * Escape the variable parts of $html with e() (or esc_html()).
+     *
+     * The HtmlString is in an array of one: each version of exment-admin-core 2 shows it as HTML.
+     * One before the messages were shown as text prints the message as it is, and keeps only a
+     * string or an array (an object alone is lost); the later ones show an Htmlable as it is.
+     *
+     * @param string|\Illuminate\Contracts\Support\Htmlable $html
+     * @return mixed the message for those helpers: array<int, \Illuminate\Support\HtmlString>
+     *     (mixed: the versions before say "string" for the message)
+     */
+    function admin_html_message($html)
+    {
+        if ($html instanceof \Illuminate\Contracts\Support\Htmlable) {
+            $html = $html->toHtml();
+        }
+        return [new \Illuminate\Support\HtmlString(strval($html))];
+    }
+}
+
 if (!function_exists('css_clean')) {
     /**
      * Sanitize user-supplied CSS before it is emitted inside a <style> block.

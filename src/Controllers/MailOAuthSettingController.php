@@ -119,7 +119,7 @@ class MailOAuthSettingController extends SystemSettingPageControllerBase
         }
         $code = strval($request->query('code'));
         if ($code === '') {
-            admin_toastr(exmtrans('system.mail_oauth.connect_failed', esc_html(Str::limit(strval($request->query('error')), 100))), 'error');
+            admin_toastr(admin_html_message(exmtrans('system.mail_oauth.connect_failed', esc_html(Str::limit(strval($request->query('error')), 100)))), 'error');
             return redirect(admin_url($this->uri()));
         }
 
@@ -127,7 +127,7 @@ class MailOAuthSettingController extends SystemSettingPageControllerBase
             MailOAuth::connectGoogle($code, static::googleRedirectUri());
         } catch (\Throwable $ex) {
             \Log::warning('[Exment] the mailbox was not connected to Google: ' . $ex->getMessage());
-            admin_toastr(exmtrans('system.mail_oauth.connect_failed', esc_html($ex->getMessage())), 'error');
+            admin_toastr(admin_html_message(exmtrans('system.mail_oauth.connect_failed', esc_html($ex->getMessage()))), 'error');
             return redirect(admin_url($this->uri()));
         }
         System::clearCache();

@@ -586,7 +586,7 @@ class Plugin extends ModelBase
                     }
                     // if cannot call class, set error
                     else {
-                        admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                        admin_error(exmtrans('common.error'), admin_html_message($plugin->getCannotReadMessage()));
                     }
                 }
             }
@@ -628,7 +628,7 @@ class Plugin extends ModelBase
                         // call PluginType::BUTTON as throw_ex is false
                         $class = $plugin->getClass(PluginType::DOCUMENT, $options);
                         if (!isset($class)) {
-                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            admin_error(exmtrans('common.error'), admin_html_message($plugin->getCannotReadMessage()));
                             break;
                         }
 
@@ -648,7 +648,7 @@ class Plugin extends ModelBase
                         $class = $plugin->getClass(PluginType::BUTTON, $options);
                         $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
                         if (!isset($class)) {
-                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            admin_error(exmtrans('common.error'), admin_html_message($plugin->getCannotReadMessage()));
                             break;
                         }
 

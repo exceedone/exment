@@ -74,7 +74,8 @@ class ClassLoader
             try {
                 require_once $file;
             } catch (\Throwable $th) {
-                admin_error_once(exmtrans('common.error'), exmtrans('error.class_load_error', esc_html($file), esc_html($th->getMessage())));
+                // the text has <br />: HTML, with the file and the error escaped
+                admin_error_once(exmtrans('common.error'), admin_html_message(exmtrans('error.class_load_error', esc_html($file), esc_html($th->getMessage()))));
                 \Log::error($th);
             }
         }

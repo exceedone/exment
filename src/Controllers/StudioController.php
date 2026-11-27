@@ -235,7 +235,7 @@ class StudioController extends AdminControllerBase
         if (count($actions) > 0) {
             ScreenAction::build($form->custom_table, $columnIds, $actions);
         }
-        admin_toastr(sprintf(exmtrans('studio.saved_form'), esc_html($screen['table_view_name'])));
+        admin_toastr(admin_html_message(sprintf(exmtrans('studio.saved_form'), esc_html($screen['table_view_name']))));
         return redirect()->to(admin_urls('studio', 'screens', $form->id, 'edit'));
     }
 
@@ -346,11 +346,11 @@ class StudioController extends AdminControllerBase
             if ($result['cleared'] > 0) {
                 $message .= sprintf(exmtrans('studio.created_cleared'), $result['cleared']);
             }
-            admin_toastr($message, $result['cleared'] > 0 ? 'warning' : 'success');
+            admin_toastr(admin_html_message($message), $result['cleared'] > 0 ? 'warning' : 'success');
             return redirect()->to(admin_urls('data', $table->table_name));
         }
 
-        admin_toastr(sprintf(exmtrans('studio.created'), esc_html($table->table_view_name)) . $madeMessage);
+        admin_toastr(admin_html_message(sprintf(exmtrans('studio.created'), esc_html($table->table_view_name)) . $madeMessage));
         return redirect()->to(admin_urls('data', $table->table_name, 'create'));
     }
 
@@ -478,7 +478,7 @@ class StudioController extends AdminControllerBase
         });
         $table = CustomTable::getEloquent($form->custom_table_id);
 
-        admin_toastr(sprintf(exmtrans('studio.created_form'), esc_html($form->form_view_name), esc_html($table->table_view_name)));
+        admin_toastr(admin_html_message(sprintf(exmtrans('studio.created_form'), esc_html($form->form_view_name), esc_html($table->table_view_name))));
         return redirect()->to(admin_urls('data', $table->table_name, 'create?formid=' . $form->suuid));
     }
 }

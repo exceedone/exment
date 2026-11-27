@@ -66,7 +66,7 @@ class PluginBootIsolationTest extends FeatureTestBase
         $this->refreshApplication();
         $this->initAllTest();
 
-        \Event::listen(MessageLogged::class, function (MessageLogged $event) {
+        \Illuminate\Support\Facades\Event::listen(MessageLogged::class, function (MessageLogged $event) {
             $this->logged[] = $event;
         });
         PluginBootGuard::forget($this->names());
