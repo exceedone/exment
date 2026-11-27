@@ -20,6 +20,8 @@ trait OrganizationTrait
     use AdminBuilder, ModelTree {
         ModelTree::boot as treeBoot;
     }
+    // organizations, their hierarchy and membership feed the cached permissions
+    use ClearCacheTrait;
 
     /**
      * Clear cache after saving/deleting an organization (called from ModelBase events).

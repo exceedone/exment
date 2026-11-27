@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class CustomViewSummary extends ModelBase
 {
+    use Traits\ClearCacheTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\AutoSUuidTrait;
     use Traits\CustomViewColumnOptionTrait;

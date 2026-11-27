@@ -134,6 +134,80 @@ class System extends ModelBase
     // @phpstan-ignore-next-line
     protected static $requestSession = [];
 
+    /**
+     * Event dispatchers that already reset the request lookup indexes at queue-job boundaries.
+     *
+     * @var \WeakMap<object, bool>|null
+     */
+    protected static $requestIndexJobListeners = null;
+
+    /**
+     * Request lookup indexes and missing-id memos (UseRequestSessionTrait) must not outlive a
+     * queue-worker job: the static request session itself survives between jobs. Jobs on the
+     * "sync" connection run inside the current request and keep them.
+     */
+    public static function listenRequestIndexJobBoundary(): void
+    {
+        if (!function_exists('app') || !app()->bound('events')) {
+            return;
+        }
+        $events = app('events');
+        static::$requestIndexJobListeners ??= new \WeakMap();
+        if (isset(static::$requestIndexJobListeners[$events])) {
+            return;
+        }
+        static::$requestIndexJobListeners[$events] = true;
+        $events->listen(\Illuminate\Queue\Events\JobProcessing::class, function ($event) {
+            if ($event->connectionName !== 'sync') {
+                static::clearRequestIndexes();
+            }
+        });
+    }
+
+    /**
+     * Drop every request lookup index / missing-id memo.
+     */
+    public static function clearRequestIndexes(): void
+    {
+        static::clearRequestSessionPrefix(strstr(Define::SYSTEM_KEY_SESSION_ALL_RECORDS_INDEX, '%s', true));
+    }
+
+    /**
+     * Drop the request memory entries whose key starts with $prefix.
+     */
+    public static function clearRequestSessionPrefix(string $prefix): void
+    {
+        foreach (array_keys(static::$requestSession) as $key) {
+            if (is_string($key) && str_starts_with($key, $prefix)) {
+                unset(static::$requestSession[$key]);
+            }
+        }
+    }
+
+    /**
+     * Key of the identity of the user the cached custom value models were read for.
+     */
+    protected const MODEL_CACHE_USER_KEY = 'exment_model_cache_user';
+
+    /**
+     * The cached custom value models (and the "not found" answers) were read through the permission scope of
+     * one user. Drop them as soon as another user, or none, is authenticated, so that they are never served
+     * to someone else. Must run before every read or write of Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE.
+     */
+    public static function syncModelCacheUser(): void
+    {
+        $user = \Exment::user();
+        $identity = is_null($user) ? '' : get_class($user) . ':' . $user->getAuthIdentifier();
+
+        if (array_key_exists(static::MODEL_CACHE_USER_KEY, static::$requestSession)
+            && static::$requestSession[static::MODEL_CACHE_USER_KEY] === $identity) {
+            return;
+        }
+
+        static::clearRequestSessionPrefix(strstr(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, '%s', true));
+        static::$requestSession[static::MODEL_CACHE_USER_KEY] = $identity;
+    }
+
 
     // @phpstan-ignore-next-line
     public static function __callStatic($name, $argments)
@@ -295,13 +369,36 @@ class System extends ModelBase
 
             // set cache
             if (boolval(config('exment.use_cache', false))) {
-                static::store()->put(static::storeKey($key), $val, Define::CACHE_CLEAR_MINUTE);
+                // data read inside an open transaction may be rolled back, and is not what other requests see:
+                // it stays in this request only
+                if (!static::inAnyTransaction()) {
+                    static::store()->put(static::storeKey($key), $val, Define::CACHE_CLEAR_MINUTE);
+                }
             }
             return $val;
         }
 
         static::setRequestSession($key, $value);
-        static::store()->put(static::storeKey($key), $value, Define::CACHE_CLEAR_MINUTE);
+        if (!static::inAnyTransaction()) {
+            static::store()->put(static::storeKey($key), $value, Define::CACHE_CLEAR_MINUTE);
+        }
+    }
+
+    /**
+     * Whether any database connection has an open transaction (what it holds may be rolled back).
+     */
+    public static function inAnyTransaction(): bool
+    {
+        try {
+            foreach (\DB::getConnections() as $connection) {
+                if ($connection->transactionLevel() > 0) {
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            // no connection yet
+        }
+        return false;
     }
 
     /** @var string|null the generation of the cache last read from the database */

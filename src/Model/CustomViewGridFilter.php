@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\ConditionType;
  */
 class CustomViewGridFilter extends ModelBase
 {
+    use Traits\ClearCacheTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\ConditionTypeTrait;
     use Traits\TemplateTrait;

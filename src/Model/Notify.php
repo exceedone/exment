@@ -43,6 +43,7 @@ use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
  */
 class Notify extends ModelBase
 {
+    use Traits\ClearCacheTrait;
     use Traits\UseRequestSessionTrait;
     use Traits\AutoSUuidTrait;
     use Traits\DatabaseJsonTrait;

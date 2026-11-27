@@ -20,6 +20,7 @@ use Exceedone\Exment\Services\ViewFilter\ViewFilterBase;
  */
 class CustomViewFilter extends ModelBase
 {
+    use Traits\ClearCacheTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\TemplateTrait;
     use Traits\AutoSUuidTrait;

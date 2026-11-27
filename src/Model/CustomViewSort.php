@@ -17,6 +17,7 @@ use Exceedone\Exment\Enums\ConditionType;
  */
 class CustomViewSort extends ModelBase
 {
+    use Traits\ClearCacheTrait;
     use Traits\CustomViewColumnTrait;
     use Traits\AutoSUuidTrait;
     use Traits\ConditionTypeTrait;

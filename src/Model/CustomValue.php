@@ -2225,6 +2225,7 @@ abstract class CustomValue extends ModelBase
     // @phpstan-ignore-next-line
     public function setValueModel()
     {
+        System::syncModelCacheUser();
         $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->custom_table_name, $this->id);
         System::setRequestSession($key, $this);
 
