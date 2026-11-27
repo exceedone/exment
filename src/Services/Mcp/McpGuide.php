@@ -71,7 +71,7 @@ class McpGuide
     /**
      * The settings to paste, with the key (only shown when the key is made) or a placeholder.
      *
-     * @return array{claude_code: string, claude_desktop: string}
+     * @return array{claude_code: string, claude_desktop: string, generic: string}
      */
     public static function configs(?string $key = null): array
     {
@@ -86,9 +86,20 @@ class McpGuide
                 ],
             ],
         ];
+        // other clients that speak MCP over HTTP (the "mcpServers" JSON of most of them)
+        $generic = [
+            'mcpServers' => [
+                static::SERVER_NAME => [
+                    'type' => 'http',
+                    'url' => $url,
+                    'headers' => ['Authorization' => 'Bearer ' . $key],
+                ],
+            ],
+        ];
         return [
             'claude_code' => 'claude mcp add --transport http ' . static::SERVER_NAME . ' ' . $url . ' --header "Authorization: Bearer ' . $key . '"',
             'claude_desktop' => strval(json_encode($desktop, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
+            'generic' => strval(json_encode($generic, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)),
         ];
     }
 
