@@ -46,6 +46,21 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
 
 
     /**
+     * A list column as text. json_value returns NULL for a JSON array, so a "column->key" selector reads the key
+     * with json_query (array) and falls back to json_value (scalar).
+     */
+    public function listColumnExpression(string $column): string
+    {
+        if (!str_contains($column, '->')) {
+            return $this->wrap($column);
+        }
+        $parts = explode('->', $column);
+        $jsonColumn = $this->wrap(array_shift($parts));
+        $path = "'$.\"" . implode('"."', array_map(fn ($p) => str_replace("'", "''", $p), $parts)) . "\"'";
+        return "COALESCE(JSON_QUERY($jsonColumn, $path), JSON_VALUE($jsonColumn, $path))";
+    }
+
+    /**
      * wherein string.
      * Ex. column is 1,12,23,31 , and want to match 1, getting.
      *
@@ -57,7 +72,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      */
     public function whereInArrayString($builder, string $tableName, string $column, $values, bool $isOr = false, bool $isNot = false)
     {
-        $index = $this->wrap($column);
+        $index = $this->listColumnExpression($column);
         $queryStr = "STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\"', ''), ',')";
 
         // definition table name
@@ -75,7 +90,7 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
                 ->fromRaw($fromRaw)
                 // $tableNameWrapAs and $tableNameWrap is wrapped.
                 ->whereRaw("$tableNameWrapAs.id = $tableNameWrap.id")
-                ->whereIn("CROSS_APPLY_TABLE.value", toArray($values));
+                ->whereIn("CROSS_APPLY_TABLE.value", array_map('strval', toArray($values)));
         });
 
         return $builder;
@@ -94,25 +109,18 @@ class SqlServerGrammar extends BaseGrammar implements GrammarInterface
      */
     public function whereInArrayColumn($builder, string $tableName, string $baseColumn, string $column, bool $isOr = false, bool $isNot = false)
     {
-        $index = $this->wrap($column);
+        $index = $this->listColumnExpression($column);
+        $baseColumnWrap = $this->wrap($baseColumn);
         $queryStr = "STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($index, '[', ''), ' ', ''), ']', ''), '\"', ''), ',')";
 
-        // definition table name
-        $tableNameAs = "{$tableName}_exists";
-        $tableNameWrap = $this->wrapTable($tableName);
-        $tableNameWrapAs = $this->wrapTable($tableNameAs);
-
-        // CREATE "CROSS APPLY"
-        $fromRaw = "$tableNameWrap as $tableNameWrapAs CROSS APPLY $queryStr AS CROSS_APPLY_TABLE";
-
+        // Element by element, as text: an invalid element ('abc') simply never equals an id, and a text compare
+        // cannot raise a conversion error (an int compare would). NULL / '' yield no matching element.
+        // The split is correlated to the outer column directly: $tableName may be a join target ("t AS alias").
         $func = $isNot ? 'whereNotExists' : 'whereExists';
-        $builder->{$func}(function ($query) use ($baseColumn, $fromRaw, $tableNameWrap, $tableNameWrapAs) {
+        $builder->{$func}(function ($query) use ($queryStr, $baseColumnWrap) {
             $query->select(\DB::raw(1))
-                // fromRaw is wrapped.
-                ->fromRaw($fromRaw)
-                // $tableNameWrapAs and $tableNameWrap is wrapped.
-                ->whereRaw("$tableNameWrapAs.id = $tableNameWrap.id")
-                ->whereColumn("CROSS_APPLY_TABLE.value", $baseColumn);
+                ->fromRaw("$queryStr AS [CROSS_APPLY_TABLE]")
+                ->whereRaw("[CROSS_APPLY_TABLE].[value] = CAST($baseColumnWrap AS nvarchar(40))");
         });
 
         return $builder;

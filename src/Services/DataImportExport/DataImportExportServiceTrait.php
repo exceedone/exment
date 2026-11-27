@@ -641,8 +641,11 @@ trait DataImportExportServiceTrait
                     if (isset($s)) {
                         $s['parent_lookup'] = $lookup;
                     }
-                } else {
+                } elseif (isset($target_table)) {
                     $parent_item = ParentItem::getItem($target_table);
+                } else {
+                    // missing / unknown parent_type: nothing to look up here, the row validation refuses it (validateValue)
+                    $parent_item = null;
                 }
                 if (isset($parent_item)) {
                     static::getImportColumnValue($data, $key, $value, $parent_item, $target_table->table_view_name, $s ?? null, $target_table, $options);

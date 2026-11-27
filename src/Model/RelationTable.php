@@ -532,6 +532,12 @@ class RelationTable
         }
 
 
+        // SQL Server casts a text column to the int parameter type and fails on a non-numeric stored value; compare as text
+        if (\DB::connection()->getDriverName() === 'sqlsrv'
+            && \Exceedone\Exment\Services\Storage\PhysicalQueryRouting::keyFor($custom_column, CustomColumn::QUERY_PURPOSE_GENERAL) === null) {
+            $value = is_array($value) || $value instanceof \Illuminate\Support\Collection ? array_map('strval', toArray($value)) : (is_null($value) ? $value : strval($value));
+        }
+
         // @phpstan-ignore-next-line
         $query->whereOrIn($custom_column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_GENERAL), $value);
 
@@ -694,10 +700,17 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoin' : 'join';
-        $query->{$joinName}("$parent_table_name AS $unique_table_name", function ($join) use ($custom_item, $child_table_name, $unique_table_name, $query_key) {
+        // SQL Server compares the id with the text of a JSON / index column as a number, and fails on an invalid
+        // reference ('abc'); TRY_CAST makes it NULL = no match. A typed physical column needs no cast.
+        $tryCast = \Exceedone\Exment\Services\Storage\PhysicalSchemaManager::driverFamily() === 'sqlsrv'
+            && \Exceedone\Exment\Services\Storage\PhysicalQueryRouting::keyFor($custom_column, CustomColumn::QUERY_PURPOSE_GENERAL) === null;
+        $query->{$joinName}("$parent_table_name AS $unique_table_name", function ($join) use ($custom_item, $child_table_name, $unique_table_name, $query_key, $tryCast) {
             // If multiple, join as array string
             if ($custom_item->isMultipleEnabled()) {
                 $join->whereInArrayColumn("$unique_table_name.id", "$child_table_name.$query_key");
+            } elseif ($tryCast) {
+                $grammar = $join->getGrammar();
+                $join->whereRaw($grammar->wrap("$unique_table_name.id") . ' = TRY_CAST(' . $grammar->wrap("$child_table_name.$query_key") . ' AS bigint)');
             } else {
                 $join->whereColumn("$unique_table_name.id", "=", "$child_table_name.$query_key");
             }
@@ -869,21 +882,37 @@ class RelationTable
 
         // Append join query.
         $joinName = $leftJoin ? 'leftJoinSub' : 'joinSub';
-        $query->{$joinName}(function ($subQuery) use ($child_table_name, $query_key, $selectKey) {
-            // set from and default group by, select.
-            $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
-                ->select($selectKey)
-                ->whereNull("{$this->tableUniqueName}.deleted_at")
-                ->groupBy("{$this->tableUniqueName}.$query_key");
+        $query->{$joinName}(function ($subQuery) use ($child_table_name, $query_key, $selectKey, $sub_key, $custom_item) {
+            // SQL Server: json_value (the generic JSON selector) is NULL for a JSON array, so a multiple pivot read
+            // from JSON is selected and grouped through the list expression of the grammar (json_query first)
+            $grammar = $subQuery->getGrammar();
+            if ($custom_item->isMultipleEnabled() && str_contains($query_key, '->') && method_exists($grammar, 'listColumnExpression')) {
+                $list = $grammar->listColumnExpression("{$this->tableUniqueName}.$query_key");
+                $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
+                    ->selectRaw($list . ' AS ' . $grammar->wrap($sub_key))
+                    ->whereNull("{$this->tableUniqueName}.deleted_at")
+                    ->groupByRaw($list);
+            } else {
+                // set from and default group by, select.
+                $subQuery->from("$child_table_name AS {$this->tableUniqueName}")
+                    ->select($selectKey)
+                    ->whereNull("{$this->tableUniqueName}.deleted_at")
+                    ->groupBy("{$this->tableUniqueName}.$query_key");
+            }
 
             // call subquery object callbacks.
             foreach ($this->subQueryCallbacks as $callback) {
                 $callback($subQuery, $this);
             };
-        }, $this->tableUniqueName, function ($join) use ($custom_item, $parent_table_name, $unique_table_name, $sub_key) {
+        }, $this->tableUniqueName, function ($join) use ($custom_item, $parent_table_name, $unique_table_name, $sub_key, $custom_column) {
             // If multiple, join as array string
             if ($custom_item->isMultipleEnabled()) {
                 $join->whereInArrayColumn("$parent_table_name.id", "$unique_table_name.$sub_key");
+            } elseif (\Exceedone\Exment\Services\Storage\PhysicalSchemaManager::driverFamily() === 'sqlsrv'
+                && \Exceedone\Exment\Services\Storage\PhysicalQueryRouting::keyFor($custom_column, CustomColumn::QUERY_PURPOSE_GENERAL) === null) {
+                // invalid reference text ('abc') must not match, not fail the numeric compare
+                $grammar = $join->getGrammar();
+                $join->whereRaw($grammar->wrap("$parent_table_name.id") . ' = TRY_CAST(' . $grammar->wrap("$unique_table_name.$sub_key") . ' AS bigint)');
             } else {
                 $join->whereColumn("$parent_table_name.id", "=", "$unique_table_name.$sub_key");
             }

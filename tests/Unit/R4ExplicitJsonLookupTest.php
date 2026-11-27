@@ -11,6 +11,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
+use Exceedone\Exment\Tests\Support\DriverSql;
 use Exceedone\Exment\Tests\TestDefine;
 
 /**
@@ -33,6 +34,7 @@ use Exceedone\Exment\Tests\TestDefine;
 class R4ExplicitJsonLookupTest extends UnitTestBase
 {
     use DatabaseTransactions;
+    use DriverSql;
 
     protected function setUp(): void
     {
@@ -108,12 +110,21 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
 
     protected function jsonKey(string $name, ?string $table = null): string
     {
-        return 'json_unquote(json_extract(' . ($table ? "`$table`." : '') . "`value`, '$.\"" . $name . "\"'))";
+        return static::jsonText(static::q(($table ? "$table." : '') . 'value'), $name);
     }
 
     protected function idx(CustomTable $table, string $name): string
     {
-        return '`column_' . CustomColumn::getEloquent($name, $table)->suuid . '`';
+        return static::q('column_' . CustomColumn::getEloquent($name, $table)->suuid);
+    }
+
+    /** The scoped (soft-delete only) select an Eloquent query on a business table produces, in the current driver's dialect. */
+    protected function scoped(string $db, string $condition, string $columns = '*', bool $first = false): string
+    {
+        $t = static::q($db);
+        $top = $first && static::sqlServer() ? 'top 1 ' : '';
+        $limit = $first && !static::sqlServer() ? ' limit 1' : '';
+        return "select {$top}{$columns} from $t where $condition and $t." . static::q('deleted_at') . ' is null' . $limit;
     }
 
     protected function value(CustomTable $table, int $id, string $key)
@@ -133,7 +144,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
     {
         $now = \Carbon\Carbon::now();
         return intval(\DB::table(getDBTableName($table))->insertGetId([
-            'value' => json_encode($value), 'created_at' => $now, 'updated_at' => $now,
+            'suuid' => short_uuid(), 'value' => json_encode($value), 'created_at' => $now, 'updated_at' => $now,
             'created_user_id' => 1, 'updated_user_id' => 1,
         ]));
     }
@@ -167,10 +178,9 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
         });
         $q = $this->matching($log, "'$.\"index_text\"'");
         $this->assertCount(1, $q);
-        $this->assertSame('select * from `' . getDBTableName($child) . '` where ' . $this->jsonKey('index_text')
-            . ' = ? and `' . getDBTableName($child) . '`.`deleted_at` is null limit 1', $q[0]['query'], 'explicit JSON path although index_text is indexed');
+        $this->assertSame($this->scoped(getDBTableName($child), $this->jsonKey('index_text') . ' = ?', '*', true), $q[0]['query'], 'explicit JSON path although index_text is indexed');
         $this->assertSame([$label], $q[0]['bindings']);
-        // existing behaviour, pinned: the lookup reads the table being imported, not the parent table
+        // the item resolves against the table it was built for (the real import caller builds it on the parent table)
         $this->assertSame(['result' => true, 'value' => $childId], ['result' => $result['result'], 'value' => intval($result['value'])]);
 
         [$miss] = $this->logged(function () use ($item) {
@@ -225,7 +235,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
             return $table->getMatchedCustomValues($labels, 'value.index_text');
         });
         $q = [$this->one($log, ' in (?, ?, ?)')];
-        $this->assertSame("select * from `$db` where {$this->idx($table, 'index_text')} in (?, ?, ?) and `$db`.`deleted_at` is null", $q[0]['query']);
+        $this->assertSame($this->scoped($db, "{$this->idx($table, 'index_text')} in (?, ?, ?)"), $q[0]['query']);
         $this->assertSame($labels, $q[0]['bindings']);
         $this->assertSame(array_combine($labels, $ids), array_map(function ($m) {
             return intval($m->id);
@@ -235,7 +245,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
             return $table->getMatchedCustomValues($texts, 'value.text');
         });
         $q = [$this->one($log, ' in (?, ?, ?)')];
-        $this->assertSame("select * from `$db` where {$this->jsonKey('text')} in (?, ?, ?) and `$db`.`deleted_at` is null", $q[0]['query']);
+        $this->assertSame($this->scoped($db, "{$this->jsonKey('text')} in (?, ?, ?)"), $q[0]['query']);
         $this->assertSame(array_combine($texts, $ids), array_map(function ($m) {
             return intval($m->id);
         }, $byText));
@@ -244,7 +254,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
             return $table->getMatchedCustomValues($ids, 'id');
         });
         $q = [$this->one($log, ' in (?, ?, ?)')];
-        $this->assertSame("select * from `$db` where `id` in (?, ?, ?) and `$db`.`deleted_at` is null", $q[0]['query']);
+        $this->assertSame($this->scoped($db, static::q('id') . ' in (?, ?, ?)'), $q[0]['query']);
         $this->assertSame($ids, array_map('intval', array_keys($byId)));
 
         // the same JSON path for an indexed column once index_enabled is off
@@ -252,7 +262,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
         [$json, $log] = $this->logged(function () use ($table, $labels) {
             return $table->getMatchedCustomValues($labels, 'value.index_text');
         });
-        $this->assertSame("select * from `$db` where {$this->jsonKey('index_text')} in (?, ?, ?) and `$db`.`deleted_at` is null", $this->one($log, ' in (?, ?, ?)')['query']);
+        $this->assertSame($this->scoped($db, "{$this->jsonKey('index_text')} in (?, ?, ?)"), $this->one($log, ' in (?, ?, ?)')['query']);
         $this->assertSame(array_keys($byLabel), array_keys($json));
     }
 
@@ -295,31 +305,37 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
         $this->assertSame(false, $result['status']);
         $q = $this->matching($log, $this->jsonKey('parent_select_table'));
         $this->assertNotEmpty($q);
-        $this->assertSame('select exists(select * from `' . getDBTableName($child) . '` where ' . $this->jsonKey('parent_select_table')
-            . ' in (?) and `' . getDBTableName($child) . '`.`deleted_at` is null) as `exists`', $q[0]['query'], 'explicit JSON path although the column is indexed');
+        $cdb = getDBTableName($child);
+        $inner = $this->scoped($cdb, $this->jsonKey('parent_select_table') . ' in (?)', '1 ' . static::q('exists'), true);
+        $this->assertSame(static::sqlServer() ? $inner : 'select exists(' . $this->scoped($cdb, $this->jsonKey('parent_select_table') . ' in (?)') . ') as ' . static::q('exists'), $q[0]['query'], 'explicit JSON path although the column is indexed');
         $this->assertSame([strval($referenced)], array_map('strval', $q[0]['bindings']));
 
         $this->assertNull($parent->validateValueDestroy($free), 'an unreferenced row may be deleted');
     }
 
     /**
-     * Existing behaviour, characterized (not fixed): whereIn() on the JSON path of a multi-value
-     * select_table column compares the list text, so a reference held only in such a list is
-     * not found and the row may be deleted.
+     * A reference held only in a multi-value select_table list blocks the delete (each element is matched,
+     * not the list text); a row that no list or single value references can still be deleted.
      */
-    public function testDestroyValidationAndMultiValueReferencesAsFound(): void
+    public function testDestroyValidationFindsMultiValueReferences(): void
     {
         $target = $this->table(TestDefine::TESTDATA_TABLE_NAME_VIEW_ALL);
         $source = $this->table(TestDefine::TESTDATA_TABLE_NAME_ALL_COLUMNS_FORTEST);
         $rows = \DB::table(getDBTableName($source))->whereNull('deleted_at')->orderBy('id')->limit(2)->pluck('id')->map(function ($v) { return intval($v); })->all();
 
         $inList = $this->insertRow($target, ['text' => 'p11-in-list']);
-        $this->setValueKey($source, $rows[0], 'select_table_multiple', [strval($inList)]);
+        $other = $this->insertRow($target, ['text' => 'p11-other']);
+        $this->setValueKey($source, $rows[0], 'select_table_multiple', [strval($other), strval($inList)]);
         $single = $this->insertRow($target, ['text' => 'p11-single']);
         $this->setValueKey($source, $rows[1], 'select_table', strval($single));
+        $free = $this->insertRow($target, ['text' => 'p11-free']);
 
         $this->assertSame(false, $target->validateValueDestroy($single)['status'], 'single-value reference is found');
-        $this->assertNull($target->validateValueDestroy($inList), 'existing: a reference only in a multi-value list is not found');
+        $this->assertSame(false, $target->validateValueDestroy($inList)['status'], 'a reference only in a multi-value list is found');
+        $this->assertSame(false, $target->validateValueDestroy($other)['status'], 'every element of the list is found');
+        $this->assertNull($target->validateValueDestroy($free), 'an unreferenced row may be deleted');
+        // a list element must match whole: an id that is only a prefix of a stored id is not a reference
+        $this->assertNull($target->validateValueDestroy(intval($inList . '9')), 'a longer id is not matched by prefix');
     }
 
     // --------------------------------------------- R4-d getKeyAndIdList
@@ -344,7 +360,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
                 }, $labels), $key);
             });
             $q = [$this->one($log, ' in (?, ?)')];
-            $this->assertSame("select `value`, `id` from `$tdb` where $expr in (?, ?) and `$tdb`.`deleted_at` is null", $q[0]['query'], $key);
+            $this->assertSame($this->scoped($tdb, "$expr in (?, ?)", static::q('value') . ', ' . static::q('id')), $q[0]['query'], $key);
             $this->assertSame($labels, $q[0]['bindings']);
             $this->assertSame(array_combine($labels, $ids), array_map('intval', collect($list)->all()), $key);
         }
@@ -355,7 +371,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
             return $item->getKeyAndIdList([['value' => ['select_table' => 'x']]], 'p11_not_a_column');
         });
         $this->assertSame([], $none);
-        $this->assertCount(0, $this->matching($log, "from `$tdb`"));
+        $this->assertCount(0, $this->matching($log, 'from ' . static::q($tdb)));
     }
 
     public function testKeyAndIdListKeepsTheScopeOfARestrictedUser(): void
@@ -405,17 +421,23 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
         // a restricted login: the job query has no scope
         $this->restrictedLogin($source);
         $query = $this->referencing($source, [$multi, $single], $valueId);
+        $multiSql = $this->sqlServer()
+            ? "? in (select [value] from openjson([value], '$.\"select_table_multiple\"'))"
+            : "json_contains(`value`, ?, '$.\"select_table_multiple\"')";
         $this->assertSame(
-            "select * from `$sdb` where (json_contains(`value`, ?, '$.\"select_table_multiple\"') or json_contains(`value`, ?, '$.\"select_table_multiple\"') or {$this->idx($source, 'select_table')} = ?) and `$sdb`.`deleted_at` is null",
+            'select * from ' . $this->q($sdb) . " where ($multiSql or $multiSql or {$this->idx($source, 'select_table')} = ?) and " . $this->q($sdb) . '.' . $this->q('deleted_at') . ' is null',
             $query->toSql()
         );
-        $this->assertSame(['"' . $valueId . '"', strval($valueId), strval($valueId)], array_map('strval', $query->getBindings()));
+        $this->assertSame(
+            $this->sqlServer() ? [strval($valueId), strval($valueId), strval($valueId)] : ['"' . $valueId . '"', strval($valueId), strval($valueId)],
+            array_map('strval', $query->getBindings())
+        );
         $this->assertSame($rows, $query->pluck('id')->map(function ($v) { return intval($v); })->sort()->values()->all());
 
         $this->unindex($source, 'select_table');
         $single = CustomColumn::getEloquent('select_table', $source);
         $query = $this->referencing($source, [$single], $valueId);
-        $this->assertSame("select * from `$sdb` where ({$this->jsonKey('select_table')} = ?) and `$sdb`.`deleted_at` is null", $query->toSql());
+        $this->assertSame($this->scoped($sdb, "({$this->jsonKey('select_table')} = ?)"), $query->toSql());
         $this->assertSame([$rows[1]], $query->pluck('id')->map(function ($v) { return intval($v); })->all());
     }
 
@@ -439,7 +461,7 @@ class R4ExplicitJsonLookupTest extends UnitTestBase
         $column->options = ['index_enabled' => '1'];
 
         $query = $this->referencing($source, [$column], 5);
-        $this->assertSame("select * from `$sdb` where ({$this->jsonKey('p11_link')} = ?) and `$sdb`.`deleted_at` is null", $query->toSql());
+        $this->assertSame($this->scoped($sdb, "({$this->jsonKey('p11_link')} = ?)"), $query->toSql());
         $this->assertSame(0, $column->alterCount, 'the job never creates the index column');
     }
 }

@@ -105,15 +105,14 @@ class V5JoinIssuesTest extends UnitTestBase
         if (\Exceedone\Exment\Services\Storage\PhysicalSchemaManager::driverFamily() === 'sqlsrv') {
             return; // the remainder asserts the MySQL / MariaDB ambiguous-column error and JSON SQL text
         }
-        // the public SearchService::orderBy() (no caller inside Exment src; reachable from plugins)
-        // has no such guard: the unqualified JSON key after the join is rejected as ambiguous
+        // the public SearchService::orderBy() (no caller inside Exment src; reachable from plugins):
+        // the JSON key is qualified with the joined alias, so the query runs
         $query = (new \Exceedone\Exment\Services\Search\SearchService($child))->orderBy($text)->query();
-        $this->assertStringContainsString("order by json_unquote(json_extract(`value`, '$.\"text\"')) asc", $query->toSql());
-        $result = $this->outcome(function () use ($query) {
+        $this->assertStringContainsString("order by json_unquote(json_extract(`", $query->toSql());
+        $this->assertStringContainsString("`.`value`, '$.\"text\"')) asc", $query->toSql());
+        $this->assertSame('ok:' . $child->getValueQuery()->count(), $this->outcome(function () use ($query) {
             return $query->get();
-        });
-        $this->assertStringStartsWith('error:', $result);
-        $this->assertStringContainsString('ambiguous', $result);
+        }));
     }
 
     public function testSummaryJoinOfAJsonSelectTablePivotRunsAfterTheFix(): void

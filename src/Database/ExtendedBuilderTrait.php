@@ -595,7 +595,8 @@ trait ExtendedBuilderTrait
     protected function _getTableExment(): string
     {
         if ($this instanceof \Illuminate\Database\Query\JoinClause) {
-            return $this->table;
+            // joinSub / leftJoinSub: the target is an Expression (the sub query), not a table name
+            return is_string($this->table) ? $this->table : '';
         }
 
         /** @phpstan-ignore-next-line Instanceof between *NEVER* and Illuminate\Database\Eloquent\Builder will always evaluate to false. */

@@ -183,33 +183,40 @@ class SummarySelectTableJoinTest extends UnitTestBase
     }
 
     /**
-     * A MULTIPLE pivot cannot build this join at all - indexed or JSON alike, before and after
-     * the fix: whereInArrayColumn() on the JoinClause of a joinSub asks _getTableExment() for a
-     * string table name and gets the sub query Expression (TypeError). A separate pre-existing
-     * defect, outside this slice: pinned unchanged, not fixed.
+     * A MULTIPLE pivot used to fail to build (TypeError: whereInArrayColumn() on the JoinClause of a joinSub got the
+     * sub query Expression as table name; history: testMultiplePivotSummaryJoinFailsToBuildAsBefore). Now it joins
+     * element by element; expected totals are taken from the child rows written here: 1 vs 11 is no match, a repeated
+     * element counts the child once, invalid / empty values match nothing, a parent without children keeps NULL.
      */
-    public function testMultiplePivotSummaryJoinFailsToBuildAsBefore(): void
+    public function testMultiplePivotSummaryJoinMatchesIndividualIds(): void
     {
-        $indexedMultiple = new class () extends CustomColumn {
-            // @phpstan-ignore-next-line
-            public function alterColumn($forceDropIndex = false)
-            {
-            }
-        };
-        $indexedMultiple->custom_table_id = $this->child()->id;
-        $indexedMultiple->column_name = 'sstj_multi_i';
-        $indexedMultiple->column_type = ColumnType::SELECT_TABLE;
-        $indexedMultiple->suuid = substr(md5('sstj_multi_i'), 0, 20);
-        $indexedMultiple->options = ['index_enabled' => '1', 'multiple_enabled' => '1', 'select_target_table' => $this->parent()->id];
-
-        foreach (['indexed' => $indexedMultiple, 'json' => $this->jsonPivot('sstj_multi', true)] as $kind => $pivot) {
-            try {
-                $this->summary($pivot, true);
-                $this->fail("$kind multiple pivot: expected the existing TypeError");
-            } catch (\TypeError $ex) {
-                $this->assertStringContainsString('_getTableExment(): Return value must be of type string', $ex->getMessage(), $kind);
-            }
+        $ids = $this->parent()->getValueQuery()->orderBy('id')->pluck('id')->map(fn ($i) => (int)$i)->all();
+        $this->assertGreaterThanOrEqual(3, count($ids));
+        [$a, $b, $c] = $ids;
+        $orphan = $this->addNonMatching('sstj_multi');
+        $cdb = getDBTableName($this->child());
+        $rows = [[$a, $b], [$a, $a], [(string)$a . '1', 'abc', ''], [], [$b]];
+        foreach ($rows as $n => $v) {
+            \DB::table($cdb)->insert(['value' => json_encode(['sstj_multi' => $v, 'text' => "m$n"]), 'suuid' => substr(md5(uniqid('', true)), 0, 20), 'created_at' => now(), 'updated_at' => now()]);
         }
+        $expected = [];
+        foreach ($ids as $id) {
+            $expected[$id] = null;
+        }
+        $expected[$a] = 2; // [a,b] and [a,a] (once)
+        $expected[$b] = 2; // [a,b] and [b]
+        ksort($expected);
+
+        $json = $this->summary($this->jsonPivot('sstj_multi', true), true);
+        $this->assertSame(count($expected) + 1, $json['rows'], 'one row per parent (the orphan parent included)');
+        $got = array_intersect_key($json['counts'], $expected);
+        $this->assertSame($expected, $got);
+        $this->assertArrayHasKey($orphan, $json['counts']);
+        $this->assertNull($json['counts'][$orphan]);
+
+        // the single value pivot is unchanged
+        $single = $this->summary($this->jsonPivot(), true);
+        $this->assertSame($this->expected('parent_select_table'), $single['counts']);
     }
 
     /**

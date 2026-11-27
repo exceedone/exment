@@ -8,6 +8,7 @@ use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
+use Exceedone\Exment\Tests\Support\DriverSql;
 use Exceedone\Exment\Tests\TestDefine;
 
 /**
@@ -23,6 +24,7 @@ class R3MultiValueReadKeyTest extends UnitTestBase
 {
     use DatabaseTransactions;
     use CustomViewTrait;
+    use DriverSql;
 
     protected function setUp(): void
     {
@@ -49,8 +51,15 @@ class R3MultiValueReadKeyTest extends UnitTestBase
         $this->assertFalse((bool)CustomColumn::getEloquent($name, $table)->index_enabled, "precondition: $name not indexed");
     }
 
+    /** The element-by-element list match of the key, as each driver's grammar writes it (whereInArrayString). */
     protected function findInSet(string $key, bool $not = false): string
     {
+        if ($this->sqlServer()) {
+            $t = getDBTableName($this->allColumns());
+            return ($not ? 'not ' : '') . 'exists (select 1 from ' . $this->q($t) . ' as ' . $this->q($t . '_exists')
+                . " CROSS APPLY STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($key, '[', ''), ' ', ''), ']', ''), '\"', ''), ',') AS CROSS_APPLY_TABLE"
+                . ' where ' . $this->q($t . '_exists') . '.id = ' . $this->q($t) . '.id and [CROSS_APPLY_TABLE].[value] in (?))';
+        }
         return $not
             ? "NOT FIND_IN_SET(?, IFNULL(REPLACE(REPLACE(REPLACE(REPLACE($key, '[', ''), ' ', ''), ']', ''), '\\\"', ''), ''))"
             : "FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($key, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
@@ -98,12 +107,16 @@ class R3MultiValueReadKeyTest extends UnitTestBase
 
     protected function indexKey(CustomTable $table, string $name): string
     {
-        return '`' . getDBTableName($table) . '`.`column_' . CustomColumn::getEloquent($name, $table)->suuid . '`';
+        return $this->q(getDBTableName($table) . '.column_' . CustomColumn::getEloquent($name, $table)->suuid);
     }
 
     protected function jsonKey(CustomTable $table, string $name): string
     {
-        return 'json_unquote(json_extract(`' . getDBTableName($table) . "`.`value`, '$.\"" . $name . "\"'))";
+        $column = $this->q(getDBTableName($table) . '.value');
+        if ($this->sqlServer()) {
+            return "COALESCE(JSON_QUERY($column, '$.\"$name\"'), JSON_VALUE($column, '$.\"$name\"'))";
+        }
+        return "json_unquote(json_extract($column, '$.\"$name\"'))";
     }
 
     public function testUserEqUserOnMultiValueColumnIndexedAndJson(): void

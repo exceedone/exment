@@ -12,6 +12,7 @@ use Exceedone\Exment\Model\CustomView;
 use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Tests\DatabaseTransactions;
+use Exceedone\Exment\Tests\Support\DriverSql;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Database\QueryException;
 
@@ -27,11 +28,12 @@ use Illuminate\Database\QueryException;
  * (admin and a restricted user), empty / missing / multi values, indexed and non-indexed user
  * column, the index-column DDL, and the existing delimiter behaviour (characterized, not fixed).
  * Values are written with DB::table() inside the test transaction (no model events).
- * Expected strings are written out literally (MySQL / MariaDB grammar).
+ * Expected strings are written out literally per driver (MySQL / MariaDB and SQL Server grammar).
  */
 class KanbanMineKeysTest extends UnitTestBase
 {
     use DatabaseTransactions;
+    use DriverSql;
 
     protected function setUp(): void
     {
@@ -61,30 +63,41 @@ class KanbanMineKeysTest extends UnitTestBase
         return CustomColumn::getEloquent('user', $this->target());
     }
 
-    /** whereInArrayString() of MySqlGrammar for the given wrapped key, as written there. */
+    /** whereInArrayString() of the driver's grammar for the given wrapped key, as written there. */
     protected function findInSet(string $key): string
     {
+        if ($this->sqlServer()) {
+            $t = getDBTableName($this->target());
+            return 'exists (select 1 from ' . $this->q($t) . ' as ' . $this->q($t . '_exists')
+                . " CROSS APPLY STRING_SPLIT(REPLACE(REPLACE(REPLACE(REPLACE($key, '[', ''), ' ', ''), ']', ''), '\"', ''), ',') AS CROSS_APPLY_TABLE"
+                . ' where ' . $this->q($t . '_exists') . '.id = ' . $this->q($t) . '.id and [CROSS_APPLY_TABLE].[value] in (?))';
+        }
         return "FIND_IN_SET(?, REPLACE(REPLACE(REPLACE(REPLACE($key, '[', ''), ' ', ''), ']', ''), '\\\"', ''))";
     }
 
     protected function expectedSql(string $key): string
     {
         $db = getDBTableName($this->target());
-        return "select `$db`.`id` from `$db` where {$this->findInSet($key)} and `$db`.`deleted_at` is null";
+        $id = $this->q("$db.id");
+        $table = $this->q($db);
+        return "select $id from $table where {$this->findInSet($key)} and " . $this->q("$db.deleted_at") . ' is null';
     }
 
     protected function indexKey(): string
     {
         $db = getDBTableName($this->target());
-        return "`$db`.`column_{$this->userColumn()->suuid}`";
+        return $this->q("$db.column_{$this->userColumn()->suuid}");
     }
 
     protected function jsonKey(): string
     {
         $db = getDBTableName($this->target());
-        return "json_unquote(json_extract(`$db`.`value`, '$.\"user\"'))";
+        $column = $this->q("$db.value");
+        if ($this->sqlServer()) {
+            return "COALESCE(JSON_QUERY($column, '$.\"user\"'), JSON_VALUE($column, '$.\"user\"'))";
+        }
+        return "json_unquote(json_extract($column, '$.\"user\"'))";
     }
-
     /** index_enabled turned off in the options only (no DDL, no model events). */
     protected function unindex(): void
     {
@@ -161,7 +174,7 @@ class KanbanMineKeysTest extends UnitTestBase
             \DB::disableQueryLog();
         }
         $log = array_values(array_filter($log, function ($q) {
-            return strpos($q['query'], 'FIND_IN_SET') !== false;
+            return strpos($q['query'], 'FIND_IN_SET') !== false || strpos($q['query'], 'STRING_SPLIT') !== false;
         }));
         return [$keys, $log];
     }
@@ -171,7 +184,7 @@ class KanbanMineKeysTest extends UnitTestBase
      *
      * @return array<int, string> ids that must match, in id order
      */
-    protected function seedValues(): array
+    protected function seedValues(bool $indexed = false): array
     {
         $ids = $this->targetIds();
         $this->assertGreaterThanOrEqual(10, count($ids), 'precondition: 10 target rows');
@@ -184,6 +197,10 @@ class KanbanMineKeysTest extends UnitTestBase
         $this->setUserValue($ids[6], '');           // blank
         $this->setUserValue($ids[7], []);           // empty list
         $this->setUserValue($ids[8], ' 1');         // non-canonical: the space is removed before matching
+        // SQL Server's index column is json_value(), which is NULL for a JSON list: only scalar rows match there
+        if ($indexed && $this->sqlServer()) {
+            return array_map('strval', [$ids[0], $ids[8]]);
+        }
         return array_map('strval', [$ids[0], $ids[1], $ids[2], $ids[8]]);
     }
 
@@ -221,7 +238,7 @@ class KanbanMineKeysTest extends UnitTestBase
 
     public function testMultiEmptyAndMissingValuesIndexed(): void
     {
-        $expected = $this->seedValues();
+        $expected = $this->seedValues(true);
         [$keys, $log] = $this->myKeys();
         $this->assertSame($this->expectedSql($this->indexKey()), $log[0]['query']);
         $this->assertSame($expected, $keys);
@@ -248,11 +265,12 @@ class KanbanMineKeysTest extends UnitTestBase
         $this->setUserValue($ids[4], '7,1');
 
         [$keys] = $this->myKeys();
-        $this->assertSame(array_map('strval', [$ids[3], $ids[4]]), $keys, 'indexed: "5,1" and "7,1" match user 1');
+        $expectedIndexed = $this->sqlServer() ? [$ids[4]] : [$ids[3], $ids[4]];
+        $this->assertSame(array_map('strval', $expectedIndexed), $keys, 'indexed: "5,1" and "7,1" match user 1 (SQL Server: a list is not visible to json_value)');
 
         $this->unindex();
         [$json] = $this->myKeys();
-        $this->assertSame($keys, $json, 'json: same as indexed');
+        $this->assertSame(array_map('strval', [$ids[3], $ids[4]]), $json, 'json: both match user 1');
     }
 
     public function testRestrictedUserOnlyGetsVisibleRows(): void
@@ -278,18 +296,39 @@ class KanbanMineKeysTest extends UnitTestBase
             . " and (`authoritable_user_org_type`, `authoritable_target_id`) in ((?, ?)) and `parent_type` = ?))";
         $bindings = [$user_id, 'user', $user_id, $this->target()->table_name];
 
+        // SQL Server has no row-value IN: the same scope is a list of the authoritable row ids
+        $assertScoped = function (string $key, array $log) use ($db, $scope, $bindings, $user_id) {
+            if (!$this->sqlServer()) {
+                $this->assertSame($this->expectedSql($key) . $scope, $log[0]['query']);
+                $this->assertSame($bindings, $log[0]['bindings']);
+                return;
+            }
+            $head = $this->expectedSql($key) . ' and (exists (select * from [custom_value_authoritables] where '
+                . $this->q("$db.id") . ' = [custom_value_authoritables].[parent_id] and [id] in (';
+            $this->assertStringStartsWith($head, $log[0]['query']);
+            $this->assertStringEndsWith(') and [parent_type] = ?))', $log[0]['query']);
+            $this->assertSame($user_id, $log[0]['bindings'][0]);
+            $this->assertSame($this->target()->table_name, end($log[0]['bindings']));
+        };
+
+        if ($this->sqlServer()) {
+            // the index column of SQL Server cannot read a list: the indexed pass uses the scalar
+            foreach ($ids as $id) {
+                $this->setUserValue($id, $user_id);
+            }
+        }
         [$keys, $log] = $this->myKeys();
-        $this->assertSame($this->expectedSql($this->indexKey()) . $scope, $log[0]['query']);
-        $this->assertSame($bindings, $log[0]['bindings']);
+        $assertScoped($this->indexKey(), $log);
         $this->assertSame($expected, $keys, 'indexed: the scopes still apply');
 
+        foreach ($ids as $id) {
+            $this->setUserValue($id, ['99', $user_id]);
+        }
         $this->unindex();
         [$json, $log] = $this->myKeys();
-        $this->assertSame($this->expectedSql($this->jsonKey()) . $scope, $log[0]['query']);
-        $this->assertSame($bindings, $log[0]['bindings']);
+        $assertScoped($this->jsonKey(), $log);
         $this->assertSame($expected, $json, 'json: the scopes still apply');
     }
-
     /**
      * An indexed user column whose index column does not exist: alterColumn (here a counter)
      * runs once, before the lookup, and the lookup still names the index column.
@@ -334,7 +373,7 @@ class KanbanMineKeysTest extends UnitTestBase
             $this->invoke($this->grid(), 'getMyKeys', [$mine]);
             $this->fail('expected the missing index column to fail the lookup');
         } catch (QueryException $ex) {
-            $this->assertStringStartsWith($this->expectedSql("`$db`.`column_p7missing0000000000`"), $ex->getSql());
+            $this->assertStringStartsWith($this->expectedSql($this->q("$db.column_p7missing0000000000")), $ex->getSql());
         }
         $this->assertSame(1, $user->alterCount);
     }

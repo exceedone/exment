@@ -8,15 +8,21 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\DataImportExport\DataImportExportService;
 use Exceedone\Exment\Services\DataImportExport\Providers\Import\ImportParentLookup;
 use Exceedone\Exment\Tests\DatabaseTransactions;
+use Exceedone\Exment\Tests\Support\DriverSql;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Step 3: ImportParentLookup must answer exactly like ParentItem::getImportValue()'s per-row query, or answer null (original query).
+ *
+ * The batching is MySQL/MariaDB only (ImportParentLookup::isSupported()). On SQL Server every resolve() answers null, so the
+ * production caller (DataImportExportService::processCustomValue -> ParentItem::getImportValue) always runs the original
+ * per-row query: the tests there pin that fallback (null, no batch query, identical answers) instead of the batch counts.
  */
 class ImportParentLookupTest extends UnitTestBase
 {
     use DatabaseTransactions;
+    use DriverSql;
 
     protected const PREFIX = 's3-';
 
@@ -69,6 +75,12 @@ class ImportParentLookupTest extends UnitTestBase
         ];
     }
 
+    /** Batch queries expected from a lookup: SQL Server never batches (fallback to the original query). */
+    protected function batches(int $mysql): int
+    {
+        return $this->sqlServer() ? 0 : $mysql;
+    }
+
     protected function original(ParentItem $item, string $column, $value): array
     {
         return $item->getImportValue($value, ['target_column_name' => $column]);
@@ -106,7 +118,11 @@ class ImportParentLookupTest extends UnitTestBase
                     );
                 }
             }
-            $this->assertGreaterThan(0, $lookup->batchCount);
+            if ($this->sqlServer()) {
+                $this->assertSame(0, $lookup->batchCount, 'SQL Server: every answer comes from the original query');
+            } else {
+                $this->assertGreaterThan(0, $lookup->batchCount);
+            }
         }
     }
 
@@ -117,6 +133,13 @@ class ImportParentLookupTest extends UnitTestBase
         $lookup = new ImportParentLookup($this->rowsFor($inputs));
         $p = static::PREFIX;
 
+        if ($this->sqlServer()) {
+            foreach (["{$p}plain", "{$p}missing", "{$p}dup"] as $input) {
+                $this->assertNull($lookup->resolve($table, 'text', $input), 'SQL Server: not decided here, the original query runs');
+            }
+            $this->assertSame(0, $lookup->batchCount);
+            return;
+        }
         $this->assertSame(['found' => true, 'id' => $this->original(ParentItem::getItem($table), 'text', "{$p}plain")['value']], $lookup->resolve($table, 'text', "{$p}plain"));
         $this->assertSame(['found' => false], $lookup->resolve($table, 'text', "{$p}missing"));
         // two parents share this text: the original query returns an arbitrary one, so the lookup must not decide
@@ -153,8 +176,12 @@ class ImportParentLookupTest extends UnitTestBase
         foreach ($rows as $row) {
             $this->assertSame($expected[$row['parent_id']], $this->viaLookup($item, $lookup, 'text', $row['parent_id']));
         }
-        $this->assertSame(3, $lookup->batchCount);
-        $this->assertLessThanOrEqual(8, $this->queries, 'queries of the lookup: batches + metadata');
+        $this->assertSame($this->batches(3), $lookup->batchCount);
+        if ($this->sqlServer()) {
+            $this->assertGreaterThanOrEqual(count($rows), $this->queries, 'SQL Server: one original query per row');
+        } else {
+            $this->assertLessThanOrEqual(8, $this->queries, 'queries of the lookup: batches + metadata');
+        }
         $this->assertTrue($expected["{$p}bulk-0"]['result']);
         $this->assertTrue($expected["{$p}bulk-777"]['result']);
         $this->assertFalse($expected["{$p}bulk-1"]['result']);
@@ -226,6 +253,70 @@ class ImportParentLookupTest extends UnitTestBase
     }
 
     /**
+     * Numeric input (PHP number or numeric string) against a text column that also holds non-numeric text,
+     * through processCustomValue(). On SQL Server a numeric binding used to convert the whole column to int.
+     */
+    public function testNumericInputsOnMixedTextColumnThroughTheImportCaller()
+    {
+        $table = $this->parentTable();
+        $child = CustomTable::getEloquent(TestDefine::TESTDATA_TABLE_NAME_CHILD_TABLE);
+        $p = static::PREFIX;
+        foreach (["{$p}word", '5300', '05301', '5302.0'] as $text) {
+            $this->createParent($table, ['text' => $text]);
+        }
+        $this->createParent($table, ['text' => '5303']);
+        $deleted = $table->getValueModel();
+        $deleted->setValue('text', '5304');
+        $deleted->save();
+        $deleted->delete();
+
+        $setting = [['column_name' => 'parent_id', 'target_column_name' => 'text']];
+        $type = TestDefine::TESTDATA_TABLE_NAME_PARENT_TABLE;
+        $import = function ($input) use ($child, $setting, $type) {
+            $errors = [];
+            $row = ['parent_id' => $input, 'parent_type' => $type, 'value.text' => 'c'];
+            $out = DataImportExportService::processCustomValue($child->custom_columns, $row, [
+                'setting' => $setting, 'datalist' => [$row], 'errorCallback' => function ($m, $k) use (&$errors) {
+                    $errors[] = $k;
+                },
+            ]);
+            return [$out, $errors];
+        };
+        $idOf = function (string $text) use ($table) {
+            return $table->getValueModel()->where('value->text', $text)->first()->id;
+        };
+
+        foreach ([TestDefine::TESTDATA_USER_LOGINID_ADMIN, TestDefine::TESTDATA_USER_LOGINID_USER2] as $login) {
+            $this->be(LoginUser::find($login));
+            $visible = $table->getValueModel()->where('value->text', '5300')->exists();
+            foreach ([5300, '5300'] as $input) {
+                [$out, $errors] = $import($input);
+                if ($visible) {
+                    $this->assertSame([], $errors, "$login: " . json_encode($input));
+                    $this->assertEquals($idOf('5300'), $out['parent_id']);
+                } else {
+                    $this->assertNotEmpty($errors, "$login: hidden parent is not matched");
+                }
+            }
+            // no match, soft-deleted parent, text that is not a number: validation error, never a SQL error
+            foreach ([9999, '9999', 5304, '5304', "{$p}word-none"] as $input) {
+                [, $errors] = $import($input);
+                $this->assertNotEmpty($errors, "$login: " . json_encode($input));
+            }
+        }
+
+        $this->be(LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+        // leading zero: a numeric string is compared as text, so '05301' is found by itself only
+        [$out, $errors] = $import('05301');
+        $this->assertSame([], $errors);
+        $this->assertEquals($idOf('05301'), $out['parent_id']);
+        [, $errors] = $import('5301');
+        $this->assertNotEmpty($errors, "'5301' does not match the text '05301'");
+        [$out, $errors] = $import(5303);
+        $this->assertSame([], $errors);
+        $this->assertEquals($idOf('5303'), $out['parent_id']);
+    }
+    /**
      * @param array<int, mixed> $inputs
      * @param class-string<ImportParentLookup> $class
      * @return array<int, array> original answers
@@ -261,7 +352,7 @@ class ImportParentLookupTest extends UnitTestBase
             $inputs[] = "{$p}edge-$i";
         }
 
-        $this->assertLookupEqualsOriginal(ImportParentLookupSmallBatch::class, $inputs, 3);
+        $this->assertLookupEqualsOriginal(ImportParentLookupSmallBatch::class, $inputs, $this->batches(3));
         // each input asked first: the batch always starts at the asked value, the following unresolved ones fill it up
         foreach (array_reverse($inputs) as $first) {
             $lookup = new ImportParentLookupSmallBatch($this->rowsFor($inputs));
@@ -287,6 +378,14 @@ class ImportParentLookupTest extends UnitTestBase
         // d-1 is ambiguous inside the first batch, d-5 inside the second; d-4 is unique in the second
         $rows = $this->rowsFor(array_merge($inputs, $inputs, $inputs));
         $lookup = new ImportParentLookupSmallBatch($rows);
+        if ($this->sqlServer()) {
+            foreach ($inputs as $input) {
+                $this->assertNull($lookup->resolve($table, 'text', $input), 'SQL Server: nothing is decided here');
+            }
+            $this->assertSame(0, $lookup->batchCount);
+            $this->assertLookupEqualsOriginal(ImportParentLookupSmallBatch::class, $inputs, 0);
+            return;
+        }
         $this->assertNull($lookup->resolve($table, 'text', "{$p}d-1"));
         $this->assertNull($lookup->resolve($table, 'text', "{$p}d-5"));
         $this->assertTrue($lookup->resolve($table, 'text', "{$p}d-4")['found']);
@@ -319,6 +418,10 @@ class ImportParentLookupTest extends UnitTestBase
         // limit 5 < 12 distinct values: the cache is cleared several times while the rows are walked in order and in reverse
         $rows = array_merge($inputs, array_reverse($inputs), $inputs);
         $lookup = $this->assertLookupEqualsOriginal(ImportParentLookupSmallLimit::class, $rows);
+        if ($this->sqlServer()) {
+            $this->assertSame(0, $lookup->batchCount, 'SQL Server: no cache, no batch');
+            return;
+        }
         $this->assertGreaterThan(3, $lookup->batchCount, 'evicted values are queried again');
         $this->assertLessThanOrEqual(count($rows), $lookup->batchCount);
 

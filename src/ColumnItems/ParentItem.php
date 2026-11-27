@@ -240,8 +240,9 @@ class ParentItem implements ItemInterface
                     $value = $resolved['id'];
                 }
             } else {
-                // get target value
-                $target_value = $this->custom_table->getValueModel()->where(ColumnQueryKey::json($target_column_name, $this->custom_table)->expression(), $value)->first();
+                // SQL Server converts the text side to int when compared with a numeric binding, failing on any non-numeric text
+                $bind = (\Exment::isSqlServer() && (is_int($value) || is_float($value))) ? strval($value) : $value;
+                $target_value = $this->custom_table->getValueModel()->where(ColumnQueryKey::json($target_column_name, $this->custom_table)->expression(), $bind)->first();
 
                 if (!isset($target_value)) {
                     $result = false;

@@ -293,8 +293,13 @@ class SearchService
         else {
             $this->setJoin($relationTable, $whereCustomTable);
 
-            // Add orderBy query (unqualified key, as before)
-            $this->query->orderBy($column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_SORT), $direction);
+            // Index / typed column names are unique, kept unqualified as before.
+            // The JSON key reads `value`, which exists in both tables: qualify it with the joined alias.
+            $key = $column->getQueryKeyFor(CustomColumn::QUERY_PURPOSE_SORT);
+            if (is_string($key) && strpos($key, 'value->') === 0 && !\is_nullorempty($relationTable->tableUniqueName)) {
+                $key = $relationTable->tableUniqueName . '.' . $key;
+            }
+            $this->query->orderBy($key, $direction);
         }
 
         return $this;

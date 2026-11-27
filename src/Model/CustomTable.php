@@ -2163,6 +2163,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function setCustomValueModels($ids)
     {
+        System::syncModelCacheUser();
+
         // value sometimes array, so flatten value. maybe has best way..
         $finds = [];
         foreach (collect($ids)->filter() as $id) {
@@ -3394,6 +3396,11 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
 
         $modelname = getModelName($this);
         if (isset($id)) {
+            // the id column is an integer: a non-numeric value matches no row (SQL Server would raise a conversion error)
+            if (is_string($id) && !is_numeric($id)) {
+                return null;
+            }
+            System::syncModelCacheUser();
             $key = sprintf(Define::SYSTEM_KEY_SESSION_CUSTOM_VALUE_VALUE, $this->table_name, $id);
             $model = System::requestSession($key, function () use ($id) {
                 return getModelName($this->table_name)::find($id);
@@ -3665,6 +3672,10 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     public function hasCustomValueInDB($custom_value_id)
     {
+        // the id column is an integer: a non-numeric value matches no row
+        if (is_string($custom_value_id) && !is_numeric($custom_value_id)) {
+            return false;
+        }
         return $this->getValueModel()->withoutGlobalScopes([CustomValueModelScope::class])->where('id', $custom_value_id)->count() > 0;
     }
 
@@ -4229,7 +4240,8 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         // check if child data referenced
         foreach ($relations as $relation) {
             $child_table = $relation->child_custom_table;
-            $list = getModelName($child_table)::whereIn('parent_id', $ids)
+            // the integrity check sees every row, also the ones the deleting user may not view
+            $list = getModelName($child_table)::withoutGlobalScope(CustomValueModelScope::class)->whereIn('parent_id', $ids)
                 ->where('parent_type', $this->table_name)
                 ->pluck('id')->all();
             if ($this->checkReferenced($child_table, $list)) {
@@ -4259,6 +4271,9 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     // @phpstan-ignore-next-line
     protected function checkReferenced($custom_table, $list)
     {
+        if (is_nullorempty($list)) {
+            return false;
+        }
         foreach ($custom_table->getSelectedItems() as $item) {
             $model = getModelName(array_get($item, 'custom_table_id'));
             $column_name = array_get($item, 'column_name');
@@ -4269,7 +4284,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
             }
             // $item is the referencing CustomColumn; its table is only resolved on demand
             $key = $item instanceof CustomColumn ? ColumnQueryKey::json($item) : ColumnQueryKey::json($column_name);
-            if ($model::whereIn($key->expression(), $list)->exists()) {
+            // a multi-value column holds a list: match each element, not the list text
+            // referencing rows count whoever may view them: the answer is only a yes/no, no row detail is returned
+            $query = $model::withoutGlobalScope(CustomValueModelScope::class);
+            if ($item instanceof CustomColumn && boolval($item->getOption('multiple_enabled'))) {
+                if ($query->whereInArrayString($key->expression(), array_map('strval', toArray($list)))->exists()) {
+                    return true;
+                }
+                continue;
+            }
+            if ($query->whereIn($key->expression(), $list)->exists()) {
                 return true;
             }
         }
