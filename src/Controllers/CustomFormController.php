@@ -161,6 +161,12 @@ class CustomFormController extends AdminControllerTableBase
             });
 
             $tools->append(view('exment::tools.button', [
+                'href' => admin_urls('formpublic', $this->custom_table->table_name, 'easy'),
+                'icon' => 'fa-magic',
+                'btn_class' => 'btn-primary',
+                'label' => exmtrans('custom_form_public.easy.button'),
+            ]));
+            $tools->append(view('exment::tools.button', [
                 'href' => admin_urls_query('formpublic', $this->custom_table->table_name, 'create', ['template' => 1]),
                 'icon' => 'fa-plus',
                 'btn_class' => 'btn-success',
@@ -171,9 +177,13 @@ class CustomFormController extends AdminControllerTableBase
         $grid->disableExport();
         $grid->disableRowSelector();
         $grid->disableFilter();
-        $grid->actions(function ($actions) {
+        // $this in the closure is the actions (Closure::call)
+        $tableName = $this->custom_table->table_name;
+        $grid->actions(function ($actions) use ($tableName) {
             $actions->disableView();
             // $actions->disableDelete();
+            // the code to put the form on a web site (ISS02942)
+            $actions->prepend('<a href="' . e(admin_urls('formpublic', $tableName, $actions->getKey(), 'embed')) . '" title="' . e(exmtrans('custom_form_public.easy.embed_header')) . '"><i class="fa fa-code"></i></a>');
         });
 
         return $grid;

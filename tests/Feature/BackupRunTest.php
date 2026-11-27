@@ -329,6 +329,8 @@ class BackupRunTest extends FeatureTestBase
 
     public function testOnlyTheLastRunsAreKept(): void
     {
+        // other tests (and a real site) may have left runs behind
+        \DB::table(BackupRun::TABLE)->delete();
         config(['exment.backup.keep_runs' => 2]);
         $runs = [];
         foreach (range(1, 4) as $i) {
