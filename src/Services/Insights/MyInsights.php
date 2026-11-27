@@ -320,7 +320,7 @@ class MyInsights
     /**
      * The approvals waiting for me, and my requests not finished.
      *
-     * @return array<string, int>|null
+     * @return array{waiting: int, requests: int, url: string}|null
      */
     public function workflow(): ?array
     {
