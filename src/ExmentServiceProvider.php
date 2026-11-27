@@ -384,6 +384,27 @@ class ExmentServiceProvider extends ServiceProvider
         });
         // the record of the logins of the pages, and the settings of the application log (ISS02839)
         \Exceedone\Exment\Services\LogManagement\LoginRecorder::register();
+        // "Create a web form" in the menu of a table: the data list and the table settings (ISS02942);
+        // once (the provider boots again in a test)
+        $webFormPage = 'formpublic/:table_name/easy';
+        if (!collect(\Exceedone\Exment\Services\CoreExtensions::tablePages())->contains(function ($page) use ($webFormPage) {
+            return array_get($page, 'href') === $webFormPage;
+        })) {
+            \Exceedone\Exment\Services\CoreExtensions::addTablePage([
+                'name' => 'formpublic',
+                'href' => $webFormPage,
+                'icon' => 'fa-globe',
+                // already a list of permissions
+                'roles' => \Exceedone\Exment\Enums\Permission::EDIT_CUSTOM_FORM_PUBLIC,
+                'exmtrans' => 'custom_form_public.easy.menu',
+                'description' => 'custom_form_public.easy.menu_description',
+                'visible' => function ($table) {
+                    return isset($table) && boolval(\Exceedone\Exment\Model\System::publicform_available())
+                        && !boolval($table->getOption('one_record_flg'))
+                        && !in_array($table->table_name, \Exceedone\Exment\Enums\SystemTableName::SYSTEM_TABLE_NAME_MASTER(), true);
+                },
+            ], 'form');
+        }
         // the reads and the writes of the data (ISS02905)
         \Exceedone\Exment\Services\LogManagement\DataAccessLogs::register();
         \Exceedone\Exment\Services\LogManagement\LogSettings::apply();

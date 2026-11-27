@@ -49,6 +49,8 @@ class RoutePublicFormServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'publicform'],
         ], function (Router $router) {
             $router->get('/', 'PublicFormController@index');
+            // the script that puts the form in a web site (ISS02942)
+            $router->get('embed.js', 'PublicFormController@embedJs');
             $router->post('/', 'PublicFormController@backed');
             $router->get('/confirm', 'PublicFormController@redirect');
             $router->post('/confirm', 'PublicFormController@confirm');

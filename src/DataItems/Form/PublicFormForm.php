@@ -6,6 +6,8 @@ use ExmentAdminCore\Admin\Form;
 use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\ColumnItems\ItemInterface;
+use Exceedone\Exment\Enums\FormBlockType;
+use Exceedone\Exment\Services\PublicFormService;
 
 /**
  * Public form's form
@@ -59,6 +61,23 @@ class PublicFormForm extends DefaultForm
      * @param ItemInterface $column_item
      * @return void
      */
+    /**
+     * The values every submission of the public form gets (ISS02942, PublicFormService): internal
+     * fields of the block of the table, not shown, their value the fixed one.
+     *
+     * @param mixed $form
+     * @param mixed $custom_form_block
+     */
+    protected function appendEmbedFields($form, $custom_form_block): void
+    {
+        if (intval($custom_form_block->form_block_type) !== FormBlockType::DEFAULT) {
+            return;
+        }
+        foreach (PublicFormService::fixedValues($this->public_form) as $name => $value) {
+            $form->internal(strval($name))->default($value);
+        }
+    }
+
     // @phpstan-ignore-next-line
     protected function setColumnItemOption(ItemInterface $column_item, $custom_form_columns)
     {
