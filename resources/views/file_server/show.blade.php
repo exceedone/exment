@@ -359,13 +359,12 @@
         }
     });
 
+    // resolved when copied, or when the dialog to copy it by hand is closed (#2277)
     function copyText(text) {
-        var done = function () { Fs.notify(@json(exmtrans('file_server.copied'))); };
-        if (navigator.clipboard && window.isSecureContext) {
-            navigator.clipboard.writeText(text).then(done, function () { Fs.show('URL', text); });
-        } else {
-            Fs.show('URL', text);
-        }
+        return Fs.copy(text).then(function (copied) {
+            if (copied) { Fs.notify(@json(exmtrans('file_server.copied'))); }
+            return copied;
+        });
     }
     root.addEventListener('click', function (e) {
         var c = e.target.closest('[data-fs-copy]');
@@ -388,8 +387,11 @@
         linkForm.addEventListener('submit', function (e) {
             e.preventDefault();
             Fs.post(url + '/links', new FormData(linkForm), true).then(function (json) {
-                copyText(json.url);
-                Fs.done(json);
+                // the page is reloaded only after the URL was copied (and the message could be
+                // read) or the dialog to copy it by hand was closed (#2278)
+                copyText(json.url).then(function (copied) {
+                    if (copied) { setTimeout(function () { Fs.done(json); }, 1200); } else { Fs.done(json); }
+                });
             }, Fs.fail);
         });
     }
