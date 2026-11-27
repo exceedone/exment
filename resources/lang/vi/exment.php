@@ -4068,7 +4068,7 @@ return [
             'sales' => 'Kinh doanh & khách hàng',
             'asset' => 'Quản lý tài sản',
             'project' => 'Dự án',
-            'it_support' => 'Hỗ trợ IT',
+            'it_support' => 'Bộ phận hỗ trợ',
             'hr' => 'Nhân sự & hành chính',
             'admin_data' => 'Cài đặt: Dữ liệu và màn hình',
             'admin_user' => 'Cài đặt: Người dùng và quyền',

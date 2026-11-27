@@ -4068,7 +4068,7 @@ return [
             'sales' => 'Vertrieb & Kunden',
             'asset' => 'Anlagen',
             'project' => 'Projekte',
-            'it_support' => 'IT-Support',
+            'it_support' => 'Support-Desk',
             'hr' => 'Personal & Verwaltung',
             'admin_data' => 'Einstellungen: Daten & Bildschirme',
             'admin_user' => 'Einstellungen: Benutzer & Berechtigungen',

@@ -4068,7 +4068,7 @@ return [
             'sales' => '영업·고객',
             'asset' => '자산 관리',
             'project' => '프로젝트',
-            'it_support' => 'IT 지원',
+            'it_support' => '서포트 데스크',
             'hr' => '인사·총무',
             'admin_data' => '설정: 데이터와 화면',
             'admin_user' => '설정: 사용자와 권한',

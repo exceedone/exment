@@ -4068,7 +4068,7 @@ return [
             'sales' => '销售与客户',
             'asset' => '资产管理',
             'project' => '项目',
-            'it_support' => 'IT 支持',
+            'it_support' => '支持服务台',
             'hr' => '人事与总务',
             'admin_data' => '设置：数据与画面',
             'admin_user' => '设置：用户与权限',

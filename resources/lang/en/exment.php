@@ -4091,7 +4091,7 @@ return [
             'sales' => 'Sales & customers',
             'asset' => 'Assets',
             'project' => 'Projects',
-            'it_support' => 'IT support',
+            'it_support' => 'Support Desk',
             'hr' => 'HR & general affairs',
             'admin_data' => 'Settings: Data & Screens',
             'admin_user' => 'Settings: Users & Permissions',
