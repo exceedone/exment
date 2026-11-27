@@ -82,7 +82,11 @@ class InsightReport
         return new self($today->copy()->subDays($days - 1), $today, $perPerson);
     }
 
-    /** The days of the period, Y-m-d. @return array<int, string> */
+    /**
+     * The days of the period, Y-m-d.
+     *
+     * @return array<int, string>
+     */
     public function dates(): array
     {
         $dates = [];
