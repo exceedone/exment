@@ -1538,6 +1538,11 @@ return [
         ],
         'run' => [
             'screen' => [
+                'reasons' => [
+                    'warning' => 'The restore finished with problems. Sign in, then see the detailed log in the history on the backup page.',
+                    'failed' => 'The restore failed. Sign in, then see the detailed log in the history on the backup page.',
+                    'stalled' => 'The restore stopped part way. Sign in, then see the detailed log in the history on the backup page.',
+                ],
                 'signin_again' => 'Finished. Please sign in again.',
                 'signin' => 'Sign in',
                 'restore_in_request' => 'Restore from this page',

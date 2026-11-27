@@ -356,24 +356,89 @@ class BackupRuns
     }
 
     /**
-     * The fields of the state given with the token: the progress only (no log, no path, no file).
+     * The fields of the state given with the token while the run goes on: the progress only (no
+     * text but the fixed labels, no log, no path, no file, no id).
      *
      * @param array<string, mixed> $status
      * @return array<string, mixed>
      */
     public static function stateFields(array $status): array
     {
-        $keys = ['uuid', 'kind', 'kind_label', 'status', 'status_label', 'active', 'stage', 'stage_label', 'progress',
-            'stage_done', 'stage_total', 'started_at', 'finished_at', 'elapsed_seconds', 'remaining_seconds',
-            'warnings', 'errors', 'message'];
+        $keys = ['status', 'active', 'stage', 'stage_label', 'progress', 'stage_done', 'stage_total',
+            'started_at', 'finished_at', 'elapsed_seconds', 'remaining_seconds', 'warnings', 'errors'];
         $result = array_intersect_key($status, array_flip($keys));
         $result['stages'] = array_map(function ($stage) {
             return is_array($stage) ? array_intersect_key($stage, array_flip(['name', 'label', 'state', 'seconds', 'count'])) : [];
         }, is_array($status['stages'] ?? null) ? $status['stages'] : []);
-        if (isset($result['message'])) {
-            $result['message'] = SecretMasker::mask(strval($result['message']));
-        }
         return $result;
+    }
+
+    /**
+     * The state of a run that ended, given with the token once: its status and its percent only.
+     *
+     * @param array<string, mixed> $status
+     * @return array<string, mixed>
+     */
+    public static function endedStateFields(array $status): array
+    {
+        $done = in_array($status['status'] ?? null, [BackupRun::STATUS_SUCCEEDED, BackupRun::STATUS_WARNING], true);
+        return [
+            'status' => strval($status['status'] ?? BackupRun::STATUS_FAILED),
+            'progress' => $done ? 100 : intval($status['progress'] ?? 0),
+        ];
+    }
+
+    /**
+     * A cheap limit of the reads of the state (a file: no cache, no database, which a restore
+     * replaces): exment.backup.state_per_minute (60) a minute for an address and a run.
+     */
+    public static function stateRateAllowed(string $uuid, string $ip): bool
+    {
+        $limit = max(1, intval(config('exment.backup.state_per_minute', 60)));
+        try {
+            static::ensureLogDirectory();
+            $path = storage_path(path_join(static::LOG_DIR, $uuid . '.rate'));
+            $handle = fopen($path, 'c+');
+            if ($handle === false) {
+                return true;
+            }
+            try {
+                flock($handle, LOCK_EX);
+                $data = json_decode(strval(stream_get_contents($handle)), true);
+                $data = is_array($data) ? $data : [];
+                $key = hash('sha256', $ip);
+                $now = time();
+                [$start, $count] = isset($data[$key]) && is_array($data[$key]) ? [intval($data[$key][0] ?? 0), intval($data[$key][1] ?? 0)] : [$now, 0];
+                if ($now - $start >= 60) {
+                    [$start, $count] = [$now, 0];
+                }
+                $count++;
+                $data[$key] = [$start, $count];
+                ftruncate($handle, 0);
+                rewind($handle);
+                fwrite($handle, strval(json_encode($data)));
+                @chmod($path, 0600);
+                return $count <= $limit;
+            } finally {
+                flock($handle, LOCK_UN);
+                fclose($handle);
+            }
+        } catch (\Throwable $e) {
+            // the token still guards it
+            return true;
+        }
+    }
+
+    /**
+     * The token is used up (the end of the run was read).
+     */
+    public static function forgetStateToken(string $uuid): void
+    {
+        foreach ([static::tokenPath($uuid), storage_path(path_join(static::LOG_DIR, $uuid . '.rate'))] as $path) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
     }
 
     public static function statusPath(string $uuid): string
@@ -683,7 +748,7 @@ class BackupRuns
         /** @var \Illuminate\Support\Collection<int, BackupRun> $old */
         $old = BackupRun::query()->whereIn('id', $ids)->get();
         foreach ($old as $run) {
-            foreach ([static::logFullPath($run), static::statusPath($run->uuid), static::consolePath($run), static::tokenPath($run->uuid)] as $path) {
+            foreach ([static::logFullPath($run), static::statusPath($run->uuid), static::consolePath($run), static::tokenPath($run->uuid), storage_path(path_join(static::LOG_DIR, $run->uuid . '.rate'))] as $path) {
                 if (is_file($path)) {
                     @unlink($path);
                 }

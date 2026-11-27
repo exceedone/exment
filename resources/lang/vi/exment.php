@@ -1491,6 +1491,11 @@ return [
         ],
         'run' => [
             'screen' => [
+                'reasons' => [
+                    'warning' => 'Đã khôi phục xong nhưng có lỗi. Hãy đăng nhập rồi xem nhật ký chi tiết trong lịch sử trên màn hình sao lưu.',
+                    'failed' => 'Khôi phục thất bại. Hãy đăng nhập rồi xem nhật ký chi tiết trong lịch sử trên màn hình sao lưu.',
+                    'stalled' => 'Khôi phục đã dừng giữa chừng. Hãy đăng nhập rồi xem nhật ký chi tiết trong lịch sử trên màn hình sao lưu.',
+                ],
                 'signin_again' => 'Đã hoàn tất. Vui lòng đăng nhập lại.',
                 'signin' => 'Đăng nhập',
                 'restore_in_request' => 'Khôi phục từ màn hình này',

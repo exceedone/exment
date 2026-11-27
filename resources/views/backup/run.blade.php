@@ -71,5 +71,5 @@
 </div>
 @if($run['active'])
 {{-- the run goes on: its progress, polled (a restore that ends signs out) --}}
-@include('exment::backup.progress', ['active' => $run, 'statusUrl' => $statusUrl, 'pollMs' => $pollMs, 'loginUrl' => $loginUrl, 'stateToken' => $stateToken])
+@include('exment::backup.progress', ['active' => $run, 'statusUrl' => $statusUrl, 'pollMs' => $pollMs, 'loginUrl' => $loginUrl])
 @endif
