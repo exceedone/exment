@@ -32,6 +32,8 @@ class SalesFeatureTest extends FeatureTestBase
 {
     protected const TABLES = ['sales_customer', 'sales_customer_contact', 'sales_deal', 'sales_quote', 'sales_quote_detail', 'sales_contract', 'sales_activity'];
     protected const KANBAN = '5a1e5c0a7b3d4e2f9a01';
+    protected const MONTHLY = '5a1e5c0a7b3d4e2f9a02';
+    protected const ACTIVITIES = '5a1e5c0a7b3d4e2f9a04';
     protected const NOTIFY = 'e5967aaf67c9ae4b4398';
 
     /** @var mixed the setting of the features before the test */
@@ -141,7 +143,7 @@ class SalesFeatureTest extends FeatureTestBase
         try {
             foreach (['ja', 'en', 'de', 'es', 'ko', 'vi', 'zh_CN'] as $locale) {
                 \App::setLocale($locale);
-                foreach (['features.sales', 'features.sales_help', 'pack_note', 'who_pack', 'pack_installed', 'pack_failed', 'pack_install_header', 'pack_install_question', 'pack_install_help', 'menu_pack', 'menu_pack_link'] as $key) {
+                foreach (['features.sales', 'features.sales_help', 'pack_note', 'who_pack', 'pack_installed', 'pack_failed', 'pack_install_header', 'pack_install_question', 'pack_install_help', 'menu_pack', 'menu_pack_link', 'pack_install_label', 'pack_incomplete'] as $key) {
                     $this->assertTrue(\Lang::has("exment::exment.feature.$key", $locale, false), "$locale: $key");
                     $text = strval(exmtrans("feature.$key"));
                     $this->assertDoesNotMatchRegularExpression('/パック|pack|Paket|paquete|팩|Gói|包/iu', $text, "$locale: $key");
@@ -277,6 +279,9 @@ class SalesFeatureTest extends FeatureTestBase
             $html = (string) $this->get(admin_url('initialize'))->assertOk()->getContent();
             $this->assertStringContainsString('name="feature_packs[]"', $html);
             $this->assertStringContainsString(e($options[Features::SALES]), $html);
+            // the header of the section and the label of the checkbox are not the same words
+            $this->assertNotSame(exmtrans('feature.pack_install_header'), exmtrans('feature.pack_install_label'));
+            $this->assertStringContainsString(e(exmtrans('feature.pack_install_label')), $html);
         } finally {
             System::initialized(1);
             System::clearCache();
@@ -345,6 +350,91 @@ class SalesFeatureTest extends FeatureTestBase
         foreach ($dashboard->dashboard_boxes()->get() as $box) {
             $this->assertStringContainsString(e(strval($box->dashboard_box_view_name)), $html);
         }
+    }
+
+    /**
+     * An install that stopped on the way: a dashboard without a box, views without parts. The next
+     * install makes the missing parts; a view the site changed (a column taken out) stays so.
+     */
+    public function testARetryMakesTheMissingPartsOfTheViewsAndTheDashboard(): void
+    {
+        FeaturePacks::turnOn(Features::SALES);
+        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        $view = function (string $suuid): CustomView {
+            return CustomView::query()->withoutGlobalScopes()->where('suuid', $suuid)->firstOrFail();
+        };
+        $kanbanColumns = $view(static::KANBAN)->custom_view_columns()->count();
+        $monthlySummaries = $view(static::MONTHLY)->custom_view_summaries()->count();
+        $monthlySorts = $view(static::MONTHLY)->custom_view_sorts()->count();
+        $activityColumns = $view(static::ACTIVITIES)->custom_view_columns()->count();
+        $this->assertGreaterThan(1, $kanbanColumns);
+        $this->assertGreaterThan(0, $monthlySummaries);
+        $this->assertGreaterThan(0, $monthlySorts);
+
+        // stopped on the way
+        $dashboard->dashboard_boxes()->where('row_no', 2)->where('column_no', 1)->delete();
+        $view(static::KANBAN)->custom_view_columns()->delete();
+        $view(static::MONTHLY)->custom_view_summaries()->delete();
+        $view(static::MONTHLY)->custom_view_sorts()->delete();
+        // changed by the site: one column taken out of a view
+        $view(static::ACTIVITIES)->custom_view_columns()->orderByDesc('order')->firstOrFail()->delete();
+        $this->assertSame(4, $dashboard->dashboard_boxes()->count());
+
+        FeaturePacks::install(Features::SALES);
+        System::clearCache();
+
+        $this->assertSame(5, $dashboard->dashboard_boxes()->count());
+        $box = $dashboard->dashboard_boxes()->where('row_no', 2)->where('column_no', 1)->firstOrFail();
+        $this->assertSame(strval($view(static::ACTIVITIES)->id), strval($box->getOption('target_view_id')));
+        $this->assertSame($kanbanColumns, $view(static::KANBAN)->custom_view_columns()->count());
+        $this->assertSame($monthlySummaries, $view(static::MONTHLY)->custom_view_summaries()->count());
+        $this->assertSame($monthlySorts, $view(static::MONTHLY)->custom_view_sorts()->count());
+        $this->assertSame($activityColumns - 1, $view(static::ACTIVITIES)->custom_view_columns()->count(), 'the change of the site stays');
+
+        // and again: nothing twice
+        FeaturePacks::install(Features::SALES);
+        System::clearCache();
+        $this->assertSame(5, $dashboard->dashboard_boxes()->count());
+        $this->assertSame($kanbanColumns, $view(static::KANBAN)->custom_view_columns()->count());
+        $this->assertSame($monthlySummaries, $view(static::MONTHLY)->custom_view_summaries()->count());
+    }
+
+    /**
+     * The row on with its pack not all there (an install stopped by a timeout, or the row turned on
+     * without the install): saving Feature management installs what is missing.
+     */
+    public function testSavingInstallsWhenTheRowIsOnAndThePackIsNotAllThere(): void
+    {
+        // on, without the install
+        Features::save([Features::SALES => ['enabled' => true, 'role_groups' => null, 'menu' => true]]);
+        System::clearCache();
+        Features::reset();
+        $this->assertTrue(FeaturePacks::incomplete(Features::SALES));
+        $html = (string) $this->get(admin_url('feature'))->assertOk()->getContent();
+        $this->assertStringContainsString(e(exmtrans('feature.pack_incomplete')), $html);
+
+        $this->postUse(true);
+        $this->assertFalse(FeaturePacks::incomplete(Features::SALES));
+        $this->assertSame(7, $this->counts()['tables']);
+        $this->assertSame(1, $this->counts()['dashboards']);
+        $html = (string) $this->get(admin_url('feature'))->assertOk()->getContent();
+        $this->assertStringNotContainsString(e(exmtrans('feature.pack_incomplete')), $html);
+
+        // a table missing (stopped on the way): made again by the next save
+        CustomTable::getEloquent('sales_activity')->delete();
+        System::clearCache();
+        $this->assertTrue(FeaturePacks::incomplete(Features::SALES));
+        $this->postUse(true);
+        $this->assertNotNull(CustomTable::getEloquent('sales_activity'));
+        $this->assertFalse(FeaturePacks::incomplete(Features::SALES));
+
+        // all there: a save does not install again (a view the site removed stays removed)
+        CustomView::query()->withoutGlobalScopes()->where('suuid', static::KANBAN)->get()->each(function ($view) {
+            $view->deletingChildren();
+            $view->delete();
+        });
+        $this->postUse(true);
+        $this->assertFalse(CustomView::query()->withoutGlobalScopes()->where('suuid', static::KANBAN)->exists());
     }
 
     public function testTheKanbanAndTheDashboardRender(): void

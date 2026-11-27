@@ -213,9 +213,10 @@ class FeatureController extends AdminControllerBase
             ];
         }
 
-        // the features with a pack that are turned on now (they install it, below)
+        // the features with a pack that are turned on now, or that are on with their pack not all
+        // there (an install that stopped on the way): they install it, below
         $packsOn = array_values(array_filter(FeaturePacks::keys(), function ($key) use ($values) {
-            return boolval($values[$key]['enabled'] ?? false) && !Features::setting($key)['enabled'];
+            return boolval($values[$key]['enabled'] ?? false) && (!Features::setting($key)['enabled'] || FeaturePacks::incomplete($key));
         }));
 
         $pluginInput = (array)$request->input('plugins', []);
@@ -285,12 +286,29 @@ class FeatureController extends AdminControllerBase
             'requires' => isset($requires) && Features::exists($requires) ? Features::label($requires) : null,
             'has_menu' => isset($definition['menu']),
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
-            'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : (isset($definition['pack']) ? exmtrans('feature.pack_note') : null),
+            'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : (isset($definition['pack']) ? $this->packNote($key) : null),
             'manual_url' => Features::manualUrl($key),
             // a feature that installs tables, menus... (FeaturePacks)
             'pack' => isset($definition['pack']),
             'action' => Features::action($key),
         ];
+    }
+
+    /**
+     * The note of a feature that installs a pack, and what to do when it is on with its pack not
+     * all there (saving installs what is missing).
+     */
+    protected function packNote(string $key): string
+    {
+        $note = strval(exmtrans('feature.pack_note'));
+        try {
+            if (Features::setting($key)['enabled'] && FeaturePacks::incomplete($key)) {
+                $note .= ' ' . strval(exmtrans('feature.pack_incomplete'));
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the pack of ' . $key . ': ' . $e->getMessage());
+        }
+        return $note;
     }
 
     /**

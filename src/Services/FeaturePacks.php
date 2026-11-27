@@ -3,6 +3,9 @@
 namespace Exceedone\Exment\Services;
 
 use Exceedone\Exment\Model\CustomTable;
+use Exceedone\Exment\Model\CustomView;
+use Exceedone\Exment\Model\Dashboard;
+use Exceedone\Exment\Model\DashboardBox;
 use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\RoleGroup;
 use Exceedone\Exment\Model\RoleGroupPermission;
@@ -136,8 +139,13 @@ class FeaturePacks
         // true: what is there is left as it is (only what is missing is made)
         (new TemplateImporter())->import($json, false, true);
 
+        // an install stopped on the way (an error, a timeout) may have left a view or a dashboard
+        // of the pack without its parts: they are made again
+        static::repairParts($json);
+
         $newTables = array_values(array_diff($tableNames, $existingTables));
         if (count($newTables) === 0 || $existingGroups->isEmpty()) {
+            System::clearCache();
             return;
         }
         \ExmentDB::transaction(function () use ($roles, $existingGroups, $newTables) {
@@ -154,6 +162,85 @@ class FeaturePacks
             }
         });
         System::clearCache();
+    }
+
+    /**
+     * The parts of the views and the dashboards of the pack that the site has, when an install
+     * stopped on the way left them out (the importer leaves a view or a dashboard that is there
+     * as it is, its parts too):
+     *
+     * - a dashboard: the boxes of the pack at the places (row, column) where it has none
+     * - a view: its columns (and groups), filters, sorts or totals when it has none of that kind.
+     *   One kind at a time, so that a view the site changed (a column taken out) stays as it is.
+     *
+     * @param array<string, mixed> $json the pack
+     */
+    protected static function repairParts(array $json): void
+    {
+        \ExmentDB::transaction(function () use ($json) {
+            foreach ((array) array_get($json, 'dashboards', []) as $item) {
+                $dashboard = is_array($item) ? Dashboard::query()->where('dashboard_name', array_get($item, 'dashboard_name'))->first() : null;
+                if (!isset($dashboard)) {
+                    continue;
+                }
+                foreach ((array) array_get($item, 'dashboard_boxes', []) as $box) {
+                    if (!is_array($box) || DashboardBox::query()->where('dashboard_id', $dashboard->id)
+                        ->where('row_no', array_get($box, 'row_no'))->where('column_no', array_get($box, 'column_no'))->exists()) {
+                        continue;
+                    }
+                    DashboardBox::importTemplate($box, true, ['parent' => $dashboard]);
+                }
+            }
+
+            $kinds = (array) array_get(CustomView::$templateItems, 'children', []);
+            foreach ((array) array_get($json, 'custom_views', []) as $item) {
+                $suuid = is_array($item) ? array_get($item, 'suuid') : null;
+                $view = is_nullorempty($suuid) ? null : CustomView::query()->withoutGlobalScopes()->where('suuid', $suuid)->first();
+                if (!isset($view)) {
+                    continue;
+                }
+                foreach ($kinds as $kind => $class) {
+                    $parts = (array) array_get($item, $kind, []);
+                    if (count($parts) === 0 || $view->{$kind}()->exists()) {
+                        continue;
+                    }
+                    foreach ($parts as $part) {
+                        if (is_array($part)) {
+                            $class::importTemplate($part, true, ['parent' => $view]);
+                        }
+                    }
+                }
+            }
+        });
+    }
+
+    /**
+     * Whether the pack of a feature is not all there: a table or a dashboard of the pack is
+     * missing (an install that stopped on the way: the dashboards are made after the tables and
+     * the views). Feature management installs it again when the feature is on and its pack is
+     * not all there. (A view or a menu the site removed does not count: it is the site's choice.)
+     */
+    public static function incomplete(string $key): bool
+    {
+        $path = static::path($key);
+        if (!isset($path) || !File::exists("$path/config.json")) {
+            return false;
+        }
+        $json = json_decode_ex(File::get("$path/config.json"), true);
+        if (!is_array($json)) {
+            return false;
+        }
+        $names = function (string $list, string $name) use ($json): array {
+            return array_values(array_unique(array_filter(array_map(function ($item) use ($name) {
+                return is_array($item) ? array_get($item, $name) : null;
+            }, (array) array_get($json, $list, [])))));
+        };
+        $tables = $names('custom_tables', 'table_name');
+        if (CustomTable::query()->whereIn('table_name', $tables)->count() < count($tables)) {
+            return true;
+        }
+        $dashboards = $names('dashboards', 'dashboard_name');
+        return Dashboard::query()->whereIn('dashboard_name', $dashboards)->count() < count($dashboards);
     }
 
     /**

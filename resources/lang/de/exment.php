@@ -5435,6 +5435,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'pack_install_header' => 'Funktionen',
         'pack_install_question' => ':name verwenden?',
         'pack_install_help' => 'Sie können es auch später in der Funktionsverwaltung einschalten.',
+        'pack_install_label' => 'Von Anfang an verwenden',
+        'pack_incomplete' => 'Ein Teil davon (eine Tabelle oder das Dashboard) fehlt. Beim Speichern wird das Fehlende hinzugefügt.',
         'menu_pack' => 'Das hinzugefügte Menü kann auf der Menüseite verschoben oder entfernt werden.',
         'menu_pack_link' => 'Menüseite',
         'features' => [
