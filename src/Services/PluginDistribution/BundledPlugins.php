@@ -24,8 +24,9 @@ use Illuminate\Support\Facades\Storage;
  * installed or updated by itself: a newer bundled version is only shown, and
  * the version before an update is kept, to go back to it.
  *
- * The package follows the minor versions of Exment: Exment 7.2 requires
- * exceedone/exment-plugins-release ~7.2.0 (its releases fit 7.2).
+ * One line of releases serves Exment 7.2 and 7.3 (the plugins support both): Exment 7.2
+ * requires exceedone/exment-plugins-release ~7.2.0, Exment 7.3 ^7.2 (the 7.2.x releases now,
+ * and a 7.3.x line too if the package is ever split).
  *
  * A site run by its provider (a SaaS) may keep the versions to itself:
  * EXMENT_BUNDLED_PLUGINS_UPDATES=false hides "use this version" and "back to
