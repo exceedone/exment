@@ -4,6 +4,8 @@ namespace Exceedone\Exment\Tests\Feature;
 
 use Exceedone\Exment\Middleware\VerifyCsrfToken;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Model\System;
+use Exceedone\Exment\Services\UserLocale;
 use Exceedone\Exment\Tests\TestDefine;
 use Illuminate\Support\Facades\Route;
 
@@ -31,9 +33,24 @@ class ExpiredFormTokenTest extends FeatureTestBase
                 ExpiredFormTokenTest::$ran++;
                 return response()->json(['ran' => true]);
             });
+            // what the scripts of a page ask by themselves (notices, lists)
+            Route::get('exment-token-test-script', function () {
+                return response()->json(['count' => 0]);
+            });
         });
 
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
+    }
+
+    protected function tearDown(): void
+    {
+        $user = LoginUser::find(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        if ($user && !is_null($user->getSettingValue(UserLocale::SETTING_KEY))) {
+            $user->setSettingValue(UserLocale::SETTING_KEY, null);
+        }
+        UserLocale::clearCache();
+        \App::setLocale(UserLocale::siteDefault());
+        parent::tearDown();
     }
 
     protected function url(): string
@@ -118,6 +135,57 @@ class ExpiredFormTokenTest extends FeatureTestBase
         $this->assertStringContainsString('exm-login-error', $html);
         $this->assertStringContainsString(e(exmtrans('error.expired_error_reinput')), $html);
         $this->assertStringContainsString('value="someone"', $html);
+    }
+
+    public function testThePageShowsTheMessage(): void
+    {
+        $back = admin_url('');
+        $this->from($back)->post($this->url(), ['a' => '1', '_token' => 'wrong'])->assertRedirect($back);
+
+        $html = (string) $this->get($back)->getContent();
+        $this->assertStringContainsString(exmtrans('error.expired_error_reinput'), $html);
+        $this->assertSame(0, static::$ran);
+    }
+
+    public function testTheMessageIsInTheLanguageOfTheUser(): void
+    {
+        config(['exment.locale' => 'ja']);
+        \App::setLocale('ja');
+        $user = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $user->setSettingValue(UserLocale::SETTING_KEY, 'en');
+        UserLocale::clearCache();
+        System::clearRequestSession();
+        $this->be($user);
+
+        $back = admin_url('');
+        $this->from($back)->post($this->url(), ['a' => '1', '_token' => 'wrong'])->assertRedirect($back);
+        $html = (string) $this->get($back)->getContent();
+        $this->assertStringContainsString('The page has expired.', $html);
+        $this->assertStringNotContainsString('ページの有効期限が切れました', $html);
+
+        // a script gets its message in the language of the user too
+        $this->post($this->url(), ['a' => '1'], ['X-Requested-With' => 'XMLHttpRequest'])
+            ->assertStatus(419)
+            ->assertJson(['message' => trans('exment::exment.common.message.csrf_error', [], 'en')]);
+        $this->assertSame(0, static::$ran);
+    }
+
+    public function testARequestOfAScriptBeforeThePageDoesNotTakeTheMessage(): void
+    {
+        $back = admin_url('');
+        $this->from($back)->post($this->url(), ['a' => '1', '_token' => 'wrong'])->assertRedirect($back);
+
+        // the scripts of the page that was open ask before the browser opens the page it goes back to
+        $this->get(admin_url('exment-token-test-script'), ['X-Requested-With' => 'XMLHttpRequest'])->assertOk();
+        $this->getJson(admin_url('exment-token-test-script'))->assertOk();
+
+        $html = (string) $this->get($back)->getContent();
+        $this->assertStringContainsString(exmtrans('error.expired_error_reinput'), $html);
+
+        // shown once
+        $html = (string) $this->get($back)->getContent();
+        $this->assertStringNotContainsString(exmtrans('error.expired_error_reinput'), $html);
+        $this->assertSame(0, static::$ran);
     }
 
     public function testTheRightTokenRuns(): void
