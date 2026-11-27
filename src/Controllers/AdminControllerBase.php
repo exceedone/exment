@@ -31,7 +31,13 @@ class AdminControllerBase extends Controller
     public function callAction($method, $parameters)
     {
         $this->localizePageInfo();
-        return parent::callAction($method, $parameters);
+        // The host's base controller (App\Http\Controllers\Controller) is an empty abstract class in a
+        // Laravel 11/12 skeleton, without callAction(): call the action the same way Laravel does.
+        $parent = get_parent_class(self::class);
+        if ($parent !== false && method_exists($parent, 'callAction')) {
+            return parent::callAction($method, $parameters);
+        }
+        return $this->{$method}(...array_values($parameters));
     }
 
     /**
