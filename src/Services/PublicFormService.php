@@ -17,7 +17,7 @@ use Exceedone\Exment\Model\PublicForm;
 use Exceedone\Exment\Model\System;
 
 /**
- * Public forms made by code (ISS02942): a plugin (the help desk, ISS02941) or the easy setup of the
+ * Public forms made by code (ISS02942): a plugin (the support desk, ISS02941) or the easy setup of the
  * public form screen makes or updates a public form of a table with a list of columns, and gets the
  * tags to put it in a web site.
  *
