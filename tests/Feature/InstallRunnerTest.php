@@ -114,6 +114,8 @@ class InstallRunnerTest extends FeatureTestBase
     private function asBrowser(?string $token): void
     {
         $this->unencryptedCookies = [];
+        // the cookies go with the JSON requests too (as from the page: same origin)
+        $this->withCredentials();
         if (!is_null($token)) {
             $this->withUnencryptedCookie(InstallRunner::COOKIE, $token);
         }

@@ -37,7 +37,9 @@ class InstallController extends Controller
             if ($request->isMethod('post') && static::isOwner($request) && InstallRunner::forgetFailed()) {
                 InstallService::forgetInitializeStatus();
                 InstallService::forgetInputParams();
-                return redirect(admin_urls('install'))->withCookie(InstallRunner::forgetCookie());
+                $response = redirect()->to(admin_urls('install'));
+                $response->headers->setCookie(InstallRunner::forgetCookie());
+                return $response;
             }
             return redirect(admin_urls('install'));
         }
@@ -84,8 +86,11 @@ class InstallController extends Controller
         // without script (the button of the screen): the screen again
         $response = $request->expectsJson()
             ? response()->json($this->withUrls($progress))
-            : redirect($succeeded ? admin_url('initialize') : admin_url('install'));
-        return $succeeded ? $response->withCookie(InstallRunner::forgetCookie()) : $response;
+            : redirect()->to($succeeded ? admin_url('initialize') : admin_url('install'));
+        if ($succeeded) {
+            $response->headers->setCookie(InstallRunner::forgetCookie());
+        }
+        return $response;
     }
 
     /**

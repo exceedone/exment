@@ -116,7 +116,10 @@ class InstallingForm
         InstallService::setInitializeStatus(InitializeStatus::INSTALLING);
 
         // .env is read again from the next request: the progress, at the URL with the prefix just written
-        $response = redirect(url($prefix === '' ? 'install' : $prefix . '/install'));
-        return is_null($token) ? $response : $response->withCookie(InstallRunner::cookie($token));
+        $response = redirect()->to(url($prefix === '' ? 'install' : $prefix . '/install'));
+        if (!is_null($token)) {
+            $response->headers->setCookie(InstallRunner::cookie($token));
+        }
+        return $response;
     }
 }

@@ -201,7 +201,7 @@ class InstallRunner
      */
     public static function cookie(string $token, ?string $basePath = null): \Symfony\Component\HttpFoundation\Cookie
     {
-        return cookie(static::COOKIE, $token, 0, static::cookiePath($basePath), null, request()->isSecure(), true, false, 'lax');
+        return cookie()->make(static::COOKIE, $token, 0, static::cookiePath($basePath), null, request()->isSecure(), true, false, 'lax');
     }
 
     /**
@@ -511,7 +511,7 @@ class InstallRunner
     }
 
     /**
-     * @param int $operation LOCK_EX (to run) or LOCK_SH (to see whether a call runs)
+     * @param 1|2 $operation LOCK_SH (to see whether a call runs) or LOCK_EX (to run)
      * @return bool false: another process holds the lock
      */
     protected function acquire(int $operation = LOCK_EX): bool
