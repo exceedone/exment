@@ -38,10 +38,31 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
 
     public function testTheSettingsAreInThreeGroups(): void
     {
-        $this->assertSame(['custom_table', 'studio', 'menu', 'workflow', 'mail_template', 'notify', 'cell_style_preset', 'template'], $this->children('admin_data'));
+        // no "notify": its page only says that the notifications moved (GitHub #2289)
+        $this->assertSame(['custom_table', 'studio', 'menu', 'workflow', 'mail_template', 'cell_style_preset', 'template'], $this->children('admin_data'));
         $this->assertSame(['loginuser', 'role_group', 'login_setting', 'api_setting', 'operation_log'], $this->children('admin_user'));
         // the safety check is added under "admin" by its installer
         $this->assertSame(['system', 'feature', 'plugin', 'backup', 'tuning', 'security_check', 'scheduled_jobs', 'maintenance'], array_values(array_diff($this->children('admin'), ['safety_check'])));
+    }
+
+    // GitHub #2289: a site made with the menu of 7.2.1 to 7.2.x loses the item, and only that one
+    public function testTheOldNotifyItemIsRemovedOnlyWhileItIsThatItem(): void
+    {
+        $parent = DB::table('admin_menu')->where('menu_type', 'parent_node')->where('menu_name', 'admin_data')->value('id');
+        $row = ['parent_id' => $parent, 'order' => 6, 'title' => '通知', 'icon' => 'fa-bell', 'menu_type' => 'system', 'menu_name' => 'notify', 'created_at' => now(), 'updated_at' => now()];
+        $old = DB::table('admin_menu')->insertGetId($row + ['uri' => 'notify', 'menu_target' => 'notify']);
+        $elsewhere = DB::table('admin_menu')->insertGetId(array_merge($row, ['uri' => 'data/information', 'menu_target' => 'notify']));
+        $withChild = DB::table('admin_menu')->insertGetId($row + ['uri' => 'notify', 'menu_target' => 'notify']);
+        DB::table('admin_menu')->insert(['parent_id' => $withChild, 'order' => 1, 'title' => 'x', 'icon' => '', 'uri' => 'system', 'menu_type' => 'system', 'menu_name' => 'system', 'menu_target' => 'system', 'created_at' => now(), 'updated_at' => now()]);
+
+        $migration = require __DIR__ . '/../../database/migrations/2026_12_11_000000_remove_old_notify_menu.php';
+        $migration->up();
+        $migration->up();
+
+        $this->assertFalse(DB::table('admin_menu')->where('id', $old)->exists());
+        $this->assertTrue(DB::table('admin_menu')->where('id', $elsewhere)->exists());
+        $this->assertTrue(DB::table('admin_menu')->where('id', $withChild)->exists());
+        $this->assertSame(['custom_table', 'studio', 'menu', 'workflow', 'mail_template', 'cell_style_preset', 'template'], array_values(array_diff($this->children('admin_data'), ['notify'])));
     }
 
     public function testTheGroupsAreInOrder(): void

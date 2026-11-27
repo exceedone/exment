@@ -194,7 +194,8 @@ class FileServerController extends AdminControllerBase
         $asked = array_values(array_filter(explode('/', $path), function ($segment) {
             return $segment !== '';
         }));
-        $current = isset($url) ? array_merge([$paths->workspaceSegment($ws)], isset($node) ? $paths->names($node) : []) : null;
+        // a file named like a static file (sample.png): its address ends with "/~" (GitHub #2290)
+        $current = isset($url) ? $paths->segments($ws, $node) : null;
         if ($asked !== $current) {
             $query = $request->query();
             if (!isset($url)) {

@@ -501,11 +501,6 @@
         },
         {
             "menu_type": "system",
-            "menu_name": "notify",
-            "title": "알림"
-        },
-        {
-            "menu_type": "system",
             "menu_name": "cell_style_preset",
             "title": "셀 스타일 프리셋"
         },

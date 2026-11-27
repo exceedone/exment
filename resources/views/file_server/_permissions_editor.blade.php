@@ -14,7 +14,13 @@
     var orgs = @json($picker_orgs);
     var levels = @json($levels);
     var entries = @json(array_values($entries));
-    var labels = @json(['user' => exmtrans('file_server.target_user'), 'organization' => exmtrans('file_server.target_organization'), 'remove' => exmtrans('file_server.remove')]);
+    var labels = {
+        user: @json(exmtrans('file_server.target_user')),
+        organization: @json(exmtrans('file_server.target_organization')),
+        remove: @json(exmtrans('file_server.remove')),
+        searching: @json(exmtrans('file_server.picker_searching')),
+        no_result: @json(exmtrans('file_server.picker_no_result'))
+    };
     var rows = el.querySelector('[data-fs-perm-rows]');
 
     function option(value, text, selected) {
@@ -65,7 +71,15 @@
             window.jQuery(target).select2({
                 width: '100%',
                 allowClear: false,
-                minimumInputLength: 1,
+                // the first page is shown before anything is typed, in the language of the
+                // page (select2's own texts are English when its i18n file is not loaded, #2276)
+                minimumInputLength: 0,
+                language: {
+                    searching: function () { return labels.searching; },
+                    loadingMore: function () { return labels.searching; },
+                    noResults: function () { return labels.no_result; },
+                    errorLoading: function () { return labels.no_result; }
+                },
                 ajax: {
                     url: pickerUrl,
                     dataType: 'json',
