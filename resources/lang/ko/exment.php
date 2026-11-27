@@ -1491,6 +1491,7 @@ return [
         ],
         'run' => [
             'screen' => [
+<<<<<<< HEAD
                 'backup_first_option' => '현재 데이터를 백업하기(권장)',
                 'backup_first_help' => '복원 전에 현재 데이터를 "beforerestore+날짜와 시간" 이름으로 백업합니다. 문제가 생기면 이것으로 되돌릴 수 있습니다.',
                 'preview' => '바뀌는 내용',
@@ -1500,6 +1501,10 @@ return [
                 'preview_folder' => ':name: 파일 :files개(:size)',
                 'preview_env' => '설정(.env 일부)',
                 'preview_versions' => '만든 때의 버전: Exment :exment / Laravel :laravel (현재: Exment :current_exment / Laravel :current_laravel)',
+=======
+                'signin_again' => '완료되었습니다. 다시 로그인해 주세요.',
+                'signin' => '로그인',
+>>>>>>> feat/backup-progress-screen-730b
                 'restore_in_request' => '이 화면에서 복원',
                 'restore_command_note' => '이 서버에서는 복원이 이 화면의 요청 안에서 실행됩니다. 큰 사이트에서는 시간이 오래 걸려 화면이 기다리다 끊길 수 있습니다(복원은 계속됩니다). 큰 사이트에서는 서버에서 php artisan exment:restore 명령을 사용하는 것을 권장합니다.',
                 'restoring_title' => '복원 중입니다',

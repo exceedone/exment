@@ -23,6 +23,8 @@ use DB;
 
 class BackupController extends AdminControllerBase
 {
+    public const STATE_TOKEN_SESSION = 'exment_backup_state_token_';
+
     // @phpstan-ignore-next-line
     protected $backup;
     // @phpstan-ignore-next-line
@@ -85,7 +87,8 @@ class BackupController extends AdminControllerBase
             'active' => isset($active) ? $active->toStatusArray() : null,
             'statusUrl' => admin_urls('backup', 'runs'),
             'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
-            'logoutUrl' => admin_url('auth/logout'),
+            'loginUrl' => admin_url('auth/login'),
+            'stateToken' => isset($active) ? session(static::STATE_TOKEN_SESSION . $active->uuid) : null,
         ]));
 
         $content->row(view(
@@ -237,7 +240,8 @@ class BackupController extends AdminControllerBase
             'downloadUrl' => admin_urls('backup', 'runs', $run->uuid, 'log'),
             'statusUrl' => admin_urls('backup', 'runs'),
             'backUrl' => admin_url('backup'),
-            'logoutUrl' => admin_url('auth/logout'),
+            'loginUrl' => admin_url('auth/login'),
+            'stateToken' => $run->isActive() ? session(static::STATE_TOKEN_SESSION . $run->uuid) : null,
             'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
         ]));
 
@@ -268,6 +272,15 @@ class BackupController extends AdminControllerBase
             'X-Content-Type-Options' => 'nosniff',
             'Cache-Control' => 'no-store',
         ]);
+    }
+
+    /**
+     * The token of the state of a restore started here (BackupRunStateController), kept in the
+     * session of this admin: the page of the run gives it to its script.
+     */
+    protected static function keepStateToken(BackupRun $run): void
+    {
+        session()->put(static::STATE_TOKEN_SESSION . $run->uuid, BackupRuns::issueStateToken($run));
     }
 
     protected function findRun(string $uuid): BackupRun
@@ -610,6 +623,7 @@ class BackupController extends AdminControllerBase
             }
             // it goes on apart: its page shows the progress
             if (isset($result) && $result instanceof BackupRun) {
+                static::keepStateToken($result);
                 return response()->json([
                     'result'  => true,
                     'toastr' => exmtrans('backup.run.message.restore_started'),
@@ -685,6 +699,7 @@ class BackupController extends AdminControllerBase
                 ]);
             }
             if ($result instanceof BackupRun) {
+                static::keepStateToken($result);
                 return response()->json([
                     'result'  => true,
                     'toastr' => exmtrans('backup.run.message.restore_started'),

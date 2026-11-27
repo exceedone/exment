@@ -1538,6 +1538,7 @@ return [
         ],
         'run' => [
             'screen' => [
+<<<<<<< HEAD
                 'backup_first_option' => '今のデータをバックアップする（おすすめ）',
                 'backup_first_help' => 'リストアの前に、今のデータを「beforerestore＋日時」の名前でバックアップします。うまくいかなかったときは、それを使って元に戻せます。',
                 'preview' => '置きかわるもの',
@@ -1547,6 +1548,10 @@ return [
                 'preview_folder' => ':name：:files 個のファイル（:size）',
                 'preview_env' => '設定（.env の一部）',
                 'preview_versions' => '作ったときの版：Exment :exment / Laravel :laravel（今：Exment :current_exment / Laravel :current_laravel）',
+=======
+                'signin_again' => '完了しました。もう一度ログインしてください。',
+                'signin' => 'ログイン',
+>>>>>>> feat/backup-progress-screen-730b
                 'restore_in_request' => '画面からのリストア',
                 'restore_command_note' => 'このサーバーでは、リストアはこの画面の処理の中で動きます。大きなサイトでは時間がかかり、画面が待ちきれずに切れることがあります（リストアは続きます）。大きなサイトでは、サーバーで php artisan exment:restore コマンドを使うのがおすすめです。',
                 'restoring_title' => 'リストア中です',

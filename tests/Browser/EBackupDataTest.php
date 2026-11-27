@@ -17,6 +17,8 @@ class EBackupDataTest extends ExmentKitTestCase
     protected function setUp(): void
     {
         parent::setUp();
+        // the tests after a restore read its data at once: the restore runs in the request, not apart (ISS02943)
+        config(['exment.backup.detach_restore' => false]);
         $this->login();
     }
 

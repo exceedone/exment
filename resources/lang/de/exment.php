@@ -1491,6 +1491,7 @@ return [
         ],
         'run' => [
             'screen' => [
+<<<<<<< HEAD
                 'backup_first_option' => 'Die aktuellen Daten sichern (empfohlen)',
                 'backup_first_help' => 'Vor der Wiederherstellung werden die aktuellen Daten als „beforerestore“ mit Datum und Uhrzeit gesichert. Geht etwas schief, können Sie sie damit wiederherstellen.',
                 'preview' => 'Was ersetzt wird',
@@ -1500,6 +1501,10 @@ return [
                 'preview_folder' => ':name: :files Dateien (:size)',
                 'preview_env' => 'Einstellungen (ein Teil von .env)',
                 'preview_versions' => 'Erstellt mit: Exment :exment / Laravel :laravel (jetzt: Exment :current_exment / Laravel :current_laravel)',
+=======
+                'signin_again' => 'Abgeschlossen. Bitte melden Sie sich erneut an.',
+                'signin' => 'Anmelden',
+>>>>>>> feat/backup-progress-screen-730b
                 'restore_in_request' => 'Wiederherstellung über diese Seite',
                 'restore_command_note' => 'Auf diesem Server läuft die Wiederherstellung innerhalb der Anfrage dieser Seite. Bei einer großen Website dauert das lange, und die Seite kann das Warten abbrechen (die Wiederherstellung läuft weiter). Für große Websites wird der Befehl php artisan exment:restore auf dem Server empfohlen.',
                 'restoring_title' => 'Wiederherstellung läuft',
