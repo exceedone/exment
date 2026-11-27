@@ -68,7 +68,7 @@ class MyInsightsTest extends FeatureTestBase
     protected function signIn(LoginUser $user, string $ip, Carbon $at, string $result = LoginLog::RESULT_SUCCESS): void
     {
         (new LoginLog())->forceFill([
-            'login_user_id' => $user->id, 'base_user_id' => $user->base_user_id, 'login_name' => $user->login_name,
+            'login_user_id' => $user->id, 'base_user_id' => $user->base_user_id, 'login_name' => $user->user_code,
             'provider' => 'pure', 'result' => $result, 'ip' => $ip, 'user_agent' => 'Mozilla/5.0 (Windows NT 10.0) Chrome/130.0', 'created_at' => $at,
         ])->save();
     }

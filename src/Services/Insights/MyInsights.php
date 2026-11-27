@@ -130,7 +130,12 @@ class MyInsights
             $failures = LoginLog::query()->whereIn('result', [LoginLog::RESULT_FAILURE, LoginLog::RESULT_LOCKOUT])
                 ->where('created_at', '>=', $this->from)->where('created_at', '<', $this->end())
                 ->where(function ($query) {
-                    $query->where('login_user_id', $this->user->id)->orWhere('login_name', strval($this->user->login_name));
+                    // the login, or the names I sign in with (what was typed is kept when the password was wrong)
+                    $names = array_values(array_filter([strval($this->user->user_code ?? ''), strval($this->user->email ?? '')]));
+                    $query->where('login_user_id', $this->user->id);
+                    if (count($names) > 0) {
+                        $query->orWhereIn('login_name', $names);
+                    }
                 })->orderByDesc('created_at')->limit(20)->get(['created_at', 'result', 'ip'])
                 ->map(function ($row) {
                     return ['at' => $row->created_at->format('Y-m-d H:i'), 'result' => strval($row->result), 'ip' => strval($row->ip)];
