@@ -1491,7 +1491,8 @@ return [
         ],
         'run' => [
             'screen' => [
-<<<<<<< HEAD
+                'signin_again' => '已完成。请重新登录。',
+                'signin' => '登录',
                 'backup_first_option' => '备份当前数据（推荐）',
                 'backup_first_help' => '还原之前，以“beforerestore＋日期时间”的名称备份当前数据。出现问题时可以用它恢复。',
                 'preview' => '将被替换的内容',
@@ -1501,10 +1502,6 @@ return [
                 'preview_folder' => ':name：:files 个文件（:size）',
                 'preview_env' => '设置（.env 的一部分）',
                 'preview_versions' => '创建时的版本：Exment :exment / Laravel :laravel（当前：Exment :current_exment / Laravel :current_laravel）',
-=======
-                'signin_again' => '已完成。请重新登录。',
-                'signin' => '登录',
->>>>>>> feat/backup-progress-screen-730b
                 'restore_in_request' => '从此页面还原',
                 'restore_command_note' => '在此服务器上，还原在此页面的请求中执行。大型网站耗时较长，页面可能会等待超时（还原仍会继续）。大型网站建议在服务器上使用 php artisan exment:restore 命令。',
                 'restoring_title' => '正在还原',

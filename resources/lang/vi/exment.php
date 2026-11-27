@@ -1491,7 +1491,8 @@ return [
         ],
         'run' => [
             'screen' => [
-<<<<<<< HEAD
+                'signin_again' => 'Đã hoàn tất. Vui lòng đăng nhập lại.',
+                'signin' => 'Đăng nhập',
                 'backup_first_option' => 'Sao lưu dữ liệu hiện tại (khuyến nghị)',
                 'backup_first_help' => 'Trước khi khôi phục, dữ liệu hiện tại được sao lưu với tên "beforerestore" kèm ngày giờ. Nếu có sự cố, bạn có thể khôi phục lại từ bản này.',
                 'preview' => 'Nội dung sẽ bị thay thế',
@@ -1501,10 +1502,6 @@ return [
                 'preview_folder' => ':name: :files tệp (:size)',
                 'preview_env' => 'Cài đặt (một phần của .env)',
                 'preview_versions' => 'Phiên bản khi tạo: Exment :exment / Laravel :laravel (hiện tại: Exment :current_exment / Laravel :current_laravel)',
-=======
-                'signin_again' => 'Đã hoàn tất. Vui lòng đăng nhập lại.',
-                'signin' => 'Đăng nhập',
->>>>>>> feat/backup-progress-screen-730b
                 'restore_in_request' => 'Khôi phục từ màn hình này',
                 'restore_command_note' => 'Trên máy chủ này, việc khôi phục chạy trong yêu cầu của màn hình này. Với trang web lớn, việc này mất nhiều thời gian và màn hình có thể ngừng chờ (việc khôi phục vẫn tiếp tục). Với trang web lớn, nên dùng lệnh php artisan exment:restore trên máy chủ.',
                 'restoring_title' => 'Đang khôi phục',

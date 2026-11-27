@@ -1538,7 +1538,8 @@ return [
         ],
         'run' => [
             'screen' => [
-<<<<<<< HEAD
+                'signin_again' => 'Finished. Please sign in again.',
+                'signin' => 'Sign in',
                 'backup_first_option' => 'Back up the current data (recommended)',
                 'backup_first_help' => 'Before the restore, the current data is backed up as "beforerestore" plus the date and time. If something goes wrong, you can restore it.',
                 'preview' => 'What is replaced',
@@ -1548,10 +1549,6 @@ return [
                 'preview_folder' => ':name: :files files (:size)',
                 'preview_env' => 'Settings (part of .env)',
                 'preview_versions' => 'Made on: Exment :exment / Laravel :laravel (now: Exment :current_exment / Laravel :current_laravel)',
-=======
-                'signin_again' => 'Finished. Please sign in again.',
-                'signin' => 'Sign in',
->>>>>>> feat/backup-progress-screen-730b
                 'restore_in_request' => 'Restore from this page',
                 'restore_command_note' => 'On this server, the restore runs inside the request of this page. On a large site it takes long, and the page may give up waiting (the restore goes on). For a large site, the command php artisan exment:restore on the server is recommended.',
                 'restoring_title' => 'Restore in progress',
