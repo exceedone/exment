@@ -1492,7 +1492,7 @@ return [
         'run' => [
             'screen' => [
                 'reasons' => [
-                    'warning' => 'Die Wiederherstellung ist mit Problemen beendet. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
+                    'warning' => 'Die Wiederherstellung wurde mit Problemen beendet. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
                     'failed' => 'Die Wiederherstellung ist fehlgeschlagen. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
                     'stalled' => 'Die Wiederherstellung wurde unterbrochen. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
                 ],
