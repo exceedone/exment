@@ -1595,6 +1595,8 @@ return [
                 'stalled' => 'No hubo progreso durante :minutes minutos o más, por lo que se considera detenida. Puede volver a ejecutarla.',
                 'stalled_queued' => 'Esperó en la cola :minutes minutos o más y no comenzó. Compruebe que el worker de la cola está en ejecución.',
                 'stalled_restored' => 'Esta ejecución estaba en curso cuando se hizo la copia de seguridad restaurada.',
+                'cli_started' => ':kind iniciada (:uuid)',
+                'cli_log' => 'Registro: :path',
                 'verify_sha256' => 'El archivo de la copia de seguridad es distinto del que se creó (el sha256 no coincide). Está dañado o es otro archivo. No se restauró nada.',
                 'verify_read' => 'No se puede leer un archivo de la copia de seguridad (:name). La copia está dañada. No se restauró nada.',
                 'safety_failed' => 'Falló la copia de seguridad previa a la restauración. No se restauró nada. Consulte el registro detallado.',

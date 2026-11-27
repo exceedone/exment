@@ -1595,6 +1595,8 @@ return [
                 'stalled' => 'Không có tiến triển trong :minutes phút trở lên nên được xem là đã dừng. Bạn có thể chạy lại.',
                 'stalled_queued' => 'Đã chờ trong hàng đợi :minutes phút trở lên mà không bắt đầu. Hãy kiểm tra worker của hàng đợi có đang chạy không.',
                 'stalled_restored' => 'Lần chạy này đang diễn ra vào lúc tạo bản sao lưu đã được khôi phục.',
+                'cli_started' => 'Đã bắt đầu :kind (:uuid)',
+                'cli_log' => 'Nhật ký: :path',
                 'verify_sha256' => 'Tệp sao lưu khác với lúc được tạo (sha256 không khớp). Tệp bị hỏng hoặc là tệp khác. Chưa khôi phục gì.',
                 'verify_read' => 'Không đọc được một tệp trong bản sao lưu (:name). Bản sao lưu bị hỏng. Chưa khôi phục gì.',
                 'safety_failed' => 'Sao lưu trước khi khôi phục không thành công. Chưa khôi phục gì. Hãy xem nhật ký chi tiết.',

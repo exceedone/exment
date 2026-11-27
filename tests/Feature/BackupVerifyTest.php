@@ -51,11 +51,14 @@ class BackupVerifyTest extends FeatureTestBase
         if (count($created) > 0) {
             Storage::disk(Define::DISKNAME_BACKUP_SYNC)->delete(array_values($created));
         }
-        foreach (BackupRun::query()->get() as $run) {
-            /** @var BackupRun $run */
-            $path = BackupRuns::logFullPath($run);
-            if (is_file($path)) {
-                @unlink($path);
+        // the files of the runs too (a status file of a restore left behind would answer the pages)
+        /** @var \Illuminate\Support\Collection<int, BackupRun> $runs */
+        $runs = BackupRun::query()->get();
+        foreach ($runs as $run) {
+            foreach ([BackupRuns::logFullPath($run), BackupRuns::statusPath($run->uuid), BackupRuns::consolePath($run), BackupRuns::tokenPath($run->uuid), storage_path(path_join(BackupRuns::LOG_DIR, $run->uuid . '.rate'))] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
             }
         }
         parent::tearDown();

@@ -82,12 +82,12 @@ class RestoreCommand extends Command
             $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_COMMAND, [
                 'file_name' => is_string($file) ? pathinfo($file, PATHINFO_FILENAME) : null,
             ]);
-            $this->info('Restore started: ' . $run->uuid);
+            $this->info(strval(exmtrans('backup.run.message.cli_started', ['kind' => exmtrans('backup.run.kinds.restore'), 'uuid' => $run->uuid])));
 
             $result = BackupRuns::runRestore($run, $this->restore, $file, $tmp, function (string $line) {
                 $this->line($line);
             }, boolval($this->option('backup-first')));
-            $this->line('Log: ' . BackupRuns::logRelativePath($run));
+            $this->line(strval(exmtrans('backup.run.message.cli_log', ['path' => BackupRuns::logRelativePath($run)])));
 
             if ($this->restore->isConfigSkipped()) {
                 $this->warn(exmtrans('backup.message.restore_config_skipped'));

@@ -374,6 +374,46 @@ class BackupRunScreenTest extends FeatureTestBase
         $this->get(admin_url('backup'))->assertOk()->assertSee('id="backup-history"', false);
     }
 
+    public function testTheDownOfARestoreLetsThePagesOfTheBackupThroughAndAPlainDownDoesNot(): void
+    {
+        $prefix = trim(strval(config('admin.route.prefix')), '/');
+        $base = $prefix === '' ? '' : $prefix . '/';
+        $excluded = function (): array {
+            return (new \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance(app()))->getExcludedPaths();
+        };
+        $during = null;
+        $method = new \ReflectionMethod(\Exceedone\Exment\Services\BackupRestore\Restore::class, 'passBackupPagesThroughMaintenance');
+        $method->invoke(null, function () use (&$during, $excluded) {
+            // what "down" writes in the file of the maintenance
+            $during = $excluded();
+        });
+        $this->assertContains($base . 'backup', (array) $during);
+        $this->assertContains($base . 'backup/runs/*', (array) $during);
+
+        // after it, and for a plain "down": no exception of the backup
+        foreach ($excluded() as $path) {
+            $this->assertStringNotContainsString('backup', strval($path));
+        }
+    }
+
+    public function testTheGuardNeedsARestoreWithItsTokenAndNotTheDemo(): void
+    {
+        [$run, $progress] = $this->restoreWithState();
+        \Auth::guard('admin')->logout();
+        $this->flushSession();
+        $this->get(admin_url('backup'))->assertOk()->assertSee(exmtrans('backup.run.screen.restoring_title'));
+
+        // the demo: never
+        config(['exment.demo_mode' => true]);
+        $this->assertStringNotContainsString(strval(exmtrans('backup.run.screen.restoring_title')), strval($this->get(admin_url('backup'))->getContent()));
+        config(['exment.demo_mode' => false]);
+
+        // a status file of a restore alone (no token): the pages as they are
+        BackupRuns::forgetStateToken($run->uuid);
+        $this->assertStringNotContainsString(strval(exmtrans('backup.run.screen.restoring_title')), strval($this->get(admin_url('backup'))->getContent()));
+        $progress->finish(BackupRun::STATUS_SUCCEEDED);
+    }
+
     public function testAStateOfARunWithoutTokenWritesNothing(): void
     {
         $before = glob(path_join(storage_path(BackupRuns::LOG_DIR), '*')) ?: [];

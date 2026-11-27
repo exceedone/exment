@@ -79,12 +79,17 @@ class Restore
         try {
             $progress->stage('verify');
             // the page of the maintenance tells a restore is going on (and comes again by itself);
-            // the pages of the backup still answer (BackupRestoreGuard, before the maintenance)
+            // the pages of the backup still answer (BackupRestoreGuard, before the maintenance): the
+            // page of "down --render" is given before Laravel starts, but not for its exceptions
             try {
-                \Artisan::call('down', static::downOptions());
+                static::passBackupPagesThroughMaintenance(function () {
+                    \Artisan::call('down', static::downOptions());
+                });
             } catch (\Throwable $e) {
                 // the page could not be made: the plain one
-                \Artisan::call('down');
+                static::passBackupPagesThroughMaintenance(function () {
+                    \Artisan::call('down');
+                });
             }
 
             // check backup execute
@@ -224,6 +229,25 @@ class Restore
             ];
         } finally {
             $zip->close();
+        }
+    }
+
+    /**
+     * Run the "down" of a restore with the pages of the backup among its exceptions (written in
+     * the file of the maintenance): those requests reach Laravel, where BackupRestoreGuard answers
+     * them while the restore goes on (or the maintenance answers 503). Only this "down": an
+     * ordinary one has no exception.
+     */
+    protected static function passBackupPagesThroughMaintenance(\Closure $down): void
+    {
+        $middleware = \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class;
+        $prefix = trim(strval(config('admin.route.prefix')), '/');
+        $base = $prefix === '' ? '' : $prefix . '/';
+        $middleware::except([$base . 'backup', $base . 'backup/runs/*']);
+        try {
+            $down();
+        } finally {
+            $middleware::flushState();
         }
     }
 

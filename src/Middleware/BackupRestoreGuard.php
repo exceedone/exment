@@ -29,8 +29,13 @@ class BackupRestoreGuard
             return $next($request);
         }
         try {
+            if (\Exceedone\Exment\Services\DemoMode::enabled()) {
+                return $next($request);
+            }
+            // a restore started on the screen (it has the token of its state): not a file of a
+            // status alone
             $status = BackupRuns::restoringStatus();
-            if (!isset($status)) {
+            if (!isset($status) || !BackupRuns::hasStateToken(strval($status['uuid'] ?? ''))) {
                 return $next($request);
             }
             // the state of a run (its token, a few reads a minute): the maintenance does not stop it

@@ -37,6 +37,15 @@ class BackupGenerationsTest extends FeatureTestBase
     protected function tearDown(): void
     {
         $this->disk()->delete(array_map(fn ($name) => "list/{$name}.zip", $this->made));
+        /** @var \Illuminate\Support\Collection<int, BackupRun> $runs */
+        $runs = BackupRun::query()->get();
+        foreach ($runs as $run) {
+            foreach ([BackupRuns::logFullPath($run), BackupRuns::statusPath($run->uuid), BackupRuns::consolePath($run), BackupRuns::tokenPath($run->uuid), storage_path(path_join(BackupRuns::LOG_DIR, $run->uuid . '.rate'))] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
+            }
+        }
         System::clearCache();
         parent::tearDown();
     }

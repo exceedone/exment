@@ -74,12 +74,12 @@ class BackupCommand extends Command
             $run = BackupRuns::start(BackupRun::KIND_BACKUP, $schedule ? BackupRun::TRIGGER_SCHEDULE : BackupRun::TRIGGER_COMMAND, [
                 'targets' => is_array($target) ? $target : [$target],
             ]);
-            $this->info('Backup started: ' . $run->uuid);
+            $this->info(strval(exmtrans('backup.run.message.cli_started', ['kind' => exmtrans('backup.run.kinds.backup'), 'uuid' => $run->uuid])));
 
             $result = BackupRuns::runBackup($run, $target, $schedule, function (string $line) {
                 $this->line($line);
             });
-            $this->line('Log: ' . BackupRuns::logRelativePath($run));
+            $this->line(strval(exmtrans('backup.run.message.cli_log', ['path' => BackupRuns::logRelativePath($run)])));
 
             return $result;
         } catch (BackupRunLockedException $e) {
