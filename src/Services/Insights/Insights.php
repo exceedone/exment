@@ -58,7 +58,7 @@ class Insights
     ];
 
     /** The metrics counted for today when the page is opened (cheap: indexed by the time). */
-    public const LIVE = ['login', 'mcp', 'mcp_tool', 'browser', 'browser_error', 'slow_page', 'job', 'job_failed', 'permission_change', 'view_use'];
+    public const LIVE = ['active_day', 'login', 'mcp', 'mcp_tool', 'browser', 'browser_error', 'slow_page', 'job', 'job_failed', 'permission_change', 'view_use'];
 
     /** @var Carbon|null "now" in the tests */
     public static $now;
@@ -283,7 +283,9 @@ class Insights
     protected static function tableRows(): array
     {
         $stats = DataStats::load();
-        if (isset($stats) && Carbon::parse(strval($stats['time']))->gt(static::now()->subHours(26)) && is_array($stats['tables'] ?? null)) {
+        // the time of the count: seconds (or a date)
+        $time = isset($stats) ? (is_numeric($stats['time']) ? Carbon::createFromTimestamp(intval($stats['time'])) : Carbon::parse(strval($stats['time']))) : null;
+        if (isset($time) && $time->gt(static::now()->subHours(26)) && is_array($stats['tables'] ?? null)) {
             $rows = [];
             foreach ($stats['tables'] as $name => $table) {
                 $rows[strval($name)] = intval(is_array($table) ? ($table['rows'] ?? 0) : 0);

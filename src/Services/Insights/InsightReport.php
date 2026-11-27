@@ -125,16 +125,22 @@ class InsightReport
     }
 
     /**
-     * A metric by the day: date => the sum of its keys (or of the keys given).
+     * A metric by the day: date => the sum of its keys (or of the keys given). Today is null for a
+     * metric counted only at night (the chart leaves a gap, not a fall to 0).
      *
      * @param array<int, string>|null $keys
-     * @return array<string, int>
+     * @return array<string, int|null>
      */
     public function series(string $metric, ?array $keys = null): array
     {
         $rows = $this->rows();
         $series = [];
+        $today = Insights::now()->format('Y-m-d');
         foreach ($this->dates() as $date) {
+            if ($date === $today && !in_array($metric, Insights::LIVE, true) && !in_array($metric, Insights::HIT_METRICS, true)) {
+                $series[$date] = null;
+                continue;
+            }
             $values = $rows[$date][$metric] ?? [];
             if (isset($keys)) {
                 $values = array_intersect_key($values, array_flip($keys));
@@ -206,11 +212,25 @@ class InsightReport
         }
         return [
             'series' => ['day' => $day, 'week' => $week, 'month' => $month],
-            'now' => ['day' => end($day) ?: 0, 'week' => end($week) ?: 0, 'month' => end($month) ?: 0],
+            // the last day counted (today has only the day)
+            'now' => ['day' => static::last($day), 'week' => static::last($week), 'month' => static::last($month)],
             'total' => $total,
             'inactive_count' => max(0, $total - count($active)),
             'inactive' => $inactive,
         ];
+    }
+
+    /**
+     * The last number of a series that is not null.
+     *
+     * @param array<string, int|null> $series
+     */
+    protected static function last(array $series): int
+    {
+        $values = array_values(array_filter($series, function ($value) {
+            return !is_null($value);
+        }));
+        return count($values) > 0 ? intval(end($values)) : 0;
     }
 
     protected static function userCount(): int

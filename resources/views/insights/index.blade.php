@@ -44,6 +44,8 @@
         .exm-insights table.exm-in-table td.num, .exm-insights table.exm-in-table th.num { text-align: right; white-space: nowrap; }
         .exm-insights .exm-in-empty { color: #999; font-size: 13px; padding: 8px 0; }
         .exm-insights h3.exm-in-section { font-size: 16px; margin: 18px 0 8px; font-weight: bold; }
+        .exm-insights .exm-in-feature { display: inline-block; margin: 0 4px 4px 0; padding: 1px 8px; border-radius: 10px; font-size: 12px; border: 1px solid rgba(0,0,0,.15); color: #888; }
+        .exm-insights .exm-in-feature.is-on { border-color: #22c55e; color: #15803d; background: rgba(34,197,94,.08); }
         @media (max-width: 560px) { .exm-insights .exm-in-grid { grid-template-columns: 1fr; } }
     </style>
 
@@ -277,15 +279,18 @@
             <div class="box-body">
                 <p style="margin:0 0 6px">
                 @foreach ($features['features'] as $f)
-                    <span class="label {{ $f['enabled'] ? 'label-success bg-success' : 'label-default bg-secondary' }}" style="display:inline-block;margin:0 4px 4px 0;font-weight:normal">{{ $f['label'] }}</span>
+                    <span class="exm-in-feature {{ $f['enabled'] ? 'is-on' : '' }}">@if ($f['enabled'])<i class="fa fa-check" aria-hidden="true"></i> @endif{{ $f['label'] }}</span>
                 @endforeach
                 </p>
                 <table class="exm-in-table"><thead><tr><th><a href="{{ $links['plugin'] }}">{{ exmtrans('insights.plugin') }}</a></th><th class="num">{{ exmtrans('insights.opened') }}</th></tr></thead><tbody>
-                @forelse ($features['plugins'] as $p)
+                @forelse (array_slice($features['plugins'], 0, 10) as $p)
                     <tr style="{{ $p['active'] ? '' : 'opacity:.55' }}"><td>{{ $p['label'] }}</td><td class="num">{{ number_format($p['count']) }}</td></tr>
                 @empty
                     <tr><td colspan="2" class="exm-in-empty">{{ exmtrans('insights.empty') }}</td></tr>
                 @endforelse
+                @if (count($features['plugins']) > 10)
+                    <tr><td colspan="2" class="exm-in-help"><a href="{{ $links['plugin'] }}">{{ exmtrans('insights.more_plugins', count($features['plugins']) - 10) }}</a></td></tr>
+                @endif
                 </tbody></table>
             </div>
         </div>
@@ -335,9 +340,13 @@
                         legend: { display: datasets.length > 1, labels: { color: text, boxWidth: 12 } },
                         tooltip: spec.bytes ? { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + bytes(ctx.parsed.y); } } } : {}
                     },
-                    scales: {
+                    scales: ranking ? {
+                        // the names on the left, the numbers below
+                        x: { beginAtZero: true, grid: { color: grid }, ticks: { color: text, precision: 0 } },
+                        y: { grid: { display: false }, ticks: { color: text, autoSkip: false } }
+                    } : {
                         x: { stacked: !!spec.stacked, grid: { color: grid }, ticks: { color: text, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
-                        y: { stacked: !!spec.stacked, beginAtZero: true, grid: { color: grid }, ticks: { color: text, precision: 0, callback: ranking ? undefined : tick } }
+                        y: Object.assign({ stacked: !!spec.stacked, beginAtZero: true, grid: { color: grid } }, { ticks: tick ? { color: text, precision: 0, callback: tick } : { color: text, precision: 0 } })
                     }
                 }
             });
