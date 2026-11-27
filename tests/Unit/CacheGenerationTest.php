@@ -16,18 +16,28 @@ class CacheGenerationTest extends UnitTestBase
     /** @var mixed */
     private $useCacheBefore;
 
+    /** @var object|null */
+    private $generationRow;
+
     protected function setUp(): void
     {
         parent::setUp();
         $this->useCacheBefore = config('exment.use_cache');
         config(['cache.default' => 'array', 'exment.use_cache' => true, 'exment.features_locked' => '']);
-        \DB::beginTransaction();
+        // No transaction: System::cache() does not write the store while one is open (it may be rolled back),
+        // so the generation row is restored by hand.
+        $this->generationRow = \DB::table('systems')->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION)->first();
         System::clearCache();
     }
 
     protected function tearDown(): void
     {
-        \DB::rollBack();
+        $row = \DB::table('systems')->where('system_name', Define::SYSTEM_KEY_CACHE_GENERATION);
+        if ($this->generationRow) {
+            $row->update(['system_value' => $this->generationRow->system_value]);
+        } else {
+            $row->delete();
+        }
         config(['exment.use_cache' => $this->useCacheBefore, 'exment.features_locked' => '']);
         System::clearRequestSession();
         parent::tearDown();
