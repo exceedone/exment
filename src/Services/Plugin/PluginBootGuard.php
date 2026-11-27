@@ -13,11 +13,14 @@ use Exceedone\Exment\Model\Plugin;
  */
 class PluginBootGuard
 {
-    /** a plugin logged is not logged again for this time (seconds) */
+    /** the same error of a plugin is not logged again for this time (seconds) */
     public const LOG_SECONDS = 600;
 
-    /** @var array<string, int> the plugins logged in this process, and when */
+    /** @var array<string, int> the errors logged in this process (by cacheKey()), and when */
     protected static $logged = [];
+
+    /** @var array<string, array<string, bool>> the keys of the errors logged in this process, by the plugin */
+    protected static $keys = [];
 
     /**
      * Run a step for one plugin.
@@ -39,9 +42,9 @@ class PluginBootGuard
     }
 
     /**
-     * Log that a plugin was left out of a step: once a plugin in a process, and once in
-     * LOG_SECONDS while the cache can be used (the first step that failed is logged). No stack
-     * trace, so that a broken plugin does not fill the log.
+     * Log that a plugin was left out of a step: the same error of a plugin in the same step once in
+     * LOG_SECONDS (in the process, and in the cache while it can be used); another error of it is
+     * logged too. No stack trace, so that a broken plugin does not fill the log.
      *
      * @param mixed $plugin the Plugin, the class of the plugin (PluginBase), or null
      * @param string $step
@@ -53,15 +56,19 @@ class PluginBootGuard
         try {
             $model = static::model($plugin);
             $name = $model->plugin_name ?? (is_object($plugin) ? get_class($plugin) : 'unknown');
-            $reason = $error instanceof \Throwable ? get_class($error) . ': ' . $error->getMessage() : strval($error);
+            $reason = $error instanceof \Throwable
+                ? get_class($error) . ': ' . $error->getMessage() . ' at ' . static::relativePath($error->getFile()) . ':' . $error->getLine()
+                : strval($error);
 
             // a long process (a queue worker) logs it again after the time too
-            if (isset(static::$logged[$name]) && time() - static::$logged[$name] < static::LOG_SECONDS) {
+            $key = static::cacheKey($name, $step, $reason);
+            if (isset(static::$logged[$key]) && time() - static::$logged[$key] < static::LOG_SECONDS) {
                 return;
             }
-            static::$logged[$name] = time();
+            static::$logged[$key] = time();
+            static::$keys[$name][$key] = true;
             try {
-                if (!\Cache::add(static::cacheKey($name), 1, static::LOG_SECONDS)) {
+                if (!\Cache::add($key, 1, static::LOG_SECONDS)) {
                     return;
                 }
             } catch (\Throwable $e) {
@@ -79,27 +86,40 @@ class PluginBootGuard
     }
 
     /**
-     * The key of the cache that keeps a plugin from being logged again.
+     * The key of the cache that keeps an error of a plugin in a step from being logged again.
      */
-    public static function cacheKey(string $pluginName): string
+    public static function cacheKey(string $pluginName, string $step, string $reason): string
     {
-        return 'exment_plugin_boot_error_' . md5($pluginName);
+        return 'exment_plugin_boot_error_' . md5($pluginName . '|' . $step . '|' . md5($reason));
     }
 
     /**
      * Log the plugins again (for the tests).
      *
-     * @param array<string> $pluginNames whose cache is forgotten too
+     * @param array<string> $pluginNames whose errors logged in this process are forgotten in the cache too
      */
     public static function forget(array $pluginNames = []): void
     {
         static::$logged = [];
         foreach ($pluginNames as $name) {
-            try {
-                \Cache::forget(static::cacheKey($name));
-            } catch (\Throwable $e) {
+            foreach (array_keys(static::$keys[$name] ?? []) as $key) {
+                try {
+                    \Cache::forget($key);
+                } catch (\Throwable $e) {
+                }
             }
+            unset(static::$keys[$name]);
         }
+    }
+
+    /**
+     * The path of a file from the root of the site.
+     */
+    protected static function relativePath(string $path): string
+    {
+        $base = rtrim(str_replace('\\', '/', base_path()), '/') . '/';
+        $path = str_replace('\\', '/', $path);
+        return strpos($path, $base) === 0 ? substr($path, strlen($base)) : $path;
     }
 
     /**
@@ -130,7 +150,7 @@ class PluginBootGuard
             }
 
             return "the installed files expect type '" . implode(',', $files) . "' but the site has '" . implode(',', $site)
-                . "'; upload the plugin again or update plugin_types";
+                . "'; upload the plugin again or update plugin_types (then clear the cache)";
         } catch (\Throwable $e) {
             return null;
         }
