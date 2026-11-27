@@ -42,6 +42,50 @@ class TemplateImporter
         $this->diskService = new TemplateDiskService();
     }
 
+    /** @var string|null storage mode of the tables this import creates ('physical' or null/'json'); see storageModeOfImport() */
+    protected $storageMode = null;
+
+    /**
+     * The storage mode for the tables this import creates (02 §16). Existing tables keep their mode.
+     */
+    public function setStorageMode(?string $mode): self
+    {
+        $this->storageMode = $mode;
+        return $this;
+    }
+
+    /** The mode requested for this import: the explicit setter, else the submitted form field. */
+    protected function storageModeOfImport(): string
+    {
+        $mode = $this->storageMode ?? (string)request()->input('storage_mode_request', '');
+        return $mode === \Exceedone\Exment\Enums\StorageMode::PHYSICAL ? $mode : \Exceedone\Exment\Enums\StorageMode::JSON;
+    }
+
+    /**
+     * Initialize the tables this import CREATED as physical, once their columns exist (schema only; the
+     * data of a template is loaded afterwards by the caller). A failure throws so that no data is loaded
+     * into a table whose schema is not ready; the table stays initializing and is resumed on the conversion screen.
+     *
+     * @param array<int, string> $table_names
+     */
+    protected function initializeCreatedAsPhysical(array $table_names): void
+    {
+        if (empty($table_names) || $this->storageModeOfImport() !== \Exceedone\Exment\Enums\StorageMode::PHYSICAL) {
+            return;
+        }
+        $initializer = app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class);
+        if (!$initializer->isOffered()) {
+            throw new \Exceedone\Exment\Exceptions\StorageConversionException(exmtrans('custom_table.storage_mode_unavailable'), []);
+        }
+        foreach ($table_names as $table_name) {
+            $table = CustomTable::getEloquent($table_name);
+            if (!($table instanceof CustomTable) || \Exceedone\Exment\Services\Storage\ConversionEligibility::isSystemTable($table)) {
+                continue; // R6: system tables stay JSON
+            }
+            $table->createTable();
+            $initializer->initialize($table, (int)\Exment::getUserId());
+        }
+    }
     /**
      * get template list (get from app folder and vendor/exceedone/exment/templates)
      */
@@ -754,7 +798,8 @@ class TemplateImporter
     {
         System::clearCache();
 
-        \ExmentDB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel) {
+        $createdTableNames = [];
+        \ExmentDB::transaction(function () use ($json, $system_flg, $is_update, $fromExcel, &$createdTableNames) {
             // tables for default form and views
             $createDefaultTables = [];
 
@@ -771,6 +816,10 @@ class TemplateImporter
                 $obj_table = CustomTable::importTemplate($table, $is_update, [
                     'system_flg' => $system_flg
                 ]);
+
+                if ($obj_table->wasRecentlyCreated) {
+                    $createdTableNames[] = (string)$obj_table->table_name;
+                }
 
                 // if call from excel and created first, append list
                 if ($fromExcel && $obj_table->wasRecentlyCreated) {
@@ -929,6 +978,9 @@ class TemplateImporter
         \Artisan::call('exment:patchdata', ['action' => 'form_column_row_no']);
 
         System::clearCache();
+
+        // tables created as physical: the schema is complete here, before any data of the template is loaded
+        $this->initializeCreatedAsPhysical($createdTableNames);
     }
 
     // @phpstan-ignore-next-line

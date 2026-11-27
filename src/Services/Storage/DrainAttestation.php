@@ -45,7 +45,7 @@ final class DrainAttestation
 
     /**
      * @param array<string, bool> $confirmations every REQUIRED code => true
-     * @param string $measures what was done (e.g. "queue:restart at ..., deploy ..., plugin X disabled")
+     * @param string $measures what was done (optional; e.g. "queue:restart at ..., deploy ..., plugin X disabled")
      */
     public function __construct(string $attestedBy, \DateTimeImmutable $attestedAt, array $confirmations, string $measures)
     {
@@ -66,8 +66,8 @@ final class DrainAttestation
                 $missing[] = $code;
             }
         }
-        if (trim($this->attestedBy) === '' || trim($this->measures) === '') {
-            $missing[] = 'attested_by/measures';
+        if (trim($this->attestedBy) === '') {
+            $missing[] = 'attested_by';
         }
         if (!empty($missing)) {
             throw new StorageConversionException('drain attestation incomplete', ['missing' => $missing]);

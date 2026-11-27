@@ -51,6 +51,15 @@ class Handler extends ExceptionHandler
                 return response([
                     'message' => $exception->getMessage()], 401);
             }
+            // hybrid storage (02 §16): a refused change (column change on a table that cannot take it, ...) is
+            // reported to the user, not as a server error. A refused READ of a page keeps the default error page.
+            if ($exception instanceof StorageConversionException && $request->method() !== 'GET') {
+                if ($request->expectsJson()) {
+                    return response()->json(['message' => $exception->reason()], 422);
+                }
+                admin_toastr(exmtrans('storage_conversion.message_refused') . ' ' . $exception->reason(), 'error');
+                return redirect()->back()->withInput();
+            }
             if ($request->expectsJson()) {
                 if ($exception instanceof TokenMismatchException) {
                     return response()->json([

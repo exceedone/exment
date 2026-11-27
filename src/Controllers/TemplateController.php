@@ -255,6 +255,16 @@ class TemplateController extends AdminControllerBase
 
         $form->descriptionHtml(exmtrans('template.description_import'));
         $this->addTemplateTile($form);
+        // hybrid storage (02 §16): the storage mode of the tables this import creates; offered only where available
+        if (app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class)->isOffered()) {
+            $form->select('storage_mode_request', exmtrans('custom_table.storage_mode'))
+                ->options([
+                    \Exceedone\Exment\Enums\StorageMode::JSON => exmtrans('custom_table.storage_mode_json'),
+                    \Exceedone\Exment\Enums\StorageMode::PHYSICAL => exmtrans('custom_table.storage_mode_physical'),
+                ])
+                ->default(\Exceedone\Exment\Enums\StorageMode::JSON)
+                ->help(exmtrans('custom_table.storage_mode_help'));
+        }
         $form->hidden('_token')->default(csrf_token());
         $content->row((new Box(exmtrans('template.header_import'), $form))->style('info'));
     }
@@ -300,12 +310,21 @@ class TemplateController extends AdminControllerBase
             // the message is already translated and carries no attacker controlled text
             admin_toastr($ex->getMessage(), 'error');
             return back();
+        } catch (\Exceedone\Exment\Exceptions\StorageConversionException $ex) {
+            // a table created as physical could not be initialized: no data was loaded into it (02 §16)
+            admin_toastr(exmtrans('custom_table.storage_mode_failed') . ' ' . $ex->getMessage(), 'error');
+            return back();
         }
 
         // install templates selected tiles.
         if ($request->has('template')) {
             $importer = new TemplateImportExport\TemplateImporter();
-            $importer->importTemplate($request->input('template'));
+            try {
+                $importer->importTemplate($request->input('template'));
+            } catch (\Exceedone\Exment\Exceptions\StorageConversionException $ex) {
+                admin_toastr(exmtrans('custom_table.storage_mode_failed') . ' ' . $ex->getMessage(), 'error');
+                return back();
+            }
         }
 
         admin_toastr(trans('admin.save_succeeded'));

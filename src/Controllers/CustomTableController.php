@@ -364,6 +364,27 @@ class CustomTableController extends AdminControllerBase
                 ->default("0")
             ;
             $form->ignore('add_notify_flg');
+
+            // hybrid storage (02 §16): how the table stores single-valued columns, chosen once at creation.
+            // Offered only where conversion is available (never in production); JSON stays the default.
+            if (app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class)->isOffered()) {
+                $form->select('storage_mode_request', exmtrans('custom_table.storage_mode'))
+                    ->options([
+                        \Exceedone\Exment\Enums\StorageMode::JSON => exmtrans('custom_table.storage_mode_json'),
+                        \Exceedone\Exment\Enums\StorageMode::PHYSICAL => exmtrans('custom_table.storage_mode_physical'),
+                    ])
+                    ->default(\Exceedone\Exment\Enums\StorageMode::JSON)
+                    ->disableClear()
+                    ->help(exmtrans('custom_table.storage_mode_help'));
+                $form->ignore('storage_mode_request');
+            }
+        } elseif (\Exment::user() && \Exment::user()->hasPermission(\Exceedone\Exment\Enums\Permission::SYSTEM)
+            && !\Exceedone\Exment\Services\Storage\ConversionEligibility::isSystemTable(CustomTable::getEloquent($id))
+            && app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class)->isOffered()) {
+            // the way to the page of this table (it has no other entry): system administrators only, like the page
+            $form->display('storage_mode_manage', exmtrans('custom_table.storage_mode'))
+                ->displayText('<a href="' . e(admin_url('storage_conversion/' . intval($id))) . '">' . e(exmtrans('custom_table.storage_mode_manage')) . '</a>')
+                ->escape(false);
         }
 
         // Role setting --------------------------------------------------
@@ -406,6 +427,20 @@ class CustomTableController extends AdminControllerBase
             $model = $form->model();
             // @phpstan-ignore-next-line
             $model->createTable();
+
+            // created as physical (02 §16): initialize the empty table; a failure leaves it initializing, to be resumed
+            if (!$this->exists && request()->get('storage_mode_request') === \Exceedone\Exment\Enums\StorageMode::PHYSICAL) {
+                $initializer = app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class);
+                try {
+                    if (!$initializer->isOffered()) {
+                        throw new \Exceedone\Exment\Exceptions\StorageConversionException(exmtrans('custom_table.storage_mode_unavailable'), []);
+                    }
+                    $initializer->initialize(CustomTable::getEloquent($model->id), (int)\Exment::getUserId());
+                } catch (\Exceedone\Exment\Exceptions\StorageConversionException $ex) {
+                    admin_toastr(exmtrans('custom_table.storage_mode_failed') . ' ' . $ex->getMessage(), 'error');
+                    return redirect(admin_url('storage_conversion/' . $model->id));
+                }
+            }
 
             // redirect custom column page
             if (!$this->exists) {
@@ -982,6 +1017,18 @@ HTML;
             ->help(exmtrans("custom_table.help.include_form_flg"))
             ->default("0");
 
+        // hybrid storage (02 §16): the copy is a new table; its storage mode is chosen here (JSON by default)
+        if (app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class)->isOffered() && !\Exceedone\Exment\Services\Storage\ConversionEligibility::isSystemTable($copy_table)) {
+            $form->select('storage_mode_request', exmtrans('custom_table.storage_mode'))
+                ->options([
+                    \Exceedone\Exment\Enums\StorageMode::JSON => exmtrans('custom_table.storage_mode_json'),
+                    \Exceedone\Exment\Enums\StorageMode::PHYSICAL => exmtrans('custom_table.storage_mode_physical'),
+                ])
+                ->default(\Exceedone\Exment\Enums\StorageMode::JSON)
+                ->disableClear()
+                ->help(exmtrans('custom_table.storage_mode_help'));
+        }
+
         $form->setWidth(9, 2);
 
         return getAjaxResponse([
@@ -1024,6 +1071,10 @@ HTML;
         $include_form = boolval($request->get('include_form_flg', 0));
         try {
             $response = $target_table->copyTable($inputs, $include_view, $include_form);
+            // the copy is schema only (no records); created as physical on request, after its columns exist
+            if ($request->get('storage_mode_request') === \Exceedone\Exment\Enums\StorageMode::PHYSICAL && ($response['result'] ?? false)) {
+                $response = $this->initializeCopy($response, (string)$inputs['table_name']);
+            }
         } catch (\Exception $e) {
             $response = [
                 'result' => false,
@@ -1036,5 +1087,28 @@ HTML;
             return getAjaxResponse($response);
         }
         return getAjaxResponse(false);
+    }
+
+    /**
+     * Initialize the copy of a table as physical (02 §16). A refusal leaves the copy as an initializing
+     * table (or plain JSON when nothing was claimed) and sends the user to the conversion screen.
+     *
+     * @param array<string, mixed> $response
+     * @return array<string, mixed>
+     */
+    protected function initializeCopy(array $response, string $table_name): array
+    {
+        $initializer = app(\Exceedone\Exment\Services\Storage\PhysicalTableInitializer::class);
+        $new = CustomTable::getEloquent($table_name);
+        try {
+            if (!$initializer->isOffered()) {
+                throw new \Exceedone\Exment\Exceptions\StorageConversionException(exmtrans('custom_table.storage_mode_unavailable'), []);
+            }
+            $initializer->initialize($new, (int)\Exment::getUserId());
+        } catch (\Exceedone\Exment\Exceptions\StorageConversionException $ex) {
+            $response['toastr'] = exmtrans('custom_table.storage_mode_failed') . ' ' . $ex->getMessage();
+            $response['redirect'] = admin_url('storage_conversion/' . $new->id);
+        }
+        return $response;
     }
 }

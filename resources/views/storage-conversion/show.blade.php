@@ -205,7 +205,7 @@
                 <input type="hidden" name="generation" value="{{ $status['l5_report']['generation'] }}">
                 <input type="hidden" name="report_version" value="{{ $status['l5_report']['version'] }}">
                 <div class="form-check mb-2">
-                    <input type="checkbox" class="form-check-input" id="confirm_l5" name="confirm_l5" value="1">
+                    <input type="checkbox" class="form-check-input" id="confirm_l5" name="confirm_l5" value="1" required>
                     <label class="form-check-label" for="confirm_l5">{{ exmtrans('storage_conversion.confirm_l5') }}</label>
                 </div>
                 @include('exment::storage-conversion.attestation', ['codes' => $attestationCodes])

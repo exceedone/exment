@@ -149,6 +149,17 @@ class Exment
             && $exception->getResponse()->headers->has(\Exceedone\Exment\Services\Features::DENIED_HEADER)) {
             return $exception->getResponse();
         }
+        // hybrid storage (02 §16): a refused change of a screen (e.g. a column change a physical table cannot take)
+        // is told to the user on the screen they came from, not shown as a server error. A refused READ of a page
+        // and the API keep their own answers.
+        if ($exception instanceof \Exceedone\Exment\Exceptions\StorageConversionException && $request->method() !== 'GET' && !$this->isApiEndpoint()) {
+            $message = exmtrans('storage_conversion.message_refused') . ' ' . $exception->reason();
+            if (!$request->pjax() && $request->ajax()) {
+                return getAjaxResponse(['result' => false, 'toastr' => $message, 'errors' => []]);
+            }
+            admin_toastr($message, 'error');
+            return redirect()->back()->withInput();
+        }
         try {
             // Api is default callback
             if ($this->isApiEndpoint()) {

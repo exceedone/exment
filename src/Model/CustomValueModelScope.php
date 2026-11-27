@@ -38,6 +38,13 @@ class CustomValueModelScope implements Scope
     // @phpstan-ignore-next-line
     public function apply(Builder $builder, Model $model)
     {
+        // hybrid storage (02 §16): a table created as physical is closed to application data access
+        // until its schema is published; administration does not go through this scope
+        if (\Exceedone\Exment\Services\Storage\TableStorage::installed()
+            && \Exceedone\Exment\Services\Storage\TableStorage::fromModel($model->custom_table)->refusesDataAccess()) {
+            throw new \Exceedone\Exment\Exceptions\StorageConversionException('data access refused: table ' . $model->custom_table->table_name . ' is being initialized as physical', []);
+        }
+
         $table_name = $model->custom_table->table_name;
         $db_table_name = getDBTableName($table_name);
 

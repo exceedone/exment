@@ -437,6 +437,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::saved(function ($model) {
             // create or drop index --------------------------------------------------
             $model->alterColumn();
+            // hybrid storage: the typed column of a physical table (a column that became multi-valued)
+            \Exceedone\Exment\Services\Storage\StorageGuard::columnSaved($model);
         });
 
         // delete event
@@ -455,6 +457,8 @@ class CustomColumn extends ModelBase implements Interfaces\TemplateImporterInter
         static::deleted(function ($model) {
             // every row of the table (the value query's scopes are not applied) - ValueBulkWriter (C1)
             ValueBulkWriter::removeKey($model->custom_table_cache->getValueQuery(), $model->column_name);
+            // hybrid storage: drop the typed column of a physical table (the metadata is gone already)
+            \Exceedone\Exment\Services\Storage\StorageGuard::columnDeleted($model);
         });
     }
 
