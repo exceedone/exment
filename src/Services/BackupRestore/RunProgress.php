@@ -260,10 +260,13 @@ class RunProgress
     /**
      * @param array<string, mixed> $context
      */
-    public function error(string $message, array $context = []): void
+    public function error(string $message, array $context = [], bool $print = true): void
     {
         $this->log('ERROR', $message, $context);
-        $this->print('  ' . strval(exmtrans('backup.run.error')) . ': ' . SecretMasker::mask($message));
+        // not printed: an error the user is told in their language (the message of the exception after it)
+        if ($print) {
+            $this->print('  ' . strval(exmtrans('backup.run.error')) . ': ' . SecretMasker::mask($message));
+        }
         if (!isset($this->run)) {
             return;
         }

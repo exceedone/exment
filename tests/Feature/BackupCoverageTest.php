@@ -120,6 +120,17 @@ class BackupCoverageTest extends FeatureTestBase
         $this->assertZipHoldsThePlugins($this->newBackup($before));
     }
 
+    public function testRestoreCommandSaysWhenTheFileIsNotThere(): void
+    {
+        $before = \Exceedone\Exment\Model\BackupRun::query()->count();
+        $this->runArtisan('exment:restore', ['file' => '20991231000000', '--yes' => true])
+            ->expectsOutputToContain(strval(exmtrans('backup.message.restore_file_not_found', ['name' => '20991231000000'])))
+            ->assertExitCode(1)
+            ->run();
+        $this->assertFalse(app()->isDownForMaintenance(), 'nothing was started');
+        $this->assertSame($before, \Exceedone\Exment\Model\BackupRun::query()->count(), 'no run is recorded');
+    }
+
     public function testRestoreCommandStopsWhenTheCautionIsNotConfirmed(): void
     {
         $caution = (string) preg_replace('/<br>/u', '', exmtrans('backup.message.restore_caution'));

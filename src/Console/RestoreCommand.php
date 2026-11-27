@@ -73,16 +73,21 @@ class RestoreCommand extends Command
             $file = $this->getFile();
             $tmp = boolval($this->option("tmp"));
 
+            if (!$this->backupFileExists(strval($file), $tmp)) {
+                $this->error(strval(exmtrans('backup.message.restore_file_not_found', ['name' => strval($file)])));
+                return 1;
+            }
+
             // the run is recorded as the ones of the screen (ISS02943): the history, the lock, the log
             $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_COMMAND, [
                 'file_name' => is_string($file) ? pathinfo($file, PATHINFO_FILENAME) : null,
             ]);
-            $this->info('Restore started: ' . $run->uuid);
+            $this->info(strval(exmtrans('backup.run.message.cli_started', ['kind' => exmtrans('backup.run.kinds.restore'), 'uuid' => $run->uuid])));
 
             $result = BackupRuns::runRestore($run, $this->restore, $file, $tmp, function (string $line) {
                 $this->line($line);
             }, boolval($this->option('backup-first')));
-            $this->line('Log: ' . BackupRuns::logRelativePath($run));
+            $this->line(strval(exmtrans('backup.run.message.cli_log', ['path' => BackupRuns::logRelativePath($run)])));
 
             if ($this->restore->isConfigSkipped()) {
                 $this->warn(exmtrans('backup.message.restore_config_skipped'));
@@ -152,6 +157,26 @@ class RestoreCommand extends Command
             }
         }
         return $result === 0 ? 0 : 1;
+    }
+
+    /**
+     * Whether the backup file is there: a stored backup (list/<name>.zip), or with --tmp a file of
+     * the temporary folder.
+     */
+    protected function backupFileExists(string $file, bool $tmp): bool
+    {
+        if ($file === '') {
+            return false;
+        }
+        try {
+            if ($tmp) {
+                return \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_ADMIN_TMP)->exists($file);
+            }
+            $name = pathinfo($file, PATHINFO_FILENAME);
+            return \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_BACKUP_SYNC)->exists(path_join('list', $name . '.zip'));
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     // @phpstan-ignore-next-line

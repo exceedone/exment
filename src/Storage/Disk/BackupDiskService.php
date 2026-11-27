@@ -129,7 +129,8 @@ class BackupDiskService extends DiskServiceBase
         }
         $sha256 = hash_file('sha256', $zipPath);
         if (isset($expectedSha256) && $sha256 !== false && !hash_equals($expectedSha256, $sha256)) {
-            $progress?->error('the sha256 of the backup file differs from when it was made', ['expected' => $expectedSha256, 'actual' => $sha256]);
+            // in the log; the command and the screen show the message of the exception (translated)
+            $progress?->error('the sha256 of the backup file differs from when it was made', ['expected' => $expectedSha256, 'actual' => $sha256], false);
             throw new InvalidZipEntryException(strval(exmtrans('backup.run.message.verify_sha256')));
         }
         $progress?->info('sha256', ['sha256' => $sha256 === false ? null : $sha256, 'recorded' => isset($expectedSha256)]);
@@ -142,7 +143,8 @@ class BackupDiskService extends DiskServiceBase
                 continue;
             }
             if (!static::readsToTheEnd($zip, $i)) {
-                $progress?->error('a file of the backup cannot be read', ['entry' => $name]);
+                // in the log; the command and the screen show the message of the exception (translated)
+                $progress?->error('a file of the backup cannot be read', ['entry' => $name], false);
                 throw new InvalidZipEntryException(strval(exmtrans('backup.run.message.verify_read', ['name' => $name])));
             }
             $progress?->advance(1);

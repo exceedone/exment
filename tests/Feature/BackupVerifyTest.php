@@ -51,11 +51,14 @@ class BackupVerifyTest extends FeatureTestBase
         if (count($created) > 0) {
             Storage::disk(Define::DISKNAME_BACKUP_SYNC)->delete(array_values($created));
         }
-        foreach (BackupRun::query()->get() as $run) {
-            /** @var BackupRun $run */
-            $path = BackupRuns::logFullPath($run);
-            if (is_file($path)) {
-                @unlink($path);
+        // the files of the runs too (a status file of a restore left behind would answer the pages)
+        /** @var \Illuminate\Support\Collection<int, BackupRun> $runs */
+        $runs = BackupRun::query()->get();
+        foreach ($runs as $run) {
+            foreach ([BackupRuns::logFullPath($run), BackupRuns::statusPath($run->uuid), BackupRuns::consolePath($run), BackupRuns::tokenPath($run->uuid), storage_path(path_join(BackupRuns::LOG_DIR, $run->uuid . '.rate'))] as $path) {
+                if (is_file($path)) {
+                    @unlink($path);
+                }
             }
         }
         parent::tearDown();
@@ -107,6 +110,38 @@ class BackupVerifyTest extends FeatureTestBase
         } finally {
             $zip->close();
         }
+    }
+
+    public function testTheCommandShowsTheTranslatedMessageOnly(): void
+    {
+        $path = $this->zip(['data.tsv' => str_repeat('exment backup data ', 200)], true);
+        $bytes = strval(file_get_contents($path));
+        $at = strpos($bytes, 'exment backup data');
+        $this->assertNotFalse($at);
+        $bytes[$at + 3] = 'X';
+        file_put_contents($path, $bytes);
+
+        $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_COMMAND);
+        $lines = [];
+        $progress = new \Exceedone\Exment\Services\BackupRestore\RunProgress($run, function (string $line) use (&$lines) {
+            $lines[] = $line;
+        });
+        $progress->begin();
+        $zip = $this->open($path);
+        try {
+            BackupDiskService::verify($zip, $path, null, $progress);
+            $this->fail('a broken entry was not refused');
+        } catch (InvalidZipEntryException $e) {
+            // refused
+        } finally {
+            $zip->close();
+            $progress->releaseLock();
+        }
+        // the English text of the log is not printed (the translated message of the exception is)
+        foreach ($lines as $line) {
+            $this->assertStringNotContainsString('a file of the backup cannot be read', $line);
+        }
+        $this->assertStringContainsString('a file of the backup cannot be read', strval(BackupRuns::readLog($run)), 'kept in the log');
     }
 
     public function testABackupRecordsItsSha256AndStoresTheCompressedFilesAsTheyAre(): void

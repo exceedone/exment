@@ -141,8 +141,6 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Middleware\ExmentDebug::class,
         // the operator's maintenance, before the database and the login (MaintenanceMode::earlyResponse)
         \Exceedone\Exment\Middleware\MaintenanceOperatorGuard::class,
-        // the pages of the backup while a restore goes on: before the session and the database (ISS02943)
-        \Exceedone\Exment\Middleware\BackupRestoreGuard::class,
         // every answer of Exment says it is (ISS02935): one without the mark was given by a firewall in front
         \Exceedone\Exment\Middleware\MarkResponse::class,
     ];
@@ -370,7 +368,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->bootDatabase();
         $this->bootSchedule();
         $this->bootMeilisearch();
-        $this->bootBackupRuns();
         // when the user signed in to the pages (SSO too): a user of SSO makes an API key only soon after
         // "php artisan cache:clear" keeps the restart signal of the queue (ISS02908)
         \Illuminate\Support\Facades\Event::listen('cache:clearing', function () {
@@ -419,18 +416,6 @@ class ExmentServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         $this->bootPassport();
-    }
-
-    /**
-     * The runs of the backup and the restore (ISS02943): during the maintenance of a restore, the
-     * pages of the runs still answer (the screen polls the progress; the controller lets the
-     * system administrators only; the state of a restore, BackupRunStateController, needs its token).
-     */
-    protected function bootBackupRuns(): void
-    {
-        $prefix = trim(strval(config('admin.route.prefix', 'admin')), '/');
-        $base = ($prefix === '' ? '' : $prefix . '/') . 'backup/runs';
-        \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::except([$base . '/*']);
     }
 
     /**
@@ -515,6 +500,10 @@ class ExmentServiceProvider extends ServiceProvider
         foreach ($this->middleware as $middleware) {
             $kernel->pushMiddleware($middleware);
         }
+        // the pages of the backup while a restore goes on (ISS02943): first of all, before the
+        // maintenance (the restore has the site down), the session and the database. The other
+        // requests go on to the maintenance as before.
+        $kernel->prependMiddleware(\Exceedone\Exment\Middleware\BackupRestoreGuard::class);
 
         // Exment's API routes use the "api" group and its "api" rate limiter (RouteServiceProvider).
         // The Laravel 10 app Kernel had "throttle:api" in that group; Laravel 11+ adds it only when
