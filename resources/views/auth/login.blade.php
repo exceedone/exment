@@ -2,6 +2,10 @@
 @section('content')
     <p class="login-box-msg">{{ trans('admin.login') }}</p>
     @include('exment::maintenance.login_notice')
+    {{-- a message set before coming back here (an expired page): this page has no alerts of its own --}}
+    @if(session()->has('error') && session('error') instanceof \Illuminate\Support\MessageBag)
+        <div class="alert alert-danger py-2 small exm-login-error" role="alert">{{ session('error')->first('message') ?: session('error')->first('title') }}</div>
+    @endif
 
     @if($show_default_form)
         <form style="margin-bottom:0px;" action="{{ admin_url('auth/login') }}" method="post">
