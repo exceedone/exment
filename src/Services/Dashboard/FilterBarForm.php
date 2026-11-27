@@ -138,10 +138,39 @@ final class FilterBarForm
             return [];
         }
         $options = [];
-        foreach ($table->custom_columns as $column) {
+        foreach (static::filterableColumns($table) as $column) {
             $options[$column->column_name] = $column->column_view_name . ' (' . $column->column_name . ')';
         }
         return $options;
+    }
+
+    /**
+     * The columns a dashboard or chart filter may use: not the file and image columns, whose
+     * stored values are paths in the storage, not words to choose (#2166).
+     *
+     * @param CustomTable|null $table
+     * @return array<int, \Exceedone\Exment\Model\CustomColumn>
+     */
+    public static function filterableColumns($table): array
+    {
+        if ($table === null) {
+            return [];
+        }
+        $columns = [];
+        foreach ($table->custom_columns as $column) {
+            if (static::isFilterable($column)) {
+                $columns[] = $column;
+            }
+        }
+        return $columns;
+    }
+
+    /**
+     * @param \Exceedone\Exment\Model\CustomColumn|null $column
+     */
+    public static function isFilterable($column): bool
+    {
+        return $column !== null && !\Exceedone\Exment\Enums\ColumnType::isAttachment($column->column_type);
     }
 
     /**

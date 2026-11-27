@@ -143,7 +143,7 @@ class LangFilesTest extends TestCase
             'template_view_name', 'description', 'table_view_name', 'column_view_name', 'form_view_name',
             'view_view_name', 'title', 'select_item_valtext', 'help', 'text', 'form_block_view_name',
             'view_column_name', 'dashboard_view_name', 'dashboard_box_view_name', 'true_label', 'false_label',
-            'role_group_view_name', 'workflow_view_name', 'placeholder',
+            'role_group_view_name', 'workflow_view_name', 'placeholder', 'notify_view_name',
         ];
 
         $langDirs = array_merge(

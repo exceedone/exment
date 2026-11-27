@@ -13,6 +13,7 @@ use Exceedone\Exment\Enums\SystemTableName;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
+use Exceedone\Exment\Services\ApiRateRaises;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -27,21 +28,26 @@ class RouteServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        /** @var int $rate_limit */
-        $rate_limit = config('exment.api_max_rate_limit', 60);
-        RateLimiter::for('api', function (Request $request) use ($rate_limit) {
+        RateLimiter::for('api', function (Request $request) {
+            $rate_limit = ApiRateRaises::base();
             // an API key of a user: not through the OAuth guard (Passport empties the Authorization
             // header of a bearer that is not its token, and the key would never sign in after it)
             $bearer = $request->bearerToken();
             if (\Exceedone\Exment\Services\UserApiKeys::looksLikeKey($bearer)) {
+                // a temporary raise of the user of the key (ISS00442)
+                $per_minute = ApiRateRaises::perMinute($rate_limit, ApiRateRaises::userOfApiKey((string)$bearer));
                 // by the IP (a new random key each time, or many keys, do not get more) and by the key
                 return [
-                    Limit::perMinute($rate_limit)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
-                    Limit::perMinute($rate_limit)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
+                    Limit::perMinute($per_minute)->by('apikey-ip:' . \Exceedone\Exment\Services\UserApiKeys::siteHash() . ':' . $request->ip()),
+                    Limit::perMinute($per_minute)->by(\Exceedone\Exment\Services\UserApiKeys::limiterKey((string)$bearer)),
                 ];
             }
             $login_user = \Exment::user()?? \Auth::guard(Define::AUTHENTICATE_KEY_API)->user();
-            return Limit::perMinute($rate_limit)->by($login_user?->base_user_id ?: $request->ip());
+            // a temporary raise of the user or of the API client of the token (ISS00442)
+            $token = $login_user instanceof \Exceedone\Exment\Model\LoginUser ? $login_user->token() : null;
+            $client_id = $token instanceof \Laravel\Passport\Token ? $token->client_id : null;
+            $per_minute = ApiRateRaises::perMinute($rate_limit, $login_user?->base_user_id, $client_id);
+            return Limit::perMinute($per_minute)->by($login_user?->base_user_id ?: $request->ip());
         });
     }
     /**
@@ -233,6 +239,13 @@ class RouteServiceProvider extends ServiceProvider
             // the security check (ISS02833)
             $router->get('security_check', 'SecurityCheckController@index');
             $router->post('security_check/fix', 'SecurityCheckController@fix');
+            // the scheduled jobs (ISS02832)
+            $router->get('scheduled_jobs', 'ScheduledJobController@index');
+            $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
+            // temporary raises of the API rate limit (ISS00442)
+            $router->get('api_rate_raises', 'ApiRateRaiseController@index');
+            $router->post('api_rate_raises', 'ApiRateRaiseController@store');
+            $router->post('api_rate_raises/{id}/delete', 'ApiRateRaiseController@delete');
             $router->get('maintenance', 'MaintenanceController@index');
             $router->post('maintenance', 'MaintenanceController@store');
             $router->post('maintenance/start', 'MaintenanceController@start');
@@ -511,6 +524,10 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("column/{tableKey}/{id}/columnTypeHtml", 'CustomColumnController@columnTypeHtml');
             $router->get("copy/{tableKey}/newModal", 'CustomCopyController@newModal');
 
+            // data maintenance of a table (#1829, Features::DATA_MAINTENANCE)
+            $router->get("data_maintenance/{tableKey}", 'DataMaintenanceController@index');
+            $router->post("data_maintenance/{tableKey}/attachments", 'DataMaintenanceController@deleteAttachments');
+
             $router->get("operation/{tableKey}/filter-value", 'CustomOperationController@getFilterValue');
             $router->post('form/{tableKey}/settingModal', 'CustomFormController@settingModal');
             $router->get('form/{tableKey}/preview/{suuid}', 'CustomFormController@previewBySuuid');
@@ -574,6 +591,16 @@ class RouteServiceProvider extends ServiceProvider
             $router->get("webapi/{tableKey}/filter-value", 'ApiTableController@getFilterValue');
             $router->get("webapi/{tableKey}/operation-update-type", 'ApiTableController@getOperationUpdateType');
             $router->get("webapi/{tableKey}/operation-filter-value", 'ApiTableController@getOperationFilterValue');
+
+            // a page of a plugin that is not there (no such plugin, or no such page of it): Exment's
+            // error page with 404, as for a table that is not there. A fallback route, matched after
+            // all the others, so the routes of the plugins come first. The files of a plugin
+            // (".../public/...") are not pages: they stay a plain 404.
+            $router->any('plugins/{pluginPath}', 'ErrorController@notFound')
+                ->where('pluginPath', '(?!(?:[^/]+/)*public/).+')
+                // not the check of the plugin's permission: there is no plugin page to allow
+                ->withoutMiddleware('admin.permission')
+                ->fallback();
         });
     }
 
@@ -798,6 +825,16 @@ class RouteServiceProvider extends ServiceProvider
 
                     // User, Organization --------------------------------------------------
                     $router->get("user_organization/select", 'ApiController@userOrganizationSelect')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::VALUE_READ, ApiScope::VALUE_WRITE));
+
+                    // the users of an organization, the role groups and their members (ISS00335)
+                    $router->get("organization/{id}/users", 'ApiMemberController@organizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE));
+                    $router->post("organization/{id}/users", 'ApiMemberController@addOrganizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_WRITE));
+                    $router->delete("organization/{id}/users", 'ApiMemberController@removeOrganizationUsers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_WRITE));
+                    $router->get("user/{id}/organizations", 'ApiMemberController@userOrganizations')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE));
+                    $router->get("role_group", 'ApiMemberController@roleGroups')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE));
+                    $router->get("role_group/{id}", 'ApiMemberController@roleGroup')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE));
+                    $router->post("role_group/{id}/members", 'ApiMemberController@addRoleGroupMembers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_WRITE));
+                    $router->delete("role_group/{id}/members", 'ApiMemberController@removeRoleGroupMembers')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::ROLE_GROUP_WRITE));
 
                     // Workflow --------------------------------------------------
                     $router->get("wf/workflow", 'ApiWorkflowController@getList')->middleware(ApiScope::getScopeString($route['addScope'], ApiScope::WORKFLOW_READ, ApiScope::WORKFLOW_EXECUTE));

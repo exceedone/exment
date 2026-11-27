@@ -261,7 +261,7 @@ class DefaultShow extends ShowBase
                         }
 
                         foreach ($operations as $operation) {
-                            if (!$this->enableOperationButton($operation, $enableEdit)) {
+                            if (!$this->enableOperationButton($operation)) {
                                 continue;
                             }
                             if ($operation->active_flg && $operation->isOperationTarget($this->custom_value, CustomOperationType::BUTTON)) {
@@ -754,25 +754,16 @@ EOT;
     }
 
     /**
-     * Whether the button of the data update setting is shown for this data.
-     *
-     * The button is for the users who can edit the data. A data the workflow locks cannot be
-     * edited by anyone, so it has no button, unless the setting says to show the button also
-     * for such a data (options.button_workflow_locked). CustomValue::enableEdit() answers
-     * WORKFLOW_LOCK only after the permission check, so the user still has to be allowed to
-     * edit the data.
+     * Whether the button of the data update setting is shown for this data: as it may run
+     * (CustomOperation::enableButton). The table's "Disable on screen" of editing does not hide
+     * it (#2171); a data the workflow locks has it only when the setting says so (#1623).
      *
      * @param \Exceedone\Exment\Model\CustomOperation $operation
-     * @param bool|ErrorCode $enableEdit the answer of CustomValue::enableEdit()
      * @return bool
      */
-    protected function enableOperationButton($operation, $enableEdit): bool
+    protected function enableOperationButton($operation): bool
     {
-        if ($enableEdit === true) {
-            return true;
-        }
-
-        return $enableEdit == ErrorCode::WORKFLOW_LOCK && boolval($operation->getOption('button_workflow_locked'));
+        return $operation->enableButton($this->custom_value) === true;
     }
 
     // @phpstan-ignore-next-line

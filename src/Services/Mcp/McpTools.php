@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\Permission;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\CustomValue;
 use Exceedone\Exment\Model\LoginUser;
+use Exceedone\Exment\Services\MemberDirectory;
 use Exceedone\Exment\Services\UserApiKeys;
 
 /**
@@ -52,6 +53,11 @@ class McpTools
         $table = ['type' => 'string', 'description' => 'The table name (as list_tables gives).'];
         $id = ['type' => 'integer', 'description' => 'The id of the record.'];
         $readOnly = ['readOnlyHint' => true, 'destructiveHint' => false, 'idempotentHint' => true, 'openWorldHint' => false];
+        $members = ' Read only: adding or removing members is done with the REST API, not here. For system administrators and users who may manage role groups, when the feature "API for members" is on.';
+        $paging = [
+            'limit' => ['type' => 'integer', 'minimum' => 1, 'maximum' => static::maxRows(), 'description' => 'How many (at most ' . static::maxRows() . ').'],
+            'offset' => ['type' => 'integer', 'minimum' => 0, 'description' => 'How many to skip: the next_offset of the answer before.'],
+        ];
         return [
             [
                 'name' => 'list_tables',
@@ -93,6 +99,31 @@ class McpTools
                 'inputSchema' => ['type' => 'object', 'properties' => ['table' => $table, 'id' => $id], 'required' => ['table', 'id']],
                 'annotations' => $readOnly,
             ],
+            // the members (ISS00335): read only. Adding or removing members is the API only
+            [
+                'name' => 'list_organization_users',
+                'description' => 'The users of an organization: id, label, code, name, email.' . $members . $untrusted,
+                'inputSchema' => ['type' => 'object', 'properties' => ['organization_id' => ['type' => 'integer', 'description' => 'The id of the organization.']] + $paging, 'required' => ['organization_id']],
+                'annotations' => $readOnly,
+            ],
+            [
+                'name' => 'list_user_organizations',
+                'description' => 'The organizations of a user: id, label, code, name.' . $members . $untrusted,
+                'inputSchema' => ['type' => 'object', 'properties' => ['user_id' => ['type' => 'integer', 'description' => 'The id of the user.']] + $paging, 'required' => ['user_id']],
+                'annotations' => $readOnly,
+            ],
+            [
+                'name' => 'list_role_groups',
+                'description' => 'The role groups: id, name, description, whether it gives the system permission, how many users and organizations.' . $members . $untrusted,
+                'inputSchema' => ['type' => 'object', 'properties' => $paging],
+                'annotations' => $readOnly,
+            ],
+            [
+                'name' => 'get_role_group',
+                'description' => 'One role group: its permissions, users and organizations (the users and organizations are paged with limit and offset).' . $members . $untrusted,
+                'inputSchema' => ['type' => 'object', 'properties' => ['role_group_id' => ['type' => 'integer', 'description' => 'The id of the role group.']] + $paging, 'required' => ['role_group_id']],
+                'annotations' => $readOnly,
+            ],
         ];
     }
 
@@ -130,6 +161,34 @@ class McpTools
                 case 'get_workflow_status':
                     $this->needScope(ApiScope::WORKFLOW_READ);
                     return $this->answer($this->workflowStatus($this->record($args)));
+                case 'list_organization_users':
+                    $this->needMembers(ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE);
+                    $found = MemberDirectory::organizationUsers($this->intArg($args, 'organization_id'));
+                    if (!isset($found)) {
+                        throw new ToolError('No such organization.');
+                    }
+                    return $this->answer(['organization' => $found['organization']] + $this->page($found['users'], $args, 'users'));
+                case 'list_user_organizations':
+                    $this->needMembers(ApiScope::USER_ORG_READ, ApiScope::USER_ORG_WRITE);
+                    $found = MemberDirectory::userOrganizations($this->intArg($args, 'user_id'));
+                    if (!isset($found)) {
+                        throw new ToolError('No such user.');
+                    }
+                    return $this->answer(['user' => $found['user']] + $this->page($found['organizations'], $args, 'organizations'));
+                case 'list_role_groups':
+                    $this->needMembers(ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE);
+                    return $this->answer($this->page(MemberDirectory::roleGroups(), $args, 'role_groups'));
+                case 'get_role_group':
+                    $this->needMembers(ApiScope::ROLE_GROUP_READ, ApiScope::ROLE_GROUP_WRITE);
+                    $found = MemberDirectory::roleGroup($this->intArg($args, 'role_group_id'));
+                    if (!isset($found)) {
+                        throw new ToolError('No such role group.');
+                    }
+                    // the users and the organizations, each paged the same way
+                    $users = $this->page($found['user'], $args, 'user');
+                    $organizations = $this->page($found['organization'], $args, 'organization');
+                    unset($found['user'], $found['organization']);
+                    return $this->answer($found + ['user' => $users, 'organization' => $organizations]);
             }
         } catch (ToolError $e) {
             return ['content' => [['type' => 'text', 'text' => $e->getMessage()]], 'isError' => true];
@@ -149,6 +208,57 @@ class McpTools
     {
         $json = json_encode(['untrusted_data' => $data], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT | JSON_INVALID_UTF8_SUBSTITUTE) ?: '{}';
         return ['content' => [['type' => 'text', 'text' => static::DATA_NOTE . "\n" . $json]], 'isError' => false];
+    }
+
+    /**
+     * The tools of the members: one of the scopes (read or write, as the API), the feature and
+     * the permission of the role groups (MemberDirectory::allowed).
+     */
+    protected function needMembers(string ...$scopes): void
+    {
+        $can = false;
+        foreach ($scopes as $scope) {
+            $can = $can || $this->user->tokenCan($scope);
+        }
+        if (!$can) {
+            throw new ToolError('The token or key does not have the scope "' . $scopes[0] . '".');
+        }
+        if (!MemberDirectory::allowed($this->user)) {
+            throw new ToolError('Not allowed: the feature "API for members" is off, or the user may not manage role groups.');
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $args
+     */
+    protected function intArg(array $args, string $name): int
+    {
+        $value = $args[$name] ?? null;
+        if (!is_numeric($value) || intval($value) != $value || intval($value) <= 0) {
+            throw new ToolError("\"$name\" must be an id.");
+        }
+        return intval($value);
+    }
+
+    /**
+     * A page of a list: limit (at most maxRows) and offset, with the total and the offset of
+     * the next page (null at the end).
+     *
+     * @param array<int, mixed> $items
+     * @param array<string, mixed> $args
+     * @return array<string, mixed>
+     */
+    protected function page(array $items, array $args, string $key): array
+    {
+        $limit = max(1, min(static::maxRows(), intval($args['limit'] ?? 20)));
+        $offset = max(0, intval($args['offset'] ?? 0));
+        $total = count($items);
+        return [
+            $key => array_slice($items, $offset, $limit),
+            'total' => $total,
+            'offset' => $offset,
+            'next_offset' => $offset + $limit < $total ? $offset + $limit : null,
+        ];
     }
 
     protected function needScope(string $scope): void
@@ -255,7 +365,9 @@ class McpTools
             throw new ToolError('"q" is too long (at most ' . static::MAX_QUERY_LENGTH . ' characters).');
         }
         if ($q !== '') {
-            $found = $custom_table->searchValue($q, ['maxCount' => $limit, 'isApi' => true]) ?? collect();
+            // the columns the table searches by words (as the search of the data API; with
+            // isApi and no columns given, searchValue searched no column and found nothing)
+            $found = $custom_table->searchValue($q, ['maxCount' => $limit]) ?? collect();
         } else {
             $found = $custom_table->getValueQuery()->orderByDesc('updated_at')->orderByDesc('id')->limit($limit)->get();
         }

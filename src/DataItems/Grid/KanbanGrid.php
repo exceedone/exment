@@ -649,6 +649,8 @@ class KanbanGrid extends GridBase
         // to record; otherwise the board carries one answer for every card,
         // see buildBoard().
         $locks_per_card = !empty($writable_columns) && $this->isEditable() && $this->hasFormPriorities();
+        // a click opens the edit form: which cards the user may not edit (#2187)
+        $noedit_per_card = boolval($this->custom_view->kanban_editform ?? true) && $this->isEditable();
 
         // one option list shared by every card, not one lookup per card
         $labels_options = [];
@@ -815,6 +817,11 @@ class KanbanGrid extends GridBase
                     : [],
                 'wf' => $wf,
             ];
+            // a card the user may not edit opens the drawer, not a form that
+            // flashes and closes (#2187); only those cards carry it
+            if ($noedit_per_card && $record->enableEdit(true) !== true) {
+                $card['noedit'] = true;
+            }
             if ($locks_per_card) {
                 $locked = $this->getLockedColumns($writable_columns, $record);
                 // most cards have none, and an empty list on each of them
@@ -841,6 +848,10 @@ class KanbanGrid extends GridBase
     protected function buildCoverUrl($record, $cover_column)
     {
         $path = $record->getValue($cover_column);
+        // the values of a column that allows several (#2186)
+        if ($path instanceof \Illuminate\Support\Collection) {
+            $path = $path->first();
+        }
         if (is_array($path)) {
             $path = count($path) > 0 ? reset($path) : null;
         }
@@ -869,12 +880,9 @@ class KanbanGrid extends GridBase
             $raw = $record->getValue($labels_column);
         }
 
+        // every value of a multiple column (an array or a Collection), not only the first (#2164)
         $labels = [];
-        foreach (is_array($raw) ? $raw : [$raw] as $value) {
-            $key = static::normalizeKey($value);
-            if ($key === '') {
-                continue;
-            }
+        foreach (static::normalizeKeys($raw) as $key) {
             $labels[] = ['key' => $key, 'label' => array_get($labels_options, $key, $key)];
         }
 
@@ -2515,6 +2523,17 @@ class KanbanGrid extends GridBase
             && $custom_table->hasViewPermission() === true;
     }
 
+    /**
+     * The kind of view "save this board" makes: a user view, or a system view where user views
+     * are not used for the table (#2151).
+     *
+     * @param \Exceedone\Exment\Model\CustomTable $custom_table
+     */
+    public static function savedViewType($custom_table): int
+    {
+        return $custom_table->userViewAvailable() ? ViewType::USER : ViewType::SYSTEM;
+    }
+
 
     /**
      * Save what is on screen as a new kanban view of this table.
@@ -2537,8 +2556,10 @@ class KanbanGrid extends GridBase
         $view->custom_table_id = $this->custom_table->id;
         // personal by default: a board narrowed to one person's work does not
         // belong in everybody's view list. It can be shared afterwards, the
-        // same way any other user view is.
-        $view->view_type = ViewType::USER;
+        // same way any other user view is. Where user views are not used (the
+        // system setting, or exment.userview_unavailable_table), a system view,
+        // as the view settings screen makes it (#2151).
+        $view->view_type = static::savedViewType($this->custom_table);
         $view->view_kind_type = ViewKindType::KANBAN;
         $view->view_view_name = $name;
         $view->options = $source->options;
@@ -4588,7 +4609,8 @@ class KanbanGrid extends GridBase
                 $form->number('kanban_wip_limit', exmtrans("custom_view.kanban_wip_limit"))
                     ->required()
                     ->min(1)
-                    ->max(999)
+                    // 999 for a count of cards, no upper limit for a total of a number column (#2184)
+                    ->rules([new \Exceedone\Exment\Validator\KanbanWipLimitRule()])
                     ->default(5);
             })->setTableColumnWidth(8, 3, 1)
             ->help(exmtrans("custom_view.help.kanban_wips"));

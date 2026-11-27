@@ -1278,9 +1278,40 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * get filter and sort order from request.
+     * The first part of the cache key of the list state of the tables (ISS00363), see
+     * gridStateCacheKey().
+     */
+    public const GRID_STATE_SESSION_KEY = 'exment.grid_state';
+
+    /**
+     * The query keys that are not the state of a list: kept out of the remembered list.
+     */
+    public const GRID_STATE_EXCEPT_KEYS = [
+        'view',
+        '_pjax',
+        '_token',
+        '_method',
+        '_previous_',
+        '_export_',
+        'format',
+        'group_key',
+        'group_view',
+        'modal',
+        'modalframe',
+        'formframe',
+        'filter_ajax',
+        'lazy_grid_rows',
+    ];
+
+    /**
+     * The url of the data list of this table.
+     *
+     * With $addFilter, the list as the user last saw it in this session (ISS00363): the view,
+     * the filter, the sort, the page, ... (see saveGridState). A view given in $options that is
+     * not the remembered one opens that view as it is, without the remembered query.
+     *
      * @param bool $addFilter append filter url
-     * @param array|null $options Options to execute this function
+     * @param array|null $options Options to execute this function. "view": the suuid of a view.
      */
 
     // @phpstan-ignore-next-line
@@ -1289,29 +1320,14 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         $path = 'data/' . $this->table_name;
 
         if ($addFilter) {
+            $options = is_array($options) ? $options : [];
+            $parameters = $options;
+
             $view = array_get($options, 'view');
-
-            if (is_null($view)) {
-                $custom_view = CustomView::getDefault($this);
-                $view = $custom_view->suuid;
+            $state = $this->getGridState();
+            if (isset($state) && (is_null($view) || isMatchString($view, $state['view']))) {
+                $parameters = array_merge($options, ['view' => $state['view']], $state['query']);
             }
-
-            // get page settings
-            // Exment helper class not recognized
-            $settings = \Exment::user()->getSettingValue($path)?? '[]';
-            $settings = json_decode_ex($settings, true);
-
-            // get view settings
-            $parameters = [];
-
-            // @phpstan-ignore-next-line
-            if (isset($view) && array_key_exists($view, $settings)) {
-
-                $parameters = array_get($settings, $view);
-            }
-
-            // merge old and current settings
-            $parameters = array_merge($options, $parameters);
         }
 
         if (isset($parameters) && count($parameters) > 0) {
@@ -1322,34 +1338,96 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     }
 
     /**
-     * Save database information about filter and sort order to user setting database.
+     * The list state of this table remembered in this session: ['view' => suuid, 'query' => [...]],
+     * or null.
      *
-     * @param string $path.
+     * @return array{view: string, query: array<mixed>}|null
+     */
+    public function getGridState(): ?array
+    {
+        $key = $this->gridStateCacheKey();
+        if (is_null($key)) {
+            return null;
+        }
+        $state = \Cache::get($key);
+        if (!is_array($state) || !is_string(array_get($state, 'view')) || array_get($state, 'view') === '') {
+            return null;
+        }
+        $query = array_get($state, 'query');
+        return [
+            'view' => $state['view'],
+            'query' => is_array($query) ? $query : [],
+        ];
+    }
+
+    /**
+     * Remember in the session the list of this table as it is shown now: the view and the query
+     * of the list (filter, sort, page, per page, columns, free word, ...). Each table has its own.
+     *
+     * @param CustomView|null $custom_view the view shown. Default: the view of the request.
+     * @param array<mixed>|null $query the query of the list. Default: the query of the request.
+     * @return void
+     */
+    public function saveGridState($custom_view = null, ?array $query = null): void
+    {
+        $key = $this->gridStateCacheKey();
+        if (is_null($key)) {
+            return;
+        }
+        if (is_null($custom_view)) {
+            $custom_view = CustomView::getDefault($this);
+        }
+        if (is_null($custom_view) || is_nullorempty($custom_view->suuid)) {
+            return;
+        }
+
+        $query = Arr::except($query ?? Request::query(), static::GRID_STATE_EXCEPT_KEYS);
+
+        \Cache::put($key, [
+            'view' => $custom_view->suuid,
+            'query' => $query,
+        ], now()->addMinutes(max(1, intval(config('session.lifetime', 120)))));
+    }
+
+    /**
+     * The cache key of the list state of this table: of this session, this user and this table.
+     *
+     * Not in the session itself: a request writes back the whole session when it ends, so a
+     * request that began before the list was opened (a box of the dashboard, loaded at the same
+     * time) would put back the session without the state. In the cache each table has its own
+     * key, written only when its list is opened. It lives as long as a session; a new login has a
+     * new session id, so a new state.
+     *
+     * @return string|null null without a session
+     */
+    protected function gridStateCacheKey(): ?string
+    {
+        if (!app()->bound('session')) {
+            return null;
+        }
+        $sessionId = strval(session()->getId());
+        if ($sessionId === '') {
+            return null;
+        }
+        $user = \Exment::user();
+        return implode(':', [
+            static::GRID_STATE_SESSION_KEY,
+            hash('sha256', $sessionId),
+            isset($user) ? strval($user->base_user_id) : '0',
+            $this->table_name,
+        ]);
+    }
+
+    /**
+     * Save filter and sort order of the list. Kept for the callers of before: it remembers the
+     * list in the session now (saveGridState), not in the user setting of the database.
+     *
+     * @param string $path. (not used: the list is of this table)
      * @return void
      */
     public function saveGridParameter($path)
     {
-        $custom_view = CustomView::getDefault($this);
-
-        if (is_null($custom_view)) {
-            return;
-        }
-
-        $path = admin_exclusion_path($path);
-
-        $view = $custom_view->suuid;
-
-        $inputs = Arr::except(Request::all(), ['view', '_pjax', '_token', '_method', '_previous_', '_export_', 'format', 'group_key', 'group_view']);
-
-        // Exment helper class not recognized
-        $parameters = \Exment::user()->getSettingValue($path)?? '[]';
-        $parameters = json_decode_ex($parameters, true);
-
-
-        // @phpstan-ignore-next-line
-        $parameters[$view] = $inputs;
-
-        Admin::user()->setSettingValue($path, json_encode($parameters));
+        $this->saveGridState();
     }
 
     /**
@@ -1619,11 +1697,16 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
                 'searchDocument' => false, // is search document.
                 'isApi' => false, // called from API
                 'withChildren' => null, // If has value, set "with" to query.
+                'stableOrder' => false, // with paginate: one order, each match once on its page (searchValuePageInOrder)
             ],
             $options
         );
         $target_view = $options['target_view'];
         $maxCount = $options['maxCount'];
+
+        if (boolval($options['paginate']) && boolval($options['stableOrder'])) {
+            return $this->searchValuePageInOrder($q, $options);
+        }
 
         $data = [];
 
@@ -1717,6 +1800,66 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
         }
 
         return $query->take($maxCount)->get();
+    }
+
+    /**
+     * A page of a search by words in one order (ISS02907): the query of the search box of the
+     * data list (setSearchQueryOrWhere, the columns the table searches by words), the sort of the
+     * view and then the id. The search of searchValue takes up to keyword_search_count matches
+     * of each column in no order, so its pages could repeat and skip records, and it never read
+     * past that count.
+     *
+     * @param string|null $q
+     * @param array<string, mixed> $options the options of searchValue
+     * @return mixed the page (a paginator of CustomValue)
+     */
+    protected function searchValuePageInOrder($q, array $options)
+    {
+        $target_view = $options['target_view'];
+        $dbTableName = getDBTableName($this);
+
+        $query = $this->getValueQuery();
+        if (boolval($options['executeSearch'])) {
+            $this->getValueModel()->setSearchQueryOrWhere($query, $q, [
+                'isLike' => $options['isLike'],
+                'searchColumns' => $options['searchColumns'],
+                'relation' => $options['relation'],
+                'searchDocument' => $options['searchDocument'],
+            ]);
+        }
+
+        // the same filters as the search of searchValue
+        if (isset($options['relationColumn'])) {
+            $options['relationColumn']->setQueryFilter($query, array_get($options, 'relationColumnValue'));
+        }
+        if (isset($options['display_table'])) {
+            $this->filterDisplayTable($query, $options['display_table'], $options);
+        }
+        if (isset($target_view)) {
+            $target_view->filterModel($query);
+            $target_view->setValueSort($query);
+        }
+        // the id last: records the sort of the view does not tell apart stay in one order
+        $query->orderBy("$dbTableName.id");
+
+        $this->setQueryWith($query, $target_view);
+        if (isset($options['withChildren'])) {
+            $this->setQueryWithRelation($query, $options['withChildren']);
+        }
+
+        $paginates = $query->paginate($options['maxCount']);
+
+        if (boolval($options['makeHidden'])) {
+            $data = $paginates->makeHidden($this->getMakeHiddenArray());
+            $paginates->data = $data;
+        }
+        if (boolval($options['getLabel'])) {
+            $paginates->map(function ($model) {
+                $model->append('label');
+            });
+        }
+
+        return $paginates;
     }
 
     /**
@@ -3372,6 +3515,19 @@ class CustomTable extends ModelBase implements Interfaces\TemplateImporterInterf
     /**
      * Whether login user has permission about view.
      */
+
+    /**
+     * Whether user views are used for this table: the system setting, and not one of the tables
+     * of config exment.userview_unavailable_table.
+     */
+    public function userViewAvailable(): bool
+    {
+        $userview_unavailable_table = config('exment.userview_unavailable_table', '');
+        if (!is_nullorempty($userview_unavailable_table) && in_array($this->table_name, explode(',', $userview_unavailable_table))) {
+            return false;
+        }
+        return boolval(System::userview_available());
+    }
 
     // @phpstan-ignore-next-line
     public function hasViewPermission()

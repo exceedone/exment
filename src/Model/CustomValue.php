@@ -1949,6 +1949,13 @@ abstract class CustomValue extends ModelBase
                 if (isset($options['target_view'])) {
                     $options['target_view']->filterModel($query); // sort is false.
                 }
+
+                // Only the columns of this table: a filter on a column of the table a column
+                // selects (the pivot) joins that table, and "select *" then has its id as well,
+                // which the sub query of searchValue cannot take ("Duplicate column name 'id'").
+                if (!$options['executeSearch'] && empty($query->getQuery()->columns)) {
+                    $query->select(getDBTableName($this->custom_table) . '.*');
+                }
             }
 
             return $queries;
@@ -2206,9 +2213,11 @@ abstract class CustomValue extends ModelBase
      *        attachments and documents - rather than its own values: only those values of an
      *        administrator's user record are kept from other users (UserTrait::disabled_edit_trait),
      *        the rest stays as on v6.2.15
+     * @param bool $checkWorkflow false for the button of a data update setting that is shown also
+     *        for a data the workflow locks (CustomOperation::enableButton)
      * @return bool|ErrorCode
      */
-    public function enableEdit($checkFormAction = false, $checkAdministrator = true)
+    public function enableEdit($checkFormAction = false, $checkAdministrator = true, $checkWorkflow = true)
     {
         // Deleted to address the case where users with view authority are sharing data
         // if (($code = $this->custom_table->enableEdit($checkFormAction)) !== true) {
@@ -2232,7 +2241,7 @@ abstract class CustomValue extends ModelBase
         // }
 
         // check workflow
-        if ($this->lockedWorkflow()) {
+        if ($checkWorkflow && $this->lockedWorkflow()) {
             return ErrorCode::WORKFLOW_LOCK();
         }
 

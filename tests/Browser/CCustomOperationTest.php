@@ -362,8 +362,8 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         $this->visit(admin_url("data/$target_table_name/create"))
                 ->type('operation create test', 'value[text]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
@@ -376,8 +376,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->type('even', 'value[odd_even]')
                 // @phpstan-ignore-next-line
                 ->type(123.45, 'value[decimal]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get updated data row
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
@@ -391,8 +391,8 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         $this->visit(admin_url("data/$target_table_name/create"))
                 ->type('operation create test by admin', 'value[text]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
@@ -471,8 +471,8 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("data/$target_table_name/create"))
                 ->type('operation update test', 'value[text]')
                 ->type('1', 'value[multiples_of_3]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
@@ -483,8 +483,8 @@ class CCustomOperationTest extends ExmentKitTestCase
 
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation update test update', 'value[text]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get updated data row
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->orderBy('id', 'desc')->first();
@@ -495,8 +495,8 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation update multiples_of_3 turn off', 'value[text]')
                 ->type('0', 'value[multiples_of_3]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
@@ -566,8 +566,8 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("data/$target_table_name/create"))
                 ->type('operation multiple type', 'value[text]')
                 ->type($lastYearDate, 'value[date]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('id', 'desc')->first();
@@ -578,8 +578,8 @@ class CCustomOperationTest extends ExmentKitTestCase
         $this->visit(admin_url("data/$target_table_name/" . $custom_value->id . '/edit'))
                 ->type('operation multiple type update', 'value[text]')
                 ->type(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC, 'value[user]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get updated data row
         $thisYearDate = Carbon::createFromDate($today->year, 1, 31)->addDays(-1)->format('Y-m-d');
@@ -591,8 +591,8 @@ class CCustomOperationTest extends ExmentKitTestCase
                 ->type('operation multiple type change date', 'value[text]')
                 ->type($thisYearDate, 'value[date]')
                 ->type(TestDefine::TESTDATA_USER_LOGINID_DEV1_USERC, 'value[user]')
-                ->press('admin-submit')
-                ->seePageIs(admin_url("/data/$target_table_name"));
+                ->press('admin-submit');
+        $this->seeListPageOf($target_table_name);
 
         // Get new data row
         $custom_value = $target_table->getValueModel()->orderBy('updated_at', 'desc')->first();
@@ -825,5 +825,13 @@ class CCustomOperationTest extends ExmentKitTestCase
             ->mapWithKeys(function ($value) {
                 return [$value->id => $value->role_group_view_name];
             })->toArray();
+    }
+
+    /**
+     * After saving, the list of the table: the list remembered (ISS00363), so with its view in the query.
+     */
+    protected function seeListPageOf(string $table_name): void
+    {
+        $this->assertSame(admin_url("/data/$table_name"), strtok((string) $this->currentUri, '?'));
     }
 }

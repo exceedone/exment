@@ -1,0 +1,168 @@
+{
+    "template_view_name": "Paquete de RR. HH.",
+    "description": "Lista de personal y trámites de altas y bajas (con tareas), grupos de roles de RR. HH. y de personal, y un menú \"RR. HH. y administración\".",
+    "custom_tables": [
+        {
+            "table_name": "hr_employee",
+            "table_view_name": "Personal",
+            "description": "La lista de personal, vinculada a los usuarios con acceso.",
+            "custom_columns": [
+                {
+                    "column_name": "employee_no",
+                    "column_view_name": "N.º de empleado"
+                },
+                {
+                    "column_name": "user",
+                    "column_view_name": "Usuario"
+                },
+                {
+                    "column_name": "department",
+                    "column_view_name": "Departamento"
+                },
+                {
+                    "column_name": "position",
+                    "column_view_name": "Cargo"
+                },
+                {
+                    "column_name": "employment_type",
+                    "column_view_name": "Tipo de empleo",
+                    "options": {
+                        "select_item_valtext": "regular,Fijo\ncontract,Temporal\npart_time,Tiempo parcial\ndispatch,Personal de agencia\nofficer,Directivo"
+                    }
+                },
+                {
+                    "column_name": "join_date",
+                    "column_view_name": "Fecha de incorporación"
+                },
+                {
+                    "column_name": "extension",
+                    "column_view_name": "Extensión"
+                },
+                {
+                    "column_name": "work_location",
+                    "column_view_name": "Lugar de trabajo"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Estado",
+                    "options": {
+                        "select_item_valtext": "active,Activo\nleave,De baja temporal\nretired,Dado de baja"
+                    }
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure",
+            "table_view_name": "Altas y bajas",
+            "description": "Trámites de altas, bajas y traslados. Registre las tareas en las líneas y márquelas como hechas.",
+            "custom_columns": [
+                {
+                    "column_name": "title",
+                    "column_view_name": "Asunto"
+                },
+                {
+                    "column_name": "procedure_type",
+                    "column_view_name": "Tipo",
+                    "options": {
+                        "select_item_valtext": "join,Alta\nleave,Baja\ntransfer,Traslado"
+                    }
+                },
+                {
+                    "column_name": "person_name",
+                    "column_view_name": "Persona"
+                },
+                {
+                    "column_name": "employee",
+                    "column_view_name": "Personal"
+                },
+                {
+                    "column_name": "scheduled_date",
+                    "column_view_name": "Fecha"
+                },
+                {
+                    "column_name": "status",
+                    "column_view_name": "Estado",
+                    "options": {
+                        "select_item_valtext": "todo,Pendiente\ndoing,En curso\ndone,Hecho"
+                    }
+                },
+                {
+                    "column_name": "owner",
+                    "column_view_name": "Responsable"
+                },
+                {
+                    "column_name": "note",
+                    "column_view_name": "Nota"
+                }
+            ]
+        },
+        {
+            "table_name": "hr_procedure_task",
+            "table_view_name": "Tareas",
+            "description": "Una tarea de un trámite.",
+            "custom_columns": [
+                {
+                    "column_name": "task",
+                    "column_view_name": "Tarea"
+                },
+                {
+                    "column_name": "assignee",
+                    "column_view_name": "Asignado a"
+                },
+                {
+                    "column_name": "due_date",
+                    "column_view_name": "Vencimiento"
+                },
+                {
+                    "column_name": "done",
+                    "column_view_name": "Hecho"
+                }
+            ]
+        }
+    ],
+    "custom_forms": [
+        {
+            "suuid": "0748bf896060b0c25e21",
+            "form_view_name": "Formulario"
+        }
+    ],
+    "admin_menu": [
+        {
+            "title": "RR. HH. y administración",
+            "menu_type": "parent_node",
+            "menu_name": "hr"
+        },
+        {
+            "title": "Personal",
+            "menu_type": "table",
+            "menu_name": "hr_employee"
+        },
+        {
+            "title": "Altas y bajas",
+            "menu_type": "table",
+            "menu_name": "hr_procedure"
+        }
+    ],
+    "roles": [
+        {
+            "role_group_name": "hr_admin_group",
+            "role_group_view_name": "RR. HH. y administración",
+            "description": "Personas que ven, crean y editan la lista de personal y los trámites."
+        },
+        {
+            "role_group_name": "hr_member_group",
+            "role_group_view_name": "Personal",
+            "description": "Personas que ven la lista de personal."
+        }
+    ],
+    "notifies": [
+        {
+            "suuid": "06e4a6e35f688ae4fecc",
+            "notify_view_name": "Fecha del trámite próxima (7 días antes)"
+        }
+    ]
+}

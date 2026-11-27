@@ -70,4 +70,60 @@ class CustomFormMissingRequiredTest extends FeatureTestBase
             ->assertOk()
             ->assertDontSee(exmtrans('custom_form.missing_required_title'));
     }
+
+    /**
+     * A form may ask to check the required columns it does not have: a new record made with it is
+     * then not saved while they are empty. Off (the default), it is saved with them empty.
+     */
+    public function testAFormMayCheckTheRequiredColumnsItDoesNotHave(): void
+    {
+        $table = BlankFormBuilder::build(BlankFormBuilder::normalize([
+            'table_view_name' => 'missing required',
+            'table_name' => 'form_missing_required',
+            'fields' => [
+                ['type' => ColumnType::TEXT, 'label' => '件名<b>', 'column_name' => 'title', 'required' => true],
+                ['type' => ColumnType::TEXT, 'label' => 'メモ', 'column_name' => 'memo'],
+            ],
+        ]));
+        System::clearRequestSession();
+        $memo = $table->custom_columns()->where('column_name', 'memo')->firstOrFail();
+        $partial = ExistingTableFormBuilder::build([
+            'table_view_name' => 'memo only',
+            'table_id' => intval($table->id),
+            'fields' => [['column_id' => intval($memo->id)]],
+        ]);
+        $this->assertSame(['title'], $partial->missingRequiredColumns()->pluck('column_name')->all());
+        $this->assertFalse($partial->check_missing_required, 'off by default');
+
+        $count = function () use ($table) {
+            System::clearRequestSession();
+            return CustomTable::getEloquent($table->id)->getValueModel()->newQuery()->count();
+        };
+        $post = function (string $memoText) use ($partial) {
+            System::clearRequestSession();
+            return $this->post(admin_urls('data', 'form_missing_required'), ['formid' => $partial->suuid, 'value' => ['memo' => $memoText]]);
+        };
+
+        // off: saved with the title empty, as before
+        $before = $count();
+        $post('saved');
+        $this->assertSame($before + 1, $count());
+
+        // on: not saved, and said why
+        $partial->check_missing_required = true;
+        $partial->save();
+        $saved = CustomForm::find($partial->id);
+        $this->assertInstanceOf(CustomForm::class, $saved);
+        $this->assertTrue($saved->check_missing_required);
+        $before = $count();
+        $response = $post('refused');
+        $this->assertSame($before, $count(), 'not saved while the required column is empty');
+        $response->assertSessionHasErrors('value.title');
+        // the message at the top of the page is HTML: the name of the column is text in it
+        $error = session('error');
+        $this->assertNotNull($error);
+        $message = strval(array_get($error->get('message'), 0));
+        $this->assertStringContainsString('件名&lt;b&gt;', $message);
+        $this->assertStringNotContainsString('件名<b>', $message);
+    }
 }

@@ -45,6 +45,10 @@
                 {
                     "column_name": "note",
                     "column_view_name": "Ghi chú"
+                },
+                {
+                    "column_name": "total",
+                    "column_view_name": "Tổng cộng"
                 }
             ]
         },
@@ -232,6 +236,12 @@
     "workflows": [
         {
             "workflow_view_name": "Yêu cầu và phê duyệt (tiêu chuẩn)"
+        }
+    ],
+    "notifies": [
+        {
+            "suuid": "819e4404298f54104248",
+            "notify_view_name": "Yêu cầu (đã gửi, đã duyệt, trả lại)"
         }
     ]
 }

@@ -46,6 +46,7 @@ class CellStylePresetSettingController extends AdminControllerBase
             Checker::error();
             return response('');
         }
+        $this->localizePageInfo();
 
         return $this->{$method}(...array_values($parameters));
     }
@@ -217,6 +218,12 @@ class CellStylePresetSettingController extends AdminControllerBase
             $initial = mb_substr($name, 0, 1);
             return '<span class="exm-cell-avatar"><span class="exm-cell-av" style="background-color:'
                 . e($own_color ?? GridCellStyle::hashColor($name)) . '">' . e($initial) . '</span>' . e($name) . '</span>';
+        }
+
+        // "plain" keeps the shape of the value and adds only the icon, as the list does
+        // (GridCellStyle::wrap): no color, no weight (#2153)
+        if ($style === GridCellStyle::STYLE_PLAIN) {
+            return $icon_html === '' ? e($name) : '<span class="exm-cell-text">' . $icon_html . e($name) . '</span>';
         }
 
         $css = [];

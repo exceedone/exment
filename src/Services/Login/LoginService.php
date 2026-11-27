@@ -541,7 +541,9 @@ class LoginService
 
         // get avatar
         if (!$hasLoginUser || boolval($custom_login_user->login_setting->getOption('update_user_info'))) {
-            $avatar  = static::getAvatar($custom_login_user, $socialiteProvider = null);
+            // the provider of the login, given on: "$socialiteProvider = null" here gave always
+            // null, and a provider that reads the avatar itself was never asked (ISS02869)
+            $avatar = static::getAvatar($custom_login_user, $socialiteProvider);
             if (isset($avatar)) {
                 $login_user->avatar = $avatar;
             }
@@ -551,43 +553,87 @@ class LoginService
         return $login_user;
     }
 
+    /** The largest avatar taken from a provider, in bytes. */
+    public const AVATAR_MAX_BYTES = 5242880;
+
+    /** @var \GuzzleHttp\ClientInterface|null the client that fetches an avatar URL (a test sets it) */
+    public static $avatarHttpClient;
+
+    /**
+     * The avatar of the user of a login, from the provider (ISS02869), saved as the file of
+     * the login user; null when there is none.
+     *
+     * - A provider that reads the avatar itself (Auth\ProviderAvatar, as a program file for
+     *   microsoft/graph) is asked first, with the token of the login.
+     * - Else the URL of the avatar in the profile of the user, fetched only from an address
+     *   Exment may reach (WebhookUrlGuard, private addresses refused), in a short time,
+     *   without following a redirect.
+     * - Only an image of AVATAR_MAX_BYTES at most is taken. A failure does not stop the login.
+     *
+     * @param \Exceedone\Exment\Auth\ProviderAvatar|mixed $socialiteProvider
+     */
     // @phpstan-ignore-next-line
     public static function getAvatar(CustomLoginUserBase $custom_login_user, $socialiteProvider = null)
     {
         try {
-            // if socialiteProvider implements ProviderAvatar, call getAvatar
-            if (isset($socialiteProvider) && is_subclass_of($socialiteProvider, \Exceedone\Exment\Auth\ProviderAvatar::class)) {
-                /** @var OAuthUser $custom_login_user */
-                // @phpstan-ignore-next-line
-                $stream = $socialiteProvider->getAvatar($custom_login_user->token);
+            $stream = null;
+            if ($socialiteProvider instanceof \Exceedone\Exment\Auth\ProviderAvatar) {
+                $stream = static::avatarImage($socialiteProvider->getAvatar($custom_login_user->token ?? null));
             }
-            // if user obj has avatar, download avatar.
-            // The URL comes from the provider's profile: not the server itself nor
-            // the link-local range, a short time, and an image of a few MB at most.
-            elseif (isset($custom_login_user->avatar) && \Exceedone\Exment\Services\WebhookUrlGuard::isAllowed($custom_login_user->avatar, true)) {
-                $client = new \GuzzleHttp\Client();
-                $response = $client->request('GET', $custom_login_user->avatar, [
-                    'http_errors' => false,
-                    'timeout' => 10,
-                    'connect_timeout' => 5,
-                    'allow_redirects' => false,
-                    'stream' => true,
-                ]);
-                $contents = $response->getStatusCode() == 200 ? $response->getBody()->read(5 * 1024 * 1024 + 1) : '';
-                if ($contents !== '' && strlen($contents) <= 5 * 1024 * 1024 && @getimagesizefromstring($contents) !== false) {
-                    $stream = $contents;
-                }
+            $url = $custom_login_user->avatar ?? null;
+            if (!isset($stream) && is_string($url) && $url !== '') {
+                $stream = static::downloadAvatar($url);
             }
-            // file upload.
             if (isset($stream) && isset($custom_login_user->id)) {
                 $file = ExmentFile::put(FileType::AVATAR, path_join("avatar", $custom_login_user->id), $stream, [
                     'override' => true,
                 ]);
                 return $file->path;
             }
-        } finally {
+        } catch (\Throwable $ex) {
+            \Log::warning('[Exment] the avatar of the login could not be taken: ' . $ex->getMessage());
         }
         return null;
+    }
+
+    /**
+     * An avatar URL of a profile, fetched when Exment may reach it; null when not taken.
+     */
+    public static function downloadAvatar(string $url): ?string
+    {
+        if (!\Exceedone\Exment\Services\WebhookUrlGuard::isAllowed($url, true)) {
+            return null;
+        }
+        $client = static::$avatarHttpClient ?? new \GuzzleHttp\Client();
+        $response = $client->request('GET', $url, [
+            'http_errors' => false,
+            'timeout' => 10,
+            'connect_timeout' => 5,
+            'allow_redirects' => false,
+            'stream' => true,
+        ]);
+        if ($response->getStatusCode() != 200) {
+            return null;
+        }
+        return static::avatarImage($response->getBody()->read(static::AVATAR_MAX_BYTES + 1));
+    }
+
+    /**
+     * The contents when they are an image of AVATAR_MAX_BYTES at most, else null.
+     *
+     * @param mixed $contents
+     */
+    protected static function avatarImage($contents): ?string
+    {
+        if ($contents instanceof \Psr\Http\Message\StreamInterface) {
+            $contents = $contents->read(static::AVATAR_MAX_BYTES + 1);
+        } elseif (is_resource($contents)) {
+            $contents = fread($contents, 5242881);
+        }
+        if (!is_string($contents) || $contents === '' || strlen($contents) > static::AVATAR_MAX_BYTES) {
+            return null;
+        }
+        return @getimagesizefromstring($contents) !== false ? $contents : null;
     }
 
     // @phpstan-ignore-next-line
