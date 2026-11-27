@@ -1,9 +1,9 @@
 {{-- The settings of MCP, in tabs: Claude Desktop, Claude Code, others (JSON). $configs from McpGuide::configs, $prefix for the ids. --}}
 @php
     $tabs = [
-        'claude_desktop' => ['label' => 'Claude Desktop', 'help' => exmtrans('api_key.mcp.desktop_help'), 'rows' => 12],
+        'claude_desktop' => ['label' => 'Claude Desktop', 'help' => exmtrans('api_key.mcp.desktop_help'), 'rows' => 16],
         'claude_code' => ['label' => 'Claude Code', 'help' => exmtrans('api_key.mcp.code_help'), 'rows' => 3],
-        'generic' => ['label' => exmtrans('api_key.mcp.generic'), 'help' => exmtrans('api_key.mcp.generic_help'), 'rows' => 10],
+        'generic' => ['label' => exmtrans('api_key.mcp.generic'), 'help' => exmtrans('api_key.mcp.generic_help'), 'rows' => 11],
     ];
 @endphp
 <div class="exm-ak-configs">

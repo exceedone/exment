@@ -4,11 +4,13 @@
 <div class="exm-api-key">
     <style>
         .exm-api-key .exm-ak-purposes { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 6px; }
-        .exm-api-key .exm-ak-purpose { flex: 1 1 220px; display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border: 2px solid #d2d6de; border-radius: 6px; cursor: pointer; font-weight: normal; background: #fff; }
+        .exm-api-key .exm-ak-purpose { flex: 1 1 260px; display: flex; gap: 10px; align-items: flex-start; margin: 0; padding: 12px 14px; border: 2px solid #d2d6de; border-radius: 6px; cursor: pointer; font-weight: normal; background: #fff; }
         .exm-api-key .exm-ak-purpose:hover { border-color: #8fb6db; }
         .exm-api-key .exm-ak-purpose.is-checked { border-color: #3c8dbc; background: #f2f8fc; }
         .exm-api-key .exm-ak-purpose input { margin-top: 4px; }
-        .exm-api-key .exm-ak-purpose .exm-ak-purpose-title { display: block; font-size: 15px; font-weight: bold; }
+        .exm-api-key .exm-ak-purpose .exm-ak-purpose-title { display: block; font-size: 14px; font-weight: bold; }
+        .exm-api-key .exm-ak-help { display: block; color: #777; font-size: 12px; margin-top: 4px; }
+        .exm-api-key .exm-ak-copy { white-space: nowrap; }
         .exm-api-key .exm-ak-purpose .exm-ak-purpose-help { display: block; color: #666; font-size: 12px; margin-top: 2px; }
         .exm-api-key .exm-ak-purpose .fa { font-size: 20px; color: #3c8dbc; width: 24px; text-align: center; margin-top: 2px; }
         .exm-api-key .exm-ak-groups { display: flex; flex-wrap: wrap; gap: 6px 24px; }
@@ -74,7 +76,7 @@
                 {{-- 1. what the key is for: each presets the scopes --}}
                 <div class="form-group">
                     <label class="col-sm-2 control-label">{{ exmtrans('api_key.purpose') }}</label>
-                    <div class="col-sm-9">
+                    <div class="col-sm-10">
                         <div class="exm-ak-purposes">
                         @foreach ($purposes as $key => $p)
                             <label class="exm-ak-purpose {{ $purpose === $key ? 'is-checked' : '' }}">
@@ -151,7 +153,7 @@
                             @endforeach
                             </div>
                         </div>
-                        <span class="help-block">{{ exmtrans('api_key.tables_help') }}</span>
+                        <span class="help-block exm-ak-help">{{ exmtrans('api_key.tables_help') }}</span>
                     </div>
                 </div>
 
