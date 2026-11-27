@@ -1491,6 +1491,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => 'Eine Wiederherstellung läuft. Melden Sie sich nach dem Ende bitte erneut an.',
                 'reasons' => [
                     'warning' => 'Die Wiederherstellung wurde mit Problemen beendet. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',
                     'failed' => 'Die Wiederherstellung ist fehlgeschlagen. Melden Sie sich an und sehen Sie sich das ausführliche Protokoll im Verlauf der Sicherungsseite an.',

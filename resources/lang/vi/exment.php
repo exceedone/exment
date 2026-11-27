@@ -1491,6 +1491,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => 'Đang khôi phục. Khi xong, vui lòng đăng nhập lại.',
                 'reasons' => [
                     'warning' => 'Đã khôi phục xong nhưng có lỗi. Hãy đăng nhập rồi xem nhật ký chi tiết trong lịch sử trên màn hình sao lưu.',
                     'failed' => 'Khôi phục thất bại. Hãy đăng nhập rồi xem nhật ký chi tiết trong lịch sử trên màn hình sao lưu.',

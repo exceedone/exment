@@ -1538,6 +1538,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => 'A restore is in progress. When it has finished, please sign in again.',
                 'reasons' => [
                     'warning' => 'The restore finished with problems. Sign in, then see the detailed log in the history on the backup page.',
                     'failed' => 'The restore failed. Sign in, then see the detailed log in the history on the backup page.',
