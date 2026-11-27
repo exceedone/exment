@@ -33,6 +33,9 @@
             <a class="btn btn-sm btn-default" href="{{ $opener['url'] }}" target="_blank" rel="noopener"><i class="fa {{ $opener['icon'] ?? 'fa-external-link' }}" aria-hidden="true"></i> {{ $opener['label'] }}</a>
         @endforeach
         <button type="button" class="btn btn-sm btn-default" data-fs-copy-link="{{ $link }}" data-fs-copy-name="{{ $node->name }}" title="{{ exmtrans('file_server.copy_link_help') }}"><i class="fa fa-link" aria-hidden="true"></i> {{ exmtrans('file_server.copy_link') }}</button>
+        @if ($canManage)
+            <a href="#exm-fs-permissions" class="btn btn-sm btn-default" data-fs-permissions title="{{ exmtrans('file_server.permissions_button_help') }}"><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</a>
+        @endif
         <button type="button" class="btn btn-sm btn-default" data-fs-action="favorite"><i class="fa {{ $favorite ? 'fa-star' : 'fa-star-o' }}" aria-hidden="true"></i> {{ exmtrans('file_server.favorite') }}</button>
         @if ($node->isFile() && $canEdit)
             @if ($checked_out_by === null)
@@ -206,7 +209,7 @@
 
             @include('exment::file_server._governance_box')
 
-            <div class="exm-fs-section box card">
+            <div class="exm-fs-section box card" id="exm-fs-permissions">
                 <div class="box-header with-border"><h3 class="box-title"><i class="fa fa-key" aria-hidden="true"></i> {{ exmtrans('file_server.permissions') }}</h3></div>
                 <div class="box-body">
                     <p class="exm-fs-muted">{{ $node->has_unique_permissions ? exmtrans('file_server.permissions_unique') : exmtrans('file_server.permissions_inherited') }}</p>
@@ -228,6 +231,7 @@
                             <p>{{ exmtrans('file_server.permissions_your_level', ['level' => \Exceedone\Exment\Services\FileServer\Level::label($level)]) }}</p>
                         @endif
                         @if ($canManage)
+                            <p class="exm-fs-muted" style="margin:0 0 6px">{{ exmtrans('file_server.break_permissions_help') }}</p>
                             <button type="button" class="btn btn-sm btn-default" data-fs-action="break">{{ exmtrans('file_server.break_permissions') }}</button>
                         @endif
                     @endif
