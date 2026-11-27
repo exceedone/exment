@@ -262,6 +262,7 @@ return [
         'login_failed' => 'ID hoặc mật khẩu không đúng.',
         'mistake_keyword' => 'Vui lòng nhập đúng từ khóa.',
         'mailsend_failed' => 'Gửi email thất bại. Vui lòng kiểm tra cài đặt email và tệp nhật ký hệ thống.',
+        'webhooksend_failed' => 'Gửi thông báo Slack / Teams thất bại. Vui lòng kiểm tra Webhook URL và tệp nhật ký hệ thống.',
         'size_too_large' => 'Tệp "{name}" (<b>{size}</b>) vượt quá dung lượng có thể tải lên <b>{maxSize}</b>.',
         'disable_delete_row' => 'Có dòng không thể xóa.',
         'no_mail_template' => 'Không có mẫu thông báo. Vui lòng kiểm tra cài đặt mẫu thông báo.',

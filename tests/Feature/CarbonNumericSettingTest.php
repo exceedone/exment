@@ -68,8 +68,10 @@ class CarbonNumericSettingTest extends FeatureTestBase
         $this->postLogin()->assertStatus(302);
         $this->assertSame(2, app(RateLimiter::class)->attempts($this->throttleKey()));
         $this->assertTrue(app(RateLimiter::class)->tooManyAttempts($this->throttleKey(), 2), 'locked after max_attempts');
-        // the lock length is unchanged: the same number as with an integer setting
-        $this->assertLessThanOrEqual(30, app(RateLimiter::class)->availableIn($this->throttleKey()));
+        // the lock length is the same as with an integer setting: 30 minutes
+        $availableIn = app(RateLimiter::class)->availableIn($this->throttleKey());
+        $this->assertLessThanOrEqual(30 * 60, $availableIn);
+        $this->assertGreaterThan(29 * 60, $availableIn);
     }
 
     /**

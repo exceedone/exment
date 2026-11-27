@@ -262,6 +262,7 @@ return [
         'login_failed' => 'ID 或密码错误。',
         'mistake_keyword' => '请正确输入关键字。',
         'mailsend_failed' => '邮件发送失败。请检查邮件设置和系统日志文件。',
+        'webhooksend_failed' => 'Slack / Teams 通知发送失败。请检查 Webhook URL 和系统日志文件。',
         'size_too_large' => '文件“{name}”（<b>{size}</b>）超过了可上传的大小 <b>{maxSize}</b>。',
         'disable_delete_row' => '包含无法删除的行。',
         'no_mail_template' => '没有通知模板。请检查通知模板设置。',

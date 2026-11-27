@@ -262,6 +262,7 @@ return [
         'login_failed' => 'El ID o la contraseña no son correctos.',
         'mistake_keyword' => 'Introduzca la palabra clave correctamente.',
         'mailsend_failed' => 'No se pudo enviar el correo electrónico. Revise la configuración de correo y el archivo de registro del sistema.',
+        'webhooksend_failed' => 'No se pudo enviar la notificación de Slack / Teams. Revise la URL del webhook y el archivo de registro del sistema.',
         'size_too_large' => 'El archivo {name} (<b>{size}</b>) supera el tamaño máximo de carga <b>{maxSize}</b>.',
         'disable_delete_row' => 'Contiene filas que no se pueden eliminar.',
         'no_mail_template' => 'No hay ninguna plantilla de correo. Revise la configuración de las plantillas de correo.',

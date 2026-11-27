@@ -267,6 +267,7 @@ return [
         'login_failed' => 'ID or password is wrong.',
         'mistake_keyword' => 'Please enter the keyword correctly.',
         'mailsend_failed' => 'E-mail transmission failed. Please check your email settings.',
+        'webhooksend_failed' => 'Sending the Slack / Teams notification failed. Please check the Webhook URL and the system log file.',
         'size_too_large' => 'File:{name} (<b>{size}</b>) exceeds uploadable size <b>{maxSize}</b>.',
         'disable_delete_row' => 'Contains lines that can not be deleted.',
         'no_mail_template' => 'There is no mail template. Please check your email template settings.',

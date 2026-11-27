@@ -262,6 +262,7 @@ return [
         'login_failed' => 'ID oder Passwort ist falsch.',
         'mistake_keyword' => 'Bitte geben Sie das Stichwort korrekt ein.',
         'mailsend_failed' => 'Das Senden der E-Mail ist fehlgeschlagen. Bitte prüfen Sie Ihre E-Mail-Einstellungen.',
+        'webhooksend_failed' => 'Das Senden der Slack-/Teams-Benachrichtigung ist fehlgeschlagen. Bitte prüfen Sie die Webhook-URL und die Systemprotokolldatei.',
         'size_too_large' => 'Datei: {name} (<b>{size}</b>) überschreitet die maximal hochladbare Größe von <b>{maxSize}</b>.',
         'disable_delete_row' => 'Enthält Zeilen, die nicht gelöscht werden können.',
         'no_mail_template' => 'Es ist keine E-Mail-Vorlage vorhanden. Bitte prüfen Sie Ihre E-Mail-Vorlageneinstellungen.',

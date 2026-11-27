@@ -157,10 +157,12 @@ class MailChannel
         // set Exment data
         $model->setValue([
             'user' => $mailMessage->getUserId(),
-            'parent_id' => $mailMessage->getParentId(),
-            'parent_type' => $mailMessage->getParentType(),
             'mail_template' => $mailMessage->getMailTemplateId(),
         ]);
+        // parent_id and parent_type are columns of the table, not custom columns (setValue() drops them).
+        // Notify::approvalSendUser() finds the mail sent to the record by them.
+        $model->parent_id = $mailMessage->getParentId();
+        $model->parent_type = $mailMessage->getParentType();
 
         $model->save();
     }

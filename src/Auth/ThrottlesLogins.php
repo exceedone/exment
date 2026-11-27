@@ -37,9 +37,10 @@ trait ThrottlesLogins
      */
     protected function incrementLoginAttempts(Request $request)
     {
+        // RateLimiter::hit() takes seconds
         $this->limiter()->hit(
             $this->throttleKey($request),
-            $this->decayMinutes()
+            $this->decayMinutes() * 60
         );
     }
 
@@ -57,13 +58,39 @@ trait ThrottlesLogins
             $errorKey = $this->username();
         }
 
+        throw ValidationException::withMessages([
+            $errorKey => $this->getLockoutMessage($request),
+        ])->status(429);
+    }
+
+    /**
+     * Redirect back to the form with the lockout message.
+     * For a page of a signed-in user (e.g. 2 factor), where Exment::error() shows a thrown exception as the error page.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  string  $errorKey
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    protected function redirectLockoutResponse(Request $request, $errorKey)
+    {
+        return back()->withInput()->withErrors([
+            $errorKey => $this->getLockoutMessage($request),
+        ]);
+    }
+
+    /**
+     * Get the lockout message, with the minutes until the user can try again.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return string
+     */
+    protected function getLockoutMessage(Request $request)
+    {
         $seconds = $this->limiter()->availableIn(
             $this->throttleKey($request)
         );
 
-        throw ValidationException::withMessages([
-            $errorKey => exmtrans('login.throttle', ceil($seconds / 60)),
-        ])->status(429);
+        return exmtrans('login.throttle', ceil($seconds / 60));
     }
 
     /**

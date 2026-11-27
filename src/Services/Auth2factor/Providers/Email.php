@@ -51,8 +51,7 @@ class Email
         if ($this->throttle && $this->hasTooManyLoginAttempts($request)) {
             $this->fireLockoutEvent($request);
 
-            $this->sendLockoutResponse($request, 'verify_code');
-            return;
+            return $this->redirectLockoutResponse($request, 'verify_code');
         }
 
         $verify_code = $request->get('verify_code');

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 use Carbon\Carbon;
+use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 
 /**
@@ -225,14 +226,20 @@ class Notify extends ModelBase
 
                 if (NotifyAction::isChatMessage($action_setting)) {
                     // send slack message
-                    NotifyService::executeNotifyAction($this, [
-                        'prms' => $prms,
-                        'custom_value' => $custom_value,
-                        'mention_here' => $this->getMentionHere($action_setting),
-                        'mention_users' => $this->getMentionUsers($users),
-                        'is_chat' => true,
-                        'action_setting' => $action_setting,
-                    ]);
+                    try {
+                        NotifyService::executeNotifyAction($this, [
+                            'prms' => $prms,
+                            'custom_value' => $custom_value,
+                            'mention_here' => $this->getMentionHere($action_setting),
+                            'mention_users' => $this->getMentionUsers($users),
+                            'is_chat' => true,
+                            'action_setting' => $action_setting,
+                        ]);
+                    }
+                    // throw webhook send Exception
+                    catch (GuzzleException $ex) {
+                        \Log::error($ex);
+                    }
                     continue;
                 }
 
@@ -332,6 +339,10 @@ class Notify extends ModelBase
             'free_space' => $freeSpace,
         ], $prms);
 
+        // the mail sent log before this notify: a mail sent by one of its actions does not stop
+        // its other actions (e.g. the system alert) to the same user
+        $last_mail_send_log_id = getModelName(SystemTableName::MAIL_SEND_LOG)::max('id') ?? 0;
+
         // loop action setting
         foreach ($this->action_settings as $action_setting) {
             $users = $this->getNotifyTargetUsers($custom_value, $action_setting, $custom_table);
@@ -359,16 +370,25 @@ class Notify extends ModelBase
 
             if (NotifyAction::isChatMessage($action_setting)) {
                 // send slack message
-                NotifyService::executeNotifyAction($this, [
-                    'mail_template' => $mail_template,
-                    'prms' => $prms,
-                    'custom_table' => $custom_table,
-                    'custom_value' => $custom_value,
-                    'mention_here' => $this->getMentionHere($action_setting),
-                    'mention_users' => $this->getMentionUsers($users),
-                    'is_chat' => true,
-                    'action_setting' => $action_setting,
-                ]);
+                try {
+                    NotifyService::executeNotifyAction($this, [
+                        'mail_template' => $mail_template,
+                        'prms' => $prms,
+                        'custom_table' => $custom_table,
+                        'custom_value' => $custom_value,
+                        'mention_here' => $this->getMentionHere($action_setting),
+                        'mention_users' => $this->getMentionUsers($users),
+                        'is_chat' => true,
+                        'action_setting' => $action_setting,
+                    ]);
+                }
+                // throw webhook send Exception
+                catch (GuzzleException $ex) {
+                    // Laravel facade Log not recognized
+                    \Log::error($ex);
+                    // show warning message
+                    admin_warning(exmtrans('error.header'), exmtrans('error.webhooksend_failed'));
+                }
                 continue;
             }
 
@@ -379,7 +399,7 @@ class Notify extends ModelBase
 
             $users = $this->uniqueUsers($users, $action_setting);
             foreach ($users as $user) {
-                if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, true, $action_setting)) {
+                if (!$this->approvalSendUser($mail_template, $custom_table, $custom_value, $user, true, $action_setting, $last_mail_send_log_id)) {
                     continue;
                 }
 
@@ -433,19 +453,28 @@ class Notify extends ModelBase
             ];
             if (NotifyAction::isChatMessage($action_setting)) {
                 // send slack message
-                NotifyService::executeNotifyAction($this, [
-                    'mail_template' => $mail_template,
-                    'prms' => $prms,
-                    'custom_value' => $custom_value,
-                    'mention_here' => $this->getMentionHere($action_setting),
-                    'mention_users' => $this->getMentionUsers($users),
-                    'is_chat' => true,
-                    'replaceOptions' => [
-                        'workflow_action' => $workflow_action,
-                        'workflow_value' => $workflow_value,
-                    ],
-                    'action_setting' => $action_setting,
-                ]);
+                try {
+                    NotifyService::executeNotifyAction($this, [
+                        'mail_template' => $mail_template,
+                        'prms' => $prms,
+                        'custom_value' => $custom_value,
+                        'mention_here' => $this->getMentionHere($action_setting),
+                        'mention_users' => $this->getMentionUsers($users),
+                        'is_chat' => true,
+                        'replaceOptions' => [
+                            'workflow_action' => $workflow_action,
+                            'workflow_value' => $workflow_value,
+                        ],
+                        'action_setting' => $action_setting,
+                    ]);
+                }
+                // throw webhook send Exception
+                catch (GuzzleException $ex) {
+                    // Laravel facade Log not recognized
+                    \Log::error($ex);
+                    // show warning message
+                    admin_warning(exmtrans('error.header'), exmtrans('error.webhooksend_failed'));
+                }
                 continue;
             }
 
@@ -569,20 +598,29 @@ class Notify extends ModelBase
                 $users = NotifyTarget::getSelectedNotifyTargets($target_user_keys, $this, $custom_value);
 
                 // send slack message
-                NotifyService::executeNotifyAction($this, [
-                    'mail_template' => $mail_template,
-                    'prms' => [
-                        'notify' => $this,
-                        'target_table' => $custom_table->table_view_name ?? null
-                    ],
-                    'custom_value' => $custom_value,
-                    'subject' => $subject,
-                    'body' => $body,
-                    'mention_here' => $this->getMentionHere($action_setting),
-                    'mention_users' => $this->getMentionUsers($users),
-                    'is_chat' => true,
-                    'action_setting' => $action_setting,
-                ]);
+                try {
+                    NotifyService::executeNotifyAction($this, [
+                        'mail_template' => $mail_template,
+                        'prms' => [
+                            'notify' => $this,
+                            'target_table' => $custom_table->table_view_name ?? null
+                        ],
+                        'custom_value' => $custom_value,
+                        'subject' => $subject,
+                        'body' => $body,
+                        'mention_here' => $this->getMentionHere($action_setting),
+                        'mention_users' => $this->getMentionUsers($users),
+                        'is_chat' => true,
+                        'action_setting' => $action_setting,
+                    ]);
+                }
+                // throw webhook send Exception
+                catch (GuzzleException $ex) {
+                    // Laravel facade Log not recognized
+                    \Log::error($ex);
+                    // show warning message
+                    admin_warning(exmtrans('error.header'), exmtrans('error.webhooksend_failed'));
+                }
                 continue;
             }
 
@@ -751,7 +789,7 @@ class Notify extends ModelBase
      */
 
     // @phpstan-ignore-next-line
-    protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true, $action_setting = null)
+    protected function approvalSendUser($mail_template, $custom_table, $custom_value, NotifyTarget $user, $checkHistory = true, $action_setting = null, $last_mail_send_log_id = null)
     {
         // if $user is myself, return false
         // Exment helper class not recognized
@@ -779,6 +817,10 @@ class Notify extends ModelBase
                 ->where($index_mail_template, $mail_template->id)
                 ->where('parent_id', $custom_value->id)
                 ->where('parent_type', $custom_table->table_name)
+                // only the mail sent before this notify
+                ->when(isset($last_mail_send_log_id), function ($query) use ($last_mail_send_log_id) {
+                    $query->where('id', '<=', $last_mail_send_log_id);
+                })
                 ->get()
             ;
 

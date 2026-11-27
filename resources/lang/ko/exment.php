@@ -262,6 +262,7 @@ return [
         'login_failed' => 'ID 또는 비밀번호가 올바르지 않습니다.',
         'mistake_keyword' => '키워드를 정확하게 입력하십시오.',
         'mailsend_failed' => '메일을 전송하지 못했습니다. 메일 설정을 확인하십시오.',
+        'webhooksend_failed' => 'Slack / Teams 알림을 전송하지 못했습니다. Webhook URL과 시스템 로그 파일을 확인하십시오.',
         'size_too_large' => '파일 "{name}"(<b>{size}</b>)이(가) 업로드 가능한 크기 <b>{maxSize}</b>을(를) 초과합니다.',
         'disable_delete_row' => '삭제할 수 없는 행이 포함되어 있습니다.',
         'no_mail_template' => '메일 템플릿이 없습니다. 메일 템플릿 설정을 확인하십시오.',

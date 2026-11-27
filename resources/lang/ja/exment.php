@@ -267,6 +267,7 @@ return [
         'login_failed' => 'IDまたはパスワードが違います。',
         'mistake_keyword' => 'キーワードを正しく入力してください。',
         'mailsend_failed' => 'メール送信に失敗しました。メール設定と、システムログファイルをご確認ください。',
+        'webhooksend_failed' => 'Slack / Teamsへの通知に失敗しました。Webhook URLと、システムログファイルをご確認ください。',
         'size_too_large' => 'ファイル "{name}" (<b>{size}</b>) はアップロード可能なサイズ <b>{maxSize}</b> を超えています。',
         'disable_delete_row' => '削除できない行が含まれています。',
         'no_mail_template' => '通知テンプレートがありません。通知テンプレート設定を確認してください。',
