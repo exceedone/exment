@@ -82,6 +82,44 @@ class ExpiredFormTokenTest extends FeatureTestBase
         $this->assertSame(0, static::$ran);
     }
 
+    public function testWhatWasTypedComesBackWithoutPasswordsAndTokens(): void
+    {
+        $back = admin_url('');
+        $this->from($back)->post($this->url(), [
+            'title' => 'my title',
+            'value' => ['text' => 'my text', 'api_key' => 'k-1'],
+            'password' => 'secret-1',
+            'password_confirmation' => 'secret-1',
+            'current_password' => 'secret-0',
+            'client_secret' => 's-1',
+            '_token' => 'wrong',
+        ])->assertRedirect($back);
+
+        $this->assertSame('my title', session()->getOldInput('title'));
+        $this->assertSame('my text', session()->getOldInput('value.text'));
+        foreach (['password', 'password_confirmation', 'current_password', 'client_secret', '_token', 'value.api_key'] as $key) {
+            $this->assertNull(session()->getOldInput($key), $key);
+        }
+        $this->assertSame(0, static::$ran);
+    }
+
+    public function testTheLoginPageSaysThePageExpired(): void
+    {
+        \Auth::guard('admin')->logout();
+        session()->flush();
+        $login = admin_url('auth/login');
+
+        $response = $this->from($login)->post($login, ['username' => 'someone', 'password' => 'p', '_token' => 'wrong']);
+        $response->assertRedirect($login);
+        $this->assertSame('someone', session()->getOldInput('username'));
+        $this->assertNull(session()->getOldInput('password'));
+
+        $html = (string) $this->get($login)->getContent();
+        $this->assertStringContainsString('exm-login-error', $html);
+        $this->assertStringContainsString(e(exmtrans('error.expired_error_reinput')), $html);
+        $this->assertStringContainsString('value="someone"', $html);
+    }
+
     public function testTheRightTokenRuns(): void
     {
         $this->get(admin_url(''));
