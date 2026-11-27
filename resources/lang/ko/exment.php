@@ -1450,6 +1450,7 @@ return [
         'automatic_term' => '자동 백업 실행 간격(일)',
         'automatic_hour' => '자동 백업 시작 시간(시)',
         'history_files' => '보존 세대 수',
+        'history_include_manual' => '직접 만든 백업도 세대 수에 포함',
         'restore_zipfile' => '복원 파일',
         'upload_zipfile' => '업로드(zip)',
         'filesize_over' => '파일 크기가 커서 업로드할 수 없는 경우',
@@ -1488,6 +1489,7 @@ return [
             'automatic_term' => '자동 백업을 며칠 간격으로 실행할지 설정합니다. 예: "3"을 입력하면 3일마다 백업을 실행합니다',
             'automatic_hour' => '자동 백업의 시작 시간입니다. 예: "3"을 입력하면 3:00에 백업 실행을 시작합니다',
             'history_files' => '자동 백업 시 보존할 세대 수입니다. 1 이상을 입력하면 입력한 개수만큼 백업을 보존합니다.',
+            'history_include_manual' => 'YES로 하면 이 화면이나 명령으로 만든 백업도 "보존 세대 수"에 포함되어 오래된 것부터 삭제됩니다. NO(기본값)이면 자동 백업만 셉니다. 복원 전 백업은 따로 3개까지 보존합니다.',
         ],
         'run' => [
             'screen' => [
@@ -1499,6 +1501,9 @@ return [
                 ],
                 'signin_again' => '완료되었습니다. 다시 로그인해 주세요.',
                 'signin' => '로그인',
+                'used_space' => '백업 :count개 · 합계 :size',
+                'free_space' => '여유 :size',
+                'free_space_low' => '백업을 두는 디스크의 여유 공간이 부족합니다(남은 공간 :size). 필요 없는 백업을 삭제해 주세요.',
                 'backup_first_option' => '현재 데이터를 백업하기(권장)',
                 'backup_first_help' => '복원 전에 현재 데이터를 "beforerestore+날짜와 시간" 이름으로 백업합니다. 문제가 생기면 이것으로 되돌릴 수 있습니다.',
                 'preview' => '바뀌는 내용',

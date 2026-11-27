@@ -229,6 +229,8 @@ class Define
         'backup_target' => ['type' => 'array', 'default' => 'database,plugin,attachment,log,config', 'group' => 'backup'] ,
         'backup_automatic_executed' => ['type' => 'datetime'],
         'backup_history_files' => ['type' => 'int', 'default' => '0', 'group' => 'backup'],
+        // the backups made by hand (the screen, the command) count toward backup_history_files too (ISS02943)
+        'backup_history_include_manual' => ['type' => 'boolean', 'default' => '0', 'group' => 'backup'],
 
         // Operation log auto-delete
         // Opt-in (default '0') like backup_enable_automatic above: a destructive housekeeping task

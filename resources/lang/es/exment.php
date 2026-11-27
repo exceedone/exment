@@ -1450,6 +1450,7 @@ return [
         'automatic_term' => 'Intervalo de copia de seguridad automática (días)',
         'automatic_hour' => 'Hora de inicio de la copia de seguridad automática (hora)',
         'history_files' => 'Número de generaciones conservadas',
+        'history_include_manual' => 'Contar las copias manuales en las generaciones',
         'restore_zipfile' => 'Archivo de restauración',
         'upload_zipfile' => 'Cargar (zip)',
         'filesize_over' => 'Si el archivo es demasiado grande para cargarlo',
@@ -1488,6 +1489,7 @@ return [
             'automatic_term' => 'Cada cuántos días se realiza la copia de seguridad automática. Ejemplo: si introduce "3", la copia se ejecuta cada 3 días.',
             'automatic_hour' => 'Hora de inicio de la copia de seguridad automática. Ejemplo: si introduce "3", la copia comienza a las 3:00.',
             'history_files' => 'Número de generaciones que se conservan en la copia de seguridad automática. Si introduce 1 o más, se conserva ese número de copias.',
+            'history_include_manual' => 'Si es SÍ, las copias creadas en esta pantalla o con el comando también cuentan para «Número de generaciones conservadas» y se eliminan las más antiguas. Si es NO (predeterminado), solo cuentan las copias automáticas. Las copias hechas antes de una restauración se conservan aparte, hasta 3.',
         ],
         'run' => [
             'screen' => [
@@ -1499,6 +1501,9 @@ return [
                 ],
                 'signin_again' => 'Terminado. Vuelva a iniciar sesión.',
                 'signin' => 'Iniciar sesión',
+                'used_space' => ':count copias, :size en total',
+                'free_space' => ':size libres',
+                'free_space_low' => 'Queda poco espacio libre en el disco de las copias de seguridad (:size). Elimine las copias que ya no necesite.',
                 'backup_first_option' => 'Hacer una copia de los datos actuales (recomendado)',
                 'backup_first_help' => 'Antes de restaurar, se hace una copia de los datos actuales con el nombre «beforerestore» más la fecha y la hora. Si algo sale mal, puede restaurarla.',
                 'preview' => 'Qué se reemplaza',

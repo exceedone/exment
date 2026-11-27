@@ -1450,6 +1450,7 @@ return [
         'automatic_term' => '自动备份执行间隔（天）',
         'automatic_hour' => '自动备份开始时间（时）',
         'history_files' => '保留代数',
+        'history_include_manual' => '手动备份也计入保留代数',
         'restore_zipfile' => '还原文件',
         'upload_zipfile' => '上传（zip）',
         'filesize_over' => '文件过大无法上传时',
@@ -1488,6 +1489,7 @@ return [
             'automatic_term' => '设置每隔几天执行一次自动备份。例：输入“3”时，每隔 3 天执行备份',
             'automatic_hour' => '自动备份的开始时间。例：输入“3”时，在 3:00 开始执行备份',
             'history_files' => '自动备份时保留的代数。输入 1 或以上时，将保留所输入数量的备份。',
+            'history_include_manual' => '选择 YES 时，在此页面或用命令创建的备份也计入“保留代数”，并从最旧的开始删除。选择 NO（默认）时，只计算自动备份。还原前的备份另外保留，最多 3 个。',
         ],
         'run' => [
             'screen' => [
@@ -1499,6 +1501,9 @@ return [
                 ],
                 'signin_again' => '已完成。请重新登录。',
                 'signin' => '登录',
+                'used_space' => '备份 :count 个，合计 :size',
+                'free_space' => '可用 :size',
+                'free_space_low' => '存放备份的磁盘可用空间不足（剩余 :size）。请删除不需要的备份。',
                 'backup_first_option' => '备份当前数据（推荐）',
                 'backup_first_help' => '还原之前，以“beforerestore＋日期时间”的名称备份当前数据。出现问题时可以用它恢复。',
                 'preview' => '将被替换的内容',

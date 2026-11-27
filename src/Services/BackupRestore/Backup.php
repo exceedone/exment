@@ -2,6 +2,7 @@
 
 namespace Exceedone\Exment\Services\BackupRestore;
 
+use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\BackupTarget;
@@ -107,8 +108,8 @@ class Backup
             // archive whole folder to zip
             $this->createZip();
 
-            // if call as batch
-            if ($schedule) {
+            // if call as batch; a backup made by hand only when it is chosen (ISS02943)
+            if ($schedule || boolval(System::backup_history_include_manual())) {
                 $this->removeOldBackups();
             }
 
@@ -372,7 +373,13 @@ class Backup
     }
 
     /**
-     * Remove old backup
+     * Remove old backups: only the last backup_history_files are kept (ISS02943).
+     *
+     * - the automatic backups count; the backups made by hand (the screen, the command) only
+     *   when backup_history_include_manual is on: someone made them on purpose
+     * - a backup made before a restore has a limit of its own (BackupRuns::keepSafetyBackups)
+     * - a file without a record of its run (made before the runs were recorded, or copied
+     *   there) is an automatic one, as before
      *
      * @return void
      */
@@ -387,7 +394,14 @@ class Backup
         $disk = $this->disk();
 
         // get files
-        $filenames = $disk->files($this->diskService->diskItem()->dirName());
+        $filenames = array_values(array_filter($disk->files($this->diskService->diskItem()->dirName()), function ($file) {
+            return str_ends_with(strtolower($file), '.zip') && !str_starts_with(basename($file), BackupRuns::SAFETY_PREFIX);
+        }));
+
+        if (!boolval(System::backup_history_include_manual())) {
+            $manual = static::manualFileNames(array_map(fn ($file) => pathinfo($file, PATHINFO_FILENAME), $filenames));
+            $filenames = array_values(array_filter($filenames, fn ($file) => !in_array(pathinfo($file, PATHINFO_FILENAME), $manual, true)));
+        }
 
         // get file infos
         $files = collect($filenames)->map(function ($filename) use ($disk) {
@@ -405,6 +419,65 @@ class Backup
 
             $disk->delete(array_get($file, 'name'));
         }
+    }
+
+    /**
+     * The backups of these names made by hand (from the screen or the command), as their runs say.
+     *
+     * @param array<int, string> $names
+     * @return array<int, string>
+     */
+    public static function manualFileNames(array $names): array
+    {
+        if (count($names) === 0) {
+            return [];
+        }
+        try {
+            return BackupRun::query()->where('kind', BackupRun::KIND_BACKUP)
+                ->whereIn('triggered_by', [BackupRun::TRIGGER_SCREEN, BackupRun::TRIGGER_COMMAND])
+                ->whereIn('file_name', $names)
+                ->pluck('file_name')->map(fn ($name) => strval($name))->unique()->values()->all();
+        } catch (\Throwable $e) {
+            // no record: as before, all of them count
+            return [];
+        }
+    }
+
+    /**
+     * The space of the backups (ISS02943): their files and total size, and the free space of the
+     * disk when it is a disk of this server (null: not known), low when it is less than
+     * exment.backup.low_free_bytes or than two backups of the size of the largest one.
+     *
+     * @return array{count: int, bytes: int, free: int|null, low: bool}
+     */
+    public static function space(): array
+    {
+        $count = 0;
+        $bytes = 0;
+        $largest = 0;
+        $free = null;
+        try {
+            $disk = \Storage::disk(Define::DISKNAME_BACKUP_SYNC);
+            foreach ($disk->files('list') as $file) {
+                if (!str_ends_with(strtolower($file), '.zip')) {
+                    continue;
+                }
+                $size = intval($disk->size($file));
+                $count++;
+                $bytes += $size;
+                $largest = max($largest, $size);
+            }
+            $root = $disk->path('list');
+            if ($root !== '' && is_dir($root)) {
+                $value = @disk_free_space($root);
+                $free = $value === false ? null : intval($value);
+            }
+        } catch (\Throwable $e) {
+            // not known
+        }
+        $limit = max(intval(config('exment.backup.low_free_bytes', 1073741824)), $largest * 2);
+
+        return ['count' => $count, 'bytes' => $bytes, 'free' => $free, 'low' => $free !== null && $free < $limit];
     }
 
     /**

@@ -102,6 +102,7 @@ class BackupController extends AdminControllerBase
         $content->row(view('exment::backup.history', [
             'runs' => $this->historyRows(),
             'keepRuns' => max(1, intval(config('exment.backup.keep_runs', 100))),
+            'space' => BackupRestore\Backup::space(),
         ]));
 
         // create setting form
@@ -326,6 +327,10 @@ class BackupController extends AdminControllerBase
             ->help(exmtrans("backup.help.history_files"))
             ->min(0)
             ->attribute(['data-filter' => json_encode(['key' => 'backup_enable_automatic', 'value' => '1'])]);
+
+        $form->switchbool('backup_history_include_manual', exmtrans("backup.history_include_manual"))
+            ->help(exmtrans("backup.help.history_include_manual"))
+            ->default(false);
 
         return new Box(exmtrans("backup.setting_header"), $form);
     }

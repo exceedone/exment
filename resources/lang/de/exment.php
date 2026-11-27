@@ -1450,6 +1450,7 @@ return [
         'automatic_term' => 'Intervall der automatischen Sicherung (Tage)',
         'automatic_hour' => 'Startzeit der automatischen Sicherung (Stunde)',
         'history_files' => 'Anzahl aufbewahrter Generationen',
+        'history_include_manual' => 'Manuelle Sicherungen bei den Generationen mitzählen',
         'restore_zipfile' => 'Wiederherstellungsdatei',
         'upload_zipfile' => 'Hochladen (zip)',
         'filesize_over' => 'Wenn die Datei zum Hochladen zu groß ist',
@@ -1488,6 +1489,7 @@ return [
             'automatic_term' => 'Legt fest, in welchem Abstand (in Tagen) die automatische Sicherung durchgeführt wird. Beispiel: Bei Eingabe von „3“ wird alle 3 Tage gesichert.',
             'automatic_hour' => 'Die Startzeit der automatischen Sicherung. Beispiel: Bei Eingabe von „3“ startet die Sicherung um 3:00 Uhr.',
             'history_files' => 'Die Anzahl der Generationen, die bei der automatischen Sicherung aufbewahrt werden. Bei Eingabe von 1 oder mehr wird die angegebene Anzahl Sicherungen aufbewahrt.',
+            'history_include_manual' => 'Bei JA zählen auch die auf dieser Seite oder per Befehl erstellten Sicherungen zur „Anzahl aufbewahrter Generationen“, und die ältesten werden gelöscht. Bei NEIN (Standard) zählen nur automatische Sicherungen. Sicherungen vor einer Wiederherstellung werden getrennt aufbewahrt, höchstens 3.',
         ],
         'run' => [
             'screen' => [
@@ -1499,6 +1501,9 @@ return [
                 ],
                 'signin_again' => 'Abgeschlossen. Bitte melden Sie sich erneut an.',
                 'signin' => 'Anmelden',
+                'used_space' => ':count Sicherungen, insgesamt :size',
+                'free_space' => ':size frei',
+                'free_space_low' => 'Auf dem Datenträger der Sicherungen wird der freie Speicher knapp (:size übrig). Löschen Sie nicht mehr benötigte Sicherungen.',
                 'backup_first_option' => 'Die aktuellen Daten sichern (empfohlen)',
                 'backup_first_help' => 'Vor der Wiederherstellung werden die aktuellen Daten als „beforerestore“ mit Datum und Uhrzeit gesichert. Geht etwas schief, können Sie sie damit wiederherstellen.',
                 'preview' => 'Was ersetzt wird',
