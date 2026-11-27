@@ -59,7 +59,7 @@ class AdminHtmlMessageTest extends FeatureTestBase
         $this->assertInstanceOf(\Illuminate\Support\HtmlString::class, $message[0]);
         $this->assertSame('a <b>bold</b> word', $message[0]->toHtml());
 
-        admin_info('title', $message);
+        admin_info('title', admin_html_message('a <b>bold</b> word'));
         $this->assertStringContainsString('a <b>bold</b> word', view('admin::partials.alerts')->render());
 
         admin_toastr(admin_html_message('<b>saved</b>'));
