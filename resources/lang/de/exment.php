@@ -4489,7 +4489,7 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
             'sales' => 'Vertrieb & Kunden',
             'asset' => 'Anlagen',
             'project' => 'Projekte',
-            'it_support' => 'Helpdesk',
+            'it_support' => 'Support-Desk',
             'hr' => 'Personal & Verwaltung',
             'admin_data' => 'Einstellungen: Daten & Bildschirme',
             'admin_user' => 'Einstellungen: Benutzer & Berechtigungen',
