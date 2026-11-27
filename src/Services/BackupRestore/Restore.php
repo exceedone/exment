@@ -81,13 +81,15 @@ class Restore
             // the page of the maintenance tells a restore is going on (and comes again by itself);
             // the pages of the backup still answer (BackupRestoreGuard, before the maintenance): the
             // page of "down --render" is given before Laravel starts, but not for its exceptions
+            // (a restore of the command: the plain maintenance for every page)
+            $through = static::lettingBackupPagesThrough($progress->run());
             try {
-                static::passBackupPagesThroughMaintenance(function () {
+                static::downFor($through, function () {
                     \Artisan::call('down', static::downOptions());
                 });
             } catch (\Throwable $e) {
                 // the page could not be made: the plain one
-                static::passBackupPagesThroughMaintenance(function () {
+                static::downFor($through, function () {
                     \Artisan::call('down');
                 });
             }
@@ -230,6 +232,25 @@ class Restore
         } finally {
             $zip->close();
         }
+    }
+
+    /**
+     * Whether the maintenance of this restore lets the pages of the backup through: a restore
+     * started on the screen only (it has the token of its state, BackupRestoreGuard answers them).
+     * A restore of the command: the plain maintenance (503) for every page.
+     */
+    public static function lettingBackupPagesThrough(?\Exceedone\Exment\Model\BackupRun $run): bool
+    {
+        return isset($run) && BackupRuns::hasStateToken($run->uuid);
+    }
+
+    protected static function downFor(bool $through, \Closure $down): void
+    {
+        if ($through) {
+            static::passBackupPagesThroughMaintenance($down);
+            return;
+        }
+        $down();
     }
 
     /**

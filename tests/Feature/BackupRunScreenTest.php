@@ -337,8 +337,11 @@ class BackupRunScreenTest extends FeatureTestBase
     public function testTheTokenGoesToThePageAfterTheHashOnly(): void
     {
         [$run, $progress] = $this->restoreWithState();
+        $controller = new BackupController();
+        $property = new \ReflectionProperty(BackupController::class, 'stateToken');
+        $property->setValue($controller, BackupRuns::issueStateToken($run));
         $method = new \ReflectionMethod(BackupController::class, 'restorePageUrl');
-        $url = strval($method->invoke(null, $run));
+        $url = strval($method->invoke($controller, $run));
 
         // a path (the screen opens it as a whole page), the token after "#" (never sent to a server)
         $this->assertStringStartsWith('/', $url);
@@ -412,6 +415,32 @@ class BackupRunScreenTest extends FeatureTestBase
         BackupRuns::forgetStateToken($run->uuid);
         $this->assertStringNotContainsString(strval(exmtrans('backup.run.screen.restoring_title')), strval($this->get(admin_url('backup'))->getContent()));
         $progress->finish(BackupRun::STATUS_SUCCEEDED);
+    }
+
+    public function testARestoreOfTheCommandKeepsThePlainMaintenance(): void
+    {
+        // a restore of the command: no token, its down has no exception
+        $cli = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_COMMAND);
+        $this->assertFalse(\Exceedone\Exment\Services\BackupRestore\Restore::lettingBackupPagesThrough($cli));
+        $progress = new RunProgress($cli);
+        $progress->begin();
+        $progress->stage('load', 10);
+        $progress->releaseLock();
+
+        // the site down for it (no exception): the pages of the backup get the plain 503, never the application
+        $this->app->maintenanceMode()->activate(['except' => [], 'redirect' => null, 'time' => time(), 'retry' => null, 'refresh' => null, 'secret' => null, 'status' => 503, 'template' => null]);
+        try {
+            $this->get(admin_url('backup'))->assertStatus(503);
+            $this->get(admin_urls('backup', 'runs', $cli->uuid))->assertStatus(503);
+        } finally {
+            $this->app->maintenanceMode()->deactivate();
+        }
+        $progress->finish(BackupRun::STATUS_SUCCEEDED);
+
+        // a restore of the screen (its token): the exceptions
+        [$run, $screen] = $this->restoreWithState();
+        $this->assertTrue(\Exceedone\Exment\Services\BackupRestore\Restore::lettingBackupPagesThrough($run));
+        $screen->finish(BackupRun::STATUS_SUCCEEDED);
     }
 
     public function testAStateOfARunWithoutTokenWritesNothing(): void

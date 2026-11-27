@@ -23,6 +23,9 @@ use DB;
 
 class BackupController extends AdminControllerBase
 {
+    /** The token of the state of the restore started by this request (its page gets it after "#"). */
+    protected ?string $stateToken = null;
+
 
     // @phpstan-ignore-next-line
     protected $backup;
@@ -277,10 +280,10 @@ class BackupController extends AdminControllerBase
      * sends that part to a server (nor in a Referer), the page keeps it in the tab and takes it out
      * of the address. A path, so the screen opens it as a whole page.
      */
-    protected static function restorePageUrl(BackupRun $run): string
+    protected function restorePageUrl(BackupRun $run): string
     {
         $path = strval(parse_url(admin_urls('backup', 'runs', $run->uuid), PHP_URL_PATH));
-        return $path . '#t=' . BackupRuns::issueStateToken($run);
+        return $path . '#t=' . strval($this->stateToken);
     }
 
     protected function findRun(string $uuid): BackupRun
@@ -630,7 +633,7 @@ class BackupController extends AdminControllerBase
                 return response()->json([
                     'result'  => true,
                     'toastr' => exmtrans('backup.run.message.restore_started'),
-                    'redirect' => static::restorePageUrl($result),
+                    'redirect' => $this->restorePageUrl($result),
                 ]);
             }
         } catch (BackupRunLockedException $e) {
@@ -705,7 +708,7 @@ class BackupController extends AdminControllerBase
                 return response()->json([
                     'result'  => true,
                     'toastr' => exmtrans('backup.run.message.restore_started'),
-                    'redirect' => static::restorePageUrl($result),
+                    'redirect' => $this->restorePageUrl($result),
                 ]);
             }
         }
@@ -746,6 +749,9 @@ class BackupController extends AdminControllerBase
             'targets' => array_merge([boolval($tmp) ? BackupRuns::SOURCE_UPLOAD : BackupRuns::SOURCE_STORED, $file], $backupFirst ? [BackupRuns::BACKUP_FIRST] : []),
         ], $detach);
 
+        // the token of its state before it starts: the restore lets the pages of the backup through
+        // its maintenance only for a restore of the screen (Restore::lettingBackupPagesThrough)
+        $this->stateToken = BackupRuns::issueStateToken($run);
         if ($detach && BackupRuns::launchRestore($run)) {
             return $run;
         }
