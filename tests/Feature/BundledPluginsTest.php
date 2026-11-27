@@ -218,6 +218,28 @@ class BundledPluginsTest extends FeatureTestBase
         }
     }
 
+    public function testABrokenReleaseIsLoggedOnceAndToldToTheAdministrators(): void
+    {
+        [, $zipPath] = $this->makeRelease('1.0.1');
+        // the zip changed after it was signed
+        file_put_contents($zipPath, 'x', FILE_APPEND);
+        \Illuminate\Support\Facades\Cache::flush();
+
+        $log = \Illuminate\Support\Facades\Log::spy();
+        $this->assertSame([], BundledPlugins::releases());
+        $this->assertSame([], BundledPlugins::releases(), 'the second time from the cache');
+        $log->shouldHaveReceived('warning')->once();
+
+        $unusable = BundledPlugins::unusable();
+        $this->assertArrayHasKey('ExmentSignSample-1.0.1.json', $unusable);
+
+        AdminNotices::security();
+        $keys = array_keys(AdminNotices::pending());
+        $this->assertNotEmpty(array_filter($keys, function ($key) {
+            return strpos($key, 'unusable:ExmentSignSample-1.0.1.json:') === 0;
+        }), implode(', ', $keys));
+    }
+
     public function testNothingIsInstalledUntilChosen(): void
     {
         $this->makeRelease('1.0.0');
