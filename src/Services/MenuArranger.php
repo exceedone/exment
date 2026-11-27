@@ -40,7 +40,7 @@ class MenuArranger
     public const SETTINGS = ['admin_data' => ['fa-th-large', 91], 'admin_user' => ['fa-users', 92], 'admin' => ['fa-cogs', 93]];
 
     /** The menus of the official plugins: [plugin_name => group]. */
-    public const PLUGIN_GROUPS = ['ExmentPM' => 'project', 'ExmentITSupport' => 'it_support'];
+    public const PLUGIN_GROUPS = ['ExmentPM' => 'project', 'ExmentSupportDesk' => 'it_support'];
 
     /** Titles that change while they are still the ones Exment gave: menu_name => [titles of Exment, lang key of the new one] */
     public const TITLES = [
