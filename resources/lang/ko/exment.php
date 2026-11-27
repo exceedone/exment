@@ -1493,6 +1493,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => '완료되었습니다. 다시 로그인해 주세요.',
+                'signin' => '로그인',
                 'used_space' => '백업 :count개 · 합계 :size',
                 'free_space' => '여유 :size',
                 'free_space_low' => '백업을 두는 디스크의 여유 공간이 부족합니다(남은 공간 :size). 필요 없는 백업을 삭제해 주세요.',

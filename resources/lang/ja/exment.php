@@ -1540,6 +1540,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => '完了しました。もう一度ログインしてください。',
+                'signin' => 'ログイン',
                 'used_space' => 'バックアップ :count 個・合わせて :size',
                 'free_space' => '空き :size',
                 'free_space_low' => 'バックアップを置くディスクの空きが少なくなっています（残り :size）。いらないバックアップを消してください。',

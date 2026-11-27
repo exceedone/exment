@@ -1493,6 +1493,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Đã hoàn tất. Vui lòng đăng nhập lại.',
+                'signin' => 'Đăng nhập',
                 'used_space' => ':count bản sao lưu, tổng :size',
                 'free_space' => 'Còn trống :size',
                 'free_space_low' => 'Ổ đĩa chứa bản sao lưu sắp hết dung lượng trống (còn :size). Hãy xóa các bản sao lưu không cần thiết.',

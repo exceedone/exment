@@ -1493,6 +1493,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Abgeschlossen. Bitte melden Sie sich erneut an.',
+                'signin' => 'Anmelden',
                 'used_space' => ':count Sicherungen, insgesamt :size',
                 'free_space' => ':size frei',
                 'free_space_low' => 'Auf dem Datenträger der Sicherungen wird der freie Speicher knapp (:size übrig). Löschen Sie nicht mehr benötigte Sicherungen.',

@@ -1493,6 +1493,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Terminado. Vuelva a iniciar sesión.',
+                'signin' => 'Iniciar sesión',
                 'used_space' => ':count copias, :size en total',
                 'free_space' => ':size libres',
                 'free_space_low' => 'Queda poco espacio libre en el disco de las copias de seguridad (:size). Elimine las copias que ya no necesite.',

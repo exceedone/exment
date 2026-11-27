@@ -1540,6 +1540,8 @@ return [
         ],
         'run' => [
             'screen' => [
+                'signin_again' => 'Finished. Please sign in again.',
+                'signin' => 'Sign in',
                 'used_space' => ':count backups, :size in total',
                 'free_space' => ':size free',
                 'free_space_low' => 'The disk of the backups is running out of free space (:size left). Delete the backups you no longer need.',

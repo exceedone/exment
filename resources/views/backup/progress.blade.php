@@ -10,6 +10,8 @@
         'errors' => exmtrans('backup.run.error'),
         'restoring' => exmtrans('backup.run.screen.restoring'),
         'finished' => exmtrans('backup.run.screen.finished'),
+        'signin_again' => exmtrans('backup.run.screen.signin_again'),
+        'signin' => exmtrans('backup.run.screen.signin'),
     ];
 @endphp
 <div class="box box-default backup-progress" id="backup-progress" style="{{ isset($active) ? '' : 'display:none;' }}" aria-live="polite">
@@ -37,9 +39,10 @@
 <script type="text/javascript">
 (function () {
     var texts = {!! $json($texts) !!};
+    var active = {!! $json($active) !!};
     var base = {!! $json($statusUrl) !!};
     var pollMs = {{ intval($pollMs) }};
-    var logoutUrl = {!! $json($logoutUrl ?? null) !!};
+    var loginUrl = {!! $json($loginUrl ?? null) !!};
     var timer = null;
     var current = null;
     var reloadTimer = null;
@@ -129,14 +132,49 @@
         }
     }
 
+    // the token of the state of a restore started by this admin (given by the page, kept in the
+    // tab): the state is read with it while the site is in maintenance
+    var givenToken = {!! $json($stateToken ?? null) !!};
+    var givenFor = givenToken && active ? active.uuid : null;
+    function stateToken(uuid) {
+        var key = 'exment_backup_state_' + uuid;
+        try {
+            if (givenToken && givenFor === uuid) {
+                window.sessionStorage.setItem(key, givenToken);
+            }
+            return window.sessionStorage.getItem(key);
+        } catch (e) {
+            return givenFor === uuid ? givenToken : null;
+        }
+    }
+
+    function forgetToken(uuid) {
+        try {
+            window.sessionStorage.removeItem('exment_backup_state_' + uuid);
+        } catch (e) {
+            // nothing
+        }
+    }
+
+    // a restore ended: the users were replaced, the session is gone
+    function restoreEnded(run) {
+        var $box = $('#backup-progress');
+        $box.find('.backup-progress-message').show().text(run.status === 'failed' || run.status === 'stalled' ? (run.message || '') : texts.signin_again);
+        if (loginUrl) {
+            $box.find('.backup-progress-log').attr('href', loginUrl).text(texts.signin).show();
+        }
+    }
+
     function poll(uuid) {
         stop();
         // the page was left (pjax): no more polling
         if (!document.getElementById('backup-progress')) {
             return;
         }
-        var url = uuid ? base + '/' + encodeURIComponent(uuid) + '/status' : base + '/current';
-        $.ajax({ url: url, type: 'GET', dataType: 'json', cache: false })
+        var token = uuid ? stateToken(uuid) : null;
+        var url = uuid ? base + '/' + encodeURIComponent(uuid) + (token ? '/state' : '/status') : base + '/current';
+        var headers = token ? { 'X-Exment-Run-Token': token } : {};
+        $.ajax({ url: url, type: 'GET', dataType: 'json', cache: false, headers: headers })
             .done(function (data) {
                 var run = data ? data.run : null;
                 if (run) {
@@ -145,9 +183,10 @@
                 if (run && run.active) {
                     timer = setTimeout(function () { poll(run.uuid); }, document.hidden ? pollMs * 3 : pollMs);
                 } else if (run && uuid) {
-                    // a restore replaced the users: sign in again
-                    if (logoutUrl && run.kind === 'restore' && (run.status === 'succeeded' || run.status === 'warning')) {
-                        setTimeout(function () { window.location.href = logoutUrl; }, 1500);
+                    // a restore replaced the users and the sessions: sign in again
+                    if (run.kind === 'restore') {
+                        forgetToken(uuid);
+                        restoreEnded(run);
                         return;
                     }
                     reloadSoon();
@@ -176,7 +215,6 @@
 
     $(document).off('pjax:start.backupProgress').on('pjax:start.backupProgress', stop);
 
-    var active = {!! $json($active) !!};
     if (active) {
         render(active);
         if (active.active) {
