@@ -5344,6 +5344,7 @@ return [
         'action_cutover' => '물리 열에서 읽기로 전환',
         'action_cancel' => '변환 취소',
         'action_rollback' => 'JSON에서 읽기로 되돌리기',
+        'danger_zone' => '위험 구역',
         'action_cleanup' => '스테이징 데이터 삭제',
         'action_deprovision' => '물리 열을 삭제하고 JSON으로 되돌리기',
         'cleanup_help' => '취소 후 물리 열과 value_original의 데이터만 삭제합니다. JSON 값은 변경되지 않습니다. 진행하려면 테이블 이름을 입력하세요.',

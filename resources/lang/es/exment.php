@@ -5344,6 +5344,7 @@ return [
         'action_cutover' => 'Cambiar la lectura a las columnas físicas',
         'action_cancel' => 'Cancelar la conversión',
         'action_rollback' => 'Volver a leer desde JSON',
+        'danger_zone' => 'Zona de peligro',
         'action_cleanup' => 'Eliminar los datos de preparación',
         'action_deprovision' => 'Eliminar las columnas físicas y volver a JSON',
         'cleanup_help' => 'Tras la cancelación, elimina solo los datos de las columnas físicas y de value_original. Los valores JSON no se modifican. Escriba el nombre de la tabla para continuar.',

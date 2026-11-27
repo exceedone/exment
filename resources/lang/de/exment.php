@@ -5344,6 +5344,7 @@ return [
         'action_cutover' => 'Lesen auf physische Spalten umstellen',
         'action_cancel' => 'Konvertierung abbrechen',
         'action_rollback' => 'Lesen auf JSON zurücksetzen',
+        'danger_zone' => 'Gefahrenbereich',
         'action_cleanup' => 'Staging-Daten löschen',
         'action_deprovision' => 'Physische Spalten löschen und zu JSON zurückkehren',
         'cleanup_help' => 'Löscht nach dem Abbruch nur die Daten der physischen Spalten und value_original. JSON-Werte werden nicht geändert. Geben Sie zum Fortfahren den Tabellennamen ein.',

@@ -5344,6 +5344,7 @@ return [
         'action_cutover' => '将读取切换到物理列',
         'action_cancel' => '取消转换',
         'action_rollback' => '将读取切换回 JSON',
+        'danger_zone' => '危险操作',
         'action_cleanup' => '删除暂存数据',
         'action_deprovision' => '删除物理列并返回 JSON',
         'cleanup_help' => '取消后，仅删除物理列和 value_original 的数据。JSON 的值不会更改。请输入表名以继续。',
