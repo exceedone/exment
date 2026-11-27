@@ -286,6 +286,8 @@ class FeatureController extends AdminControllerBase
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
             'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : (isset($definition['pack']) ? exmtrans('feature.pack_note') : null),
             'manual_url' => Features::manualUrl($key),
+            // a feature that installs tables, menus... (FeaturePacks)
+            'pack' => isset($definition['pack']),
             'action' => Features::action($key),
         ];
     }

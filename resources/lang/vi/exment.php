@@ -5416,6 +5416,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'pack_install_header' => 'Tính năng',
         'pack_install_question' => 'Sử dụng :name?',
         'pack_install_help' => 'Bạn cũng có thể bật sau trong Quản lý tính năng.',
+        'menu_pack' => 'Menu được thêm có thể di chuyển hoặc gỡ bỏ trên trang menu.',
+        'menu_pack_link' => 'Trang menu',
         'features' => [
             'file_server' => 'Chia sẻ tệp',
             'file_server_help' => 'Không gian làm việc, thư mục, quản lý phiên bản và liên kết chia sẻ. Tắt tính năng này không làm xóa tệp. Sau khi bật, vui lòng tạo không gian làm việc trong màn hình Chia sẻ tệp và thêm thành viên (quản trị viên hệ thống tạo không gian làm việc).',

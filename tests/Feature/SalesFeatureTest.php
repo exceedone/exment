@@ -130,7 +130,9 @@ class SalesFeatureTest extends FeatureTestBase
         $html = (string) $this->get(admin_url('feature'))->assertOk()->getContent();
         $this->assertStringContainsString('name="features[sales][enabled]"', $html);
         $this->assertStringContainsString(e(Features::label(Features::SALES)), $html);
-        $this->assertStringNotContainsString('name="features[sales][enabled]" value="1" data-feature-stop="' . e(Features::label(Features::SALES)) . '" data-feature-switch aria-label="' . e(exmtrans('feature.use')) . '" checked', $html);
+        // the switch of the row is not checked
+        $this->assertSame(1, preg_match('/<input[^>]*name="features\[sales\]\[enabled\]"[^>]*>/', $html, $input));
+        $this->assertStringNotContainsString('checked', $input[0]);
     }
 
     public function testTheWordsOfTheRowAreInEveryLanguageWithoutPack(): void
@@ -139,7 +141,7 @@ class SalesFeatureTest extends FeatureTestBase
         try {
             foreach (['ja', 'en', 'de', 'es', 'ko', 'vi', 'zh_CN'] as $locale) {
                 \App::setLocale($locale);
-                foreach (['features.sales', 'features.sales_help', 'pack_note', 'who_pack', 'pack_installed', 'pack_failed', 'pack_install_header', 'pack_install_question', 'pack_install_help'] as $key) {
+                foreach (['features.sales', 'features.sales_help', 'pack_note', 'who_pack', 'pack_installed', 'pack_failed', 'pack_install_header', 'pack_install_question', 'pack_install_help', 'menu_pack', 'menu_pack_link'] as $key) {
                     $this->assertTrue(\Lang::has("exment::exment.feature.$key", $locale, false), "$locale: $key");
                     $text = strval(exmtrans("feature.$key"));
                     $this->assertDoesNotMatchRegularExpression('/パック|pack|Paket|paquete|팩|Gói|包/iu', $text, "$locale: $key");

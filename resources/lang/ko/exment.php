@@ -5416,6 +5416,8 @@ IP 주소: :ip
         'pack_install_header' => '기능',
         'pack_install_question' => ':name을(를) 사용하시겠습니까?',
         'pack_install_help' => '나중에 「기능 관리」에서 사용으로 바꿀 수도 있습니다.',
+        'menu_pack' => '추가되는 메뉴는 메뉴 화면에서 옮기거나 뺄 수 있습니다.',
+        'menu_pack_link' => '메뉴 화면',
         'features' => [
             'file_server' => '파일 공유',
             'file_server_help' => '작업 공간, 폴더, 버전 관리, 공유 링크 등. 사용 안 함으로 설정해도 파일은 삭제되지 않습니다. 사용으로 설정한 후 파일 공유 화면에서 작업 공간을 만들고 멤버를 추가해 주십시오(작업 공간은 시스템 관리자가 만듭니다).',

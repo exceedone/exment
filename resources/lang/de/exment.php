@@ -5416,6 +5416,8 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'pack_install_header' => 'Funktionen',
         'pack_install_question' => ':name verwenden?',
         'pack_install_help' => 'Sie können es auch später in der Funktionsverwaltung einschalten.',
+        'menu_pack' => 'Das hinzugefügte Menü kann auf der Menüseite verschoben oder entfernt werden.',
+        'menu_pack_link' => 'Menüseite',
         'features' => [
             'file_server' => 'Dateifreigabe',
             'file_server_help' => 'Arbeitsbereiche, Ordner, Versionen und Freigabelinks. Beim Deaktivieren werden die Dateien nicht entfernt. Erstellen Sie nach dem Aktivieren auf der Seite „Dateifreigabe“ einen Arbeitsbereich und fügen Sie Mitglieder hinzu (Arbeitsbereiche erstellen Systemadministratoren).',

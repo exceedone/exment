@@ -5441,6 +5441,8 @@ If it was not you, change your password and tell the administrators.",
         'pack_install_header' => 'Features',
         'pack_install_question' => 'Use :name?',
         'pack_install_help' => 'You can also turn it on later in Feature Management.',
+        'menu_pack' => 'The menu it adds can be moved or removed on the menu page.',
+        'menu_pack_link' => 'Menu page',
         'features' => [
             'file_server' => 'File sharing',
             'file_server_help' => 'Workspaces, folders, versions and share links. Turning it off does not remove the files. After turning it on, create a workspace on the File sharing page and add members (system administrators create workspaces).',

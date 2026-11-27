@@ -5416,6 +5416,8 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
         'pack_install_header' => 'Funciones',
         'pack_install_question' => '¿Usar :name?',
         'pack_install_help' => 'También puede activarlo más tarde en la gestión de funciones.',
+        'menu_pack' => 'El menú que añade se puede mover o quitar en la página de menús.',
+        'menu_pack_link' => 'Página de menús',
         'features' => [
             'file_server' => 'Archivos compartidos',
             'file_server_help' => 'Espacios de trabajo, carpetas, versiones y enlaces para compartir. Al desactivarla no se eliminan los archivos. Después de activarla, cree un espacio de trabajo en la página de archivos compartidos y añada miembros (los espacios de trabajo los crean los administradores del sistema).',

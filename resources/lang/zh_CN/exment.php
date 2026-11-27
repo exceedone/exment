@@ -5416,6 +5416,8 @@ IP 地址: :ip
         'pack_install_header' => '功能',
         'pack_install_question' => '使用:name吗？',
         'pack_install_help' => '之后也可以在「功能管理」中启用。',
+        'menu_pack' => '添加的菜单可以在菜单页面中移动或移除。',
+        'menu_pack_link' => '菜单页面',
         'features' => [
             'file_server' => '文件共享',
             'file_server_help' => '工作区、文件夹、版本和共享链接。设为不使用也不会删除文件。设为使用后，请在文件共享页面创建工作区并添加成员（工作区由系统管理员创建）。',
