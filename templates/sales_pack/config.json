@@ -1834,7 +1834,7 @@
             "custom_view_sorts": [
                 {
                     "view_column_type": "0",
-                    "sort_type": "1",
+                    "sort": "1",
                     "priority": "1",
                     "view_column_table_name": "sales_deal",
                     "view_column_target_name": "expected_date"
@@ -1965,7 +1965,7 @@
             "custom_view_sorts": [
                 {
                     "view_column_type": "0",
-                    "sort_type": "-1",
+                    "sort": "-1",
                     "priority": "1",
                     "view_column_table_name": "sales_activity",
                     "view_column_target_name": "activity_at"
@@ -2037,7 +2037,7 @@
             "custom_view_sorts": [
                 {
                     "view_column_type": "0",
-                    "sort_type": "1",
+                    "sort": "1",
                     "priority": "1",
                     "view_column_table_name": "sales_quote",
                     "view_column_target_name": "valid_until"
@@ -2109,7 +2109,7 @@
             "custom_view_sorts": [
                 {
                     "view_column_type": "0",
-                    "sort_type": "1",
+                    "sort": "1",
                     "priority": "1",
                     "view_column_table_name": "sales_contract",
                     "view_column_target_name": "end_date"
