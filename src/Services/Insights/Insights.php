@@ -105,7 +105,12 @@ class Insights
         $day = $day->copy()->startOfDay();
         $rows = static::day($day, false);
         \DB::transaction(function () use ($day, $rows) {
-            InsightDaily::query()->where('date', $day->format('Y-m-d'))->whereNotIn('metric', static::HIT_METRICS)->delete();
+            $keep = static::HIT_METRICS;
+            if (!$day->eq(static::now()->startOfDay()->subDay())) {
+                // a day counted again later: its rows and bytes stay as they were that night
+                $keep = array_merge($keep, ['table_rows', 'storage']);
+            }
+            InsightDaily::query()->where('date', $day->format('Y-m-d'))->whereNotIn('metric', $keep)->delete();
             $insert = [];
             foreach ($rows as $metric => $values) {
                 foreach ($values as $key => $value) {
@@ -163,12 +168,16 @@ class Insights
             return DataAccessLog::query()->whereNotNull('custom_view_id')->where('created_at', '>=', $from)->where('created_at', '<', $to)
                 ->selectRaw('custom_view_id, count(*) as total')->groupBy('custom_view_id')->pluck('total', 'custom_view_id')->all();
         });
-        $add('table_rows', function () {
-            return static::tableRows();
-        });
-        $add('storage', function () {
-            return static::storage();
-        });
+        // the rows and the bytes are of now: kept only with yesterday (a day counted again later keeps what it had)
+        $lastNight = $from->eq(static::now()->startOfDay()->subDay());
+        if ($lastNight || $live) {
+            $add('table_rows', function () {
+                return static::tableRows();
+            });
+            $add('storage', function () {
+                return static::storage();
+            });
+        }
         $add('login', function () use ($from, $to) {
             if (!LoginLog::tableExists()) {
                 return [];
