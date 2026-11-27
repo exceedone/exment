@@ -66,7 +66,7 @@ class PluginBootIsolationTest extends FeatureTestBase
         $this->refreshApplication();
         $this->initAllTest();
 
-        \Event::listen(MessageLogged::class, function (MessageLogged $event) {
+        \Illuminate\Support\Facades\Event::listen(MessageLogged::class, function (MessageLogged $event) {
             $this->logged[] = $event;
         });
         PluginBootGuard::forget($this->names());
@@ -103,15 +103,30 @@ class PluginBootIsolationTest extends FeatureTestBase
         $this->assertDoesNotMatchRegularExpression("/exment:batch {$bad->id}\\b/", $commands);
         $this->assertStringContainsString('exment:schedule', $commands);
 
-        // each broken plugin logged once, without the stack trace; the types are told
-        $all = collect($this->logged)->map(function (MessageLogged $event) {
+        // the pages again: nothing is logged again
+        $count = count($this->logged);
+        $this->get(admin_url(''))->assertStatus(200);
+        $this->callProtected($this->app->getProvider(ExmentServiceProvider::class), 'load');
+        $this->assertCount($count, $this->logged, 'an error was logged again');
+
+        // each error of a broken plugin in a step logged once, without the stack trace, with its
+        // file and line; the types are told
+        $messages = collect($this->logged)->map(function (MessageLogged $event) {
             return $event->level . ': ' . $event->message;
-        })->implode("\n");
+        });
+        $all = $messages->implode("\n");
+        $this->assertSame($messages->count(), $messages->unique()->count(), $all);
+        $this->assertStringNotContainsString('#0 ', $all, 'a stack trace');
         $this->assertSame(1, $this->countLogged(static::TYPES, function (string $message) {
-            return strpos($message, "the installed files expect type 'page,batch' but the site has 'page'; upload the plugin again or update plugin_types") !== false;
+            return strpos($message, "(failed in: views)") !== false
+                && strpos($message, "the installed files expect type 'page,batch' but the site has 'page'; upload the plugin again or update plugin_types (then clear the cache)") !== false;
         }), $all);
         $this->assertSame(1, $this->countLogged(static::THROWS, function (string $message) {
-            return strpos($message, 'RuntimeException: broken in the boot') !== false;
+            return strpos($message, '(failed in: views). RuntimeException: broken in the boot at storage/app/plugins/' . static::THROWS . '/Plugin.php:') !== false;
+        }), $all);
+        // another error of the same plugin (in its routes) is logged too
+        $this->assertSame(1, $this->countLogged(static::THROWS, function (string $message) {
+            return strpos($message, '(failed in: routes). ErrorException: foreach()') !== false;
         }), $all);
         $this->assertSame(1, $this->countLogged(static::SCRIPT, function (string $message) {
             return strpos($message, '(failed in: scripts and styles). ErrorException: foreach()') !== false;

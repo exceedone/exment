@@ -78,6 +78,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\MeiliSetupCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
+        \Exceedone\Exment\Console\InstallStepCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
         \Exceedone\Exment\Console\CacheClearCommand::class,
         \Exceedone\Exment\Console\PublishCommand::class,

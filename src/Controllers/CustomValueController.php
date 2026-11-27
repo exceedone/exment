@@ -393,7 +393,7 @@ class CustomValueController extends AdminControllerTableBase
             })->replicate($model);
             admin_info(
                 exmtrans('custom_copy.copy_from.button'),
-                exmtrans('custom_copy.copy_from.message', esc_html($copy->from_custom_table->table_view_name), esc_html($from_custom_value->getLabel()))
+                admin_html_message(exmtrans('custom_copy.copy_from.message', esc_html($copy->from_custom_table->table_view_name), esc_html($from_custom_value->getLabel())))
             );
         } elseif (!is_null($copy_id = $request->get('copy_id'))) {
             // ignore file and autonumber from target model

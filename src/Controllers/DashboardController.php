@@ -650,13 +650,13 @@ class DashboardController extends AdminControllerBase
                 // a notice (a warning), not an error: nothing is broken, an update is waiting
                 admin_warning(
                     exmtrans('plugin_distribution.notice_security_subject', ['name' => $item['label']]),
-                    e(exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]))
-                        . ($item['note'] !== '' ? '<br>' . e($item['note']) : '') . '<br>' . $link . $only
+                    admin_html_message(e(exmtrans('plugin_distribution.notice_security', ['name' => $item['label'], 'version' => $item['version']]))
+                        . ($item['note'] !== '' ? '<br>' . e($item['note']) : '') . '<br>' . $link . $only)
                 );
             }
             $features = \Exceedone\Exment\Services\PluginDistribution\AdminNotices::newFeatures();
             if (count($features) > 0) {
-                admin_info(exmtrans('plugin_distribution.notice_features_subject'), e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link . $only . static::noticesKnownScript());
+                admin_info(exmtrans('plugin_distribution.notice_features_subject'), admin_html_message(e(exmtrans('plugin_distribution.notice_features', ['names' => implode(', ', $features)])) . '<br>' . $link . $only . static::noticesKnownScript()));
             }
         } catch (\Throwable $e) {
             \Log::warning('[Exment] the notices to the administrators: ' . $e->getMessage());
@@ -694,7 +694,7 @@ class DashboardController extends AdminControllerBase
         $versionCheck = \Exment::checkLatestVersion();
         if ($versionCheck === SystemVersion::HAS_NEXT) {
             list($latest, $current) = \Exment::getExmentVersion();
-            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. esc_html(\Exment::versionUpdateUrl()).'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
+            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', admin_html_message('<a href="'. esc_html(\Exment::versionUpdateUrl()).'">'.e(exmtrans("system.update_guide")).'</a>' . static::adminOnlyNote()));
         }
     }
 
