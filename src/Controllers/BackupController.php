@@ -88,7 +88,6 @@ class BackupController extends AdminControllerBase
             'statusUrl' => admin_urls('backup', 'runs'),
             'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
             'loginUrl' => admin_url('auth/login'),
-            'stateToken' => isset($active) ? session(static::STATE_TOKEN_SESSION . $active->uuid) : null,
         ]));
 
         $content->row(view(
@@ -241,11 +240,25 @@ class BackupController extends AdminControllerBase
             'statusUrl' => admin_urls('backup', 'runs'),
             'backUrl' => admin_url('backup'),
             'loginUrl' => admin_url('auth/login'),
-            'stateToken' => $run->isActive() ? session(static::STATE_TOKEN_SESSION . $run->uuid) : null,
             'pollMs' => max(1000, intval(config('exment.backup.poll_ms', 2000))),
         ]));
 
         return $content;
+    }
+
+    /**
+     * The token of the state of a restore this admin started, handed over once (then it is no
+     * longer in the session): the page keeps it in the tab, never in its HTML.
+     */
+    public function runToken(Request $request, string $uuid): \Illuminate\Http\JsonResponse
+    {
+        static::denyUnlessSystem();
+        if (preg_match('/^[0-9a-f\-]{36}$/D', $uuid) !== 1) {
+            abort(404);
+        }
+        $token = session()->pull(static::STATE_TOKEN_SESSION . $uuid);
+
+        return response()->json(['token' => is_string($token) ? $token : null], 200, ['Cache-Control' => 'no-store']);
     }
 
     /**

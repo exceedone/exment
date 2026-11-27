@@ -11,8 +11,11 @@ use Illuminate\Routing\Controller;
  *
  * A restore replaces the database (the sessions and the users with it): the page of the run reads
  * its progress here, without the session, the login, the permissions or the database. The page has
- * a token given when the restore was started (BackupRuns::issueStateToken); only the progress is
- * answered (no log, no path). Anything else: 404.
+ * a token given to it once when the restore was started (BackupRuns::issueStateToken).
+ *
+ * - While the run goes on: the progress only (BackupRuns::stateFields).
+ * - When it ended: its status and its percent, once; the token is gone after it.
+ * - A few reads a minute (a file, BackupRuns::stateRateAllowed); anything else: 404.
  */
 class BackupRunStateController extends Controller
 {
@@ -20,6 +23,9 @@ class BackupRunStateController extends Controller
 
     public function show(Request $request, string $uuid): \Illuminate\Http\JsonResponse
     {
+        if (!BackupRuns::stateRateAllowed($uuid, strval($request->ip()))) {
+            abort(429);
+        }
         $token = strval($request->headers->get(static::HEADER));
         if (!BackupRuns::checkStateToken($uuid, $token)) {
             abort(404);
@@ -29,7 +35,15 @@ class BackupRunStateController extends Controller
             abort(404);
         }
 
-        return response()->json(['run' => BackupRuns::stateFields($status)], 200, [
+        if (!boolval($status['active'] ?? false)) {
+            // the end, read once: the token is used up
+            BackupRuns::forgetStateToken($uuid);
+            $run = BackupRuns::endedStateFields($status);
+        } else {
+            $run = BackupRuns::stateFields($status);
+        }
+
+        return response()->json(['run' => $run], 200, [
             'Cache-Control' => 'no-store',
             'X-Content-Type-Options' => 'nosniff',
         ]);

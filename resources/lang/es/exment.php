@@ -1491,6 +1491,11 @@ return [
         ],
         'run' => [
             'screen' => [
+                'reasons' => [
+                    'warning' => 'La restauración terminó con problemas. Inicie sesión y consulte el registro detallado en el historial de la pantalla de copias de seguridad.',
+                    'failed' => 'La restauración falló. Inicie sesión y consulte el registro detallado en el historial de la pantalla de copias de seguridad.',
+                    'stalled' => 'La restauración se detuvo a medias. Inicie sesión y consulte el registro detallado en el historial de la pantalla de copias de seguridad.',
+                ],
                 'signin_again' => 'Terminado. Vuelva a iniciar sesión.',
                 'signin' => 'Iniciar sesión',
                 'backup_first_option' => 'Hacer una copia de los datos actuales (recomendado)',
