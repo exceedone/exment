@@ -561,11 +561,11 @@ class BackupRuns
         try {
             $result = $backup->execute(System::backup_target());
         } catch (\Throwable $e) {
-            $progress->error('the backup before the restore failed: ' . get_class($e) . ': ' . $e->getMessage());
+            $progress->error('the backup before the restore failed: ' . $e->getMessage(), ['exception' => get_class($e)], false);
             throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')), 0, $e);
         }
         if ($result !== 0) {
-            $progress->error('the backup before the restore failed', ['result' => $result]);
+            $progress->error('the backup before the restore failed', ['result' => $result], false);
             throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')));
         }
         $progress->info('the backup before the restore', ['file' => $name]);
