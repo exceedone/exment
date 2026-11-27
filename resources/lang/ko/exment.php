@@ -1493,6 +1493,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => '복원 중입니다. 끝나면 다시 로그인해 주세요.',
                 'reasons' => [
                     'warning' => '복원은 끝났지만 일부가 실패했습니다. 로그인한 뒤 백업 화면의 이력에서 자세한 로그를 확인해 주세요.',
                     'failed' => '복원에 실패했습니다. 로그인한 뒤 백업 화면의 이력에서 자세한 로그를 확인해 주세요.',
@@ -1511,6 +1512,7 @@ return [
                 'preview_no_database' => '데이터베이스가 없습니다(현재 데이터베이스는 그대로입니다)',
                 'preview_folder' => ':name: 파일 :files개(:size)',
                 'preview_env' => '설정(.env 일부)',
+                'preview_logs_kept' => '로그 파일: 바꾸지 않습니다(현재 파일을 남깁니다)',
                 'preview_versions' => '만든 때의 버전: Exment :exment / Laravel :laravel (현재: Exment :current_exment / Laravel :current_laravel)',
                 'restore_in_request' => '이 화면에서 복원',
                 'restore_command_note' => '이 서버에서는 복원이 이 화면의 요청 안에서 실행됩니다. 큰 사이트에서는 시간이 오래 걸려 화면이 기다리다 끊길 수 있습니다(복원은 계속됩니다). 큰 사이트에서는 서버에서 php artisan exment:restore 명령을 사용하는 것을 권장합니다.',

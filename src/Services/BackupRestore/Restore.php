@@ -371,6 +371,15 @@ class Restore
             // config files of another Laravel version would overwrite the current ones and
             // stop the application from starting (e.g. config/app.php listing providers
             // a Laravel 12 skeleton no longer has)
+            // the logs of now are kept: what this restore logs, and what came before it
+            if ($setting[2] == BackupTarget::LOG) {
+                if (!isset($logsKept)) {
+                    $logsKept = true;
+                    $progress->info('the log files of now are kept (not replaced)');
+                }
+                continue;
+            }
+
             if ($setting[2] == BackupTarget::CONFIG && !$this->canRestoreConfig()) {
                 $this->configSkipped = true;
                 continue;

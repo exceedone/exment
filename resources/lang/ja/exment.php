@@ -1540,6 +1540,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => 'リストア中です。終わったら、もう一度ログインしてください。',
                 'reasons' => [
                     'warning' => 'リストアは終わりましたが、うまくいかなかった所があります。ログインしてから、バックアップの画面の履歴でくわしいログを確かめてください。',
                     'failed' => 'リストアに失敗しました。ログインしてから、バックアップの画面の履歴でくわしいログを確かめてください。',
@@ -1558,6 +1559,7 @@ return [
                 'preview_no_database' => 'データベースは入っていません（今のデータベースはそのままです）',
                 'preview_folder' => ':name：:files 個のファイル（:size）',
                 'preview_env' => '設定（.env の一部）',
+                'preview_logs_kept' => 'ログファイル：置きかえません（今のものを残します）',
                 'preview_versions' => '作ったときの版：Exment :exment / Laravel :laravel（今：Exment :current_exment / Laravel :current_laravel）',
                 'restore_in_request' => '画面からのリストア',
                 'restore_command_note' => 'このサーバーでは、リストアはこの画面の処理の中で動きます。大きなサイトでは時間がかかり、画面が待ちきれずに切れることがあります（リストアは続きます）。大きなサイトでは、サーバーで php artisan exment:restore コマンドを使うのがおすすめです。',

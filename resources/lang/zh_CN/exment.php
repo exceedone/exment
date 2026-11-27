@@ -1493,6 +1493,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => '正在还原。结束后请重新登录。',
                 'reasons' => [
                     'warning' => '还原已结束，但有部分失败。请登录后在备份页面的历史中查看详细日志。',
                     'failed' => '还原失败。请登录后在备份页面的历史中查看详细日志。',
@@ -1511,6 +1512,7 @@ return [
                 'preview_no_database' => '不包含数据库（当前数据库保持不变）',
                 'preview_folder' => ':name：:files 个文件（:size）',
                 'preview_env' => '设置（.env 的一部分）',
+                'preview_logs_kept' => '日志文件：不替换（保留当前的文件）',
                 'preview_versions' => '创建时的版本：Exment :exment / Laravel :laravel（当前：Exment :current_exment / Laravel :current_laravel）',
                 'restore_in_request' => '从此页面还原',
                 'restore_command_note' => '在此服务器上，还原在此页面的请求中执行。大型网站耗时较长，页面可能会等待超时（还原仍会继续）。大型网站建议在服务器上使用 php artisan exment:restore 命令。',

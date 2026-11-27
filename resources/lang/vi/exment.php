@@ -1493,6 +1493,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => 'Đang khôi phục. Khi xong, vui lòng đăng nhập lại.',
                 'reasons' => [
                     'warning' => 'Đã khôi phục xong nhưng có lỗi. Hãy đăng nhập rồi xem nhật ký chi tiết trong lịch sử trên màn hình sao lưu.',
                     'failed' => 'Khôi phục thất bại. Hãy đăng nhập rồi xem nhật ký chi tiết trong lịch sử trên màn hình sao lưu.',
@@ -1511,6 +1512,7 @@ return [
                 'preview_no_database' => 'Không có cơ sở dữ liệu (cơ sở dữ liệu hiện tại được giữ nguyên)',
                 'preview_folder' => ':name: :files tệp (:size)',
                 'preview_env' => 'Cài đặt (một phần của .env)',
+                'preview_logs_kept' => 'Tệp nhật ký: không bị thay thế (giữ nguyên các tệp hiện tại)',
                 'preview_versions' => 'Phiên bản khi tạo: Exment :exment / Laravel :laravel (hiện tại: Exment :current_exment / Laravel :current_laravel)',
                 'restore_in_request' => 'Khôi phục từ màn hình này',
                 'restore_command_note' => 'Trên máy chủ này, việc khôi phục chạy trong yêu cầu của màn hình này. Với trang web lớn, việc này mất nhiều thời gian và màn hình có thể ngừng chờ (việc khôi phục vẫn tiếp tục). Với trang web lớn, nên dùng lệnh php artisan exment:restore trên máy chủ.',

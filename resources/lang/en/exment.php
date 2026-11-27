@@ -1540,6 +1540,7 @@ return [
         ],
         'run' => [
             'screen' => [
+                'restoring_no_token' => 'A restore is in progress. When it has finished, please sign in again.',
                 'reasons' => [
                     'warning' => 'The restore finished with problems. Sign in, then see the detailed log in the history on the backup page.',
                     'failed' => 'The restore failed. Sign in, then see the detailed log in the history on the backup page.',
@@ -1558,6 +1559,7 @@ return [
                 'preview_no_database' => 'No database (the current database stays as it is)',
                 'preview_folder' => ':name: :files files (:size)',
                 'preview_env' => 'Settings (part of .env)',
+                'preview_logs_kept' => 'Log files: not replaced (the current ones are kept)',
                 'preview_versions' => 'Made on: Exment :exment / Laravel :laravel (now: Exment :current_exment / Laravel :current_laravel)',
                 'restore_in_request' => 'Restore from this page',
                 'restore_command_note' => 'On this server, the restore runs inside the request of this page. On a large site it takes long, and the page may give up waiting (the restore goes on). For a large site, the command php artisan exment:restore on the server is recommended.',

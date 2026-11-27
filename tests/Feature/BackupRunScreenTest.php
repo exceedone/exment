@@ -334,18 +334,54 @@ class BackupRunScreenTest extends FeatureTestBase
         $progress->releaseLock();
     }
 
-    public function testTheTokenIsHandedOverOnceFromTheSession(): void
+    public function testTheTokenGoesToThePageAfterTheHashOnly(): void
     {
-        [$run, $progress, $token] = $this->restoreWithState();
-        session()->put(BackupController::STATE_TOKEN_SESSION . $run->uuid, $token);
+        [$run, $progress] = $this->restoreWithState();
+        $method = new \ReflectionMethod(BackupController::class, 'restorePageUrl');
+        $url = strval($method->invoke(null, $run));
 
-        $page = $this->get(admin_urls('backup', 'runs', $run->uuid))->assertOk();
-        $this->assertStringNotContainsString($token, strval($page->getContent()), 'not in the HTML of the page');
-
-        $this->get(admin_urls('backup', 'runs', $run->uuid, 'token'), self::AJAX)->assertOk()->assertJson(['token' => $token]);
-        $this->assertNull(session(BackupController::STATE_TOKEN_SESSION . $run->uuid), 'no longer in the session');
-        $this->get(admin_urls('backup', 'runs', $run->uuid, 'token'), self::AJAX)->assertOk()->assertJson(['token' => null]);
+        // a path (the screen opens it as a whole page), the token after "#" (never sent to a server)
+        $this->assertStringStartsWith('/', $url);
+        $this->assertMatchesRegularExpression('#/backup/runs/' . $run->uuid . '\#t=[0-9a-f]{64}\z#', $url);
+        $token = substr($url, strpos($url, '#t=') + 3);
+        $this->assertTrue(BackupRuns::checkStateToken($run->uuid, $token));
+        $this->assertNotContains($token, array_map('strval', array_filter(session()->all(), 'is_string')), 'not in the session');
         $progress->releaseLock();
+    }
+
+    public function testThePagesOfTheBackupAnswerDuringARestoreWithoutTheDatabase(): void
+    {
+        [$run, $progress] = $this->restoreWithState();
+
+        \Auth::guard('admin')->logout();
+        $this->flushSession();
+        $queries = 0;
+        \DB::listen(function () use (&$queries) {
+            $queries++;
+        });
+        foreach ([admin_urls('backup', 'runs', $run->uuid), admin_url('backup')] as $url) {
+            $page = $this->get($url)->assertOk();
+            $page->assertSee(exmtrans('backup.run.screen.restoring_title'));
+            $page->assertSee('X-Exment-Run-Token', false);
+            $this->assertStringNotContainsString(storage_path(), strval($page->getContent()));
+        }
+        $this->assertSame(0, $queries, 'the pages read no database');
+        $this->assertNull($this->get(admin_url('backup'))->headers->get('Set-Cookie'), 'no session');
+
+        // the restore ended: the pages are as before
+        $progress->finish(BackupRun::STATUS_SUCCEEDED);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
+        $this->get(admin_url('backup'))->assertOk()->assertSee('id="backup-history"', false);
+    }
+
+    public function testAStateOfARunWithoutTokenWritesNothing(): void
+    {
+        $before = glob(path_join(storage_path(BackupRuns::LOG_DIR), '*')) ?: [];
+        foreach (range(1, 5) as $i) {
+            $this->get(admin_urls('backup', 'runs', (string) Str::uuid(), 'state'), [BackupRunStateController::HEADER => str_repeat('a', 64)])->assertNotFound();
+        }
+        $after = glob(path_join(storage_path(BackupRuns::LOG_DIR), '*')) ?: [];
+        $this->assertSame([], array_values(array_diff($after, $before)), 'no file is made');
     }
 
     /**
