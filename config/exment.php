@@ -2001,4 +2001,16 @@ return [
     'file_server_audit_days' => env('EXMENT_FILE_SERVER_AUDIT_DAYS', 0),
     'file_server_notify' => env('EXMENT_FILE_SERVER_NOTIFY', true),
     'file_server_notify_mail' => env('EXMENT_FILE_SERVER_NOTIFY_MAIL', true),
+
+    /*
+    |--------------------------------------------------------------------------
+    | The web installer
+    |--------------------------------------------------------------------------
+    | The install runs in steps (install/step): each request works for about
+    | install_step_seconds (it ends the migration it is in), well under the
+    | timeout of a proxy (nginx: 60 seconds). install_poll_ms: how often the
+    | page asks for the progress while a step is working.
+    */
+    'install_step_seconds' => env('EXMENT_INSTALL_STEP_SECONDS', 15),
+    'install_poll_ms' => env('EXMENT_INSTALL_POLL_MS', 1500),
 ];

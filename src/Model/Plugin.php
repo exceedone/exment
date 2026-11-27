@@ -586,7 +586,7 @@ class Plugin extends ModelBase
                     }
                     // if cannot call class, set error
                     else {
-                        admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                        admin_error(exmtrans('common.error'), admin_html_message($plugin->getCannotReadMessage()));
                     }
                 }
             }
@@ -628,7 +628,7 @@ class Plugin extends ModelBase
                         // call PluginType::BUTTON as throw_ex is false
                         $class = $plugin->getClass(PluginType::DOCUMENT, $options);
                         if (!isset($class)) {
-                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            admin_error(exmtrans('common.error'), admin_html_message($plugin->getCannotReadMessage()));
                             break;
                         }
 
@@ -648,7 +648,7 @@ class Plugin extends ModelBase
                         $class = $plugin->getClass(PluginType::BUTTON, $options);
                         $class = isset($class) ? $class : $plugin->getClass(PluginType::TRIGGER, $options);
                         if (!isset($class)) {
-                            admin_error(exmtrans('common.error'), $plugin->getCannotReadMessage());
+                            admin_error(exmtrans('common.error'), admin_html_message($plugin->getCannotReadMessage()));
                             break;
                         }
 
@@ -847,7 +847,8 @@ class Plugin extends ModelBase
                     }
                 }
             } catch (\Throwable $e) {
-                \Log::error('Plugin load failed, skipping plugin [' . $plugin->plugin_name . ']: ' . $e->getMessage());
+                // asked on every page: logged once, not each time
+                \Exceedone\Exment\Services\Plugin\PluginBootGuard::report($plugin, 'plugins loaded', $e);
                 return null;
             }
         })->filter();
@@ -976,8 +977,9 @@ class Plugin extends ModelBase
     // @phpstan-ignore-next-line
     public function getCannotReadMessage()
     {
+        // the alerts and the dashboard box print it as html: the name is text
         return exmtrans('plugin.error.cannot_read', [
-            'plugin_view_name' => $this->plugin_view_name
+            'plugin_view_name' => esc_html($this->plugin_view_name)
         ]);
     }
 

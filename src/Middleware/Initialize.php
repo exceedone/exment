@@ -17,6 +17,7 @@ use Exceedone\Exment\ColumnItems\CustomColumns;
 use Exceedone\Exment\Services\Auth2factor\Auth2factorService;
 use Exceedone\Exment\Services\PartialCrudService;
 use Exceedone\Exment\Services\Installer\InstalledState;
+use Exceedone\Exment\Services\Installer\InstallRunner;
 use ExmentAdminCore\Admin\Form;
 use ExmentAdminCore\Admin\Widgets\Form as WidgetForm;
 use ExmentAdminCore\Admin\Grid;
@@ -36,7 +37,8 @@ class Initialize
      */
     public function handle(Request $request, \Closure $next)
     {
-        if (!canConnection() || !hasTable(SystemTableName::SYSTEM)) {
+        // while the web installer makes the tables (InstallRunner), the site is not set up yet
+        if (!canConnection() || !hasTable(SystemTableName::SYSTEM) || InstallRunner::inProgress()) {
             // An installed site whose database cannot be reached (or is empty) is
             // down: 503 for every path, the install pages too. "Installed" is read
             // from the marker file and from .env itself, not from the database nor
@@ -60,9 +62,9 @@ class Initialize
                 InstalledState::markInstalled();
             }
 
-            // the install pages are closed on an installed site
+            // the install pages are closed on an installed site: not found, whatever the request has
             if ($this->isInstallPath($request) && InstalledState::isInstalled()) {
-                return redirect()->guest(admin_base_path($initialized ? 'auth/login' : 'initialize'));
+                abort(404);
             }
 
             // if path is not "initialize" and not installed, then redirect to initialize
@@ -92,7 +94,7 @@ class Initialize
     protected function isInstallPath(Request $request)
     {
         // Check install directory
-        return collect(['install', 'install/reset'])->contains(function ($path) use ($request) {
+        return collect(['install', 'install/reset', 'install/step', 'install/status'])->contains(function ($path) use ($request) {
             $path = trim(admin_base_path($path), '/');
             return $request->is($path);
         });

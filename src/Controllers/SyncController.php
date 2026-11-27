@@ -106,7 +106,7 @@ class SyncController extends AdminControllerBase
         $connector = $connection->connectorInstance();
         $error = isset($connector) ? $connector->test($connection) : strval(exmtrans('sync.message.not_ready'));
         if (isset($error)) {
-            admin_toastr(exmtrans('sync.message.test_failed', ['message' => $error]), 'error');
+            admin_toastr(admin_html_message(exmtrans('sync.message.test_failed', ['message' => esc_html($error)])), 'error');
         } else {
             admin_toastr(exmtrans('sync.message.test_succeeded'));
         }

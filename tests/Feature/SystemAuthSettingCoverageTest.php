@@ -191,8 +191,9 @@ class SystemAuthSettingCoverageTest extends FeatureTestBase
 
     public function testTheInstallerRefusesToRunAgainOnceInstalled(): void
     {
-        // the Initialize middleware sends every installer request of an installed system to the
-        // login page before a controller runs, so nothing below creates a user or touches .env
+        // the Initialize middleware sends the first setup of an installed system to the login page,
+        // and answers 404 to every install page, before a controller runs: nothing below creates a
+        // user or touches .env
         $values = [
             'site_name' => 'Claude coverage',
             'user_code' => 'claude_cov_installer',
@@ -203,7 +204,7 @@ class SystemAuthSettingCoverageTest extends FeatureTestBase
         ];
 
         $this->post(admin_url('initialize'), $values)->assertRedirect(admin_url('auth/login'));
-        $this->post(admin_url('install'), $values)->assertRedirect(admin_url('auth/login'));
+        $this->post(admin_url('install'), $values)->assertNotFound();
 
         $this->assertGuest('admin');
         $this->assertDatabaseMissing(getDBTableName(SystemTableName::USER), ['value->user_code' => 'claude_cov_installer']);

@@ -752,8 +752,13 @@ class RouteServiceProvider extends ServiceProvider
             'middleware'    => ['adminweb', 'admin_install'],
         ], function (Router $router) {
             $router->get('install/reset', 'InstallController@reset');
+            // the reset of an install that failed (InstallRunner): by the form only
+            $router->post('install/reset', 'InstallController@reset');
             $router->get('install', 'InstallController@index');
             $router->post('install', 'InstallController@post');
+            // the install in steps, and its progress (InstallRunner)
+            $router->post('install/step', 'InstallController@step');
+            $router->get('install/status', 'InstallController@status');
         });
     }
 

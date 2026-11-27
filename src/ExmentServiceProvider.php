@@ -15,6 +15,7 @@ use Exceedone\Exment\Model\LoginUser;
 use Exceedone\Exment\Services\Plugin\PluginPublicBase;
 use Exceedone\Exment\Services\Plugin\PluginApiBase;
 use Exceedone\Exment\Services\Plugin\PluginCrudBase;
+use Exceedone\Exment\Services\Plugin\PluginBootGuard;
 use Exceedone\Exment\Enums\Driver;
 use Exceedone\Exment\Enums\ApiScope;
 use Exceedone\Exment\Enums\SystemTableName;
@@ -77,6 +78,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\MeiliSetupCommand::class,
         \Exceedone\Exment\Console\VersionCommand::class,
         \Exceedone\Exment\Console\InstallCommand::class,
+        \Exceedone\Exment\Console\InstallStepCommand::class,
         \Exceedone\Exment\Console\UpdateCommand::class,
         \Exceedone\Exment\Console\CacheClearCommand::class,
         \Exceedone\Exment\Console\PublishCommand::class,
@@ -599,14 +601,22 @@ class ExmentServiceProvider extends ServiceProvider
             return;
         }
 
+        // on every page, the login too: an error of one plugin leaves out that plugin only
         $pluginPages = Plugin::getByPluginTypes(PluginType::PLUGIN_TYPE_PLUGIN_USE_VIEW(), true);
         foreach ($pluginPages as $pluginPage) {
-            if (!is_null($items = $pluginPage->_getLoadView())) {
-                $this->loadViewsFrom($items[0], $items[1]);
+            if (!is_object($pluginPage) || !method_exists($pluginPage, '_getLoadView')) {
+                // e.g. its files replaced by a version of other types: the class made is another one
+                PluginBootGuard::report($pluginPage, 'views', (is_object($pluginPage) ? get_class($pluginPage) : gettype($pluginPage)) . ' has no _getLoadView()');
+                continue;
             }
-            if (is_object($pluginPage) && method_exists($pluginPage, '_getLoadTranslation') && !is_null($items = $pluginPage->_getLoadTranslation())) {
-                $this->loadTranslationsFrom($items[0], $items[1]);
-            }
+            PluginBootGuard::run($pluginPage, 'views', function () use ($pluginPage) {
+                if (!is_null($items = $pluginPage->_getLoadView())) {
+                    $this->loadViewsFrom($items[0], $items[1]);
+                }
+                if (method_exists($pluginPage, '_getLoadTranslation') && !is_null($items = $pluginPage->_getLoadTranslation())) {
+                    $this->loadTranslationsFrom($items[0], $items[1]);
+                }
+            });
         }
     }
 
@@ -716,10 +726,18 @@ class ExmentServiceProvider extends ServiceProvider
             if (hasTable(SystemTableName::PLUGIN)) {
                 $plugins = Plugin::getCronBatches();
                 foreach ($plugins as $plugin) {
-                    $schedule->command("exment:batch {$plugin->id}")->cron(array_get($plugin, 'options.batch_cron'));
+                    // a plugin whose cron cannot be read is left out, the others are kept
+                    PluginBootGuard::run($plugin, 'schedule', function () use ($schedule, $plugin) {
+                        $cron = strval(array_get($plugin, 'options.batch_cron'));
+                        if (!\Cron\CronExpression::isValidExpression($cron)) {
+                            throw new \InvalidArgumentException("the cron of the batch '{$cron}' is not valid");
+                        }
+                        $schedule->command("exment:batch {$plugin->id}")->cron($cron);
+                    });
                 }
             }
-        } catch (\Exception $ex) {
+        } catch (\Throwable $ex) {
+            // the plugins cannot be read (the database): the schedule of Exment is made without them
         }
 
         // the jobs an application added (CoreExtensions::addSchedule())
