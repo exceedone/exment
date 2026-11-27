@@ -617,6 +617,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "insights",
+            "title": "Thông tin chi tiết"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Chế độ bảo trì"
         }

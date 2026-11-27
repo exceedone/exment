@@ -321,6 +321,8 @@ class Permission
                 return false;
             // the log management: the system administrators, and Audit to read (ISS02839)
             case "log_management":
+            // the insights from the logs (ISS02964): the same people
+            case "insights":
                 if ($this->role_type == RoleType::SYSTEM) {
                     return array_keys_exists([PermissionEnum::SYSTEM, PermissionEnum::AUDIT], $this->permission_details);
                 }

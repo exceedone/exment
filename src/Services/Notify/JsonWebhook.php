@@ -208,6 +208,8 @@ class JsonWebhook
         // the address may carry a token (as a Slack one does): only its host is told
         $error = str_replace($url, $host, $error);
         \Log::warning('[Exment] a webhook was not sent (notify ' . $notifyId . ', ' . $host . '): ' . $error);
+        // counted for the page "Insights" (ISS02964): no log keeps it
+        \Exceedone\Exment\Services\Insights\Insights::hit('webhook_failed', $host);
 
         $notify = isset($notifyId) ? Notify::find($notifyId) : null;
         $userIds = [];

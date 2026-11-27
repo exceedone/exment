@@ -318,6 +318,8 @@ class UserApiKeys
                     ->update(['last_refused_at' => $now, 'last_refused_reason' => $why]);
                 if ($written > 0) {
                     \Log::info('[Exment] an API key was refused: ' . $why . " (key {$key->id})");
+                    // counted for the page "Insights" (ISS02964): as written on the key, at most once a minute a key
+                    \Exceedone\Exment\Services\Insights\Insights::hit('api_key_refused', $why);
                 }
             }
             return null;
