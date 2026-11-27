@@ -1,5 +1,6 @@
 {
     "template_name": "sales_pack",
+    "locale": "ja",
     "template_view_name": "営業パック",
     "description": "顧客（担当者）・案件・見積（明細）・契約・活動の記録と、案件のかんばん、営業のダッシュボード、営業の役割グループ、「営業・顧客」のメニューのセットです。",
     "custom_tables": [

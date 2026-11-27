@@ -1035,9 +1035,12 @@ class TemplateImporter
                 $byLocale[basename(dirname($file))] = $this->mergeTemplate($original, $lang);
             }
         }
-        // config.json of a translated template is English
-        if (!isset($byLocale['en'])) {
-            $byLocale['en'] = $original;
+        // config.json of a translated template is English, unless it names its language
+        // ("locale": "ja", as the bundled packs written in Japanese)
+        $configLocale = array_get($original, 'locale');
+        $configLocale = is_string($configLocale) && preg_match('/\A[A-Za-z_]+\z/', $configLocale) === 1 ? $configLocale : 'en';
+        if (!isset($byLocale[$configLocale])) {
+            $byLocale[$configLocale] = $original;
         }
         unset($byLocale[$locale]);
 
