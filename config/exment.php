@@ -437,6 +437,39 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | The runs of the backup and the restore (ISS02943)
+    |--------------------------------------------------------------------------
+    |
+    | use_queue: a backup of the screen goes to the queue when its worker runs (else it runs in
+    |   the request, as before). A restore always runs where it is asked.
+    | stale_minutes: a run without a heartbeat for this long has stopped ("stalled"): another may
+    |   start.
+    | keep_runs: the runs kept in the history (with their logs).
+    | log_max_bytes: the size of the log of a run; then only its warnings and errors.
+    | notify: the result told to the system administrators (the bell and a mail).
+    | job_timeout: the seconds a backup of the queue may take.
+    |
+    */
+    'backup' => [
+        'use_queue' => env('EXMENT_BACKUP_USE_QUEUE', true),
+        'stale_minutes' => env('EXMENT_BACKUP_STALE_MINUTES', 30),
+        'keep_runs' => env('EXMENT_BACKUP_KEEP_RUNS', 100),
+        'log_max_bytes' => env('EXMENT_BACKUP_LOG_MAX_BYTES', 1048576),
+        'notify' => env('EXMENT_BACKUP_NOTIFY', true),
+        'job_timeout' => env('EXMENT_BACKUP_JOB_TIMEOUT', 21600),
+        'save_interval' => 1.0,
+        // the backups made before a restore that are kept
+        'keep_safety' => env('EXMENT_BACKUP_KEEP_SAFETY', 3),
+        // a restore does not write again a file that is the same already (its size and its hash)
+        'skip_unchanged' => env('EXMENT_BACKUP_SKIP_UNCHANGED', true),
+        // the free space of the backup disk shown as low under this (or two of the largest backup)
+        'low_free_bytes' => env('EXMENT_BACKUP_LOW_FREE_BYTES', 1073741824),
+        // a backup is checked before it is restored (its sha256, every entry read)
+        'verify' => env('EXMENT_BACKUP_VERIFY', true),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Notify Saved Skip Minutes
     |--------------------------------------------------------------------------
     |

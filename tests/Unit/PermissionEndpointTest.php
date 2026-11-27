@@ -111,6 +111,7 @@ class PermissionEndpointTest extends UnitTestBase
         'backup/restore',
         'backup/save',
         'backup/setting',
+        'backup/runs/current',
         'loginuser',
         'loginuser/1',
         'loginuser/import',

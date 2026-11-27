@@ -7,6 +7,9 @@ use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupRunLockedException;
+use Exceedone\Exment\Model\BackupRun;
+use Exceedone\Exment\Services\BackupRestore\BackupRuns;
 
 class BackupCommand extends Command
 {
@@ -67,14 +70,28 @@ class BackupCommand extends Command
 
             $this->backup->initBackupRestore();
 
-            return $this->backup->execute($target, $schedule);
+            // the run is recorded as the ones of the screen (ISS02943): the history, the lock, the log
+            $run = BackupRuns::start(BackupRun::KIND_BACKUP, $schedule ? BackupRun::TRIGGER_SCHEDULE : BackupRun::TRIGGER_COMMAND, [
+                'targets' => is_array($target) ? $target : [$target],
+            ]);
+            $this->info(strval(exmtrans('backup.run.message.cli_started', ['kind' => exmtrans('backup.run.kinds.backup'), 'uuid' => $run->uuid])));
+
+            $result = BackupRuns::runBackup($run, $target, $schedule, function (string $line) {
+                $this->line($line);
+            });
+            $this->line(strval(exmtrans('backup.run.message.cli_log', ['path' => BackupRuns::logRelativePath($run)])));
+
+            return $result;
+        } catch (BackupRunLockedException $e) {
+            $this->error($e->getMessage());
+            return 1;
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
             return 1;
         } catch (\Exception $e) {
             throw $e;
         } finally {
-            $this->backup->diskService()->deleteTmpDirectory();
+            $this->backup->diskService()?->deleteTmpDirectory();
         }
     }
 }

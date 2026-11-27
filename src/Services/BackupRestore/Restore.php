@@ -7,6 +7,7 @@ use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\CoreExtensions;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Services\ZipService;
+use Exceedone\Exment\Storage\Disk\BackupDiskService;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use File;
@@ -73,20 +74,41 @@ class Restore
     public function execute($file = null, ?bool $tmp = null)
     {
         $this->configSkipped = false;
+        $progress = $this->progress();
 
         try {
-            \Artisan::call('down');
+            $progress->stage('verify');
+            // the page of the maintenance tells a restore is going on (and comes again by itself);
+            // the pages of the backup still answer (BackupRestoreGuard, before the maintenance): the
+            // page of "down --render" is given before Laravel starts, but not for its exceptions
+            // (a restore of the command: the plain maintenance for every page)
+            $through = static::lettingBackupPagesThrough($progress->run());
+            try {
+                static::downFor($through, function () {
+                    \Artisan::call('down', static::downOptions());
+                });
+            } catch (\Throwable $e) {
+                // the page could not be made: the plain one
+                static::downFor($through, function () {
+                    \Artisan::call('down');
+                });
+            }
 
             // check backup execute
             \ExmentDB::checkBackup();
 
-            // unzip backup file
+            // unzip backup file (the stage "extract" starts when the file is checked)
             $this->unzipFile($file, $tmp);
 
             $result = 0;
 
+            $progress->stage('load', $this->countDatabaseFiles());
+
             // the rules of an application before the database is replaced (CoreExtensions::addRestoreRule)
             $this->runRestoreRules('before');
+
+            // the runs of the backup are kept, and put back when the database is replaced
+            $progress->databaseReplacing();
 
             // restore table definition
             $this->restoreDatabase();
@@ -95,11 +117,14 @@ class Restore
             $this->importTsv();
 
             // copy directory to temporary folder
+            $progress->stage('files');
             if (!$this->copyFiles()) {
+                $progress->error('some folders were not copied');
                 $result = -1;
             }
 
             // copy env
+            $progress->stage('finish', 2);
             $this->updateEnv();
 
             $this->runRestoreRules('after');
@@ -108,22 +133,154 @@ class Restore
             // below read Exment's own models - clear before, and again after, so the caller
             // starts from a clean cache whichever way the migration step goes.
             System::clearCache();
+            $progress->advance(1);
 
             if (!$this->migrateToCurrentSchema()) {
+                $progress->error('migrate failed after the database was restored: the schema is still at the version of the backup');
                 $result = -1;
             }
 
             System::clearCache();
 
+            $progress->databaseReplaced();
+            $progress->advance(1);
+
             return $result;
         } catch (\Exception $e) {
             throw $e;
         } finally {
+            // a restore that stopped half way: the record is written again all the same
+            $progress->databaseReplaced();
             \Artisan::call('up');
-            $this->diskService->deleteTmpDirectory();
+            $this->diskService?->deleteTmpDirectory();
         }
     }
 
+
+    /**
+     * What a restore of a stored backup replaces (ISS02943), read from its entries without
+     * extracting it: the database (its tables), the folders (their files and size), the
+     * settings, and the versions it was made on. Null when the file cannot be read here (a
+     * backup on another disk is not downloaded only for this).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function preview(string $fileKey): ?array
+    {
+        if (!preg_match('/^' . Define::RULES_REGEX_BACKUP_FILENAME . '$/u', $fileKey)) {
+            return null;
+        }
+        $this->initBackupRestore($fileKey);
+        try {
+            $path = $this->disk()->path($this->diskService->diskItem()->filePath());
+        } catch (\Throwable $e) {
+            return null;
+        }
+        if (!is_file($path)) {
+            return null;
+        }
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return null;
+        }
+        try {
+            $tables = 0;
+            $hasDefinition = false;
+            $folders = [];
+            $env = false;
+            $versions = null;
+            $def = strval(config('exment.backup_info.def_file', 'table_definition.sql'));
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                if ($stat === false) {
+                    continue;
+                }
+                $name = strval($stat['name']);
+                if (str_ends_with($name, '/')) {
+                    continue;
+                }
+                if (!str_contains($name, '/')) {
+                    if ($name === $def) {
+                        $hasDefinition = true;
+                    } elseif (preg_match('/\.(sql|tsv)$/i', $name)) {
+                        $tables++;
+                    } elseif ($name === '.env') {
+                        $env = true;
+                    } elseif ($name === Define::BACKUP_VERSION_FILE) {
+                        $versions = json_decode_ex(strval($zip->getFromIndex($i)), true);
+                    }
+                    continue;
+                }
+                $setting = BackupTarget::dirOrDisk(explode('/', '/' . $name));
+                $key = isset($setting) ? strval($setting[2]) : strval(explode('/', $name)[0]);
+                $folders[$key] = [
+                    'files' => intval($folders[$key]['files'] ?? 0) + 1,
+                    'bytes' => intval($folders[$key]['bytes'] ?? 0) + intval($stat['size']),
+                ];
+            }
+            return [
+                'database' => $hasDefinition || $tables > 0,
+                'tables' => $tables,
+                'folders' => $folders,
+                'env' => $env,
+                'exment' => is_array($versions) ? array_get($versions, 'exment') : null,
+                'laravel' => is_array($versions) ? array_get($versions, 'laravel') : null,
+                'current_exment' => \Exment::getExmentCurrentVersion(),
+                'current_laravel' => app()->version(),
+                'bytes' => intval(@filesize($path)),
+            ];
+        } finally {
+            $zip->close();
+        }
+    }
+
+    /**
+     * Whether the maintenance of this restore lets the pages of the backup through: a restore
+     * started on the screen only (it has the token of its state, BackupRestoreGuard answers them).
+     * A restore of the command: the plain maintenance (503) for every page.
+     */
+    public static function lettingBackupPagesThrough(?\Exceedone\Exment\Model\BackupRun $run): bool
+    {
+        return isset($run) && BackupRuns::hasStateToken($run->uuid);
+    }
+
+    protected static function downFor(bool $through, \Closure $down): void
+    {
+        if ($through) {
+            static::passBackupPagesThroughMaintenance($down);
+            return;
+        }
+        $down();
+    }
+
+    /**
+     * Run the "down" of a restore with the pages of the backup among its exceptions (written in
+     * the file of the maintenance): those requests reach Laravel, where BackupRestoreGuard answers
+     * them while the restore goes on (or the maintenance answers 503). Only this "down": an
+     * ordinary one has no exception.
+     */
+    protected static function passBackupPagesThroughMaintenance(\Closure $down): void
+    {
+        $middleware = \Illuminate\Foundation\Http\Middleware\PreventRequestsDuringMaintenance::class;
+        $prefix = trim(strval(config('admin.route.prefix')), '/');
+        $base = $prefix === '' ? '' : $prefix . '/';
+        $middleware::except([$base . 'backup', $base . 'backup/runs/*']);
+        try {
+            $down();
+        } finally {
+            $middleware::flushState();
+        }
+    }
+
+    /**
+     * The options of "down" during a restore (ISS02943): the page "a restore is going on".
+     *
+     * @return array<string, mixed>
+     */
+    public static function downOptions(): array
+    {
+        return ['--render' => 'exment::backup.restoring', '--retry' => 30, '--refresh' => 15];
+    }
 
     /**
      * Bring the restored schema up to the version the running code expects.
@@ -185,7 +342,41 @@ class Restore
     // @phpstan-ignore-next-line
     protected function importTsv()
     {
-        \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath());
+        \ExmentDB::importTsv($this->diskService->tmpDiskItem()->dirFullPath(), function (array $info) {
+            $this->databaseProgress($info);
+        });
+    }
+
+    /**
+     * The files of the database in the backup (the units of the stage "database").
+     */
+    protected function countDatabaseFiles(): int
+    {
+        $dir = $this->diskService->tmpDiskItem()->dirFullPath();
+        if (!\File::isDirectory($dir)) {
+            return 0;
+        }
+        return count(array_filter(\File::files($dir), function ($file) {
+            return preg_match('/.+\.(sql|tsv)$/i', $file->getFilename()) && !preg_match('/^view_.*/i', $file->getFilename());
+        }));
+    }
+
+    /**
+     * A file of the database is restored (ExmentDB::restoreDatabase / importTsv).
+     *
+     * @param array<string, mixed> $info
+     */
+    protected function databaseProgress(array $info): void
+    {
+        $progress = $this->progress();
+        $table = $info['table'] ?? '(definition)';
+        $exitCode = intval($info['exit_code'] ?? 0);
+        if ($exitCode !== 0) {
+            $progress->error('a file of the database was not restored', ['table' => $table, 'exit_code' => $exitCode]);
+        }
+        $progress->info('table', array_filter(['table' => $table, 'rows' => $info['rows'] ?? null, 'bytes' => $info['bytes'] ?? null], fn ($v) => $v !== null));
+        $progress->advance(1, 1, intval($info['bytes'] ?? 0));
+        $progress->heartbeat();
     }
 
     /**
@@ -199,8 +390,16 @@ class Restore
         $tmpDisk = $this->diskService->tmpDiskItem()->disk();
 
         $directories = $tmpDisk->allDirectories($this->diskService->tmpDiskItem()->dirName());
+        $progress = $this->progress();
+        $progress->total(count($directories));
+        // a folder of this server is copied whole once (it was copied again for each of its
+        // folders, ISS02943)
+        $copiedLocal = [];
+        // the files of a disk (attachments, plugins): written and the same, for each target
+        $diskCounts = [];
 
         foreach ($directories as $directory) {
+            $progress->advance(1);
             // check target key name
             $splits = explode("/", $directory);
             if (count($splits) < 2) {
@@ -219,6 +418,15 @@ class Restore
             // config files of another Laravel version would overwrite the current ones and
             // stop the application from starting (e.g. config/app.php listing providers
             // a Laravel 12 skeleton no longer has)
+            // the logs of now are kept: what this restore logs, and what came before it
+            if ($setting[2] == BackupTarget::LOG) {
+                if (!isset($logsKept)) {
+                    $logsKept = true;
+                    $progress->info('the log files of now are kept (not replaced)');
+                }
+                continue;
+            }
+
             if ($setting[2] == BackupTarget::CONFIG && !$this->canRestoreConfig()) {
                 $this->configSkipped = true;
                 continue;
@@ -241,12 +449,21 @@ class Restore
                         'path' => $topath,
                         'target' => $setting[2] ?? $keyname,
                     ]);
+                    $progress->warn('a folder that is not writable was skipped', ['target' => $setting[2] ?? $keyname]);
                     continue;
                 }
 
-                $success = \File::copyDirectory($fromDirectory, $topath);
+                if (isset($copiedLocal[$keyname])) {
+                    continue;
+                }
+                $copiedLocal[$keyname] = true;
+
+                [$success, $copied, $same] = $this->copyLocalDirectory($fromDirectory, $topath);
                 if (!$success) {
+                    $progress->error('a folder was not copied', ['target' => $setting[2] ?? $keyname]);
                     $result = false;
+                } else {
+                    $progress->info('folder', ['target' => $setting[2] ?? $keyname, 'copied' => $copied, 'unchanged' => $same]);
                 }
             }
             // is croud file
@@ -263,6 +480,14 @@ class Restore
                     if (!$this->restoresFile($setting[2], $path)) {
                         continue;
                     }
+                    $target = strval($setting[2]);
+                    $diskCounts[$target] = $diskCounts[$target] ?? ['copied' => 0, 'unchanged' => 0];
+                    // the same file is there already: not written again (ISS02943)
+                    if ($this->isSameOnDisk($disk, $path, $tmpDisk->path($file))) {
+                        $diskCounts[$target]['unchanged']++;
+                        continue;
+                    }
+                    $diskCounts[$target]['copied']++;
                     // copy from crowd to local
                     $stream = $tmpDisk->readStream($file);
                     $disk->delete($path);
@@ -277,11 +502,89 @@ class Restore
             }
         }
 
+        foreach ($diskCounts as $target => $counts) {
+            $progress->info('folder', ['target' => $target, 'copied' => $counts['copied'], 'unchanged' => $counts['unchanged']]);
+        }
+
         if ($this->configSkipped) {
             \Log::warning('Exment: restore skipped the config files of the backup: ' . $this->getBackupLaravelVersionText());
+            $progress->info('config skipped', ['versions' => $this->getBackupLaravelVersionText()]);
         }
 
         return $result;
+    }
+
+    /**
+     * Copy a folder of the backup over a folder of this server, as File::copyDirectory, without
+     * writing again a file that is the same already (its size and its sha1) (ISS02943).
+     *
+     * @return array{0: bool, 1: int, 2: int} done, the files written, the files the same
+     */
+    protected function copyLocalDirectory(string $from, string $to): array
+    {
+        if (!\File::isDirectory($from)) {
+            return [false, 0, 0];
+        }
+        $skip = boolval(config('exment.backup.skip_unchanged', true));
+        $copied = 0;
+        $same = 0;
+        try {
+            \File::ensureDirectoryExists($to);
+            foreach (\File::allDirectories($from) as $directory) {
+                \File::ensureDirectoryExists(path_join($to, ltrim(substr($directory, strlen($from)), '\\/')));
+            }
+            foreach (\File::allFiles($from, true) as $file) {
+                $dest = path_join($to, $file->getRelativePathname());
+                if ($skip && static::isSameFile($file->getPathname(), $dest)) {
+                    $same++;
+                    continue;
+                }
+                \File::ensureDirectoryExists(dirname($dest));
+                if (!@copy($file->getPathname(), $dest)) {
+                    return [false, $copied, $same];
+                }
+                $copied++;
+            }
+        } catch (\Throwable $e) {
+            return [false, $copied, $same];
+        }
+        return [true, $copied, $same];
+    }
+
+    /**
+     * Whether two files of this server are the same (their size, then their sha1).
+     */
+    public static function isSameFile(string $a, string $b): bool
+    {
+        if (!is_file($a) || !is_file($b) || filesize($a) !== filesize($b)) {
+            return false;
+        }
+        $hashA = hash_file('sha1', $a);
+        return $hashA !== false && $hashA === hash_file('sha1', $b);
+    }
+
+    /**
+     * Whether the file of a disk is the same as the file of the backup (its size, then its md5).
+     *
+     * @param \Illuminate\Contracts\Filesystem\Filesystem $disk
+     */
+    protected function isSameOnDisk($disk, string $path, string $local): bool
+    {
+        if (!boolval(config('exment.backup.skip_unchanged', true))) {
+            return false;
+        }
+        try {
+            if (!is_file($local) || !$disk->exists($path) || intval($disk->size($path)) !== intval(filesize($local))) {
+                return false;
+            }
+            if (!method_exists($disk, 'checksum')) {
+                return false;
+            }
+            $checksum = $disk->checksum($path, ['checksum_algo' => 'md5']);
+            return is_string($checksum) && $checksum !== '' && hash_equals(strval(md5_file($local)), $checksum);
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     /**
@@ -457,6 +760,11 @@ class Restore
         $targetfile = array_get(pathinfo($file), 'filename');
 
         $this->initBackupRestore($targetfile);
+        $this->diskService->progress = $this->progress();
+        $run = $this->progress()->run();
+        if (isset($run) && !isset($run->file_name)) {
+            $run->file_name = mb_substr(strval($targetfile), 0, 100);
+        }
 
         // set to tmp zip file
         if (!boolval($tmp)) {
@@ -481,7 +789,9 @@ class Restore
                 throw new InvalidZipEntryException($zipEntryError);
             }
 
-            $zip->extractTo($this->diskService->tmpDiskItem()->dirFullPath());
+            $this->progress()->info('zip', ['files' => $zip->numFiles, 'bytes' => intval(@filesize($zipPath))]);
+            BackupDiskService::verify($zip, $zipPath, null, $this->progress());
+            BackupDiskService::extract($zip, $this->diskService->tmpDiskItem()->dirFullPath(), $this->progress());
             $zip->close();
         }
 
@@ -496,6 +806,8 @@ class Restore
     // @phpstan-ignore-next-line
     protected function restoreDatabase()
     {
-        \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath());
+        \ExmentDB::restoreDatabase($this->diskService->tmpDiskItem()->dirFullPath(), function (array $info) {
+            $this->databaseProgress($info);
+        });
     }
 }

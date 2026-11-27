@@ -85,6 +85,7 @@ use Cache;
  * @method static array|void backup_target($arg = null)
  * @method static Carbon|void backup_automatic_executed($arg = null)
  * @method static int|void backup_history_files($arg = null)
+ * @method static bool|void backup_history_include_manual($arg = null)
  * @method static boolean|void operation_log_enable_automatic($arg = null)
  * @method static int|void operation_log_keep_days($arg = null)
  * @method static string|void operation_log_automatic_week($arg = null)

@@ -223,7 +223,6 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
             'template import' => ['Services/TemplateImportExport/TemplateImporter.php'],
             'csv import'      => ['Services/DataImportExport/Formats/CsvTrait.php'],
             'csv import (phpspreadsheet)' => ['Services/DataImportExport/Formats/PhpSpreadSheet/Csv.php'],
-            'backup restore'  => ['Services/BackupRestore/Restore.php'],
             'backup disk sync' => ['Storage/Disk/BackupDiskService.php'],
         ];
     }
@@ -243,6 +242,21 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
             $validatePos,
             "{$relativePath} validates after extracting, which is too late."
         );
+    }
+
+    public function test_the_restore_validates_before_it_extracts(): void
+    {
+        // the restore of an uploaded file extracts with BackupDiskService::extract() (the
+        // progress of ISS02943), whose own extractTo() is checked above
+        $content = $this->exmentSource('Services/BackupRestore/Restore.php');
+
+        $extractPos  = strpos($content, 'BackupDiskService::extract(');
+        $validatePos = strpos($content, 'ZipService::validateZipEntries(');
+
+        $this->assertNotFalse($extractPos, 'No BackupDiskService::extract() found in the restore - did it move?');
+        $this->assertNotFalse($validatePos, 'The restore extracts a zip without validating its entries.');
+        $this->assertLessThan($extractPos, $validatePos, 'The restore validates after extracting, which is too late.');
+        $this->assertStringNotContainsString('->extractTo(', $content, 'The restore extracts by itself again: add it to extractSiteProvider().');
     }
 
     public function test_the_csv_import_paths_no_longer_swallow_a_failed_open(): void
@@ -525,7 +539,8 @@ class ZipEntryTraversalFixedTest extends SecurityRegressionTestCase
         $content = $this->exmentSource('Storage/Disk/BackupDiskService.php');
 
         $this->assertMatchesRegularExpression(
-            '/if \(\$zip->open\(\$localSyncDiskItem->fileFullPath\(\)\) !== true\) \{\s*(?:\/\/[^\n]*\n\s*)*throw new InvalidZipEntryException/',
+            // the zip opened is the downloaded copy, or the stored file itself (ISS02943)
+            '/if \(\$zip->open\(\$zipPath\) !== true\) \{\s*(?:\/\/[^\n]*\n\s*)*throw new InvalidZipEntryException/',
             $content,
             'BackupDiskService::sync() swallows a failed open() again.'
         );

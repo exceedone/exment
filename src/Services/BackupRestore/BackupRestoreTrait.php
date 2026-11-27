@@ -9,6 +9,23 @@ trait BackupRestoreTrait
     // @phpstan-ignore-next-line
     protected $diskService;
 
+    /** The progress and the log of the run (ISS02943); none: nothing is recorded. */
+    protected ?RunProgress $progress = null;
+
+    /**
+     * @return $this
+     */
+    public function setProgress(?RunProgress $progress)
+    {
+        $this->progress = $progress;
+        return $this;
+    }
+
+    public function progress(): RunProgress
+    {
+        return $this->progress ??= RunProgress::none();
+    }
+
     // @phpstan-ignore-next-line
     public function disk()
     {
