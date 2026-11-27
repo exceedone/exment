@@ -36,6 +36,8 @@ class CustomFormPublicController extends AdminControllerTableBase
 {
     use HasResourceTableActions;
     use NotifyTrait;
+    // the easy setup and the tags to put the form in a web site (ISS02942)
+    use PublicFormEasyTrait;
 
     // @phpstan-ignore-next-line
     protected $mailTemplates = [];
@@ -434,9 +436,10 @@ class CustomFormPublicController extends AdminControllerTableBase
                 ;
 
                 if (($message = PublicForm::isEnableRecaptcha()) === true) {
+                    // on at first (ISS02942): a public form is open to anybody
                     $form->switchbool('use_recaptcha', exmtrans("custom_form_public.use_recaptcha"))
                         ->help(exmtrans("custom_form_public.help.use_recaptcha"))
-                        ->default(false);
+                        ->default(true);
                     ;
                 } else {
                     $form->display('use_recaptcha_display', exmtrans("custom_form_public.use_recaptcha"))
@@ -535,6 +538,12 @@ class CustomFormPublicController extends AdminControllerTableBase
             $tools->setListPath(admin_urls('form', $custom_table->table_name));
 
             if (isset($public_form)) {
+                $tools->append(view('exment::tools.button', [
+                    'href' => admin_urls('formpublic', $custom_table->table_name, $public_form->id, 'embed'),
+                    'icon' => 'fa-code',
+                    'btn_class' => 'btn-primary',
+                    'label' => exmtrans('custom_form_public.easy.embed_header'),
+                ]));
                 if (!$public_form->active_flg) {
                     // check relation table's count. if has select_table etc, showing modal.
                     if ($public_form->getListOfTablesUsed()->count() > 0) {
