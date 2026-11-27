@@ -9,6 +9,13 @@ use Carbon\Carbon;
 
 class News
 {
+    /** When the news could not be read (the session): not asked again for RETRY_SECONDS. */
+    public const SESSION_KEY_FAILED = 'exment_update_news_failed';
+    public const RETRY_SECONDS = 600;
+
+    /** The news could not be read in this request. */
+    protected bool $unreachable = false;
+
     /**
      * WordPress Page Items
      *
@@ -62,6 +69,9 @@ class News
         }
 
         $this->setItems();
+        if ($this->unreachable) {
+            return esc_html(exmtrans('error.news_unreachable'));
+        }
 
         // get table items
         $headers = [
@@ -171,9 +181,17 @@ class News
                 }
             }
 
+            // could not be read a short while ago: not asked again yet (each try waits for the timeout)
+            $failed = session()->get(static::SESSION_KEY_FAILED);
+            if (!isset($contents) && is_numeric($failed) && time() - intval($failed) < static::RETRY_SECONDS) {
+                $this->unreachable = true;
+                return;
+            }
+
             if (!isset($contents)) {
                 // get update news from api
-                $client = new \GuzzleHttp\Client();
+                // from the container: the same client, and a test can give its own
+                $client = app(\GuzzleHttp\Client::class);
                 $response = $client->request('GET', Define::EXMENT_NEWS_API_URL, [
                     'http_errors' => false,
                     'query' => $this->getQuery(),
@@ -183,7 +201,8 @@ class News
 
                 $contents = $response->getBody()->getContents();
                 if ($response->getStatusCode() != 200) {
-                    return null;
+                    $this->couldNotRead('HTTP ' . $response->getStatusCode());
+                    return;
                 }
                 session()->put(Define::SYSTEM_KEY_SESSION_UPDATE_NEWS, json_encode([
                     'update_time' => Carbon::now()->toDateTimeString(),
@@ -196,7 +215,32 @@ class News
             $query = $this->getQuery();
             $this->items = static::filterItems(is_array($items) ? $items : [], (int)$query['per_page'], (int)$query['page'], (int)$query['categories']);
         } catch (\Exception $ex) {
-            \Log::error($ex);
+            // the server cannot reach exment.net (a closed network, DNS): one line in the log, not a stack trace each time
+            $this->couldNotRead(get_class($ex) . ': ' . strtok($ex->getMessage(), "
+"));
         }
+    }
+
+    /**
+     * The news could not be read: the box says so, the session does not ask again for a while,
+     * and the log gets one warning line an hour.
+     */
+    protected function couldNotRead(string $reason): void
+    {
+        $this->unreachable = true;
+        $this->items = [];
+        try {
+            session()->put(static::SESSION_KEY_FAILED, time());
+        } catch (\Throwable $e) {
+            // no session: asked again next time
+        }
+        try {
+            if (!\Illuminate\Support\Facades\Cache::add('exment_news_unreachable_logged', 1, 3600)) {
+                return;
+            }
+        } catch (\Throwable $e) {
+            // no cache: logged
+        }
+        \Log::warning('[Exment] the news of exment.net could not be read: ' . mb_substr($reason, 0, 300));
     }
 }

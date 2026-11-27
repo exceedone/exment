@@ -41,6 +41,13 @@ class BundledPlugins
 {
     public const PACKAGE = 'exceedone/exment-plugins-release';
 
+    /**
+     * The bundled releases that could not be used (releases()): [file name => reason].
+     *
+     * @var array<string, string>
+     */
+    protected static $unusable = [];
+
     /** The versions kept to go back to (on the admin disk). */
     public const PREVIOUS_DIR = 'plugin_distribution/previous';
 
@@ -78,6 +85,7 @@ class BundledPlugins
      */
     public static function releases(): array
     {
+        static::$unusable = [];
         $dir = static::path();
         if (!isset($dir)) {
             return [];
@@ -92,7 +100,7 @@ class BundledPlugins
             try {
                 static::verifyOnce($record, $zip, $json);
             } catch (\Throwable $e) {
-                \Log::warning('[Exment] a bundled plugin is not used: ' . basename($json) . ': ' . $e->getMessage());
+                static::$unusable[basename($json)] = $e->getMessage();
                 continue;
             }
             $uuid = strval($record['uuid']);
@@ -110,12 +118,12 @@ class BundledPlugins
      * checks it again in any case (installRelease).
      *
      * @param array<string, mixed> $record
-     * @throws ReleaseException
+     * @throws ReleaseException|\RuntimeException (a release that could not be used, kept for a day)
      */
     protected static function verifyOnce(array $record, string $zip, string $json): void
     {
         clearstatcache(true, $zip);
-        $key = 'exment_bundled_release_ok_' . md5(implode('|', [
+        $state = md5(implode('|', [
             $json,
             md5(strval(json_encode($record))),
             strval(@filemtime($zip)),
@@ -123,19 +131,49 @@ class BundledPlugins
             strval(\Exment::version(false)),
             PHP_VERSION,
         ]));
+        $key = 'exment_bundled_release_ok_' . $state;
+        // a release that could not be used is not checked (and logged) again for a day either
+        $ngKey = 'exment_bundled_release_ng_' . $state;
+        $ng = null;
         try {
             if (Cache::get($key) === true) {
                 return;
             }
+            $ng = Cache::get($ngKey);
         } catch (\Throwable $e) {
             // no cache: checked
         }
-        ReleaseVerifier::verify($record, $zip);
+        if (is_string($ng)) {
+            throw new \RuntimeException($ng);
+        }
+        try {
+            ReleaseVerifier::verify($record, $zip);
+        } catch (\Throwable $e) {
+            // one line in the log, once a day (the system administrators are told by AdminNotices)
+            \Log::warning('[Exment] a bundled plugin is not used: ' . basename($json) . ': ' . $e->getMessage());
+            try {
+                Cache::put($ngKey, $e->getMessage(), now()->addDay());
+            } catch (\Throwable $ex) {
+                // not kept: checked again next time
+            }
+            throw $e;
+        }
         try {
             Cache::put($key, true, now()->addDay());
         } catch (\Throwable $e) {
             // not kept: checked again next time
         }
+    }
+
+    /**
+     * The bundled releases of this request that could not be used (releases()), as
+     * [file name => reason]. AdminNotices tells the system administrators of them.
+     *
+     * @return array<string, string>
+     */
+    public static function unusable(): array
+    {
+        return static::$unusable;
     }
 
     /**

@@ -154,6 +154,17 @@ class AdminNotices
                 'mail' => true,
             ];
         }
+        // a bundled plugin that cannot be used (a broken or changed file, a version that does not fit)
+        foreach (BundledPlugins::unusable() as $file => $reason) {
+            $notices['unusable:' . $file . ':' . md5($reason)] = [
+                'subject' => strval(exmtrans('plugin_distribution.notice_unusable_subject', ['name' => $file])),
+                'body' => strval(exmtrans('plugin_distribution.notice_unusable', ['name' => $file, 'reason' => $reason])) . "
+
+" . admin_url('feature'),
+                'mail' => false,
+            ];
+        }
+
         $features = static::newFeatures();
         if (count($features) > 0) {
             sort($features);
