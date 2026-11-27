@@ -418,7 +418,8 @@ class UserApiKeyPageTest extends FeatureTestBase
         $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
         $page = $this->get(admin_url('auth/api_keys'));
         $page->assertOk()->assertSee(exmtrans('api_key.mcp.header'))->assertSee(McpGuide::url())
-            ->assertSee('name="scope_type" value="mcp"', false)
+            // the purpose "AI (MCP)" first and checked, with its scopes
+            ->assertSee('name="purpose" value="mcp" data-scopes="' . e(json_encode(McpGuide::scopes())) . '" checked', false)
             ->assertDontSee(exmtrans('api_key.mcp.off'));
         // without a new key: the settings with a placeholder
         $page->assertSee('claude mcp add --transport http exment ' . McpGuide::url() . ' --header &quot;Authorization: Bearer exk_...&quot;', false);
@@ -432,10 +433,46 @@ class UserApiKeyPageTest extends FeatureTestBase
         $this->assertSame(McpGuide::scopes(), $key->scopes);
         $made->assertSee(exmtrans('api_key.mcp.with_key'))
             ->assertSee('--header &quot;Authorization: Bearer ' . $plain . '&quot;', false)
-            ->assertSee('&quot;EXMENT_AUTH&quot;: &quot;Bearer ' . $plain . '&quot;', false);
+            ->assertSee('&quot;EXMENT_AUTH&quot;: &quot;Bearer ' . $plain . '&quot;', false)
+            // the other tools: the JSON of MCP over HTTP, with the key
+            ->assertSee('&quot;Authorization&quot;: &quot;Bearer ' . $plain . '&quot;', false)
+            ->assertSee(exmtrans('api_key.new_key_warning'));
 
         // the next page: the key is nowhere
         $this->get(admin_url('auth/api_keys'))->assertOk()->assertDontSee($plain)->assertSee('Bearer exk_...');
+    }
+
+    public function testThePageByPurpose(): void
+    {
+        $this->setFeatures([
+            Features::API_KEYS => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()]],
+            Features::MCP => ['enabled' => true, 'role_groups' => [$this->groupOfUser1Only()]],
+        ]);
+        $this->login(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        $page = $this->get(admin_url('auth/api_keys'));
+        $page->assertOk()
+            // the purposes, then the scopes in words with their ids
+            ->assertSeeInOrder([exmtrans('api_key.purposes.mcp'), exmtrans('api_key.purposes.api'), exmtrans('api_key.purposes.read_only'), exmtrans('api_key.scope_groups.data')])
+            ->assertSee(exmtrans('api_key.scope_labels.value_write'))
+            // the form first, then the keys, then how to connect AI
+            ->assertSeeInOrder([exmtrans('api_key.create'), exmtrans('api_key.my_keys'), exmtrans('api_key.mcp.how_to')]);
+        $content = (string)$page->getContent();
+        // the scopes of MCP are checked, the others not
+        $this->assertStringContainsString('name="scopes[]" value="value_read" checked', $content);
+        $this->assertStringNotContainsString('name="scopes[]" value="value_write" checked', $content);
+        // a system table is hidden until asked (not the users)
+        $this->assertSame(1, preg_match('/<label class="exm-ak-system"[^>]*style="display:none"><input type="checkbox" name="tables\[\]" value="mail_template"/', $content));
+        $this->assertSame(1, preg_match('/<label class=""[^>]*><input type="checkbox" name="tables\[\]" value="user"/', $content));
+
+        // the boxes are what is sent: the purpose "API" with the scopes of the page
+        $scopes = ['me', 'value_read', 'value_write'];
+        $made = $this->post(admin_url('auth/api_keys'), ['name' => 'erp', 'purpose' => 'api', 'scope_type' => 'custom', 'scopes' => $scopes, 'table_type' => 'all', 'days' => '90', 'current_password' => 'user1user1']);
+        $made->assertOk();
+        /** @var UserApiKey $key */
+        $key = UserApiKey::where('user_id', $this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1))->firstOrFail();
+        $this->assertEqualsCanonicalizing($scopes, $key->scopes);
+        // not for MCP: no settings with the key
+        $made->assertDontSee(exmtrans('api_key.mcp.with_key'));
     }
 
     public function testAReadOnlyKeyIsNotShownInTheSettings(): void
