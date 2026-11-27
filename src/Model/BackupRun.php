@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property array<int, string>|null $targets
  * @property string|null $file_name
  * @property int|null $file_size
+ * @property string|null $sha256 the sha256 of the file a backup made
  * @property int $warnings
  * @property int $errors
  * @property string|null $message
@@ -74,11 +75,13 @@ class BackupRun extends Model
             'upload' => 8,
         ],
         self::KIND_RESTORE => [
+            // the backup of the data now, before it is replaced (when it is chosen)
+            'safety' => 20,
             'verify' => 3,
-            'extract' => 15,
-            'load' => 45,
-            'files' => 22,
-            'finish' => 15,
+            'extract' => 12,
+            'load' => 35,
+            'files' => 18,
+            'finish' => 12,
         ],
     ];
 
@@ -190,7 +193,7 @@ class BackupRun extends Model
             $stages[] = [
                 'name' => $name,
                 'label' => strval(exmtrans("backup.run.stages.{$name}")),
-                'state' => isset($row['finished_at']) ? 'done' : ($name === $this->stage && $this->isActive() ? 'current' : (isset($row) ? 'stopped' : 'waiting')),
+                'state' => isset($row['finished_at']) ? 'done' : ($name === $this->stage && $this->isActive() ? 'current' : (isset($row) ? 'stopped' : ($this->isActive() ? 'waiting' : 'skipped'))),
                 'started_at' => $row['started_at'] ?? null,
                 'finished_at' => $row['finished_at'] ?? null,
                 'seconds' => $row['seconds'] ?? null,

@@ -21,7 +21,7 @@ class RestoreCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'exment:restore {file?} {--tmp=} {--yes} {--run= : the uuid of a restore asked on the screen, run apart}';
+    protected $signature = 'exment:restore {file?} {--tmp=} {--yes} {--backup-first : back up the data now before it is replaced} {--run= : the uuid of a restore asked on the screen, run apart}';
 
     /**
      * The console command description.
@@ -81,7 +81,7 @@ class RestoreCommand extends Command
 
             $result = BackupRuns::runRestore($run, $this->restore, $file, $tmp, function (string $line) {
                 $this->line($line);
-            });
+            }, boolval($this->option('backup-first')));
             $this->line('Log: ' . BackupRuns::logRelativePath($run));
 
             if ($this->restore->isConfigSkipped()) {
@@ -134,7 +134,7 @@ class RestoreCommand extends Command
             $this->restore->initBackupRestore();
             $result = BackupRuns::runRestore($run, $this->restore, $file, $tmp, function (string $line) {
                 $this->line($line);
-            });
+            }, in_array(BackupRuns::BACKUP_FIRST, $targets, true));
         } catch (\Throwable $e) {
             // told in the run (its log, the bell and the mail)
             $this->error(\Exceedone\Exment\Services\BackupRestore\SecretMasker::mask($e->getMessage()));

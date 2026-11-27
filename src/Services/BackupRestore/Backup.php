@@ -13,6 +13,29 @@ class Backup
     use EnvTrait;
 
     /**
+     * The files compressed already: stored in the zip as they are.
+     */
+    public const STORED_EXTENSIONS = [
+        'zip', 'gz', 'tgz', 'bz2', 'xz', '7z', 'rar',
+        'jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'avif',
+        'mp3', 'mp4', 'm4a', 'mov', 'webm', 'avi', 'mkv',
+        'docx', 'xlsx', 'pptx', 'odt', 'ods', 'odp',
+        'woff', 'woff2',
+    ];
+
+    /** The name of the backup file (without .zip); null: the time. */
+    protected ?string $fileName = null;
+
+    /**
+     * @return $this
+     */
+    public function setFileName(?string $fileName)
+    {
+        $this->fileName = $fileName;
+        return $this;
+    }
+
+    /**
      * Create a new command instance.
      *
      * @return void
@@ -56,7 +79,7 @@ class Backup
                 })->filter()->toArray();
             }
 
-            $this->initBackupRestore($progress->run()?->file_name);
+            $this->initBackupRestore($this->fileName ?? $progress->run()?->file_name);
             $this->recordFileName();
             $progress->info('targets', ['targets' => implode(',', array_map('strval', (array) $target)), 'free_bytes' => static::freeBytes($this->diskService->tmpDiskItem()->dirFullPath())]);
 
@@ -306,6 +329,11 @@ class Backup
                 $relativePath = substr($filePath, strlen($this->diskService->tmpDiskItem()->dirFullPath()) + 1);
                 $relativePath = \Exment::replaceBackToSlash($relativePath);
                 $zip->addFile($filePath, $relativePath);
+                // a file compressed already (an image, an Office file, a zip) is stored as it is:
+                // compressing it again takes time and saves nothing (ISS02943)
+                if (in_array(strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)), static::STORED_EXTENSIONS, true)) {
+                    $zip->setCompressionName($relativePath, \ZipArchive::CM_STORE);
+                }
                 $count++;
             }
             // the files are compressed when the zip is closed: its progress (0 to 1) as percent
@@ -320,10 +348,13 @@ class Backup
                 throw new \RuntimeException('the zip file could not be written: ' . $zip->getStatusString());
             }
             $size = intval(@filesize($this->diskService->tmpDiskItem()->fileFullPath()));
-            $progress->info('zip', ['files' => $count, 'bytes' => $size]);
+            // a restore of this file checks it first (BackupDiskService::verify)
+            $sha256 = hash_file('sha256', $this->diskService->tmpDiskItem()->fileFullPath());
+            $progress->info('zip', ['files' => $count, 'bytes' => $size, 'sha256' => $sha256 === false ? null : $sha256]);
             $run = $progress->run();
             if (isset($run)) {
                 $run->file_size = $size;
+                $run->sha256 = $sha256 === false ? null : $sha256;
             }
         } else {
             throw new \RuntimeException('the zip file could not be made: ' . strval($res));

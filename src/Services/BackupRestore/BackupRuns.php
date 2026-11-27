@@ -9,6 +9,7 @@ use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Jobs\BackupRunJob;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\NotifyNavbar;
+use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Services\LogManagement\LogWriter;
 use Exceedone\Exment\Services\NotifyService;
 use Exceedone\Exment\Services\PluginDistribution\AdminNotices;
@@ -35,9 +36,14 @@ class BackupRuns
 
     public const LOCK_FILE = '.lock';
 
+    /** The name of the backup made before a restore (then the time). */
+    public const SAFETY_PREFIX = 'beforerestore';
+
     /** Where the file of a restore of the screen is (the first of its targets, then the file). */
     public const SOURCE_UPLOAD = 'upload';
     public const SOURCE_STORED = 'stored';
+    /** In the targets of a restore of the screen: the data now is backed up first. */
+    public const BACKUP_FIRST = 'backup_first';
 
     // ---------------------------------------------------------------- start
 
@@ -511,13 +517,16 @@ class BackupRuns
     /**
      * Run a restore of a started run: the result of Restore::execute (0: done).
      */
-    public static function runRestore(BackupRun $run, Restore $restore, ?string $file, ?bool $tmp = null, ?callable $output = null): int
+    public static function runRestore(BackupRun $run, Restore $restore, ?string $file, ?bool $tmp = null, ?callable $output = null, bool $backupFirst = false): int
     {
         $progress = new RunProgress($run, $output);
         $progress->begin();
 
         $restore->setProgress($progress);
         try {
+            if ($backupFirst) {
+                static::backupBeforeRestore($progress, $output);
+            }
             $result = $restore->execute($file, $tmp);
             if ($restore->isConfigSkipped()) {
                 $progress->warn(strval(exmtrans('backup.message.restore_config_skipped')));
@@ -532,6 +541,59 @@ class BackupRuns
             throw $e;
         } finally {
             $progress->releaseLock();
+        }
+    }
+
+    /**
+     * A backup of the data now, before a restore replaces it (the targets of the settings). The
+     * restore does not start when it fails.
+     *
+     * @throws \RuntimeException
+     */
+    protected static function backupBeforeRestore(RunProgress $progress, ?callable $output = null): string
+    {
+        $progress->stage('safety');
+        $name = static::SAFETY_PREFIX . date('YmdHis');
+        $backup = new Backup();
+        // its own stages are not the restore's: only its output, and its result in the log
+        $backup->setProgress(new RunProgress(null, $output));
+        $backup->setFileName($name);
+        try {
+            $result = $backup->execute(System::backup_target());
+        } catch (\Throwable $e) {
+            $progress->error('the backup before the restore failed: ' . get_class($e) . ': ' . $e->getMessage());
+            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')), 0, $e);
+        }
+        if ($result !== 0) {
+            $progress->error('the backup before the restore failed', ['result' => $result]);
+            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')));
+        }
+        $progress->info('the backup before the restore', ['file' => $name]);
+        static::keepSafetyBackups();
+        $progress->advance(1, 1);
+        return $name;
+    }
+
+    /**
+     * Keep the last exment.backup.keep_safety backups made before a restore (3).
+     */
+    public static function keepSafetyBackups(): int
+    {
+        $keep = max(1, intval(config('exment.backup.keep_safety', 3)));
+        try {
+            $disk = \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_BACKUP_SYNC);
+            $files = array_values(array_filter($disk->files('list'), function ($file) {
+                return (bool) preg_match('/^' . static::SAFETY_PREFIX . '\d{14}\.zip$/', basename($file));
+            }));
+            // the name holds the time: the newest last
+            sort($files);
+            $old = array_slice($files, 0, max(0, count($files) - $keep));
+            if (count($old) > 0) {
+                $disk->delete($old);
+            }
+            return count($old);
+        } catch (\Throwable $e) {
+            return 0;
         }
     }
 

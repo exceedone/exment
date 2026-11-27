@@ -151,6 +151,83 @@ class Restore
 
 
     /**
+     * What a restore of a stored backup replaces (ISS02943), read from its entries without
+     * extracting it: the database (its tables), the folders (their files and size), the
+     * settings, and the versions it was made on. Null when the file cannot be read here (a
+     * backup on another disk is not downloaded only for this).
+     *
+     * @return array<string, mixed>|null
+     */
+    public function preview(string $fileKey): ?array
+    {
+        if (!preg_match('/^' . Define::RULES_REGEX_BACKUP_FILENAME . '$/u', $fileKey)) {
+            return null;
+        }
+        $this->initBackupRestore($fileKey);
+        try {
+            $path = $this->disk()->path($this->diskService->diskItem()->filePath());
+        } catch (\Throwable $e) {
+            return null;
+        }
+        if (!is_file($path)) {
+            return null;
+        }
+        $zip = new \ZipArchive();
+        if ($zip->open($path) !== true) {
+            return null;
+        }
+        try {
+            $tables = 0;
+            $hasDefinition = false;
+            $folders = [];
+            $env = false;
+            $versions = null;
+            $def = strval(config('exment.backup_info.def_file', 'table_definition.sql'));
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $stat = $zip->statIndex($i);
+                if ($stat === false) {
+                    continue;
+                }
+                $name = strval($stat['name']);
+                if (str_ends_with($name, '/')) {
+                    continue;
+                }
+                if (!str_contains($name, '/')) {
+                    if ($name === $def) {
+                        $hasDefinition = true;
+                    } elseif (preg_match('/\.(sql|tsv)$/i', $name)) {
+                        $tables++;
+                    } elseif ($name === '.env') {
+                        $env = true;
+                    } elseif ($name === Define::BACKUP_VERSION_FILE) {
+                        $versions = json_decode_ex(strval($zip->getFromIndex($i)), true);
+                    }
+                    continue;
+                }
+                $setting = BackupTarget::dirOrDisk(explode('/', '/' . $name));
+                $key = isset($setting) ? strval($setting[2]) : strval(explode('/', $name)[0]);
+                $folders[$key] = [
+                    'files' => intval($folders[$key]['files'] ?? 0) + 1,
+                    'bytes' => intval($folders[$key]['bytes'] ?? 0) + intval($stat['size']),
+                ];
+            }
+            return [
+                'database' => $hasDefinition || $tables > 0,
+                'tables' => $tables,
+                'folders' => $folders,
+                'env' => $env,
+                'exment' => is_array($versions) ? array_get($versions, 'exment') : null,
+                'laravel' => is_array($versions) ? array_get($versions, 'laravel') : null,
+                'current_exment' => \Exment::getExmentCurrentVersion(),
+                'current_laravel' => app()->version(),
+                'bytes' => intval(@filesize($path)),
+            ];
+        } finally {
+            $zip->close();
+        }
+    }
+
+    /**
      * The options of "down" during a restore (ISS02943): the page "a restore is going on".
      *
      * @return array<string, mixed>
@@ -573,6 +650,7 @@ class Restore
             }
 
             $this->progress()->info('zip', ['files' => $zip->numFiles, 'bytes' => intval(@filesize($zipPath))]);
+            BackupDiskService::verify($zip, $zipPath, null, $this->progress());
             BackupDiskService::extract($zip, $this->diskService->tmpDiskItem()->dirFullPath(), $this->progress());
             $zip->close();
         }

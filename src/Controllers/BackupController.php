@@ -526,6 +526,12 @@ class BackupController extends AdminControllerBase
                 ->setWidth(8, 3)
                 ->displayText("$file_key.zip")->escape(false);
             $form->hidden('restore_zipfile')->default($file_key);
+
+            // what the restore replaces (ISS02943)
+            $preview = $this->restore->preview(strval($file_key));
+            $form->display('restore_preview', exmtrans('backup.run.screen.preview'))
+                ->setWidth(8, 3)
+                ->displayText(view('exment::backup.preview', ['preview' => $preview])->render())->escape(false);
         } else {
             $form->file('upload_zipfile', exmtrans('backup.upload_zipfile'))
             ->rules('mimes:zip')->setWidth(8, 3)->addElementClass('custom_table_file')
@@ -539,6 +545,12 @@ class BackupController extends AdminControllerBase
                 getManualUrl('backup?id='.exmtrans('backup.filesize_over'))
             ));
         }
+
+        // a backup of the data now, before it is replaced (ISS02943)
+        $form->switchbool('backup_first', exmtrans('backup.run.screen.backup_first_option'))
+            ->default('1')
+            ->setWidth(8, 3)
+            ->help(exmtrans('backup.run.screen.backup_first_help'));
 
         $form->text('restore_keyword', exmtrans('common.keyword'))
             ->required()
@@ -600,13 +612,13 @@ class BackupController extends AdminControllerBase
         try {
             if ($request->has('restore_zipfile')) {
                 $filename = $request->get('restore_zipfile');
-                $result = $this->runRestore(strval($filename));
+                $result = $this->runRestore(strval($filename), null, boolval($request->get('backup_first')));
             } elseif ($request->has('upload_zipfile')) {
                 // get upload file
                 $file = $request->file('upload_zipfile');
                 // store uploaded file
                 $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
-                $result = $this->runRestore(strval($filename), true);
+                $result = $this->runRestore(strval($filename), true, boolval($request->get('backup_first')));
             }
             // it goes on apart: its page shows the progress
             if (isset($result) && $result instanceof BackupRun) {
@@ -720,12 +732,13 @@ class BackupController extends AdminControllerBase
      * @throws BackupRunLockedException
      * @throws \Exception a refused file (InvalidZipEntryException) and the others, as before
      */
-    protected function runRestore(string $file, ?bool $tmp = null)
+    protected function runRestore(string $file, ?bool $tmp = null, bool $backupFirst = false)
     {
         $detach = BackupRuns::detachAvailable();
         $run = BackupRuns::start(BackupRun::KIND_RESTORE, BackupRun::TRIGGER_SCREEN, [
             'file_name' => pathinfo($file, PATHINFO_FILENAME),
-            'targets' => [boolval($tmp) ? BackupRuns::SOURCE_UPLOAD : BackupRuns::SOURCE_STORED, $file],
+            // where the file is, the file, and the backup before the restore (the command apart reads them)
+            'targets' => array_merge([boolval($tmp) ? BackupRuns::SOURCE_UPLOAD : BackupRuns::SOURCE_STORED, $file], $backupFirst ? [BackupRuns::BACKUP_FIRST] : []),
         ], $detach);
 
         if ($detach && BackupRuns::launchRestore($run)) {
@@ -735,7 +748,7 @@ class BackupController extends AdminControllerBase
         // here: as long as it takes, also when the browser gives up
         @set_time_limit(0);
         ignore_user_abort(true);
-        return BackupRuns::runRestore($run, $this->restore, $file, $tmp);
+        return BackupRuns::runRestore($run, $this->restore, $file, $tmp, null, $backupFirst);
     }
 
     /**

@@ -458,6 +458,10 @@ return [
         'notify' => env('EXMENT_BACKUP_NOTIFY', true),
         'job_timeout' => env('EXMENT_BACKUP_JOB_TIMEOUT', 21600),
         'save_interval' => 1.0,
+        // the backups made before a restore that are kept
+        'keep_safety' => env('EXMENT_BACKUP_KEEP_SAFETY', 3),
+        // a backup is checked before it is restored (its sha256, every entry read)
+        'verify' => env('EXMENT_BACKUP_VERIFY', true),
     ],
 
     /*

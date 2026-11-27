@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Storage\Disk;
 
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
+use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\BackupRestore\RunProgress;
 use Exceedone\Exment\Services\ZipService;
@@ -69,20 +70,28 @@ class BackupDiskService extends DiskServiceBase
         $disk = $diskItem->disk();
         $localSyncDisk = $localSyncDiskItem->disk();
 
-        // download zip
         \Exment::makeDirectoryDisk($localSyncDisk, $localSyncDiskItem->dirName());
 
-        $stream = $disk->readStream($diskItem->filePath());
-        $localSyncDisk->writeStream($localSyncDiskItem->filePath(), $stream);
-        try {
-            fclose($stream);
-        } catch (\Exception $ex) {
+        // a backup on this server is read where it is; else it is downloaded first (ISS02943:
+        // a copy of the whole file less)
+        $zipPath = $this->localZipPath();
+        $downloaded = false;
+        if ($zipPath === null) {
+            // download zip
+            $stream = $disk->readStream($diskItem->filePath());
+            $localSyncDisk->writeStream($localSyncDiskItem->filePath(), $stream);
+            try {
+                fclose($stream);
+            } catch (\Exception $ex) {
+            }
+            $zipPath = $localSyncDiskItem->fileFullPath();
+            $downloaded = true;
         }
-        $this->progress?->info('zip', ['bytes' => intval($localSyncDisk->size($localSyncDiskItem->filePath()))]);
+        $this->progress?->info('zip', ['bytes' => intval(@filesize($zipPath)), 'downloaded' => $downloaded]);
 
         // open new zip file
         $zip = new \ZipArchive();
-        if ($zip->open($localSyncDiskItem->fileFullPath()) !== true) {
+        if ($zip->open($zipPath) !== true) {
             // an unreadable stored backup must not look like a successful restore:
             // the caller would keep going over an empty folder, restore nothing,
             // and still answer "restore succeeded". same rule as Restore::unzipFile().
@@ -95,12 +104,125 @@ class BackupDiskService extends DiskServiceBase
             throw new InvalidZipEntryException($zipEntryError);
         }
 
+        static::verify($zip, $zipPath, $this->expectedSha256(), $this->progress);
         static::extract($zip, $localSyncDiskItem->dirFullPath(), $this->progress);
         $zip->close();
 
-        $localSyncDisk->delete($localSyncDiskItem->filePath());
+        if ($downloaded) {
+            $localSyncDisk->delete($localSyncDiskItem->filePath());
+        }
 
         return true;
+    }
+
+    /**
+     * Check a backup before it is extracted (ISS02943): the sha256 of the file against the one
+     * recorded when it was made (when it is known), then every entry read to its end, so a file
+     * cut short or broken (its CRC) is found before the database is replaced.
+     *
+     * @throws InvalidZipEntryException
+     */
+    public static function verify(\ZipArchive $zip, string $zipPath, ?string $expectedSha256, ?RunProgress $progress = null): void
+    {
+        if (!boolval(config('exment.backup.verify', true))) {
+            return;
+        }
+        $sha256 = hash_file('sha256', $zipPath);
+        if (isset($expectedSha256) && $sha256 !== false && !hash_equals($expectedSha256, $sha256)) {
+            $progress?->error('the sha256 of the backup file differs from when it was made', ['expected' => $expectedSha256, 'actual' => $sha256]);
+            throw new InvalidZipEntryException(strval(exmtrans('backup.run.message.verify_sha256')));
+        }
+        $progress?->info('sha256', ['sha256' => $sha256 === false ? null : $sha256, 'recorded' => isset($expectedSha256)]);
+
+        $progress?->total($zip->numFiles);
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = strval($zip->getNameIndex($i));
+            if (str_ends_with($name, '/')) {
+                $progress?->advance(1);
+                continue;
+            }
+            if (!static::readsToTheEnd($zip, $i)) {
+                $progress?->error('a file of the backup cannot be read', ['entry' => $name]);
+                throw new InvalidZipEntryException(strval(exmtrans('backup.run.message.verify_read', ['name' => $name])));
+            }
+            $progress?->advance(1);
+        }
+    }
+
+    /**
+     * Read an entry to its end: false when it cannot be, or when what was read is not what the
+     * zip recorded (its size and its CRC).
+     */
+    protected static function readsToTheEnd(\ZipArchive $zip, int $index): bool
+    {
+        $failed = false;
+        set_error_handler(function () use (&$failed) {
+            $failed = true;
+            return true;
+        });
+        try {
+            $stat = $zip->statIndex($index);
+            $stream = $zip->getStreamIndex($index);
+            if ($stat === false || $stream === false) {
+                return false;
+            }
+            $crc = hash_init('crc32b');
+            $size = 0;
+            while (!feof($stream)) {
+                $chunk = fread($stream, 1048576);
+                if ($chunk === false) {
+                    $failed = true;
+                    break;
+                }
+                hash_update($crc, $chunk);
+                $size += strlen($chunk);
+            }
+            fclose($stream);
+            if ($failed || $size !== intval($stat['size'])) {
+                return false;
+            }
+            return intval(hexdec(hash_final($crc))) === intval($stat['crc']);
+        } catch (\Throwable $e) {
+            return false;
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    /**
+     * The sha256 recorded when the stored backup was made (null: not known, e.g. made before
+     * it was recorded, or renamed).
+     */
+    protected function expectedSha256(): ?string
+    {
+        try {
+            $name = $this->diskItem()->fileNameNoExtension();
+            $sha = BackupRun::query()->where('kind', BackupRun::KIND_BACKUP)
+                ->where('file_name', $name)
+                ->whereIn('status', [BackupRun::STATUS_SUCCEEDED, BackupRun::STATUS_WARNING])
+                ->whereNotNull('sha256')
+                ->orderByDesc('id')
+                ->value('sha256');
+            return is_string($sha) && strlen($sha) === 64 ? $sha : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * The path of the backup file when it is a file of this server (the local disk), else null.
+     */
+    protected function localZipPath(): ?string
+    {
+        try {
+            $path = $this->diskItem()->disk()->path($this->diskItem()->filePath());
+        } catch (\Throwable $e) {
+            return null;
+        }
+        if ($path === '' || !(str_starts_with($path, '/') || preg_match('/^[A-Za-z]:[\\\\\/]/', $path))) {
+            return null;
+        }
+        return is_file($path) && is_readable($path) ? $path : null;
     }
 
     /**
