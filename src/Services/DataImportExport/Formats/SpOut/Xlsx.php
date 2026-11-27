@@ -2,7 +2,9 @@
 
 namespace Exceedone\Exment\Services\DataImportExport\Formats\SpOut;
 
+use Exceedone\Exment\Exceptions\InvalidZipEntryException;
 use Exceedone\Exment\Services\DataImportExport\Formats\XlsxTrait;
+use Box\Spout\Common\Exception\SpoutException;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use Box\Spout\Writer\Common\Creator\WriterEntityFactory;
 use Box\Spout\Reader\ReaderAbstract;
@@ -48,9 +50,13 @@ class Xlsx extends SpOut
         list($path, $extension, $originalName, $file) = $this->getFileInfo($request);
 
         $reader = $this->createReader();
-        $reader->open($path);
         try {
+            $reader->open($path);
             return $callback($reader);
+        } catch (SpoutException $ex) {
+            // a file named .xlsx that is not a readable xlsx (broken, renamed) is a user mistake:
+            // answer the format error in the import modal instead of a blank 500.
+            throw new InvalidZipEntryException(strval(exmtrans('error.failure_import_file')), 0, $ex);
         } finally {
         }
     }

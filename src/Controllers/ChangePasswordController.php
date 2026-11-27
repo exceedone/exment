@@ -39,6 +39,10 @@ class ChangePasswordController extends Controller
         $data = $this->getLoginPageData();
         if ($request->session()->has(Define::SYSTEM_KEY_SESSION_FIRST_CHANGE_PASSWORD)) {
             $data['caption'] = exmtrans('user.help.first_change_password');
+        } elseif ($request->session()->has(Define::SYSTEM_KEY_SESSION_PASSWORD_LIMIT)) {
+            // sent here by the login because the password expired: tell the user why.
+            // the password rule is still shown under the new password field.
+            $data['caption'] = exmtrans('user.help.password_change');
         } else {
             $data['caption'] = \Exment::get_password_help();
         }
