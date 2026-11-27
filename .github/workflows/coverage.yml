@@ -48,6 +48,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: exceedone/exment-admin-core
+          ref: 1.x
           path: ./docker-exment/exment-boilerplate/exment-admin-core
 
       # the downloads of composer are kept between runs (fewer downloads: faster, and fewer

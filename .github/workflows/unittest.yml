@@ -51,6 +51,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: exceedone/exment-admin-core
+          ref: 1.x
           path: ./docker-exment/exment-boilerplate/exment-admin-core
 
       # the free official plugins as released (exceedone/exment-plugins-release):
