@@ -168,7 +168,7 @@
                                 <div class="col-sm-4">
                                     <select name="days" class="form-control">
                                     @foreach ($days as $d)
-                                        <option value="{{ $d }}" {{ intval($old['days'] ?? $default_days) === $d ? 'selected' : '' }}>{{ exmtrans('api_key.days', $d) }}</option>
+                                        <option value="{{ $d }}" {{ (($old['days'] ?? '') !== '' ? intval($old['days']) : $default_days) === $d ? 'selected' : '' }}>{{ exmtrans('api_key.days', $d) }}</option>
                                     @endforeach
                                     </select>
                                 </div>

@@ -460,6 +460,8 @@ class UserApiKeyPageTest extends FeatureTestBase
         // the scopes of MCP are checked, the others not
         $this->assertStringContainsString('name="scopes[]" value="value_read" checked', $content);
         $this->assertStringNotContainsString('name="scopes[]" value="value_write" checked', $content);
+        // the end date: 90 days by default (an empty field is not 0)
+        $this->assertStringContainsString('<option value="90" selected>', $content);
         // a system table is hidden until asked (not the users)
         $this->assertSame(1, preg_match('/<label class="exm-ak-system"[^>]*style="display:none"><input type="checkbox" name="tables\[\]" value="mail_template"/', $content));
         $this->assertSame(1, preg_match('/<label class=""[^>]*><input type="checkbox" name="tables\[\]" value="user"/', $content));
