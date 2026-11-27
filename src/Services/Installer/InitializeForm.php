@@ -137,8 +137,8 @@ class InitializeForm
                 if ($after['other'] > 0) {
                     admin_warning(
                         exmtrans('security_check.header'),
-                        e(exmtrans('security_check.after_initialize', ['count' => $after['other']]))
-                            . ' <a href="' . e(admin_url('security_check')) . '">' . e(exmtrans('security_check.open')) . '</a>'
+                        admin_html_message(e(exmtrans('security_check.after_initialize', ['count' => $after['other']]))
+                            . ' <a href="' . e(admin_url('security_check')) . '">' . e(exmtrans('security_check.open')) . '</a>')
                     );
                 }
             } catch (\Throwable $ex) {

@@ -1208,10 +1208,10 @@ class WorkflowController extends AdminControllerBase
             }))->values();
 
             if ($messages->count() > 0) {
-                // the alert prints its message as html, and the names are the user's
-                admin_error(exmtrans('common.error'), $messages->map(function ($message) {
+                // HTML (the lines), with the names (the user's) escaped
+                admin_error(exmtrans('common.error'), admin_html_message($messages->map(function ($message) {
                     return esc_html($message);
-                })->implode('<br />'));
+                })->implode('<br />')));
                 $errors->add('workflow_actions', $messages->implode(' '));
             }
         }
