@@ -1297,6 +1297,7 @@ return [
             'restore_error' => 'Error en la restauración.',
             'restore_file_success' => 'Restauración correcta. Redirigiendo a la página de inicio de sesión.',
             'restore_file_error' => 'Error en la restauración. Compruebe el archivo cargado.',
+            'restore_file_not_found' => 'No se encontró el archivo de la copia de seguridad: :name',
             'restore_config_skipped' => 'No se restauraron los archivos de configuración de la copia de seguridad, porque la copia se realizó con otra versión de Laravel (o antes de que se registrara la información de versión). Si es necesario, extráigalos del zip de la copia de seguridad y aplíquelos manualmente.',
             'edit_filename_confirm' => 'Editar nombre de archivo',
             'edit_filename_text' => 'Introduzca el nombre del archivo de copia de seguridad. Algunos caracteres no se pueden usar.',
