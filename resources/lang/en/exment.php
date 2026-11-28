@@ -1342,7 +1342,7 @@ return [
             'dump_failed' => 'The database dump did not complete (exit code :code). :detail',
             'dump_empty' => 'The database dump wrote no file (:file).',
             'zip_failed' => 'The backup file was not created.',
-            'tls_hint' => 'mysqldump/mysql and the database server do not agree on TLS. For a MariaDB client, set skip-ssl-verify-server-cert (or ssl-verify-server-cert=0) under [client] in my.cnf; for a MySQL client, set ssl-mode (e.g. ssl-mode=DISABLED, or VERIFY_CA with the CA file). The options can also be given in EXMENT_DB_DUMP_OPTIONS and EXMENT_DB_RESTORE_OPTIONS of .env.',
+            'tls_hint' => 'mysqldump/mysql and the database server do not agree on TLS. First, give the CA of the database server: set MYSQL_ATTR_SSL_CA in .env (Exment then passes --ssl-ca=/path/to/ca.pem to mysqldump/mysql automatically), or add --ssl-ca=/path/to/ca.pem to EXMENT_DB_DUMP_OPTIONS / EXMENT_DB_RESTORE_OPTIONS. Only as a last resort, turn off the check of the server certificate in the client: for a MariaDB client, ssl-verify-server-cert=0 under [client] in my.cnf (or --skip-ssl-verify-server-cert); for a MySQL client, --ssl-mode=REQUIRED. This removes the protection against a man-in-the-middle.',
             'restore_nothing_restored' => 'Nothing was restored: the database was not changed. :reason',
             'restore_stopped_midway' => 'The restore stopped midway: the database may be partly restored. :reason If the users are gone and the screen cannot be used, restore a good backup on the server with the command: php artisan exment:restore (the name of the backup).',
             'restore_empty_file' => 'The file :file of the backup is empty.',

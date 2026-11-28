@@ -1295,7 +1295,7 @@ return [
             'dump_failed' => '데이터베이스 덤프가 완료되지 않았습니다(종료 코드 :code). :detail',
             'dump_empty' => '데이터베이스 덤프 파일이 만들어지지 않았습니다(:file).',
             'zip_failed' => '백업 파일이 만들어지지 않았습니다.',
-            'tls_hint' => 'mysqldump/mysql 과 데이터베이스 서버의 TLS 설정이 맞지 않습니다. MariaDB 클라이언트라면 my.cnf 의 [client] 에 skip-ssl-verify-server-cert(또는 ssl-verify-server-cert=0)를 설정하십시오. MySQL 클라이언트라면 ssl-mode(예: ssl-mode=DISABLED, 또는 CA 파일과 함께 VERIFY_CA)를 설정하십시오. .env 의 EXMENT_DB_DUMP_OPTIONS, EXMENT_DB_RESTORE_OPTIONS 로 옵션을 지정할 수도 있습니다.',
+            'tls_hint' => 'mysqldump/mysql 과 데이터베이스 서버의 TLS 설정이 맞지 않습니다. 먼저 데이터베이스 서버의 CA 를 지정하십시오. .env 에 MYSQL_ATTR_SSL_CA 를 설정하면 Exment 가 mysqldump/mysql 에 --ssl-ca=/path/to/ca.pem 을 자동으로 전달합니다. EXMENT_DB_DUMP_OPTIONS / EXMENT_DB_RESTORE_OPTIONS 에 --ssl-ca=/path/to/ca.pem 을 추가할 수도 있습니다. 최후의 수단으로만 클라이언트에서 서버 인증서 검증을 끄십시오. MariaDB 클라이언트라면 my.cnf 의 [client] 에 ssl-verify-server-cert=0(또는 --skip-ssl-verify-server-cert), MySQL 클라이언트라면 --ssl-mode=REQUIRED 입니다. 이 경우 중간자 공격을 막을 수 없게 됩니다.',
             'restore_nothing_restored' => '복원하지 않았습니다. 데이터베이스는 변경되지 않았습니다. :reason',
             'restore_stopped_midway' => '복원이 도중에 멈췄습니다. 데이터베이스가 일부만 복원되었을 수 있습니다. :reason 사용자가 없어져 화면을 사용할 수 없으면, 서버에서 올바른 백업을 명령으로 복원하십시오: php artisan exment:restore (백업 이름)',
             'restore_empty_file' => '백업 파일 :file 이(가) 비어 있습니다.',
