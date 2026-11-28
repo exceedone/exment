@@ -5974,6 +5974,13 @@ IP 주소: :ip
         'files_top' => '자주 여는 파일',
         'last_used' => '마지막 사용 일시',
         'mcp' => 'AI(MCP)가 나로서 호출한 횟수: 성공 %s회・오류 %s회',
+        'sessions' => '로그인 중인 브라우저',
+        'this_browser' => '이 브라우저',
+        'key_marks' => [
+            'any_ip' => '모든 IP',
+            'unused' => '90일 미사용',
+            'long_expiry' => '기한이 김',
+        ],
         'cards' => [
             'logins' => '로그인',
             'safety' => '안전',

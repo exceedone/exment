@@ -388,13 +388,26 @@ class MyInsights
         $keys = [];
         if (\Schema::hasTable('user_api_keys')) {
             $keys = UserApiKey::query()->where('user_id', $this->userId)->whereNull('revoked_at')->where('expires_at', '>', Insights::now())->orderByDesc('last_used_at')
-                ->get(['name', 'use_count', 'last_used_at', 'last_refused_at', 'last_refused_reason', 'expires_at'])
-                ->map(function ($key) {
+                ->get(['name', 'use_count', 'last_used_at', 'last_refused_at', 'last_refused_reason', 'expires_at', 'created_at', 'allowed_ips'])
+                ->map(function (UserApiKey $key) {
+                    // the marks of the IT audit report, for my keys: usable from any address, not used, a long end date
+                    $marks = [];
+                    if (count($key->ipList()) === 0) {
+                        $marks[] = 'any_ip';
+                    }
+                    $used = $key->last_used_at ?? $key->created_at;
+                    if (isset($used) && Carbon::parse($used)->lt(Insights::now()->subDays(InsightSecurity::UNUSED_DAYS))) {
+                        $marks[] = 'unused';
+                    }
+                    if (isset($key->created_at) && Carbon::parse($key->expires_at)->gt(Carbon::parse($key->created_at)->addDays(\Exceedone\Exment\Services\AuditReport\AuditReport::LONG_KEY_DAYS))) {
+                        $marks[] = 'long_expiry';
+                    }
                     return [
                         'name' => strval($key->name), 'uses' => intval($key->use_count),
                         'last_used' => isset($key->last_used_at) ? Carbon::parse($key->last_used_at)->format('Y-m-d H:i') : null,
                         'refused' => isset($key->last_refused_at) ? Carbon::parse($key->last_refused_at)->format('Y-m-d H:i') . ' (' . exmtrans('api_key.refusals.' . $key->last_refused_reason) . ')' : null,
                         'expires' => Carbon::parse($key->expires_at)->format('Y-m-d'),
+                        'marks' => $marks,
                     ];
                 })->all();
         }
@@ -412,5 +425,39 @@ class MyInsights
                 })->all();
         }
         return ['keys' => $keys, 'mcp' => $mcp, 'tools' => $tools, 'url' => admin_url('auth/api_keys')];
+    }
+
+    /**
+     * My sessions (browsers signed in now), when the sessions are kept in the database: the
+     * address, the browser and the last time. Null when the site keeps them elsewhere (files,
+     * Redis...): they cannot be listed. Never the id of a session.
+     *
+     * @return array<int, array{ip: string, agent: string, last: string, current: bool}>|null
+     */
+    public function sessions(): ?array
+    {
+        if (strval(config('session.driver')) !== 'database') {
+            return null;
+        }
+        $table = strval(config('session.table', 'sessions'));
+        try {
+            $connection = \DB::connection(config('session.connection'));
+            if (!$connection->getSchemaBuilder()->hasTable($table)) {
+                return null;
+            }
+            $current = session()->getId();
+            return $connection->table($table)->where('user_id', $this->user->id)->orderByDesc('last_activity')->limit(20)
+                ->get(['id', 'ip_address', 'user_agent', 'last_activity'])
+                ->map(function ($row) use ($current) {
+                    return [
+                        'ip' => strval($row->ip_address),
+                        'agent' => static::agent(strval($row->user_agent)),
+                        'last' => Carbon::createFromTimestamp(intval($row->last_activity))->setTimezone(strval(config('app.timezone')))->format('Y-m-d H:i'),
+                        'current' => hash_equals(strval($current), strval($row->id)),
+                    ];
+                })->all();
+        } catch (\Throwable $e) {
+            return null;
+        }
     }
 }

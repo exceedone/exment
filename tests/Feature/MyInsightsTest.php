@@ -180,6 +180,24 @@ class MyInsightsTest extends FeatureTestBase
         }
     }
 
+    /**
+     * The security of my own: my keys with the marks of the IT audit report, my sessions only when
+     * the site keeps them in the database (else nothing is listed).
+     */
+    public function testMyKeysAndMySessions(): void
+    {
+        $user1 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);
+        \Exceedone\Exment\Services\UserApiKeys::create(intval($user1->base_user_id), 'anywhere', \Exceedone\Exment\Services\UserApiKeys::readOnlyScopes());
+        \Exceedone\Exment\Services\UserApiKeys::create(intval($user1->base_user_id), 'office only', \Exceedone\Exment\Services\UserApiKeys::readOnlyScopes(), null, '192.0.2.0/24');
+        $mine = new MyInsights($user1, Carbon::today()->subDays(6), Carbon::today());
+        $keys = collect($mine->api()['keys'])->keyBy('name');
+        $this->assertContains('any_ip', $keys['anywhere']['marks']);
+        $this->assertNotContains('any_ip', $keys['office only']['marks']);
+
+        config(['session.driver' => 'file']);
+        $this->assertNull($mine->sessions(), 'sessions in files are not listed');
+    }
+
     public function testTheCardsOfWhatTheSiteDoesNotHave(): void
     {
         $user1 = LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1);

@@ -5974,6 +5974,13 @@ Wenn Sie es nicht waren, ändern Sie Ihr Passwort und informieren Sie die Admini
         'files_top' => 'Meistgeöffnete Dateien',
         'last_used' => 'Zuletzt verwendet',
         'mcp' => 'KI-Aufrufe (MCP) in Ihrem Namen: %s erfolgreich, %s Fehler',
+        'sessions' => 'Angemeldete Browser',
+        'this_browser' => 'dieser Browser',
+        'key_marks' => [
+            'any_ip' => 'jede IP',
+            'unused' => '90 Tage ungenutzt',
+            'long_expiry' => 'langes Ablaufdatum',
+        ],
         'cards' => [
             'logins' => 'Anmeldungen',
             'safety' => 'Sicherheit',

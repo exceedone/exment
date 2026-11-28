@@ -42,6 +42,7 @@ class MyInsightsController extends AdminControllerBase
             'workflow' => $mine->workflow(),
             'files' => Features::enabled(Features::FILE_SERVER) ? $mine->files() : null,
             'api' => $mine->api(),
+            'sessions' => $mine->sessions(),
             'periods' => InsightReport::PERIODS,
             'days' => intval($request->query('days', 0)),
             'counted' => InsightDaily::tableExists(),

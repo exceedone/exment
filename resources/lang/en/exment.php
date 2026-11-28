@@ -6002,6 +6002,13 @@ If it was not you, change your password and tell the administrators.",
         'files_top' => 'Files I open most',
         'last_used' => 'Last used',
         'mcp' => 'AI (MCP) calls as you: %s OK, %s errors',
+        'sessions' => 'Browsers signed in',
+        'this_browser' => 'this browser',
+        'key_marks' => [
+            'any_ip' => 'any IP',
+            'unused' => 'unused 90 days',
+            'long_expiry' => 'long end date',
+        ],
         'cards' => [
             'logins' => 'Logins',
             'safety' => 'Safety',

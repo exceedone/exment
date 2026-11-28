@@ -23,6 +23,7 @@
         .exm-insights h3.exm-in-section { font-size: 16px; margin: 18px 0 8px; font-weight: bold; }
         .exm-insights .exm-in-feature { display: inline-block; margin: 0 4px 4px 0; padding: 1px 8px; border-radius: 10px; font-size: 12px; border: 1px solid rgba(0,0,0,.15); color: #888; }
         .exm-insights .exm-in-feature.is-on { border-color: #22c55e; color: #15803d; background: rgba(34,197,94,.08); }
+        .exm-insights .exm-in-mark { display: inline-block; margin-left: 4px; padding: 0 6px; border-radius: 8px; font-size: 11px; color: #b45309; background: rgba(245,158,11,.12); }
         .exm-insights .exm-in-light { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; background: #94a3b8; }
         .exm-insights .exm-in-light.is-ok { background: #22c55e; }
         .exm-insights .exm-in-light.is-warning { background: #f59e0b; }

@@ -5974,6 +5974,13 @@ IP 地址: :ip
         'files_top' => '常开的文件',
         'last_used' => '最后使用时间',
         'mcp' => 'AI（MCP）以您的身份调用的次数：成功 %s 次・错误 %s 次',
+        'sessions' => '已登录的浏览器',
+        'this_browser' => '此浏览器',
+        'key_marks' => [
+            'any_ip' => '任意 IP',
+            'unused' => '90 天未使用',
+            'long_expiry' => '期限较长',
+        ],
         'cards' => [
             'logins' => '登录',
             'safety' => '安全',

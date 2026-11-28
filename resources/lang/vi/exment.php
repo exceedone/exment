@@ -5974,6 +5974,13 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'files_top' => 'Tệp tôi mở nhiều',
         'last_used' => 'Lần dùng cuối',
         'mcp' => 'Lượt gọi AI (MCP) với tư cách bạn: %s thành công, %s lỗi',
+        'sessions' => 'Trình duyệt đang đăng nhập',
+        'this_browser' => 'trình duyệt này',
+        'key_marks' => [
+            'any_ip' => 'mọi IP',
+            'unused' => '90 ngày không dùng',
+            'long_expiry' => 'hạn dài',
+        ],
         'cards' => [
             'logins' => 'Đăng nhập',
             'safety' => 'An toàn',

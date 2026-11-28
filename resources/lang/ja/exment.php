@@ -6001,6 +6001,13 @@ IPアドレス: :ip
         'files_top' => 'よく開くファイル',
         'last_used' => '最後に使った日時',
         'mcp' => 'AI（MCP）があなたとして呼んだ回数：成功 %s 回・エラー %s 回',
+        'sessions' => 'ログインしているブラウザー',
+        'this_browser' => 'このブラウザー',
+        'key_marks' => [
+            'any_ip' => 'どの IP からでも',
+            'unused' => '90 日使っていない',
+            'long_expiry' => '期限が長い',
+        ],
         'cards' => [
             'logins' => 'ログイン',
             'safety' => '安全',

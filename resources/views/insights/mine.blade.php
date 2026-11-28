@@ -57,6 +57,15 @@
                     <tr><td colspan="3" class="exm-in-empty">{{ exmtrans('insights.empty') }}</td></tr>
                 @endforelse
                 </tbody></table>
+                @if (is_array($sessions))
+                    <table class="exm-in-table" style="margin-top:10px"><thead><tr><th>{{ exmtrans('my_insights.sessions') }}</th><th>IP</th><th>{{ exmtrans('my_insights.browser') }}</th></tr></thead><tbody>
+                    @forelse ($sessions as $row)
+                        <tr><td>{{ $row['last'] }}@if ($row['current']) <span class="exm-in-help">{{ exmtrans('my_insights.this_browser') }}</span>@endif</td><td><code>{{ $row['ip'] }}</code></td><td>{{ $row['agent'] }}</td></tr>
+                    @empty
+                        <tr><td colspan="3" class="exm-in-empty">{{ exmtrans('insights.empty') }}</td></tr>
+                    @endforelse
+                    </tbody></table>
+                @endif
                 <p class="exm-in-help">{{ exmtrans('my_insights.safety_help') }}</p>
             </div>
         </div>
@@ -130,7 +139,7 @@
             <div class="box-body">
                 <table class="exm-in-table"><thead><tr><th>{{ exmtrans('api_key.name') }}</th><th class="num">{{ exmtrans('insights.times') }}</th><th>{{ exmtrans('my_insights.last_used') }}</th><th>{{ exmtrans('api_key.expires_at') }}</th></tr></thead><tbody>
                 @forelse ($api['keys'] as $k)
-                    <tr><td>{{ $k['name'] }}@if ($k['refused'])<div class="exm-in-help" style="color:#d97706">{{ exmtrans('api_key.last_refused') }}: {{ $k['refused'] }}</div>@endif</td><td class="num">{{ number_format($k['uses']) }}</td><td>{{ $k['last_used'] ?? '-' }}</td><td>{{ $k['expires'] }}</td></tr>
+                    <tr><td>{{ $k['name'] }}@foreach ($k['marks'] as $mark) <span class="exm-in-mark">{{ exmtrans('my_insights.key_marks.' . $mark) }}</span>@endforeach @if ($k['refused'])<div class="exm-in-help" style="color:#d97706">{{ exmtrans('api_key.last_refused') }}: {{ $k['refused'] }}</div>@endif</td><td class="num">{{ number_format($k['uses']) }}</td><td>{{ $k['last_used'] ?? '-' }}</td><td>{{ $k['expires'] }}</td></tr>
                 @empty
                     <tr><td colspan="4" class="exm-in-empty">{{ exmtrans('api_key.no_keys') }}</td></tr>
                 @endforelse

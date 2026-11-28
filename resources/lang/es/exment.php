@@ -5974,6 +5974,13 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
         'files_top' => 'Archivos que más abro',
         'last_used' => 'Último uso',
         'mcp' => 'Llamadas de IA (MCP) en su nombre: %s correctas, %s errores',
+        'sessions' => 'Navegadores con sesión iniciada',
+        'this_browser' => 'este navegador',
+        'key_marks' => [
+            'any_ip' => 'cualquier IP',
+            'unused' => 'sin uso 90 días',
+            'long_expiry' => 'caducidad larga',
+        ],
         'cards' => [
             'logins' => 'Inicios de sesión',
             'safety' => 'Seguridad',
