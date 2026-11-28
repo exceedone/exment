@@ -88,7 +88,7 @@ class DataArchiveTest extends FeatureTestBase
         // the newest change of each record stays
         $preview = DataArchiver::preview('revisions', $before, 1);
         $this->assertSame(27, $preview['count']);
-        $this->assertSame(['2001-03' => 27], $preview['months']);
+        $this->assertSame(['2001-03' => 18, '2001-04' => 9], $preview['months']);
         $this->assertGreaterThan(0, $preview['bytes']);
 
         $archive = DataArchiver::archive('revisions', $before, 27, 1);
@@ -242,7 +242,7 @@ class DataArchiveTest extends FeatureTestBase
         $this->revisions();
 
         // off: not there
-        $this->get(admin_url('data_archive'), $ajax)->assertStatus(403);
+        $this->get(admin_url('data_archive'), $ajax)->assertStatus(404);
 
         System::features([DataArchiver::FEATURE => ['enabled' => true]]);
         System::clearCache();
