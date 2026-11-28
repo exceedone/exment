@@ -35,6 +35,15 @@ ok(exi_admin_prefix("APP_NAME=Exment\n") === 'admin', 'the pages of Exment: /adm
 ok(exi_admin_prefix("ADMIN_ROUTE_PREFIX=\n") === '', 'no prefix');
 ok(exi_admin_prefix("ADMIN_ROUTE_PREFIX=\"exm/\"\n") === 'exm', 'another prefix');
 
+// --- the .env of the site
+$env = "APP_NAME=Exment\nAPP_ENV=local\nAPP_KEY=base64:SHIPPEDKEY=\nAPP_DEBUG=true\nAPP_URL=http://localhost\n";
+$site = exi_env_for_site($env, str_repeat('k', 32));
+ok(strpos($site, 'APP_KEY=base64:' . base64_encode(str_repeat('k', 32)) . "\n") !== false, 'a key of its own');
+ok(strpos($site, 'SHIPPEDKEY') === false, 'not the key of the zip');
+ok(strpos($site, "APP_ENV=production\n") !== false && strpos($site, "APP_DEBUG=false\n") !== false, 'production, no debug');
+ok(substr_count($site, 'APP_KEY=') === 1 && strpos($site, "APP_URL=http://localhost\n") !== false, 'the other lines stay');
+ok(exi_env_set("A=1\n", 'B', '$2y') === "A=1\nB=\$2y\n", 'a value added (a "$" stays as it is)');
+
 // --- the manifest
 $good = array('version' => 'v7.2.8', 'file' => 'exment_v7_2_8.zip', 'size' => 69478320, 'sha256' => str_repeat('a', 64), 'url' => 'https://exment.net/downloads/ja/exment_v7_2_8.zip');
 ok(exi_manifest_problem($good, 'exment.net', false) === null, 'the manifest of exment.net');

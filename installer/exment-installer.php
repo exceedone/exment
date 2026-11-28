@@ -97,6 +97,32 @@ function exi_platform_php($code)
 }
 
 /**
+ * A .env with a value set: the line replaced when it is there, added at the end when not.
+ */
+function exi_env_set($env, $name, $value)
+{
+    $line = $name . '=' . $value;
+    $pattern = '/^' . preg_quote($name, '/') . '=.*$/m';
+    if (preg_match($pattern, (string)$env)) {
+        return preg_replace_callback($pattern, function () use ($line) {
+            return $line;
+        }, (string)$env, 1);
+    }
+    return rtrim((string)$env, "\n") . "\n" . $line . "\n";
+}
+
+/**
+ * The .env of the app for a site on the web: a key of its own (not the one in the zip, which every
+ * download has), production, no debug.
+ */
+function exi_env_for_site($env, $key)
+{
+    $env = exi_env_set($env, 'APP_KEY', 'base64:' . base64_encode($key));
+    $env = exi_env_set($env, 'APP_ENV', 'production');
+    return exi_env_set($env, 'APP_DEBUG', 'false');
+}
+
+/**
  * The prefix of the pages of Exment in a .env: ADMIN_ROUTE_PREFIX, "admin" when it is not there.
  */
 function exi_admin_prefix($env)
@@ -263,7 +289,7 @@ function exi_texts()
             'place_lead' => 'Exment を %s に置き、公開するファイルをこのフォルダーに置きました。', 'place_inside' => '（サーバーの都合で、このフォルダーの中に置き、Web からは見えないようにしました）',
             'place_link' => 'アプリの public フォルダーは、このフォルダーへのリンクにしました。', 'place_nolink' => 'リンクを作れなかったので、index.php からアプリを読むようにしました。',
             'db_lead' => 'データベースを作ってください。作ったら、下で接続を確かめてから次へ進みます。',
-            'db_xserver' => array('サーバーパネルの「MySQL設定」を開きます。', '「MySQL追加」でデータベースを作ります（名前は「サーバーID_」で始まります）。', '「MySQLユーザ追加」でユーザーを作り、パスワードを決めます。', '「MySQL一覧」で、そのデータベースにユーザーを「追加」します（アクセス権）。', 'ホスト名は「MySQL設定」に出ている名前（localhost か mysqlNNNN.xserver.jp）です。'),
+            'db_xserver' => array('サーバーパネルの「MySQL設定」を開きます。', '「MySQL追加」でデータベースを作ります（名前は「サーバーID_」で始まります）。', '「MySQLユーザ追加」でユーザーを作り、パスワードを決めます。', '「MySQL一覧」で、そのデータベースにユーザーを「追加」します（アクセス権）。', 'ホスト名は「MySQL設定」に出ている名前（localhost か mysqlNNNN.xserver.jp）です。', 'Exment のインストール画面では、データベースの種類に「MariaDB」を選んでください（Xserver のデータベースは MariaDB です。「MySQL」を選ぶと止まります）。'),
             'db_sakura' => array('コントロールパネルの「データベース」を開きます。', '「新規追加」でデータベースを作ります（文字コードは utf8mb4）。', 'ユーザー名はアカウント名、パスワードはデータベースを作ったときに決めたものです。', 'ホスト名は一覧に出ている「mysqlNNN.db.sakura.ne.jp」です。'),
             'db_other' => array('サーバーの管理画面で、MySQL（または MariaDB）のデータベースとユーザーを作ります。', '文字コードは utf8mb4 にします。', 'ホスト名・データベース名・ユーザー名・パスワードを控えます。'),
             'db_host' => 'ホスト名', 'db_port' => 'ポート', 'db_name' => 'データベース名', 'db_user' => 'ユーザー名', 'db_pass' => 'パスワード',
@@ -310,7 +336,7 @@ function exi_texts()
             'place_lead' => 'Exment is in %s, and its public files in this folder.', 'place_inside' => '(The server allowed only this folder: the app is inside it, closed to the web.)',
             'place_link' => 'The public folder of the app is a link to this folder.', 'place_nolink' => 'No link could be made: index.php loads the app from its folder.',
             'db_lead' => 'Make the database. Then test the connection below and go on.',
-            'db_xserver' => array('Open "MySQL設定" in the server panel.', 'Add a database with "MySQL追加" (its name starts with your server ID and "_").', 'Add a user with "MySQLユーザ追加" and choose its password.', 'In "MySQL一覧", add the user to the database (access rights).', 'The host is the name shown in "MySQL設定" (localhost or mysqlNNNN.xserver.jp).'),
+            'db_xserver' => array('Open "MySQL設定" in the server panel.', 'Add a database with "MySQL追加" (its name starts with your server ID and "_").', 'Add a user with "MySQLユーザ追加" and choose its password.', 'In "MySQL一覧", add the user to the database (access rights).', 'The host is the name shown in "MySQL設定" (localhost or mysqlNNNN.xserver.jp).', 'On the installer of Exment, choose "MariaDB" as the database (the databases of Xserver are MariaDB; with "MySQL" it stops).'),
             'db_sakura' => array('Open "Databases" in the control panel.', 'Add a database (character set utf8mb4).', 'The user is your account name; the password is the one chosen when the database was made.', 'The host is the "mysqlNNN.db.sakura.ne.jp" shown in the list.'),
             'db_other' => array('Make a MySQL (or MariaDB) database and a user in the control panel of the server.', 'Use the character set utf8mb4.', 'Note the host, the database, the user and the password.'),
             'db_host' => 'Host', 'db_port' => 'Port', 'db_name' => 'Database', 'db_user' => 'User', 'db_pass' => 'Password',
@@ -381,7 +407,7 @@ function exi_texts()
             'place_link' => 'Der öffentliche Ordner der Anwendung ist ein Link auf diesen Ordner.',
             'place_nolink' => 'Kein Link möglich: index.php lädt die Anwendung aus ihrem Ordner.',
             'db_lead' => 'Legen Sie die Datenbank an. Prüfen Sie dann unten die Verbindung und fahren Sie fort.',
-            'db_xserver' => array('Öffnen Sie „MySQL設定“ im Serverpanel.', 'Legen Sie mit „MySQL追加“ eine Datenbank an (der Name beginnt mit Ihrer Server-ID und „_“).', 'Legen Sie mit „MySQLユーザ追加“ einen Benutzer an und wählen Sie sein Passwort.', 'Fügen Sie in „MySQL一覧“ den Benutzer der Datenbank hinzu (Zugriffsrechte).', 'Der Host ist der in „MySQL設定“ angezeigte Name (localhost oder mysqlNNNN.xserver.jp).'),
+            'db_xserver' => array('Öffnen Sie „MySQL設定“ im Serverpanel.', 'Legen Sie mit „MySQL追加“ eine Datenbank an (der Name beginnt mit Ihrer Server-ID und „_“).', 'Legen Sie mit „MySQLユーザ追加“ einen Benutzer an und wählen Sie sein Passwort.', 'Fügen Sie in „MySQL一覧“ den Benutzer der Datenbank hinzu (Zugriffsrechte).', 'Der Host ist der in „MySQL設定“ angezeigte Name (localhost oder mysqlNNNN.xserver.jp).', 'Wählen Sie im Installer von Exment „MariaDB“ als Datenbank (die Datenbanken von Xserver sind MariaDB; mit „MySQL“ bricht er ab).'),
             'db_sakura' => array('Öffnen Sie „Datenbanken“ in der Systemsteuerung.', 'Legen Sie eine Datenbank an (Zeichensatz utf8mb4).', 'Der Benutzer ist Ihr Kontoname, das Passwort das beim Anlegen der Datenbank gewählte.', 'Der Host ist das in der Liste angezeigte „mysqlNNN.db.sakura.ne.jp“.'),
             'db_other' => array('Legen Sie in der Verwaltung des Servers eine MySQL- (oder MariaDB-)Datenbank und einen Benutzer an.', 'Verwenden Sie den Zeichensatz utf8mb4.', 'Notieren Sie Host, Datenbank, Benutzer und Passwort.'),
             'db_host' => 'Host',
@@ -463,7 +489,7 @@ function exi_texts()
             'place_link' => 'La carpeta pública de la aplicación es un enlace a esta carpeta.',
             'place_nolink' => 'No se pudo crear un enlace: index.php carga la aplicación desde su carpeta.',
             'db_lead' => 'Cree la base de datos. Después compruebe la conexión abajo y continúe.',
-            'db_xserver' => array('Abra «MySQL設定» en el panel del servidor.', 'Añada una base de datos con «MySQL追加» (su nombre empieza por su ID de servidor y «_»).', 'Añada un usuario con «MySQLユーザ追加» y elija su contraseña.', 'En «MySQL一覧», añada el usuario a la base de datos (permisos).', 'El host es el nombre que aparece en «MySQL設定» (localhost o mysqlNNNN.xserver.jp).'),
+            'db_xserver' => array('Abra «MySQL設定» en el panel del servidor.', 'Añada una base de datos con «MySQL追加» (su nombre empieza por su ID de servidor y «_»).', 'Añada un usuario con «MySQLユーザ追加» y elija su contraseña.', 'En «MySQL一覧», añada el usuario a la base de datos (permisos).', 'El host es el nombre que aparece en «MySQL設定» (localhost o mysqlNNNN.xserver.jp).', 'En el instalador de Exment, elija «MariaDB» como base de datos (las bases de datos de Xserver son MariaDB; con «MySQL» se detiene).'),
             'db_sakura' => array('Abra «Bases de datos» en el panel de control.', 'Añada una base de datos (juego de caracteres utf8mb4).', 'El usuario es el nombre de su cuenta; la contraseña, la elegida al crear la base de datos.', 'El host es el «mysqlNNN.db.sakura.ne.jp» que aparece en la lista.'),
             'db_other' => array('Cree una base de datos MySQL (o MariaDB) y un usuario en el panel del servidor.', 'Use el juego de caracteres utf8mb4.', 'Anote el host, la base de datos, el usuario y la contraseña.'),
             'db_host' => 'Host',
@@ -545,7 +571,7 @@ function exi_texts()
             'place_link' => '앱의 public 폴더는 이 폴더로의 링크로 했습니다.',
             'place_nolink' => '링크를 만들 수 없어서 index.php에서 앱을 읽도록 했습니다.',
             'db_lead' => '데이터베이스를 만드십시오. 만든 후 아래에서 연결을 확인하고 다음으로 진행합니다.',
-            'db_xserver' => array('서버 패널의 "MySQL設定"을 엽니다.', '"MySQL追加"로 데이터베이스를 만듭니다(이름은 "서버ID_"로 시작합니다).', '"MySQLユーザ追加"로 사용자를 만들고 비밀번호를 정합니다.', '"MySQL一覧"에서 그 데이터베이스에 사용자를 "추가"합니다(접근 권한).', '호스트 이름은 "MySQL設定"에 표시된 이름(localhost 또는 mysqlNNNN.xserver.jp)입니다.'),
+            'db_xserver' => array('서버 패널의 "MySQL設定"을 엽니다.', '"MySQL追加"로 데이터베이스를 만듭니다(이름은 "서버ID_"로 시작합니다).', '"MySQLユーザ追加"로 사용자를 만들고 비밀번호를 정합니다.', '"MySQL一覧"에서 그 데이터베이스에 사용자를 "추가"합니다(접근 권한).', '호스트 이름은 "MySQL設定"에 표시된 이름(localhost 또는 mysqlNNNN.xserver.jp)입니다.', 'Exment 설치 화면에서는 데이터베이스 종류로 "MariaDB"를 선택하십시오(Xserver의 데이터베이스는 MariaDB입니다. "MySQL"을 선택하면 멈춥니다).'),
             'db_sakura' => array('컨트롤 패널의 "데이터베이스"를 엽니다.', '"신규 추가"로 데이터베이스를 만듭니다(문자 코드는 utf8mb4).', '사용자 이름은 계정 이름, 비밀번호는 데이터베이스를 만들 때 정한 것입니다.', '호스트 이름은 목록에 표시된 "mysqlNNN.db.sakura.ne.jp"입니다.'),
             'db_other' => array('서버 관리 화면에서 MySQL(또는 MariaDB) 데이터베이스와 사용자를 만듭니다.', '문자 코드는 utf8mb4로 합니다.', '호스트 이름·데이터베이스 이름·사용자 이름·비밀번호를 적어 둡니다.'),
             'db_host' => '호스트 이름',
@@ -627,7 +653,7 @@ function exi_texts()
             'place_link' => 'Thư mục public của ứng dụng là liên kết đến thư mục này.',
             'place_nolink' => 'Không tạo được liên kết: index.php tải ứng dụng từ thư mục của nó.',
             'db_lead' => 'Hãy tạo cơ sở dữ liệu. Sau đó kiểm tra kết nối ở dưới rồi tiếp tục.',
-            'db_xserver' => array('Mở "MySQL設定" trong bảng điều khiển máy chủ.', 'Thêm cơ sở dữ liệu bằng "MySQL追加" (tên bắt đầu bằng ID máy chủ và "_").', 'Thêm người dùng bằng "MySQLユーザ追加" và đặt mật khẩu.', 'Trong "MySQL一覧", thêm người dùng vào cơ sở dữ liệu (quyền truy cập).', 'Host là tên hiển thị trong "MySQL設定" (localhost hoặc mysqlNNNN.xserver.jp).'),
+            'db_xserver' => array('Mở "MySQL設定" trong bảng điều khiển máy chủ.', 'Thêm cơ sở dữ liệu bằng "MySQL追加" (tên bắt đầu bằng ID máy chủ và "_").', 'Thêm người dùng bằng "MySQLユーザ追加" và đặt mật khẩu.', 'Trong "MySQL一覧", thêm người dùng vào cơ sở dữ liệu (quyền truy cập).', 'Host là tên hiển thị trong "MySQL設定" (localhost hoặc mysqlNNNN.xserver.jp).', 'Trong trình cài đặt của Exment, hãy chọn "MariaDB" làm cơ sở dữ liệu (cơ sở dữ liệu của Xserver là MariaDB; chọn "MySQL" sẽ bị dừng).'),
             'db_sakura' => array('Mở "Cơ sở dữ liệu" trong bảng điều khiển.', 'Thêm cơ sở dữ liệu (bộ ký tự utf8mb4).', 'Người dùng là tên tài khoản; mật khẩu là mật khẩu đặt khi tạo cơ sở dữ liệu.', 'Host là "mysqlNNN.db.sakura.ne.jp" hiển thị trong danh sách.'),
             'db_other' => array('Tạo cơ sở dữ liệu MySQL (hoặc MariaDB) và người dùng trong trang quản lý máy chủ.', 'Dùng bộ ký tự utf8mb4.', 'Ghi lại host, tên cơ sở dữ liệu, người dùng và mật khẩu.'),
             'db_host' => 'Host',
@@ -709,7 +735,7 @@ function exi_texts()
             'place_link' => '应用的 public 文件夹已设为指向此文件夹的链接。',
             'place_nolink' => '无法创建链接，已改为由 index.php 从应用文件夹读取。',
             'db_lead' => '请创建数据库。创建后，在下方确认连接再继续。',
-            'db_xserver' => array('打开服务器面板的“MySQL設定”。', '用“MySQL追加”创建数据库（名称以“服务器ID_”开头）。', '用“MySQLユーザ追加”创建用户并设置密码。', '在“MySQL一覧”中将该用户“添加”到数据库（访问权限）。', '主机名是“MySQL設定”中显示的名称（localhost 或 mysqlNNNN.xserver.jp）。'),
+            'db_xserver' => array('打开服务器面板的“MySQL設定”。', '用“MySQL追加”创建数据库（名称以“服务器ID_”开头）。', '用“MySQLユーザ追加”创建用户并设置密码。', '在“MySQL一覧”中将该用户“添加”到数据库（访问权限）。', '主机名是“MySQL設定”中显示的名称（localhost 或 mysqlNNNN.xserver.jp）。', '在 Exment 的安装界面中，数据库类型请选择“MariaDB”（Xserver 的数据库是 MariaDB；选择“MySQL”会停止）。'),
             'db_sakura' => array('打开控制面板的“数据库”。', '用“新建”创建数据库（字符集 utf8mb4）。', '用户名是账户名，密码是创建数据库时设置的密码。', '主机名是列表中显示的“mysqlNNN.db.sakura.ne.jp”。'),
             'db_other' => array('在服务器管理界面中创建 MySQL（或 MariaDB）数据库和用户。', '字符集使用 utf8mb4。', '记下主机名、数据库名、用户名和密码。'),
             'db_host' => '主机名',
@@ -1303,6 +1329,15 @@ function exi_place($dir)
         if (!$state['linked']) {
             @mkdir($public, 0755);
         }
+    }
+    // the .env: a key of its own at once (the zip's key is the same in every download), production,
+    // readable by the owner and the group only
+    $envFile = $appDir . '/.env';
+    if (is_file($envFile) && empty($state['env_done'])) {
+        $random = function_exists('random_bytes') ? random_bytes(32) : openssl_random_pseudo_bytes(32);
+        file_put_contents($envFile, exi_env_for_site((string)file_get_contents($envFile), $random), LOCK_EX);
+        @chmod($envFile, 0640);
+        $state['env_done'] = true;
     }
     $state['step'] = 'db';
     exi_save($dir, $state);
