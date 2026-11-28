@@ -65,6 +65,9 @@ class DataArchiveController extends AdminControllerBase
                         $data['restore'] = ['archive' => $archive, 'preview' => DataArchiver::restorePreview($archive)];
                     } catch (ArchiveException $e) {
                         $data['restore'] = ['archive' => $archive, 'error' => $e->text()];
+                    } catch (\Throwable $e) {
+                        \Log::warning('[Exment] data archive: the restore preview: ' . $e->getMessage());
+                        $data['restore'] = ['archive' => $archive, 'error' => exmtrans('data_archive.errors.missing')];
                     }
                 }
             }
@@ -176,6 +179,9 @@ class DataArchiveController extends AdminControllerBase
             admin_toastr(exmtrans('data_archive.restored', ['count' => number_format($count)]));
         } catch (ArchiveException $e) {
             admin_error(exmtrans('data_archive.header'), $e->text());
+        } catch (\Throwable $e) {
+            \Log::error('[Exment] data archive: the restore: ' . $e->getMessage());
+            admin_error(exmtrans('data_archive.header'), exmtrans('data_archive.errors.missing'));
         }
         return redirect()->to(admin_url('data_archive') . '?tab=archives');
     }

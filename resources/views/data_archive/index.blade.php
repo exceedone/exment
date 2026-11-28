@@ -13,7 +13,7 @@
 @else
 <ul class="nav nav-tabs" id="data-archive-tabs" style="margin-bottom:12px">
     @foreach(['sources', 'archives', 'trash', 'events'] as $t)
-    <li class="{{ $tab === $t ? 'active' : '' }}"><a href="{{ $tabUrl($t) }}" data-tab="{{ $t }}">{{ exmtrans('data_archive.tabs.' . $t) }}</a></li>
+    <li class="nav-item {{ $tab === $t ? 'active' : '' }}"><a href="{{ $tabUrl($t) }}" data-tab="{{ $t }}" class="nav-link {{ $tab === $t ? 'active' : '' }}" @if($tab === $t) aria-current="page" @endif>{{ exmtrans('data_archive.tabs.' . $t) }}</a></li>
     @endforeach
 </ul>
 
