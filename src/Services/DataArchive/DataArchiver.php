@@ -228,6 +228,9 @@ class DataArchiver
             throw new ArchiveException('write');
         }
         $ids = fopen($idsPath, 'wb');
+        if ($ids === false) {
+            throw new ArchiveException('write');
+        }
         $hash = hash_init('sha256');
         $buffer = '';
         $inPart = 0;
@@ -237,7 +240,7 @@ class DataArchiver
         $to = null;
         $max = static::maxRows();
         $flush = function () use (&$buffer, &$inPart, &$parts, $zip, $work) {
-            if ($inPart === 0) {
+            if (static::none($inPart)) {
                 return;
             }
             $name = sprintf('parts/%05d.ndjson.gz', count($parts) + 1);
@@ -300,7 +303,7 @@ class DataArchiver
             if (!ArchiveStore::fetch(strval($archive->disk), strval($archive->path), $local)) {
                 throw new ArchiveException('missing');
             }
-            if (isset($archive->sha256) && !hash_equals(strval($archive->sha256), hash_file('sha256', $local))) {
+            if (isset($archive->sha256) && !hash_equals(strval($archive->sha256), strval(hash_file('sha256', $local)))) {
                 throw new ArchiveException('broken');
             }
             $zip = new \ZipArchive();
@@ -382,7 +385,7 @@ class DataArchiver
         $deleted = 0;
         $chunk = [];
         $flush = function () use (&$chunk, &$deleted, $connection, $table, $date, $archive) {
-            if (count($chunk) === 0) {
+            if (static::none($chunk)) {
                 return;
             }
             $ids = $chunk;
@@ -462,7 +465,7 @@ class DataArchiver
         $inserted = 0;
         $chunk = [];
         $flush = function () use (&$chunk, &$inserted, $connection, $table) {
-            if (count($chunk) === 0) {
+            if (static::none($chunk)) {
                 return;
             }
             $rows = $chunk;
@@ -626,6 +629,14 @@ class DataArchiver
         } catch (\Throwable $e) {
             \Log::warning('[Exment] data archive: the record of ' . $action . ': ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Nothing to write yet (a count of rows, or the rows), for the closures that fill them.
+     */
+    protected static function none(mixed $value): bool
+    {
+        return is_array($value) ? count($value) === 0 : intval($value) === 0;
     }
 
     protected static function version(): ?string

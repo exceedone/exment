@@ -72,7 +72,7 @@ class DataArchiveTest extends FeatureTestBase
         DB::table('revisions')->insert($rows);
     }
 
-    protected function ours()
+    protected function ours(): \Illuminate\Database\Query\Builder
     {
         return DB::table('revisions')->where('revisionable_type', static::TYPE);
     }

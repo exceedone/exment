@@ -108,7 +108,7 @@ class Sources
         }
         $schema = static::connection($key)->getSchemaBuilder();
         $columns = $schema->getColumnListing(boolval($source['custom'] ?? false) ? 'custom_values' : $table);
-        return array_values(array_map('strval', $columns));
+        return array_map('strval', $columns);
     }
 
     /**

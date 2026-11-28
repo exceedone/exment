@@ -130,7 +130,7 @@ class DataArchiveController extends AdminControllerBase
             return ['source' => $source, 'error' => exmtrans('data_archive.errors.before')];
         }
         try {
-            return DataArchiver::preview($source, $before, \Exment::getUserId());
+            return DataArchiver::preview($source, $before, $this->userId());
         } catch (ArchiveException $e) {
             return ['source' => $source, 'error' => $e->text()];
         }
@@ -150,7 +150,7 @@ class DataArchiveController extends AdminControllerBase
             abort(400);
         }
         try {
-            $archive = DataArchiver::archive($source, $before, intval($request->get('expected')), \Exment::getUserId());
+            $archive = DataArchiver::archive($source, $before, intval($request->get('expected')), $this->userId());
             admin_toastr(exmtrans('data_archive.archived', ['count' => number_format($archive->deleted_count)]));
             if ($archive->warning) {
                 admin_warning(exmtrans('data_archive.header'), strval($archive->message));
@@ -170,12 +170,12 @@ class DataArchiveController extends AdminControllerBase
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function restore(Request $request, $id)
+    public function restore(Request $request, string $id)
     {
         $this->systemOnly();
         $archive = DataArchive::findOrFail(intval($id));
         try {
-            $count = DataArchiver::restore($archive, \Exment::getUserId());
+            $count = DataArchiver::restore($archive, $this->userId());
             admin_toastr(exmtrans('data_archive.restored', ['count' => number_format($count)]));
         } catch (ArchiveException $e) {
             admin_error(exmtrans('data_archive.header'), $e->text());
@@ -191,12 +191,12 @@ class DataArchiveController extends AdminControllerBase
      *
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function action(Request $request, $id)
+    public function action(Request $request, string $id)
     {
         $this->systemOnly();
         $archive = DataArchive::findOrFail(intval($id));
         $action = strval($request->get('do'));
-        $userId = \Exment::getUserId();
+        $userId = $this->userId();
         $tab = 'archives';
         try {
             switch ($action) {
@@ -244,19 +244,25 @@ class DataArchiveController extends AdminControllerBase
             \Exceedone\Exment\Model\System::data_archive_driver(strval($request->get('driver')));
         }
         \Exceedone\Exment\Model\System::clearCache();
-        DataArchiver::event(null, null, 'policy', null, null, \Exment::getUserId());
+        DataArchiver::event(null, null, 'policy', null, null, $this->userId());
         admin_toastr(trans('admin.save_succeeded'));
         return redirect()->to(admin_url('data_archive') . '?tab=sources');
     }
 
-    protected function beforeOf($value): ?Carbon
+    protected function userId(): ?int
+    {
+        $id = \Exment::getUserId();
+        return is_numeric($id) ? intval($id) : null;
+    }
+
+    protected function beforeOf(mixed $value): ?Carbon
     {
         if (!is_string($value) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $value) !== 1) {
             return null;
         }
         try {
             $before = Carbon::createFromFormat('Y-m-d', $value);
-            return $before === false ? null : $before->startOfDay();
+            return $before instanceof Carbon ? $before->startOfDay() : null;
         } catch (\Throwable $e) {
             return null;
         }
