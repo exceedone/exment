@@ -51,29 +51,15 @@ Mật khẩu: adminadmin
 Phát triển bởi [Kajitori Co., Ltd.](https://exment.net/company/) (tập đoàn Exceed One)
 
 
-## Chức năng mới của v7.0.0
-Phát hành ngày 28/10/2026. Nhìn là biết ngay tiến độ công việc. ([What's new](https://exment.net/vi/whats-new/))
+## Điểm nổi bật (7.2 và 7.3)
+- **Cơ sở dữ liệu web không cần lập trình**: tạo bảng, cột, biểu mẫu và chế độ xem (danh sách, tổng hợp, lịch, kanban, biểu đồ Gantt) ngay trên màn hình
+- **Workflow**: thiết kế luồng phê duyệt bằng sơ đồ
+- **Quản lý chức năng**: chức năng mới ban đầu ở trạng thái tắt; quản trị viên chọn chức năng sẽ dùng, nên cập nhật không làm thay đổi trang của bạn
+- **API key và máy chủ MCP**: dùng Exment từ hệ thống khác và từ công cụ AI
+- **Chia sẻ tệp**: thư mục và tệp có phân quyền, liên kết chia sẻ, phiên bản cũ
+- **Plugin chính thức miễn phí đi kèm**: Quản lý dự án, Groupware và Support Desk, chỉ được cài khi quản trị viên bật
 
-### Kanban view
-Xếp dữ liệu thành thẻ theo từng cột như trạng thái, kéo thả để di chuyển. Liên kết với workflow. ([Hướng dẫn](https://exment.net/docs/#/view_kanban)) Ảnh ở đầu trang này là Kanban view.
-
-### Gantt chart view
-Hiển thị từ ngày bắt đầu đến hạn chót bằng thanh ngang theo thời gian. Hỗ trợ tô màu, tỷ lệ tiến độ, mốc (milestone), thụt lề cha-con. ([Hướng dẫn](https://exment.net/docs/#/view_gantt))
-
-### Thiết kế luồng workflow
-Đặt trạng thái và hành động trên sơ đồ, vừa xem luồng workflow vừa thiết kế. ([Hướng dẫn](https://exment.net/docs/#/workflow_design))  
-![Thiết kế luồng workflow](https://exment.net/docs/img/workflow_design/wf_designer.png)
-
-### Kiểu ô (cell style)
-Cài đặt preset đổi màu, chữ của ô trong danh sách dữ liệu và Kanban theo giá trị. ([Hướng dẫn](https://exment.net/docs/#/cell_style_preset))  
-![Kiểu ô](https://exment.net/docs/img/cell_style_preset/preset_grid_result.png)
-
-### Công cụ danh sách dữ liệu
-Ẩn/hiện cột, cố định cột, nhóm, sửa trực tiếp (inline), xem nhanh, thao tác hàng loạt... ([Hướng dẫn](https://exment.net/docs/#/data_grid_tools))  
-![Công cụ danh sách dữ liệu](https://exment.net/docs/img/data_grid_tools/grid_overview.png)
-
-### Hỗ trợ Laravel 12, PHP 8.2 trở lên
-Cập nhật framework lên Laravel 12, làm mới thư viện màn hình quản trị. Hãy xem các lưu ý trước khi nâng cấp. ([Nâng cấp](https://exment.net/docs/#/update))
+Chi tiết từng phiên bản: [What's new](https://exment.net/vi/whats-new/) · [Ghi chú phát hành](https://exment.net/docs/release_note.html)
 
 
 ## Chức năng
