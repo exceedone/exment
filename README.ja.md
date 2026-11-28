@@ -1,5 +1,5 @@
 <p align="center">
-<a href="ReadMe.md">English</a> | <b>日本語</b> | <a href="ReadMe.vi.md">Tiếng Việt</a>
+<a href="README.md">English</a> | <b>日本語</b> | <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
 <p align="center">
@@ -43,37 +43,20 @@ Exment（エクスメント）は、プログラミングなしで業務シス�
 | 使い方 | [マニュアル](https://exment.net/docs/#/ja/) |
 | お問い合わせ | [お問い合わせ](https://exment.net/inquiry/)（導入・乗り換えのご相談、保守サポート） |
 
-<a href="https://demo.exment.net/admin" target="_blank">デモサイト</a>  
-次の内容でログインしてください。  
-ユーザーコード：admin  
-パスワード：adminadmin
+[デモサイト](https://exment.net/demo-env/)：ブラウザーで Exment を試せます（ログインの方法はページにあります）。
 
 開発: [株式会社カジトリ](https://exment.net/company/)（エクシード・ワン グループ）
 
 
-## v7.0.0 の新機能
-2026 年 10 月 28 日リリース。仕事の進み具合がひと目でわかります。（[What's new](https://exment.net/whats-new/)）
+## いまの Exment（7.2・7.3）
+- **ノーコードの Web データベース**：テーブル・列・フォーム・ビュー（一覧・集計・カレンダー・カンバン・ガントチャート）を画面で作れます
+- **ワークフロー**：承認の流れを図で設計できます
+- **機能の管理**：新しい機能は、はじめは「使わない」。使う機能を管理者が選ぶので、更新しただけでサイトが変わりません
+- **API キーと MCP サーバー**：ほかのシステムや AI のツールから Exment を使えます
+- **ファイルの共有**：権限つきのフォルダー・ファイル、共有リンク、前の版
+- **無料の公式プラグインを同梱**：プロジェクト管理・グループウェア・サポートデスク。管理者が「使う」にしたときだけ入ります
 
-### カンバンビュー
-ステータスなどの列ごとにデータをカードで並べ、ドラッグで移動。ワークフローとも連動します。（[マニュアル](https://exment.net/docs/#/ja/view_kanban)）このページの一番上の画像がカンバンビューです。
-
-### ガントチャートビュー
-開始日から期限日までを横棒で時系列に表示。色分け・進捗率・マイルストーン・親子の字下げに対応。（[マニュアル](https://exment.net/docs/#/ja/view_gantt)）
-
-### ワークフローのフロー設計
-ステータスとアクションを図で配置して、ワークフローの流れを見ながら設計できます。（[マニュアル](https://exment.net/docs/#/ja/workflow_design)）  
-![ワークフローのフロー設計](https://exment.net/docs/ja/img/workflow_design/wf_designer.png)
-
-### セルのスタイル
-値に応じてデータ一覧やカンバンのセルの色・文字を変えるプリセットを設定できます。（[マニュアル](https://exment.net/docs/#/ja/cell_style_preset)）  
-![セルのスタイル](https://exment.net/docs/ja/img/cell_style_preset/preset_grid_result.png)
-
-### データ一覧のツール
-表示する列の切り替え、列の固定、グループ化、インライン編集、クイックプレビュー、一括操作など。（[マニュアル](https://exment.net/docs/#/ja/data_grid_tools)）  
-![データ一覧のツール](https://exment.net/docs/ja/img/data_grid_tools/grid_overview.png)
-
-### Laravel 12・PHP 8.2 以上に対応
-フレームワークを Laravel 12 に更新し、管理画面のライブラリも新しくしました。アップデート前に注意点をご確認ください。（[アップデート](https://exment.net/docs/#/ja/update)）
+版ごとのくわしい内容：[What's new](https://exment.net/whats-new/) ・ [リリースノート](https://exment.net/docs/ja/release_note.html)
 
 
 ## 主な機能
@@ -193,35 +176,22 @@ php artisan serve
 ~~~
 
 # セキュリティ
-脆弱性を見つけた場合は、公開の issue には書かず、[SECURITY.md](SECURITY.md) の方法で非公開でご報告ください。
+脆弱性を見つけたときは、公開の issue に書かず、[SECURITY.md](SECURITY.md) の方法で非公開でご報告ください。
+
+# 開発する人へ
+Pull Request を歓迎します。機能の要望より、実際に作っていただけるとさらにうれしいです。
+
+- [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md)：Pull Request の出し方（どのブランチへ・テスト・書き方）
+- [docs/ja/development.md](docs/ja/development.md)：開発の環境の作り方
+- [docs/ja/releasing.md](docs/ja/releasing.md)：ブランチ・版の番号・リリースのしかた
+- [document/ja/Test.md](document/ja/Test.md)：テストの動かし方
+- [マニュアル](https://exment.net/docs/ja/) ・ [リリースノート](https://exment.net/docs/ja/release_note.html) ・ [保守の期間](https://exment.net/docs/ja/support_policy.html)
+
+Exment を入れるときは、`-dev` のブランチではなく、リリースした版を使ってください（例: `composer require exceedone/exment`）。
 
 # コミュニティ
-現在、Exment ではコミュニティ・フォーラムを用意していません。issue を活用しています。ただし、将来的にほかのプラットフォームを使うかもしれません。詳しい知見をお持ちの方は、おすすめを教えてください。
-
-## Pull Request
-Pull Request はいつでも大歓迎です。現在は、新しい機能の要望よりも、その機能を実際に実装していただけると嬉しいです。
-
-## ブランチ
-| ブランチ | Packagist | 中身 |
-|---|---|---|
-| `master` | `dev-master` | **次の版の開発。Pull Request はすべてここに出してください**（新しい機能も、不具合の直しも） |
-| `7.1` | `7.1.x-dev` | 7.1 系の保守（7.1.1、7.1.2 …） |
-| `7.0` | `7.0.x-dev` | 7.0 系の保守（7.0.4、7.0.5 …） |
-| `6.2` | `6.2.x-dev` | 6.2 系の保守（6.2.16、6.2.17 …） |
-
-出した版にも入れたい直しは、まず `master` に出し、Pull Request にラベル `backport-7.1`・`backport-7.0`・`backport-6.2` を付けてください。まとめ役がそのブランチに入れます。リリースの流れ（入れたくないものの扱いなど）は [Develop.md](document/ja/Develop.md) に書いてあります。
-
-Exment を入れるときは、`-dev` ではなく、リリースした版を使ってください（例: `composer require exceedone/exment`）。詳しくは [Develop.md](document/ja/Develop.md)
-
-
-# そのほかのページ
-開発方法 [日本語](document/ja/Develop.md) / [English](document/en/Develop.md)  
-テスト実行方法 [日本語](document/ja/Test.md) / [English](document/en/Test.md)  
-
-
-# issues
-issues には、英語または日本語で記載してください。  
-脆弱性は [SECURITY.md](SECURITY.md) をご覧ください。
+いまはフォーラムがないので、GitHub の issue をお使いください。issue は日本語か英語で書いてください。  
+参加する人は、みな [行動規範（Code of Conduct）](CODE_OF_CONDUCT.md) を守ります。
 
 
 # 関連するリポジトリ
