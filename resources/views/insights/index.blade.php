@@ -22,36 +22,7 @@
     $mcpCalls = $sum($api['mcp_ok']) + $sum($api['mcp_error']);
 @endphp
 <div class="exm-insights">
-    <style>
-        .exm-insights .exm-in-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 12px; }
-        .exm-insights .exm-in-bar form { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0; }
-        .exm-insights .exm-in-bar input[type=date] { width: auto; }
-        .exm-insights .exm-in-spacer { flex: 1 1 auto; }
-        .exm-insights .exm-in-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; margin-bottom: 14px; }
-        .exm-insights .exm-in-tile { border: 1px solid rgba(0,0,0,.1); border-radius: 6px; padding: 10px 12px; background: var(--bs-body-bg, #fff); }
-        .exm-insights .exm-in-tile .exm-in-num { font-size: 24px; font-weight: bold; line-height: 1.2; }
-        .exm-insights .exm-in-tile .exm-in-sub { color: #777; font-size: 12px; }
-        .exm-insights .exm-in-tile.is-warn .exm-in-num { color: #d97706; }
-        .exm-insights .exm-in-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 12px; }
-        .exm-insights .exm-in-card { margin: 0; }
-        .exm-insights .exm-in-card .box-header { display: flex; align-items: center; gap: 8px; }
-        .exm-insights .exm-in-card .box-title { flex: 1 1 auto; }
-        .exm-insights .exm-in-card .exm-in-source { font-size: 12px; white-space: nowrap; }
-        .exm-insights .exm-in-chart { position: relative; height: 220px; }
-        .exm-insights .exm-in-help { color: #777; font-size: 12px; margin: 6px 0 0; }
-        .exm-insights table.exm-in-table { width: 100%; font-size: 13px; margin-top: 4px; }
-        .exm-insights table.exm-in-table td, .exm-insights table.exm-in-table th { padding: 3px 6px; border-bottom: 1px solid rgba(0,0,0,.06); }
-        .exm-insights table.exm-in-table td.num, .exm-insights table.exm-in-table th.num { text-align: right; white-space: nowrap; }
-        .exm-insights .exm-in-empty { color: #999; font-size: 13px; padding: 8px 0; }
-        .exm-insights h3.exm-in-section { font-size: 16px; margin: 18px 0 8px; font-weight: bold; }
-        .exm-insights .exm-in-feature { display: inline-block; margin: 0 4px 4px 0; padding: 1px 8px; border-radius: 10px; font-size: 12px; border: 1px solid rgba(0,0,0,.15); color: #888; }
-        .exm-insights .exm-in-feature.is-on { border-color: #22c55e; color: #15803d; background: rgba(34,197,94,.08); }
-        .exm-insights .exm-in-light { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; background: #94a3b8; }
-        .exm-insights .exm-in-light.is-ok { background: #22c55e; }
-        .exm-insights .exm-in-light.is-warning { background: #f59e0b; }
-        .exm-insights .exm-in-light.is-ng { background: #ef4444; }
-        @media (max-width: 560px) { .exm-insights .exm-in-grid { grid-template-columns: 1fr; } }
-    </style>
+    @include('exment::insights._styles')
 
     {{-- the period, the CSV --}}
     <div class="exm-in-bar">
@@ -432,62 +403,5 @@
         </div>
     </div>
 
-    <script>
-    (function () {
-        var root = document.currentScript ? document.currentScript.closest('.exm-insights') : document.querySelector('.exm-insights');
-        if (!root) { return; }
-        // Chart.js comes at the end of the page: on the first load, draw when it is there
-        if (!window.Chart) {
-            var later = function () { draw(); };
-            document.addEventListener('DOMContentLoaded', later, { once: true });
-            return;
-        }
-        draw();
-        function draw() {
-        if (!window.Chart || root.dataset.drawn) { return; }
-        root.dataset.drawn = '1';
-        var dark = document.documentElement.getAttribute('data-bs-theme') === 'dark' || document.body.classList.contains('dark-mode');
-        var grid = dark ? 'rgba(255,255,255,.1)' : 'rgba(0,0,0,.08)';
-        var text = dark ? '#cbd5e1' : '#555';
-        function bytes(v) {
-            var u = ['B', 'KB', 'MB', 'GB', 'TB'], i = 0;
-            while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
-            return (i === 0 ? v : v.toFixed(1)) + ' ' + u[i];
-        }
-        root.querySelectorAll('canvas[data-insight]').forEach(function (canvas) {
-            if (canvas._chart) { canvas._chart.destroy(); }
-            var spec = JSON.parse(canvas.getAttribute('data-insight'));
-            var ranking = spec.type === 'ranking';
-            var datasets = spec.datasets.map(function (d) {
-                return {
-                    label: d.label, data: d.data, borderColor: d.color, backgroundColor: spec.type === 'line' ? d.color + '22' : d.color,
-                    borderWidth: spec.type === 'line' ? 2 : 0, pointRadius: spec.labels.length > 45 ? 0 : 2, tension: 0.25, fill: false, maxBarThickness: 24
-                };
-            });
-            var tick = spec.bytes ? function (v) { return bytes(v); } : undefined;
-            canvas._chart = new window.Chart(canvas, {
-                type: ranking ? 'bar' : spec.type,
-                data: { labels: spec.labels, datasets: datasets },
-                options: {
-                    responsive: true, maintainAspectRatio: false, animation: false,
-                    indexAxis: ranking ? 'y' : 'x',
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        legend: { display: datasets.length > 1, labels: { color: text, boxWidth: 12 } },
-                        tooltip: spec.bytes ? { callbacks: { label: function (ctx) { return ctx.dataset.label + ': ' + bytes(ctx.parsed.y); } } } : {}
-                    },
-                    scales: ranking ? {
-                        // the names on the left, the numbers below
-                        x: { beginAtZero: true, grid: { color: grid }, ticks: { color: text, precision: 0 } },
-                        y: { grid: { display: false }, ticks: { color: text, autoSkip: false } }
-                    } : {
-                        x: { stacked: !!spec.stacked, grid: { color: grid }, ticks: { color: text, maxRotation: 0, autoSkip: true, maxTicksLimit: 10 } },
-                        y: Object.assign({ stacked: !!spec.stacked, beginAtZero: true, grid: { color: grid } }, { ticks: tick ? { color: text, precision: 0, callback: tick } : { color: text, precision: 0 } })
-                    }
-                }
-            });
-        });
-        }
-    })();
-    </script>
+    @include('exment::insights._charts')
 </div>

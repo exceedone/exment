@@ -272,6 +272,7 @@ class Permission
             case "auth/setting":
             // the API keys of the login user: the feature (its role groups) is checked by the page
             case "auth/api_keys":
+            case "auth/insights":
             case "auth/reset":
             case "auth/change":
             case "auth/forget":

@@ -113,6 +113,8 @@ class InsightReport
         }
         $rows = [];
         InsightDaily::query()->where('date', '>=', $this->from->format('Y-m-d'))->where('date', '<=', $this->to->format('Y-m-d'))
+            // never the numbers of one user (My insights)
+            ->whereNotIn('metric', Insights::USER_METRICS)
             ->get()->each(function (InsightDaily $row) use (&$rows) {
                 $rows[$row->date->format('Y-m-d')][$row->metric][$row->key] = intval($row->value);
             });
