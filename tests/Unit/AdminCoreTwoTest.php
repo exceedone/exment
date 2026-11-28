@@ -21,7 +21,7 @@ class AdminCoreTwoTest extends UnitTestBase
     public function testExmentNeedsAdminCoreTwo(): void
     {
         $composer = json_decode($this->read('composer.json'), true);
-        $this->assertSame('^2.0', $composer['require']['exceedone/exment-admin-core'] ?? null);
+        $this->assertSame('^2.1.1', $composer['require']['exceedone/exment-admin-core'] ?? null);
     }
 
     public function testNoICheckIsLoaded(): void
@@ -82,7 +82,7 @@ class AdminCoreTwoTest extends UnitTestBase
         foreach (['unittest', 'phpstan', 'coverage', 'check-lang'] as $name) {
             $workflow = $this->read(".github/workflows/{$name}.yml");
             $this->assertMatchesRegularExpression('/repository: exceedone\/exment-admin-core\n(\s+#[^\n]*\n)*\s+ref: 2\.x\n/', $workflow, $name);
-            $this->assertStringContainsString('"dev-master as 2.0.0"', $workflow, $name);
+            $this->assertStringContainsString('"dev-master as 2.99.0"', $workflow, $name);
         }
     }
 }
