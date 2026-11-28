@@ -329,7 +329,7 @@
     ],
     "dashboards": [
         {
-            "dashboard_name": "sales_dashboard",
+            "dashboard_name": "exment_sales_dashboard",
             "dashboard_view_name": "Ventas",
             "dashboard_boxes": [
                 {

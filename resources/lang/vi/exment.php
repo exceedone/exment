@@ -5435,6 +5435,8 @@ Nếu không phải bạn, hãy đổi mật khẩu và báo cho quản trị vi
         'pack_install_header' => 'Tính năng',
         'pack_install_question' => 'Sử dụng :name?',
         'pack_install_help' => 'Bạn cũng có thể bật sau trong Quản lý tính năng.',
+        'pack_install_label' => 'Dùng ngay từ đầu',
+        'pack_incomplete' => 'Thiếu một phần những gì được thêm (một bảng hoặc bảng điều khiển). Khi lưu, phần còn thiếu sẽ được thêm.',
         'menu_pack' => 'Menu được thêm có thể di chuyển hoặc gỡ bỏ trên trang menu.',
         'menu_pack_link' => 'Trang menu',
         'features' => [
