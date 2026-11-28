@@ -3,6 +3,8 @@ name: phpunit
 on:
   pull_request:
     paths:
+      - 'composer.json'
+      - 'composer.lock'
       - '.github/workflows/**'
       - 'config/**'
       - 'database/**'
