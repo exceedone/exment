@@ -67,6 +67,10 @@ function exi_php_range($version, $manifest)
     if (is_array($manifest) && isset($manifest['php']) && is_array($manifest['php']) && isset($manifest['php'][0], $manifest['php'][1])) {
         return array((string)$manifest['php'][0], (string)$manifest['php'][1]);
     }
+    // the lowest PHP the libraries of the zip were built for (exment.json "php_min", from platform_check.php)
+    if (is_array($manifest) && isset($manifest['php_min']) && preg_match('/^\d+\.\d+(\.\d+)?$/', (string)$manifest['php_min'])) {
+        return array((string)$manifest['php_min'], '8.5');
+    }
     if (preg_match('/^v?(\d+)\.(\d+)/', (string)$version, $m)) {
         $minor = intval($m[1]) * 100 + intval($m[2]);
         if ($minor >= 703) {

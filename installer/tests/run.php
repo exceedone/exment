@@ -25,6 +25,8 @@ ok(exi_detect_host('/var/www/html', 'myhost') === 'other', 'another server');
 ok(exi_php_range('v7.3.0', null) === array('8.2', '8.5'), '7.3 needs PHP 8.2 to 8.4');
 ok(exi_php_range('v7.2.8', null) === array('8.1', '8.5'), '7.2 needs PHP 8.1 to 8.4');
 ok(exi_php_range('v7.4.0', array('php' => array('8.3', '8.6'))) === array('8.3', '8.6'), 'the manifest may say it');
+ok(exi_php_range('v7.2.8', array('php_min' => '8.2')) === array('8.2', '8.5'), 'php_min of exment.json (the libraries of the zip)');
+ok(exi_php_range('v7.2.8', array('php_min' => 'x')) === array('8.1', '8.5'), 'a php_min that is not a version is not used');
 
 ok(exi_platform_php("if (!(PHP_VERSION_ID >= 80300)) {") === '8.3.0', 'the PHP of the libraries (platform_check.php)');
 ok(exi_platform_php("<?php // nothing") === null, 'no PHP in platform_check.php');
