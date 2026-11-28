@@ -509,7 +509,8 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                     parent_id = nullif(parent_id, 0)
 __EOT__;
                 $query = sprintf($cmd, addslashes($file->getPathName()), $table, $charset);
-                $cnt = \DB::connection()->getpdo()->exec($query);
+                // a failure (e.g. local_infile is off) after the table was emptied: stopped midway
+                $cnt = $this->loadTsvFile($query, $file->getPathName());
 
                 //return $cnt;
             }
