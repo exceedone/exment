@@ -367,7 +367,7 @@ class BackupCoverageTest extends FeatureTestBase
         System::backup_target([BackupTarget::DATABASE]);
         System::backup_automatic_executed(null);
         System::clearCache();
-        \Log::spy();
+        $log = \Log::spy();
 
         // the backup of the schedule (exment:schedule), called as it does
         $command = app(\Exceedone\Exment\Console\ScheduleCommand::class);
@@ -379,10 +379,10 @@ class BackupCoverageTest extends FeatureTestBase
         System::clearCache();
         $this->assertTrue(is_nullorempty(System::backup_automatic_executed()), 'a failed backup is not recorded as done');
         // the reason is in the log, and that the automatic backup failed
-        \Log::shouldHaveReceived('error')->withArgs(function ($message) {
+        $log->shouldHaveReceived('error')->withArgs(function ($message) {
             return is_string($message) && str_contains($message, 'backup failed') && str_contains($message, 'TLS/SSL error');
         });
-        \Log::shouldHaveReceived('error')->withArgs(function ($message) {
+        $log->shouldHaveReceived('error')->withArgs(function ($message) {
             return is_string($message) && str_contains($message, 'the automatic backup failed');
         });
     }
