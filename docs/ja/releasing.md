@@ -63,7 +63,7 @@ Pull Request の出し方は [CONTRIBUTING.ja.md](../../CONTRIBUTING.ja.md) を�
 | 7.2.x | `develop/7.2.<n>` | 1.x（`^1.0.6`） | admin-core の `1.x`、boilerplate の `7.2` |
 | 7.3 | `develop/7.3.0` | 2.x（`^2.1.1`） | admin-core の `2.x`、boilerplate の `main` |
 
-7.2 から 7.3 に上げるのは、**`composer update` だけではできません**（exment-admin-core が 2.x になるため）。マニュアルの [7.3.0 への更新](https://exment.net/docs/ja/update/v7_3_0.html) の手順で上げてください。
+7.2 から 7.3 に上げるのは、**`composer update` だけではできません**（exment-admin-core が 2.x になるため）。マニュアルの [アップデート](https://exment.net/docs/ja/update.html) の手順で上げてください。
 
 ## 脆弱性の直し
 

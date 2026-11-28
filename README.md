@@ -43,10 +43,7 @@ It comes with everything business teams need: workflow, Kanban, Gantt charts, SS
 | Docs | [Manual](https://exment.net/docs/#/) |
 | Contact | [Contact us](https://exment.net/en/inquiry/) |
 
-<a href="https://demo.exment.net/admin" target="_blank">Demo site</a>  
-Then please enter  
-Usercode：admin  
-Password：adminadmin
+[Demo sites](https://exment.net/en/demo-env/): try Exment in your browser (the page shows the login).
 
 Developed by [Kajitori Co., Ltd.](https://exment.net/company/) (Exceed One group)
 
