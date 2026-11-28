@@ -30,6 +30,17 @@ Pull Request の出し方は [CONTRIBUTING.ja.md](../../CONTRIBUTING.ja.md) を�
 - Composer と Packagist はタグを読みます。試しの版は、ふつうの設定の `composer update` では入りません。
 - exment.net のインストール用の zip は、exment.net のサーバーで決まった時間に動く処理が作ります。プレリリースは飛ばすので、試しの版の zip はできません。
 
+### プレリリース（rc）は自動では入らない
+
+試しの版（`vX.Y.Z-rcN`）は、試すためだけのものです。ひとりでに入ることはありません。
+
+- `composer update` は安定版だけを入れます（Composer の `minimum-stability` は、何も書かなければ `stable`）。
+- exment.net のダウンロードの zip は、安定版からだけ作ります。
+- Exment の画面の「新しいバージョン」と、更新のスクリプトも、安定版だけを見ます。
+
+試し用のサイトで試すときは、版をはっきり書いて入れます。たとえば
+`composer require "exceedone/exment:7.3.0-rc1" "exceedone/exment-admin-core:^2.1.1" -W` のあと `php artisan exment:update --force`。先にバックアップを取ってください。
+
 ## だれが何をするか
 
 | すること | だれ |
