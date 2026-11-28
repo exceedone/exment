@@ -42,7 +42,7 @@ class NewSiteMenuGroupsTest extends FeatureTestBase
         $this->assertSame(['custom_table', 'studio', 'menu', 'workflow', 'mail_template', 'cell_style_preset', 'template', 'trash'], $this->children('admin_data'));
         $this->assertSame(['loginuser', 'role_group', 'login_setting', 'api_setting', 'operation_log'], $this->children('admin_user'));
         // the safety check is added under "admin" by its installer
-        $this->assertSame(['system', 'safety_check_setting', 'meili_setting', 'feature', 'plugin', 'backup', 'tuning', 'security_check', 'scheduled_jobs', 'sync', 'log_management', 'maintenance'], array_values(array_diff($this->children('admin'), ['safety_check'])));
+        $this->assertSame(['system', 'safety_check_setting', 'meili_setting', 'feature', 'plugin', 'backup', 'tuning', 'security_check', 'scheduled_jobs', 'sync', 'log_management', 'insights', 'maintenance'], array_values(array_diff($this->children('admin'), ['safety_check'])));
     }
 
     // GitHub #2289: a site made with the menu of 7.2.1 to 7.2.x loses the item, and only that one

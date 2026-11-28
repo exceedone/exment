@@ -617,6 +617,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "insights",
+            "title": "인사이트"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "유지보수 모드"
         }

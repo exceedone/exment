@@ -617,6 +617,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "insights",
+            "title": "Información"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "Modo de mantenimiento"
         }

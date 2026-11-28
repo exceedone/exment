@@ -41,12 +41,14 @@ class ScheduledJobs
         'exment:sync' => 'sync',
         'exment:queue-heartbeat' => 'queue_heartbeat',
         'exment:tuning-data' => 'tuning_data',
+        'exment:insights' => 'insights',
     ];
 
     /** The feature a job is for: when it is not used, the job does nothing. */
     public const JOB_FEATURES = [
         'exment:safetywatch' => Features::SAFETY_CHECK,
         'exment:sync' => \Exceedone\Exment\Services\Sync\SyncEngine::FEATURE,
+        'exment:insights' => \Exceedone\Exment\Services\Insights\Insights::FEATURE,
     ];
 
     /** A run of "Run now" still running after this many minutes is not waited for. */

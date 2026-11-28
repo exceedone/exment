@@ -454,6 +454,11 @@ class Define
             'uri' => 'log_management',
             'icon' => 'fa-archive',
         ],
+        // the insights from the logs (ISS02964)
+        'insights' => [
+            'uri' => 'insights',
+            'icon' => 'fa-line-chart',
+        ],
         'scheduled_jobs' => [
             'uri' => 'scheduled_jobs',
             'icon' => 'fa-clock-o',

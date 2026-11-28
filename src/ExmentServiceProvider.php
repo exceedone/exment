@@ -116,6 +116,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
         \Exceedone\Exment\Console\QueueHeartbeatCommand::class,
         \Exceedone\Exment\Console\TuningDataCommand::class,
+        \Exceedone\Exment\Console\InsightsCommand::class,
         \Exceedone\Exment\Console\DataKeyCommand::class,
         \Exceedone\Exment\Console\SyncCommand::class,
         \Exceedone\Exment\Console\EncryptColumnCommand::class,
@@ -759,6 +760,8 @@ class ExmentServiceProvider extends ServiceProvider
         $schedule->command('exment:audit-report')->dailyAt('04:10')->withoutOverlapping(60);
         // the counts of the data for the tuning page (ISS02927)
         $schedule->command('exment:tuning-data')->dailyAt('04:30')->withoutOverlapping(120);
+        // the numbers of the page "Insights", after the counts of the data (ISS02964)
+        $schedule->command('exment:insights')->dailyAt('04:50')->withoutOverlapping(120);
 
         // maintenance mode: the planned start and end (never skipped in a maintenance)
         $schedule->command('exment:maintenance tick')->everyMinute()->withoutOverlapping(5);

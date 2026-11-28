@@ -302,6 +302,15 @@ class Features
             'manual' => 'scheduled_jobs',
             'who' => false,
         ]);
+        // the insights from the logs (Insights\Insights, ISS02964): the system administrators and
+        // Audit (Auth\Permission). Off until it is turned on: the nightly count runs only while it is used
+        $core[Insights\Insights::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.insights',
+            'description' => 'exment::exment.feature.features.insights_help',
+            'endpoints' => ['insights'],
+            'menu' => 'insights',
+            'who' => false,
+        ]);
         // temporary raises of the API rate limit (ApiRateRaises, ISS00442): the system
         // administrators only. Off until it is turned on
         $core[ApiRateRaises::FEATURE] = static::definition([

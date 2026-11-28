@@ -617,6 +617,11 @@
         },
         {
             "menu_type": "system",
+            "menu_name": "insights",
+            "title": "洞察"
+        },
+        {
+            "menu_type": "system",
             "menu_name": "maintenance",
             "title": "维护模式"
         }

@@ -275,6 +275,9 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('security_check/firewall', 'SecurityCheckController@firewall');
             // the scheduled jobs (ISS02832)
             $router->get('scheduled_jobs', 'ScheduledJobController@index');
+            // the insights from the logs (ISS02964)
+            $router->get('insights', 'InsightsController@index');
+            $router->get('insights/export.csv', 'InsightsController@csv');
             // the log management (ISS02839)
             $router->get('log_management', 'LogManagementController@index');
             $router->post('log_management/setting', 'LogManagementController@postSetting');
