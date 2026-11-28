@@ -1542,7 +1542,7 @@ return [
             'dump_failed' => 'データベースのダンプが完了しませんでした（終了コード :code）。:detail',
             'dump_empty' => 'データベースのダンプのファイルができませんでした（:file）。',
             'zip_failed' => 'バックアップのファイルができませんでした。',
-            'tls_hint' => 'mysqldump・mysql とデータベースのサーバーで、TLS の設定が合っていません。MariaDB のクライアントなら、my.cnf の [client] に skip-ssl-verify-server-cert（または ssl-verify-server-cert=0）を書いてください。MySQL のクライアントなら、ssl-mode（例: ssl-mode=DISABLED、または CA のファイルを指定して VERIFY_CA）を設定してください。.env の EXMENT_DB_DUMP_OPTIONS・EXMENT_DB_RESTORE_OPTIONS でオプションを渡すこともできます。',
+            'tls_hint' => 'mysqldump・mysql とデータベースのサーバーで、TLS の設定が合っていません。まず、データベースのサーバーの CA を指定してください。.env の MYSQL_ATTR_SSL_CA に CA のファイルを書くと、Exment が mysqldump・mysql に --ssl-ca=/path/to/ca.pem を自動で渡します。EXMENT_DB_DUMP_OPTIONS・EXMENT_DB_RESTORE_OPTIONS に --ssl-ca=/path/to/ca.pem を加えることもできます。最後の手段としてだけ、クライアントでサーバーの証明書の検証をやめてください。MariaDB のクライアントなら my.cnf の [client] に ssl-verify-server-cert=0（または --skip-ssl-verify-server-cert）、MySQL のクライアントなら --ssl-mode=REQUIRED です。ただし、中間者攻撃を防げなくなります。',
             'restore_nothing_restored' => 'リストアはしていません。データベースは変わっていません。:reason',
             'restore_stopped_midway' => 'リストアが途中で止まりました。データベースは一部だけリストアされているかもしれません。:reason ユーザーが消えて画面が使えないときは、サーバーで正しいバックアップをコマンドでリストアしてください: php artisan exment:restore （バックアップの名前）',
             'restore_empty_file' => 'バックアップのファイル :file が空です。',
