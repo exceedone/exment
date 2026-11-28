@@ -1502,6 +1502,7 @@ return [
             'restore_connect_failed' => 'mysql 클라이언트가 데이터베이스에 연결하지 못했습니다(종료 코드 :code). :detail',
             'restore_import_failed' => ':file 가져오기가 완료되지 않았습니다(종료 코드 :code). :detail',
             'restore_safety_backup' => '복원 전의 데이터는 백업 :name 에 있습니다. 백업 목록에서 복원하십시오.',
+            'restore_safety_backup_failed' => '복원 전 백업에 실패했습니다. :reason',
             'download_error' => '다운로드에 실패했습니다.',
             'restore_confirm' => '복원을 실행하시겠습니까?(현재 데이터는 모두 삭제됩니다)',
             'restore_confirm_text' => '또한 현재 데이터는 모두 손실됩니다.',

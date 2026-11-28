@@ -1502,6 +1502,7 @@ return [
             'restore_connect_failed' => 'mysql 客户端无法连接数据库（退出代码 :code）。:detail',
             'restore_import_failed' => ':file 的导入未完成（退出代码 :code）。:detail',
             'restore_safety_backup' => '还原前的数据在备份 :name 中：请从备份列表中还原。',
+            'restore_safety_backup_failed' => '还原前的备份失败：:reason',
             'download_error' => '下载失败。',
             'restore_confirm' => '确定要执行还原吗？',
             'restore_confirm_text' => '此外，当前的所有数据都将丢失。',

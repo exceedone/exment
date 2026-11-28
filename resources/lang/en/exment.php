@@ -1549,6 +1549,7 @@ return [
             'restore_connect_failed' => 'The mysql client could not connect to the database (exit code :code). :detail',
             'restore_import_failed' => 'The import of :file did not complete (exit code :code). :detail',
             'restore_safety_backup' => 'The data before the restore is in the backup :name: restore it from the backup list.',
+            'restore_safety_backup_failed' => 'The backup before the restore failed: :reason',
             'download_error' => 'Download failed.',
             'restore_confirm' => 'Would you like to perform a restore? (Remove all current data.)',
             'restore_confirm_text' => 'Also, all current data will be lost.',

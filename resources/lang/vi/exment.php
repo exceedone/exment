@@ -1502,6 +1502,7 @@ return [
             'restore_connect_failed' => 'Client mysql không kết nối được với cơ sở dữ liệu (mã thoát :code). :detail',
             'restore_import_failed' => 'Việc nhập :file chưa hoàn tất (mã thoát :code). :detail',
             'restore_safety_backup' => 'Dữ liệu trước khi khôi phục nằm trong bản sao lưu :name: hãy khôi phục từ danh sách sao lưu.',
+            'restore_safety_backup_failed' => 'Sao lưu trước khi khôi phục thất bại: :reason',
             'download_error' => 'Tải xuống thất bại.',
             'restore_confirm' => 'Bạn có chắc chắn muốn thực hiện khôi phục không?',
             'restore_confirm_text' => 'Ngoài ra, toàn bộ dữ liệu hiện tại sẽ bị mất.',

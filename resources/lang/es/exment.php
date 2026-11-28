@@ -1502,6 +1502,7 @@ return [
             'restore_connect_failed' => 'El cliente mysql no pudo conectarse a la base de datos (código de salida :code). :detail',
             'restore_import_failed' => 'La importación de :file no se completó (código de salida :code). :detail',
             'restore_safety_backup' => 'Los datos anteriores a la restauración están en la copia de seguridad :name: restáurela desde la lista de copias de seguridad.',
+            'restore_safety_backup_failed' => 'Falló la copia de seguridad previa a la restauración: :reason',
             'download_error' => 'Error en la descarga.',
             'restore_confirm' => '¿Está seguro de que desea realizar la restauración?',
             'restore_confirm_text' => 'Además, se perderán todos los datos actuales.',

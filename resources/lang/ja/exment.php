@@ -1549,6 +1549,7 @@ return [
             'restore_connect_failed' => 'mysql クライアントがデータベースにつながりませんでした（終了コード :code）。:detail',
             'restore_import_failed' => ':file の読み込みが完了しませんでした（終了コード :code）。:detail',
             'restore_safety_backup' => 'リストアの前のデータは、バックアップ :name にあります。バックアップの一覧からリストアしてください。',
+            'restore_safety_backup_failed' => 'リストアの前のバックアップに失敗しました。:reason',
             'download_error' => 'ダウンロードに失敗しました。',
             'restore_confirm' => 'リストアを本当に実行しますか？',
             'restore_confirm_text' => 'また、現在のデータはすべて失われます。',

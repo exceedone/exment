@@ -103,7 +103,8 @@ trait MySqlClientTrait
         if (!static::isTlsError($errors)) {
             return $message;
         }
-        return $message . ' ' . strval(exmtrans('backup.message.tls_hint'));
+        // a separator: the output of the client, then the hint
+        return $message . ' / ' . strval(exmtrans('backup.message.tls_hint'));
     }
 
     /**

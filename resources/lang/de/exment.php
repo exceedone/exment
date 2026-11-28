@@ -1502,6 +1502,7 @@ return [
             'restore_connect_failed' => 'Der mysql-Client konnte keine Verbindung zur Datenbank herstellen (Exit-Code :code). :detail',
             'restore_import_failed' => 'Der Import von :file wurde nicht abgeschlossen (Exit-Code :code). :detail',
             'restore_safety_backup' => 'Die Daten vor der Wiederherstellung befinden sich in der Sicherung :name: Stellen Sie sie aus der Sicherungsliste wieder her.',
+            'restore_safety_backup_failed' => 'Die Sicherung vor der Wiederherstellung ist fehlgeschlagen: :reason',
             'download_error' => 'Der Download ist fehlgeschlagen.',
             'restore_confirm' => 'Möchten Sie die Wiederherstellung wirklich durchführen?',
             'restore_confirm_text' => 'Außerdem gehen alle aktuellen Daten verloren.',

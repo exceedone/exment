@@ -359,6 +359,78 @@ class BackupCoverageTest extends FeatureTestBase
         return $dir;
     }
 
+    public function testAFailedAutomaticBackupIsLoggedAndTriedAgain(): void
+    {
+        $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error: self-signed certificate' >&2\nexit 2");
+        System::backup_enable_automatic(true);
+        System::backup_automatic_hour(\Carbon\Carbon::now()->hour);
+        System::backup_target([BackupTarget::DATABASE]);
+        System::backup_automatic_executed(null);
+        System::clearCache();
+        \Log::spy();
+
+        // the backup of the schedule (exment:schedule), called as it does
+        $command = app(\Exceedone\Exment\Console\ScheduleCommand::class);
+        $method = new \ReflectionMethod($command, 'backup');
+        $method->setAccessible(true);
+        $method->invoke($command);
+
+        // not recorded as done: the next run tries it again
+        System::clearCache();
+        $this->assertTrue(is_nullorempty(System::backup_automatic_executed()), 'a failed backup is not recorded as done');
+        // the reason is in the log, and that the automatic backup failed
+        \Log::shouldHaveReceived('error')->withArgs(function ($message) {
+            return is_string($message) && str_contains($message, 'backup failed') && str_contains($message, 'TLS/SSL error');
+        });
+        \Log::shouldHaveReceived('error')->withArgs(function ($message) {
+            return is_string($message) && str_contains($message, 'the automatic backup failed');
+        });
+    }
+
+    public function testTheLogOfTheMaskerKeepsTheErrorOfTheClient(): void
+    {
+        // the name of a client before a colon is not a connection string
+        $text = 'mysql: ERROR 2026 (HY000): TLS/SSL error: SSL is required, but the server does not support it';
+        $this->assertSame($text, \Exceedone\Exment\Services\BackupRestore\SecretMasker::mask($text));
+        $this->assertStringNotContainsString('dbname=exment', \Exceedone\Exment\Services\BackupRestore\SecretMasker::mask('mysql:host=db;dbname=exment'));
+    }
+
+    public function testARestoreWhoseBackupFirstFailsSaysNothingWasRestored(): void
+    {
+        $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error: self-signed certificate in certificate chain' >&2\nexit 2", 'exit 0');
+        System::backup_target([BackupTarget::DATABASE]);
+        System::clearCache();
+
+        $name = 'claudefirst' . substr(md5(uniqid('', true)), 0, 8);
+        $zipPath = tempnam(sys_get_temp_dir(), 'exment-zip-');
+        $zip = new \ZipArchive();
+        $zip->open($zipPath, \ZipArchive::OVERWRITE);
+        $zip->addFromString('table_definition.sql', '-- definition');
+        $zip->close();
+        $this->backupDisk()->put("list/{$name}.zip", (string) file_get_contents($zipPath));
+        @unlink($zipPath);
+        $this->createdBackups[] = "list/{$name}.zip";
+        $count = \DB::table('custom_tables')->count();
+
+        // the normal message and exit 1, not a trace of an exception
+        $this->runArtisan('exment:restore', ['file' => $name, '--yes' => true, '--backup-first' => true])
+            ->expectsOutputToContain(strval(exmtrans('backup.message.restore_safety_backup_failed', ['reason' => ''])))
+            ->assertExitCode(1)
+            ->run();
+
+        $this->assertSame($count, \DB::table('custom_tables')->count());
+        $this->assertFalse(app()->isDownForMaintenance(), 'the site is up again');
+
+        // the run says why, once, with the hint about TLS
+        $run = \Exceedone\Exment\Model\BackupRun::where('kind', \Exceedone\Exment\Model\BackupRun::KIND_RESTORE)->orderByDesc('id')->first();
+        $this->assertNotNull($run);
+        $this->assertSame(\Exceedone\Exment\Model\BackupRun::STATUS_FAILED, $run->status);
+        $message = strval($run->message);
+        $this->assertStringNotContainsString('RuntimeException', $message);
+        $this->assertStringContainsString('TLS/SSL error', $message);
+        $this->assertStringContainsString(strval(exmtrans('backup.message.tls_hint')), $message);
+    }
+
     public function testRestoreCommandSaysWhenTheFileIsNotThere(): void
     {
         $before = \Exceedone\Exment\Model\BackupRun::query()->count();

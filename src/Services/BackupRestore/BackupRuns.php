@@ -559,7 +559,7 @@ class BackupRuns
      * A backup of the data now, before a restore replaces it (the targets of the settings). The
      * restore does not start when it fails.
      *
-     * @throws \RuntimeException
+     * @throws RestoreFailedException nothing was restored: the backup failed (its reason)
      */
     protected static function backupBeforeRestore(RunProgress $progress, ?callable $output = null): string
     {
@@ -573,11 +573,15 @@ class BackupRuns
             $result = $backup->execute(System::backup_target());
         } catch (\Throwable $e) {
             $progress->error('the backup before the restore failed: ' . $e->getMessage(), ['exception' => get_class($e)], false);
-            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')), 0, $e);
+            // nothing is restored: told with its reason (and the hint about TLS in it)
+            $reason = $e instanceof BackupFailedException || $e instanceof BackupRestoreCheckException
+                ? $e->getMessage()
+                : SecretMasker::mask(mb_substr(class_basename($e) . ': ' . $e->getMessage(), 0, 500));
+            throw RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_safety_backup_failed', ['reason' => $reason])));
         }
         if ($result !== 0) {
             $progress->error('the backup before the restore failed', ['result' => $result], false);
-            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')));
+            throw RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_safety_backup_failed', ['reason' => exmtrans('backup.message.backup_error')])));
         }
         $progress->info('the backup before the restore', ['file' => $name]);
         static::keepSafetyBackups();
