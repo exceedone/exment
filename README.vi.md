@@ -1,5 +1,5 @@
 <p align="center">
-<a href="ReadMe.md">English</a> | <a href="ReadMe.ja.md">日本語</a> | <b>Tiếng Việt</b>
+<a href="README.md">English</a> | <a href="README.ja.md">日本語</a> | <b>Tiếng Việt</b>
 </p>
 
 <p align="center">
@@ -195,35 +195,22 @@ php artisan serve
 ~~~
 
 # Bảo mật
-Nếu phát hiện lỗ hổng bảo mật, vui lòng không ghi vào issue công khai mà báo cáo không công khai theo cách trong [SECURITY.md](SECURITY.md).
+Nếu bạn tìm thấy lỗ hổng bảo mật, đừng mở issue công khai. Hãy báo riêng theo cách trong [SECURITY.md](SECURITY.md).
+
+# Dành cho nhà phát triển
+Chúng tôi luôn hoan nghênh Pull Request.
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): cách gửi Pull Request (nhánh nào, test, cách viết code)
+- [docs/development.md](docs/development.md): cài đặt môi trường phát triển
+- [docs/releasing.md](docs/releasing.md): nhánh, số phiên bản và cách phát hành
+- [document/en/Test.md](document/en/Test.md): chạy test
+- [Hướng dẫn sử dụng](https://exment.net/docs/vi/) · [Ghi chú phát hành](https://exment.net/docs/release_note.html) · [Thời gian hỗ trợ](https://exment.net/docs/support_policy.html)
+
+Khi cài Exment, hãy dùng phiên bản đã phát hành (ví dụ `composer require exceedone/exment`), không dùng nhánh `-dev`.
 
 # Cộng đồng
-Hiện tại Exment chưa có diễn đàn cộng đồng, đang sử dụng issue. Tuy nhiên, trong tương lai có thể dùng nền tảng khác. Nếu bạn có kinh nghiệm, rất mong bạn giới thiệu.
-
-## Pull Request
-Pull Request luôn được hoan nghênh. Hiện tại, chúng tôi sẽ rất vui nếu bạn trực tiếp làm chức năng đó hơn là chỉ yêu cầu chức năng mới.
-
-## Branch
-| Branch | Packagist | Nội dung |
-|---|---|---|
-| `master` | `dev-master` | **Phát triển phiên bản tiếp theo. Mọi Pull Request hãy gửi vào đây** (cả chức năng mới lẫn sửa lỗi) |
-| `7.1` | `7.1.x-dev` | Bảo trì dòng 7.1 (7.1.1, 7.1.2 …) |
-| `7.0` | `7.0.x-dev` | Bảo trì dòng 7.0 (7.0.4, 7.0.5 …) |
-| `6.2` | `6.2.x-dev` | Bảo trì dòng 6.2 (6.2.16, 6.2.17 …) |
-
-Bản sửa cần cho cả phiên bản đã phát hành thì gửi vào `master` trước, rồi gắn nhãn `backport-7.1` / `backport-7.0` / `backport-6.2` cho Pull Request. Người quản lý sẽ đưa vào nhánh đó. Quy trình phát hành: [Develop.md](document/en/Develop.md).
-
-Khi cài Exment, hãy dùng phiên bản đã phát hành, không dùng bản `-dev` (ví dụ `composer require exceedone/exment`). Chi tiết: [Develop.md](document/en/Develop.md)
-
-
-# Các trang khác
-Cách cài đặt môi trường phát triển [English](document/en/Develop.md) / [日本語](document/ja/Develop.md)  
-Cách chạy test [English](document/en/Test.md) / [日本語](document/ja/Test.md)  
-
-
-# issues
-Vui lòng viết issue bằng tiếng Anh hoặc tiếng Nhật.  
-Lỗ hổng bảo mật: xem [SECURITY.md](SECURITY.md).
+Hiện chưa có diễn đàn; hãy dùng issue trên GitHub. Vui lòng viết issue bằng tiếng Anh hoặc tiếng Nhật.  
+Mọi người tham gia đều tuân theo [Quy tắc ứng xử (Code of Conduct)](CODE_OF_CONDUCT.md).
 
 
 # Các repository liên quan

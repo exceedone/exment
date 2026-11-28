@@ -1,5 +1,5 @@
 <p align="center">
-<b>English</b> | <a href="ReadMe.ja.md">日本語</a> | <a href="ReadMe.vi.md">Tiếng Việt</a>
+<b>English</b> | <a href="README.ja.md">日本語</a> | <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
 <p align="center">
@@ -195,33 +195,20 @@ php artisan serve
 # Security
 If you find a security vulnerability, please do not open a public issue. Report it privately as described in [SECURITY.md](SECURITY.md).
 
+# For developers
+Pull requests are welcome. Implementing a feature is even better than requesting it.
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to send a pull request (which branch, tests, coding style)
+- [docs/development.md](docs/development.md): set up a development environment
+- [docs/releasing.md](docs/releasing.md): branches, versions and how a release is made
+- [document/en/Test.md](document/en/Test.md): run the tests
+- [Manual](https://exment.net/docs/) · [Release notes](https://exment.net/docs/release_note.html) · [Supported versions](https://exment.net/docs/support_policy.html)
+
+To install Exment, use a released version (for example `composer require exceedone/exment`), not a `-dev` branch.
+
 # Community
-Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.
-
-## Pull Request
-Pull Requests are always welcome. Currently, I'd be happy if you actually implemented the function rather than requesting a new function.
-
-## Branches
-| Branch | Packagist | What it is |
-|---|---|---|
-| `master` | `dev-master` | **The next version. Send every pull request here**, new features and fixes alike |
-| `7.1` | `7.1.x-dev` | Maintenance of 7.1 (7.1.1, 7.1.2 ...) |
-| `7.0` | `7.0.x-dev` | Maintenance of 7.0 (7.0.4, 7.0.5 ...) |
-| `6.2` | `6.2.x-dev` | Maintenance of 6.2 (6.2.16, 6.2.17 ...) |
-
-A fix that a released version also needs goes to `master` first. Add the label `backport-7.1` / `backport-7.0` / `backport-6.2` to the pull request, and the maintainers pick it into that branch. How a release is cut: [Develop.md](document/en/Develop.md).
-
-To install Exment, use a released version (for example `composer require exceedone/exment`), not a `-dev` one. Details: [Develop.md](document/en/Develop.md)
-
-
-# Other pages
-Setup for Develop [En](document/en/Develop.md) / [日本語](document/ja/Develop.md)  
-Setup for Test [En](document/en/Test.md) / [日本語](document/ja/Test.md)  
-
-
-# issues
-Please write issues using English or Japanese.  
-Security vulnerabilities: see [SECURITY.md](SECURITY.md).
+Exment does not have a community forum yet; please use GitHub issues. Write issues in English or Japanese.  
+Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 
 # Other repositories

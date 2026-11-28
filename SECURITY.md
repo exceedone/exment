@@ -4,9 +4,13 @@
 
 | Version | Supported |
 | ------- | --------- |
-| 7.0.x   | :white_check_mark: |
+| 7.3.x   | :white_check_mark: from its release / リリースから |
+| 7.2.x   | :white_check_mark: bug fixes and security fixes until 7.3.0 is released, then security fixes only for 6 months / 7.3.0 を出すまでは不具合と脆弱性の修正、そのあと 6 か月は脆弱性の修正のみ |
+| 7.1.x, 7.0.x | :white_check_mark: security fixes only, until 2027-03-31 / 脆弱性の修正のみ、2027-03-31 まで |
 | 6.2.x   | :white_check_mark: security fixes only, until 2027-03-31 / 脆弱性の修正のみ、2027-03-31 まで |
 | < 6.2   | :x: |
+
+Details (PHP and Laravel of each line): [Support policy](https://exment.net/docs/support_policy.html) / [保守の期間](https://exment.net/docs/ja/support_policy.html)
 
 Please update to the latest release before reporting.  
 報告の前に、できるだけ最新の版でお確かめください。
