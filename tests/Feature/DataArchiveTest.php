@@ -242,6 +242,10 @@ class DataArchiveTest extends FeatureTestBase
         $this->revisions();
 
         // off: not there
+        System::features([]);
+        System::clearCache();
+        System::clearRequestSession();
+        Features::reset();
         $this->get(admin_url('data_archive'), $ajax)->assertStatus(404);
 
         System::features([DataArchiver::FEATURE => ['enabled' => true]]);
