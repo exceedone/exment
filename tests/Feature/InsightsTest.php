@@ -204,6 +204,7 @@ class InsightsTest extends FeatureTestBase
         $page->assertOk()
             ->assertSee(exmtrans('insights.cards.active_users'))
             ->assertSee('data-insight=', false)
+            ->assertSee(exmtrans('insights.sections.security'))->assertSee(exmtrans('insights.sec.backup'))
             ->assertSee(admin_urls('log_management', 'mcp') . '?from=2021-06-09&amp;to=' . static::DAY . '&amp;status=error', false)
             ->assertSee('search_data');
         $csv = $this->get(admin_urls('insights', 'export.csv') . $query);
@@ -226,6 +227,64 @@ class InsightsTest extends FeatureTestBase
         $this->get(admin_url('insights') . $query, $ajax)->assertOk()
             ->assertSee(exmtrans('insights.cards.people'))
             ->assertSee('nobody');
+    }
+
+    /**
+     * The security: the checks of Exment as lights, the failed logins (the names only for Audit),
+     * and whether the last backup has the database.
+     */
+    public function testTheSecurity(): void
+    {
+        $this->useFeature();
+        $day = Carbon::parse(static::DAY);
+        $this->logsOf($day);
+        \Cache::flush();
+
+        $totals = (new \Exceedone\Exment\Services\Insights\InsightSecurity($day->copy()->subDays(6), $day, false))->cards();
+        $this->assertNotEmpty($totals['checks'], 'the items of the security check');
+        foreach ($totals['checks'] as $check) {
+            $this->assertContains($check['result'], ['ok', 'warning', 'ng']);
+        }
+        $this->assertSame(1, $totals['logins']['failures']);
+        $this->assertSame(1, $totals['logins']['ips']);
+        $this->assertSame([], $totals['logins']['names'], 'no names in the totals');
+        $this->assertGreaterThanOrEqual(1, $totals['admins']['count']);
+        $this->assertArrayHasKey('marks', $totals['api']);
+        // nothing secret: no key of the encrypted columns, no APP_KEY
+        $text = json_encode($totals) ?: '';
+        $this->assertStringNotContainsString(strval(config('app.key')), $text);
+
+        \Cache::flush();
+        $audit = (new \Exceedone\Exment\Services\Insights\InsightSecurity($day->copy()->subDays(6), $day, true))->cards();
+        $this->assertSame(['nobody' => 1], $audit['logins']['names']);
+    }
+
+    public function testABackupWithoutTheDatabase(): void
+    {
+        $disk = \Storage::disk(\Exceedone\Exment\Model\Define::DISKNAME_BACKUP_SYNC);
+        $make = function (string $name, string $definition) use ($disk) {
+            $path = $disk->path('list/' . $name . '.zip');
+            if (!is_dir(dirname($path))) {
+                mkdir(dirname($path), 0777, true);
+            }
+            $zip = new \ZipArchive();
+            $zip->open($path, \ZipArchive::CREATE | \ZipArchive::OVERWRITE);
+            $zip->addFromString('table_definition.sql', $definition);
+            $zip->addFromString('config.json', '{}');
+            $zip->close();
+            $run = new \Exceedone\Exment\Model\BackupRun();
+            $run->file_name = $name;
+            return $run;
+        };
+        try {
+            $this->assertTrue(\Exceedone\Exment\Services\Insights\InsightSecurity::hasDatabase($make('insights_test_ok', 'CREATE TABLE x (id int);')));
+            $this->assertFalse(\Exceedone\Exment\Services\Insights\InsightSecurity::hasDatabase($make('insights_test_empty', '')));
+            $missing = new \Exceedone\Exment\Model\BackupRun();
+            $missing->file_name = 'insights_test_missing';
+            $this->assertNull(\Exceedone\Exment\Services\Insights\InsightSecurity::hasDatabase($missing), 'not known without the file');
+        } finally {
+            $disk->delete(['list/insights_test_ok.zip', 'list/insights_test_empty.zip']);
+        }
     }
 
     public function testTheCommand(): void
