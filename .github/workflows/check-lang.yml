@@ -88,10 +88,10 @@ jobs:
           docker compose -f docker-compose.yml exec -T php cp composer.dev.json composer.json
           docker compose -f docker-compose.yml exec -T php cp composer.dev.lock composer.lock
           # admin-core 2.x (ISS02862): the boilerplate takes it as "dev-master as 1.0.x". Here
-          # dev-master stands for 2.0.0, in the json and in the lock (its alias, and the requirement
-          # of exment it keeps), so exment's ^2.0 is met.
+          # dev-master stands for 2.99.0 (the newest of the 2.x line), in the json and in the lock (its alias, and the requirement
+          # of exment it keeps), so exment's ^2.1.1 is met.
           git -C exment-boilerplate/exment-admin-core checkout -B master
-          docker compose -f docker-compose.yml exec -T php sed -i -E -e 's/"dev-master as 1\.[0-9.]+"/"dev-master as 2.0.0"/' -e 's/"alias": "1\.[0-9.]+"/"alias": "2.0.0"/' -e 's/"alias_normalized": "1\.[0-9.]+"/"alias_normalized": "2.0.0.0"/' -e 's#"exceedone/exment-admin-core": "\^1\.[0-9.]+"#"exceedone/exment-admin-core": "^2.0"#' composer.json composer.lock
+          docker compose -f docker-compose.yml exec -T php sed -i -E -e 's/"dev-master as 1\.[0-9.]+"/"dev-master as 2.99.0"/' -e 's/"alias": "1\.[0-9.]+"/"alias": "2.99.0"/' -e 's/"alias_normalized": "1\.[0-9.]+"/"alias_normalized": "2.99.0.0"/' -e 's#"exceedone/exment-admin-core": "\^1\.[0-9.]+"#"exceedone/exment-admin-core": "^2.0"#' composer.json composer.lock
 
       - name: Make mysql Initialize
         working-directory: docker-exment

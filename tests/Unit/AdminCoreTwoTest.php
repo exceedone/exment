@@ -21,7 +21,7 @@ class AdminCoreTwoTest extends UnitTestBase
     public function testExmentNeedsAdminCoreTwo(): void
     {
         $composer = json_decode($this->read('composer.json'), true);
-        $this->assertSame('^2.0', $composer['require']['exceedone/exment-admin-core'] ?? null);
+        $this->assertSame('^2.1.1', $composer['require']['exceedone/exment-admin-core'] ?? null);
     }
 
     public function testNoICheckIsLoaded(): void
