@@ -16,7 +16,6 @@ use Exceedone\Exment\Model\Notify;
 use Exceedone\Exment\Model\NotifyNavbar;
 use Exceedone\Exment\Model\NotifyTarget;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Services\Notify\NotifyRunner;
 use Exceedone\Exment\Services\Notify\NotifyTargetBase;
 use Exceedone\Exment\Tests\DatabaseTransactions;
 use Exceedone\Exment\Tests\TestDefine;
@@ -40,12 +39,10 @@ class NotifyColumnHiddenTargetTest extends FeatureTestBase
     protected function setUp(): void
     {
         parent::setUp();
-        config(['exment.notify_mode' => NotifyRunner::SYNC]);
     }
 
     protected function tearDown(): void
     {
-        config(['exment.notify_mode' => 'auto']);
         System::clearCache();
         System::clearRequestSession();
         parent::tearDown();
