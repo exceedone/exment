@@ -38,12 +38,13 @@ trait MySqlClientTrait
     }
 
     /**
-     * The TLS options of PDO (config database.connections.mysql.options, e.g. MYSQL_ATTR_SSL_CA of
-     * .env) as the options of the client commands, each one escaped: the client checks the
-     * server in the same way as PDO.
+     * The TLS options of PDO (config database.connections.mysql.options, as the connection has
+     * them, e.g. MYSQL_ATTR_SSL_CA of .env) as the options of the client commands, each one
+     * escaped: the client checks the server in the same way as PDO.
      *
      * - MYSQL_ATTR_SSL_CA: --ssl-ca
-     * - MYSQL_ATTR_SSL_CAPATH: --ssl-capath
+     * - MYSQL_ATTR_SSL_CAPATH: --ssl-capath (the MariaDB client takes it only when it is built
+     *   with OpenSSL)
      * - MYSQL_ATTR_SSL_CERT: --ssl-cert
      * - MYSQL_ATTR_SSL_KEY: --ssl-key
      *
@@ -91,7 +92,7 @@ trait MySqlClientTrait
      * (sslOptions()), then the options of .env (clientOptions()), so that .env can change them.
      *
      * The options that mysql and mysqldump take only as the first ones (--defaults-file,
-     * --defaults-extra-file, --no-defaults, ...) stay first.
+     * --defaults-extra-file, --no-defaults, --login-path, --no-login-paths, ...) stay first.
      *
      * @param string $key "dump_options" or "restore_options"
      */
@@ -99,7 +100,7 @@ trait MySqlClientTrait
     {
         $first = [];
         $rest = static::clientOptionList($key);
-        while (count($rest) > 0 && preg_match('/^--(?:no-defaults$|print-defaults$|defaults-file=|defaults-extra-file=|defaults-group-suffix=)/', $rest[0]) === 1) {
+        while (count($rest) > 0 && preg_match('/^--(?:no-defaults$|print-defaults$|no-login-paths$|defaults-file=|defaults-extra-file=|defaults-group-suffix=|login-path=)/', $rest[0]) === 1) {
             $first[] = array_shift($rest);
         }
 

@@ -419,13 +419,6 @@ class Initialize
             if (!empty($sslCa)) {
                 $options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
             }
-            // the other TLS files of config/database.php are kept too (the backup and the
-            // restore give them to mysqldump and mysql, MySqlClientTrait::sslOptions())
-            foreach ([PDO::MYSQL_ATTR_SSL_CAPATH, PDO::MYSQL_ATTR_SSL_CERT, PDO::MYSQL_ATTR_SSL_KEY] as $attribute) {
-                if (is_array($currentOptions) && !empty($currentOptions[$attribute])) {
-                    $options[$attribute] = $currentOptions[$attribute];
-                }
-            }
             Config::set('database.connections.mysql.strict', false);
             Config::set('database.connections.mysql.options', $options);
         }
