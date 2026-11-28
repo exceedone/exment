@@ -248,6 +248,8 @@ class UserApiKeyController extends AdminControllerBase
             return [intval($user->id) => strval($user->getValue('user_name'))];
         })->all();
 
+        // the page of the site's keys has its own heading (the constructor sets the one of the user's page)
+        $this->setPageInfo(exmtrans('api_key.admin_header'), exmtrans('api_key.admin_header'), ' ', 'fa-key');
         $this->AdminContent($content);
         $content->row(view('exment::api_key.admin', [
             'keys' => $this->rows($paginator->items(), $users),
