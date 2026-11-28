@@ -51,8 +51,11 @@ class TotalUpdateCommand extends Command
                 'output' => $this->output,
             ]);
         } catch (BackupFailedException $e) {
-            // the backup failed: the update is not run
-            $this->error(strval(exmtrans('backup.message.backup_error')) . ' ' . $e->getMessage());
+            // the backup failed: the update is not run. Kept in the log too (the message has no
+            // password: the output of the client is masked when it is read)
+            $message = strval(exmtrans('backup.message.backup_error')) . ' ' . $e->getMessage();
+            $this->error($message);
+            \Log::error('[Exment] total-update stopped, the backup failed: ' . $message);
             return 1;
         }
         return 0;

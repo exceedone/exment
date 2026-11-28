@@ -45,6 +45,7 @@ class BackupCoverageTest extends FeatureTestBase
 
     protected function tearDown(): void
     {
+        \Exceedone\Exment\Database\MySqlConnection::localInfileUsing(null);
         foreach ($this->restoreFolders as $dir) {
             foreach (glob("{$dir}/*") ?: [] as $file) {
                 @unlink($file);
@@ -206,6 +207,7 @@ class BackupCoverageTest extends FeatureTestBase
     public function testTotalUpdateStopsWhenTheBackupFails(): void
     {
         $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error' >&2\nexit 2");
+        $log = \Log::spy();
 
         // the update is not run after a failed backup; the site is up again
         $this->runArtisan('exment:total-update', ['--publish' => 0])
@@ -213,6 +215,10 @@ class BackupCoverageTest extends FeatureTestBase
             ->assertExitCode(1)
             ->run();
         $this->assertFalse(app()->isDownForMaintenance(), 'the maintenance mode is ended');
+        // and kept in the log
+        $log->shouldHaveReceived('error')->withArgs(function ($message) {
+            return is_string($message) && str_contains($message, 'total-update stopped') && str_contains($message, 'TLS/SSL error');
+        });
     }
 
     public function testAShortPasswordIsMaskedOnlyInItsArgument(): void
@@ -429,6 +435,103 @@ class BackupCoverageTest extends FeatureTestBase
         $this->assertStringNotContainsString('RuntimeException', $message);
         $this->assertStringContainsString('TLS/SSL error', $message);
         $this->assertStringContainsString(strval(exmtrans('backup.message.tls_hint')), $message);
+    }
+
+    public function testAnEmptyZipIsNotRestored(): void
+    {
+        $this->fakeMysqlBin('exit 0');
+        // a file of 0 bytes: ZipArchive opens it as an archive without entries
+        $name = 'claudeempty' . substr(md5(uniqid('', true)), 0, 8);
+        $this->backupDisk()->put("list/{$name}.zip", '');
+        $this->createdBackups[] = "list/{$name}.zip";
+
+        $this->runArtisan('exment:restore', ['file' => $name, '--yes' => true])
+            ->expectsOutputToContain(strval(exmtrans('backup.message.restore_zip_empty')))
+            ->assertExitCode(1)
+            ->run();
+        $this->assertFalse(app()->isDownForMaintenance(), 'the site is up again');
+    }
+
+    public function testABackupWithNothingOrWithoutTheDefinitionIsNotRestored(): void
+    {
+        $this->fakeMysqlBin('exit 0');
+
+        // only the file of the versions
+        $e = $this->restoreFailure(function () {
+            \ExmentDB::checkRestore($this->restoreFolder([Define::BACKUP_VERSION_FILE => '{}']));
+        });
+        $this->assertFalse($e->databaseChanged());
+        $this->assertStringContainsString(strval(exmtrans('backup.message.restore_backup_empty')), $e->getMessage());
+
+        // data of the database without the definition of the tables
+        $e = $this->restoreFailure(function () {
+            \ExmentDB::checkRestore($this->restoreFolder(['custom_tables.sql' => 'INSERT INTO x VALUES (1);', 'exm__abc.tsv' => "id\n1\n"]));
+        });
+        $this->assertFalse($e->databaseChanged());
+        $this->assertStringContainsString(strval(exmtrans('backup.message.restore_no_definition', ['file' => 'table_definition.sql'])), $e->getMessage());
+    }
+
+    public function testABackupOfTheFilesOnlyIsNotRefused(): void
+    {
+        // the client is not asked: the database is not changed
+        $this->fakeMysqlBin('exit 0', "echo 'not to be called' >&2\nexit 1");
+        \ExmentDB::checkRestore($this->restoreFolder(['plugin.txt' => 'a file of a folder']));
+        $this->addToAssertionCount(1);
+    }
+
+    public function testARestoreWithoutLocalInfileChangesNothing(): void
+    {
+        $this->fakeMysqlBin('exit 0', 'exit 0');
+        $dir = $this->restoreFolder(['table_definition.sql' => '-- definition', 'exm__abc.tsv' => "id\n1\n"]);
+
+        // the server does not allow it (local_infile=OFF, the default of MySQL 8)
+        \Exceedone\Exment\Database\MySqlConnection::localInfileUsing(function () {
+            return [false, true];
+        });
+        $e = $this->restoreFailure(function () use ($dir) {
+            \ExmentDB::checkRestore($dir);
+        });
+        $this->assertFalse($e->databaseChanged());
+        $this->assertStringContainsString(strval(exmtrans('backup.message.restore_local_infile_off')), $e->getMessage());
+        $this->assertStringContainsString(strval(exmtrans('backup.message.local_infile_hint')), $e->getMessage());
+
+        // the client (the option of PDO) does not allow it
+        \Exceedone\Exment\Database\MySqlConnection::localInfileUsing(function () {
+            return [true, false];
+        });
+        $e = $this->restoreFailure(function () use ($dir) {
+            \ExmentDB::checkRestore($dir);
+        });
+        $this->assertStringContainsString(strval(exmtrans('backup.message.restore_local_infile_client')), $e->getMessage());
+
+        // both allow it: no refusal
+        \Exceedone\Exment\Database\MySqlConnection::localInfileUsing(function () {
+            return [true, true];
+        });
+        \ExmentDB::checkRestore($dir);
+    }
+
+    public function testAFailedLoadOfTheDataSaysItStoppedMidway(): void
+    {
+        $this->fakeMysqlBin('exit 0');
+        $connection = \DB::connection();
+        $method = new \ReflectionMethod($connection, 'loadTsvFile');
+        $method->setAccessible(true);
+
+        // a query the database refuses, as LOAD DATA when local_infile is off
+        $e = $this->restoreFailure(function () use ($method, $connection) {
+            $method->invoke($connection, 'SELECT * FROM claude_no_such_table_x', '/tmp/exm__abc.tsv');
+        });
+        $this->assertTrue($e->databaseChanged());
+        $this->assertStringContainsString(strval(exmtrans('backup.message.restore_load_failed', ['file' => 'exm__abc.tsv', 'detail' => ''])), $e->getMessage());
+        $this->assertStringContainsString('php artisan exment:restore', $e->getMessage());
+
+        // the error of local_infile is told with its hint
+        $connectionClass = \Exceedone\Exment\Database\MySqlConnection::class;
+        $error = 'SQLSTATE[HY000]: General error: 3948 Loading local data is disabled; this must be enabled on both the client and server sides';
+        $this->assertTrue($connectionClass::isLocalInfileError($error));
+        $this->assertStringContainsString(strval(exmtrans('backup.message.local_infile_hint')), $connectionClass::withLocalInfileHint('x', $error));
+        $this->assertSame('x', $connectionClass::withLocalInfileHint('x', 'SQLSTATE[42S02]: Base table or view not found'));
     }
 
     public function testRestoreCommandSaysWhenTheFileIsNotThere(): void
