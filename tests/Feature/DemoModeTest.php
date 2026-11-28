@@ -211,9 +211,10 @@ class DemoModeTest extends FeatureTestBase
         Notification::assertNothingSent();
     }
 
-    public function testTheSystemUpdateIsRefused(): void
+    public function testTheSystemUpdateIsNotThere(): void
     {
-        $this->assertRefusedJson($this->post(admin_url('system/call_update'), [], self::AJAX));
+        // the update from the screen is removed: nothing to refuse
+        $this->post(admin_url('system/call_update'), [], self::AJAX)->assertNotFound();
         $this->assertFalse($this->app->isDownForMaintenance());
     }
 

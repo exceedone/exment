@@ -3,9 +3,11 @@
 namespace Exceedone\Exment\Services\BackupRestore;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
+use Exceedone\Exment\Exceptions\RestoreFailedException;
 use Exceedone\Exment\Jobs\BackupRunJob;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\NotifyNavbar;
@@ -523,11 +525,20 @@ class BackupRuns
         $progress->begin();
 
         $restore->setProgress($progress);
+        $safety = null;
         try {
             if ($backupFirst) {
-                static::backupBeforeRestore($progress, $output);
+                $safety = static::backupBeforeRestore($progress, $output);
             }
-            $result = $restore->execute($file, $tmp);
+            try {
+                $result = $restore->execute($file, $tmp);
+            } catch (RestoreFailedException $e) {
+                // stopped midway: the backup made before the restore brings the data back
+                if ($e->databaseChanged() && !is_null($safety)) {
+                    throw $e->withNote(strval(exmtrans('backup.message.restore_safety_backup', ['name' => $safety])));
+                }
+                throw $e;
+            }
             if ($restore->isConfigSkipped()) {
                 $progress->warn(strval(exmtrans('backup.message.restore_config_skipped')));
             }
@@ -548,7 +559,7 @@ class BackupRuns
      * A backup of the data now, before a restore replaces it (the targets of the settings). The
      * restore does not start when it fails.
      *
-     * @throws \RuntimeException
+     * @throws RestoreFailedException nothing was restored: the backup failed (its reason)
      */
     protected static function backupBeforeRestore(RunProgress $progress, ?callable $output = null): string
     {
@@ -562,11 +573,15 @@ class BackupRuns
             $result = $backup->execute(System::backup_target());
         } catch (\Throwable $e) {
             $progress->error('the backup before the restore failed: ' . $e->getMessage(), ['exception' => get_class($e)], false);
-            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')), 0, $e);
+            // nothing is restored: told with its reason (and the hint about TLS in it)
+            $reason = $e instanceof BackupFailedException || $e instanceof BackupRestoreCheckException
+                ? $e->getMessage()
+                : SecretMasker::mask(mb_substr(class_basename($e) . ': ' . $e->getMessage(), 0, 500));
+            throw RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_safety_backup_failed', ['reason' => $reason])));
         }
         if ($result !== 0) {
             $progress->error('the backup before the restore failed', ['result' => $result], false);
-            throw new \RuntimeException(strval(exmtrans('backup.run.message.safety_failed')));
+            throw RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_safety_backup_failed', ['reason' => exmtrans('backup.message.backup_error')])));
         }
         $progress->info('the backup before the restore', ['file' => $name]);
         static::keepSafetyBackups();
@@ -636,7 +651,7 @@ class BackupRuns
      */
     public static function reason(\Throwable $e): string
     {
-        if ($e instanceof BackupRestoreCheckException || $e instanceof InvalidZipEntryException || $e instanceof BackupRunLockedException) {
+        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException || $e instanceof RestoreFailedException || $e instanceof InvalidZipEntryException || $e instanceof BackupRunLockedException) {
             return SecretMasker::mask($e->getMessage());
         }
         return SecretMasker::mask(mb_substr(class_basename($e) . ': ' . $e->getMessage(), 0, 500));
@@ -651,7 +666,7 @@ class BackupRuns
         if (str_contains($message, 'no space') || str_contains($message, 'disk full') || str_contains($message, 'disk quota')) {
             return 'disk_full';
         }
-        if ($e instanceof BackupRestoreCheckException) {
+        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException || $e instanceof RestoreFailedException) {
             return 'command';
         }
         if ($e instanceof InvalidZipEntryException) {

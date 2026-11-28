@@ -92,6 +92,16 @@ class SqlServerConnection extends BaseConnection implements ConnectionInterface
     }
 
     /**
+     * Check a restore before the database is changed (nothing to check: the restore is not supported)
+     *
+     * @param string $dirFullPath contains dir path
+     * @return void
+     */
+    public function checkRestore($dirFullPath)
+    {
+    }
+
+    /**
      * Restore database
      *
      * @param string $dirFullPath contains dir path

@@ -31,6 +31,7 @@ namespace Exceedone\Exment\Facades;
  * @method static bool checkBackup();
  * @method static void backupDatabase($tempDir, ?callable $progress = null)
  * @method static void restoreDatabase($dirFullPath, ?callable $progress = null)
+ * @method static void checkRestore(string $dirFullPath)
  * @method static void importTsv($dirFullPath, ?callable $progress = null)
  * @method static void createView($viewName, $query)
  * @method static void dropView($viewName)

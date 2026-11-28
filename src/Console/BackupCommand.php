@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Services\BackupRestore\BackupRuns;
@@ -56,6 +57,7 @@ class BackupCommand extends Command
      */
     public function handle()
     {
+        $run = null;
         try {
             $target = $this->option("target") ?? BackupTarget::arrays();
             // @phpstan-ignore-next-line
@@ -81,7 +83,18 @@ class BackupCommand extends Command
             });
             $this->line(strval(exmtrans('backup.run.message.cli_log', ['path' => BackupRuns::logRelativePath($run)])));
 
-            return $result;
+            if ($result !== 0) {
+                $this->error(strval(exmtrans('backup.message.backup_error')));
+                return 1;
+            }
+            return 0;
+        } catch (BackupFailedException $e) {
+            // the database dump failed, or no backup file was made: not a success
+            $this->error(strval(exmtrans('backup.message.backup_error')) . ' ' . $e->getMessage());
+            if (!is_null($run)) {
+                $this->line(strval(exmtrans('backup.run.message.cli_log', ['path' => BackupRuns::logRelativePath($run)])));
+            }
+            return 1;
         } catch (BackupRunLockedException $e) {
             $this->error($e->getMessage());
             return 1;

@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Console;
 
 use Illuminate\Console\Command;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Services\Update\UpdateService;
 
 class TotalUpdateCommand extends Command
@@ -22,7 +23,7 @@ class TotalUpdateCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Update the exment package';
+    protected $description = 'Maintenance mode, backup and exment:update (run composer update first)';
 
     /**
      * Create a new command instance.
@@ -43,10 +44,17 @@ class TotalUpdateCommand extends Command
      */
     public function handle()
     {
-        UpdateService::update([
-            'backup' => boolval($this->option('backup') ?? true),
-            'publish' => boolval($this->option('publish') ?? true),
-        ]);
+        try {
+            UpdateService::update([
+                'backup' => boolval($this->option('backup') ?? true),
+                'publish' => boolval($this->option('publish') ?? true),
+                'output' => $this->output,
+            ]);
+        } catch (BackupFailedException $e) {
+            // the backup failed: the update is not run
+            $this->error(strval(exmtrans('backup.message.backup_error')) . ' ' . $e->getMessage());
+            return 1;
+        }
         return 0;
     }
 }

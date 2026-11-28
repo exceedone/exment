@@ -40,7 +40,8 @@ class SecretMasker
 
         $patterns = [
             // a DSN: mysql:host=...;dbname=..., sqlsrv:Server=...
-            '/\b(?:mysql|mariadb|pgsql|sqlsrv|dblib|odbc|sqlite):[^\s\'"]*/i' => static::MASK,
+            // (only with what follows the colon: "mysql: ERROR 2026 ...", the name of a client, stays)
+            '/\b(?:mysql|mariadb|pgsql|sqlsrv|dblib|odbc|sqlite):[^\s\'"]+/i' => static::MASK,
             // user:password@ in a URL (redis://, smtp://, https://)
             '#\b([a-z][a-z0-9+.\-]*://)[^\s/@:\'"]*:[^\s/@\'"]*@#i' => '$1' . static::MASK . '@',
             // --password=..., --password ..., -p'...'

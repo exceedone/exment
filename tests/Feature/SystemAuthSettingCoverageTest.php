@@ -114,16 +114,15 @@ class SystemAuthSettingCoverageTest extends FeatureTestBase
         Notification::assertSentTimes(MailSendJob::class, 1);
     }
 
-    public function testTheUpdateIsRefusedToAUserWithoutTheSystemPermission(): void
+    public function testTheUpdateFromTheScreenIsGone(): void
     {
-        // SystemController::callUpdate() puts the site in maintenance and runs composer to update
-        // exment, which no test may do; what can be checked is that only a system administrator
-        // reaches it. An ajax request gets the denial as a 403 (a page request would exit()).
-        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER2));
+        // the update from the screen (system/call_update) rewrote the ranges of the composer.json
+        // to "*": it is removed, also for a system administrator
+        $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
 
         $this->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])
             ->post(admin_url('system/call_update'))
-            ->assertForbidden();
+            ->assertNotFound();
 
         $this->assertFalse($this->app->isDownForMaintenance());
     }

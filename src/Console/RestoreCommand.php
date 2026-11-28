@@ -7,6 +7,7 @@ use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
+use Exceedone\Exment\Exceptions\RestoreFailedException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Services\BackupRestore\BackupRuns;
@@ -96,6 +97,10 @@ class RestoreCommand extends Command
             $this->error($e->getMessage());
             return 1;
         } catch (BackupRestoreCheckException $e) {
+            $this->error($e->getMessage());
+            return 1;
+        } catch (RestoreFailedException $e) {
+            // stopped: before the database was changed (nothing was restored), or midway
             $this->error($e->getMessage());
             return 1;
         } catch (InvalidZipEntryException $e) {
