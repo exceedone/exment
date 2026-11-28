@@ -63,7 +63,7 @@ When you are not sure which version a change belongs to, ask in the issue or the
 | 7.2.x | `develop/7.2.<n>` | 1.x (`^1.0.6`) | admin-core `1.x`, boilerplate `7.2` |
 | 7.3 | `develop/7.3.0` | 2.x (`^2.1.1`) | admin-core `2.x`, boilerplate `main` |
 
-Updating a site from 7.2 to 7.3 is **not a plain `composer update`**, because exment-admin-core moves to 2.x. Follow the update page of the manual: [Update to 7.3.0](https://exment.net/docs/update/v7_3_0.html) ([Japanese](https://exment.net/docs/ja/update/v7_3_0.html)).
+Updating a site from 7.2 to 7.3 is **not a plain `composer update`**, because exment-admin-core moves to 2.x. Follow the update page of the manual: [Update](https://exment.net/docs/update.html) ([Japanese](https://exment.net/docs/ja/update.html)).
 
 ## Security fixes
 

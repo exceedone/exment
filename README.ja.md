@@ -43,10 +43,7 @@ Exment（エクスメント）は、プログラミングなしで業務シス�
 | 使い方 | [マニュアル](https://exment.net/docs/#/ja/) |
 | お問い合わせ | [お問い合わせ](https://exment.net/inquiry/)（導入・乗り換えのご相談、保守サポート） |
 
-<a href="https://demo.exment.net/admin" target="_blank">デモサイト</a>  
-次の内容でログインしてください。  
-ユーザーコード：admin  
-パスワード：adminadmin
+[デモサイト](https://exment.net/demo-env/)：ブラウザーで Exment を試せます（ログインの方法はページにあります）。
 
 開発: [株式会社カジトリ](https://exment.net/company/)（エクシード・ワン グループ）
 

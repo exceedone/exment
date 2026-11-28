@@ -43,10 +43,7 @@ Có đủ các chức năng cần cho nghiệp vụ: workflow, Kanban, biểu đ
 | Hướng dẫn | [Hướng dẫn sử dụng (tiếng Anh)](https://exment.net/docs/#/) · [tiếng Nhật](https://exment.net/docs/#/ja/) |
 | Liên hệ | [Liên hệ](https://exment.net/vi/inquiry/) |
 
-<a href="https://demo.exment.net/admin" target="_blank">Trang demo</a>  
-Đăng nhập bằng thông tin sau.  
-Mã người dùng: admin  
-Mật khẩu: adminadmin
+[Trang demo](https://exment.net/vi/demo-env/): dùng thử Exment trên trình duyệt (cách đăng nhập có trên trang).
 
 Phát triển bởi [Kajitori Co., Ltd.](https://exment.net/company/) (tập đoàn Exceed One)
 
