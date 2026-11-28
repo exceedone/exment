@@ -54,7 +54,7 @@ class InitializeForm
         $packs = $this->featurePackOptions();
         if (count($packs) > 0) {
             $form->exmheader(exmtrans('feature.pack_install_header'))->hr();
-            $form->checkbox('feature_packs', exmtrans('feature.pack_install_header'))
+            $form->checkbox('feature_packs', exmtrans('feature.pack_install_label'))
                 ->options($packs)
                 ->help(exmtrans('feature.pack_install_help'));
         }

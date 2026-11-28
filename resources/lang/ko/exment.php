@@ -5435,6 +5435,8 @@ IP 주소: :ip
         'pack_install_header' => '기능',
         'pack_install_question' => ':name을(를) 사용하시겠습니까?',
         'pack_install_help' => '나중에 「기능 관리」에서 사용으로 바꿀 수도 있습니다.',
+        'pack_install_label' => '처음부터 사용할 기능',
+        'pack_incomplete' => '추가한 것의 일부(테이블 또는 대시보드)가 없습니다. 저장하면 없는 것을 추가합니다.',
         'menu_pack' => '추가되는 메뉴는 메뉴 화면에서 옮기거나 뺄 수 있습니다.',
         'menu_pack_link' => '메뉴 화면',
         'features' => [

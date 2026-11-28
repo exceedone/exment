@@ -2115,7 +2115,7 @@
     "dashboards": [
         {
             "dashboard_type": "0",
-            "dashboard_name": "sales_dashboard",
+            "dashboard_name": "exment_sales_dashboard",
             "dashboard_view_name": "営業",
             "default_flg": "0",
             "options": {
@@ -2219,12 +2219,12 @@
             "menu_target_name": null
         },
         {
-            "order": "0",
+            "order": "1",
             "title": "営業のダッシュボード",
             "icon": "fa-tachometer",
             "uri": null,
             "options": {
-                "menu_target_dashboard_name": "sales_dashboard",
+                "menu_target_dashboard_name": "exment_sales_dashboard",
                 "name_locale_ja": "営業のダッシュボード",
                 "name_locale_en": "Sales dashboard",
                 "name_locale_de": "Vertriebs-Dashboard",
@@ -2239,7 +2239,7 @@
             "menu_target_name": null
         },
         {
-            "order": "1",
+            "order": "2",
             "title": "顧客",
             "icon": "fa-building",
             "uri": "sales_customer",
@@ -2250,7 +2250,7 @@
             "menu_target_name": "sales_customer"
         },
         {
-            "order": "2",
+            "order": "3",
             "title": "案件",
             "icon": "fa-handshake-o",
             "uri": "sales_deal",
@@ -2261,7 +2261,7 @@
             "menu_target_name": "sales_deal"
         },
         {
-            "order": "3",
+            "order": "4",
             "title": "見積",
             "icon": "fa-file-text-o",
             "uri": "sales_quote",
@@ -2272,7 +2272,7 @@
             "menu_target_name": "sales_quote"
         },
         {
-            "order": "4",
+            "order": "5",
             "title": "契約",
             "icon": "fa-file-text",
             "uri": "sales_contract",
@@ -2283,7 +2283,7 @@
             "menu_target_name": "sales_contract"
         },
         {
-            "order": "5",
+            "order": "6",
             "title": "活動の記録",
             "icon": "fa-comments",
             "uri": "sales_activity",
