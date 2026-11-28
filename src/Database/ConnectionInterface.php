@@ -43,6 +43,15 @@ interface ConnectionInterface
     public function restoreDatabase($dirFullPath);
 
     /**
+     * Check a restore before the database is changed (the files to import, the client).
+     *
+     * @param string $dirFullPath contains dir path
+     * @return void
+     * @throws \Exceedone\Exment\Exceptions\RestoreFailedException nothing was restored
+     */
+    public function checkRestore($dirFullPath);
+
+    /**
      * insert table data from backup tsv files.
      *
      * @param string $dirFullPath restore file path

@@ -418,6 +418,10 @@ return [
     */
     'backup_info' => [
         'mysql_dir' => env('EXMENT_MYSQL_BIN_DIR'),
+        // extra options of the client commands, separated by spaces (each one is escaped), e.g.
+        // "--ssl-mode=DISABLED" (MySQL client) or "--skip-ssl-verify-server-cert" (MariaDB client)
+        'dump_options' => env('EXMENT_DB_DUMP_OPTIONS'),
+        'restore_options' => env('EXMENT_DB_RESTORE_OPTIONS'),
         'def_file' => 'table_definition.sql',
     ],
 

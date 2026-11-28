@@ -5,6 +5,7 @@ namespace Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\BackupTarget;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 
 class Backup
@@ -36,6 +37,7 @@ class Backup
      *
      * @return int
      * @throws \Exceedone\Exment\Exceptions\BackupRestoreCheckException
+     * @throws BackupFailedException when the database dump or the backup file fails
      */
     // @phpstan-ignore-next-line
     public function execute($target = null, bool $schedule = false)
@@ -200,6 +202,13 @@ class Backup
                 $zip->addFile($filePath, $relativePath);
             }
             $zip->close();
+        }
+
+        // a backup without its file is not a backup
+        $zipPath = $this->diskService->tmpDiskItem()->fileFullPath();
+        clearstatcache(true, $zipPath);
+        if ($res !== true || !is_file($zipPath) || filesize($zipPath) === 0) {
+            throw new BackupFailedException(exmtrans('backup.message.zip_failed'));
         }
 
         // upload file

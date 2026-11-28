@@ -692,7 +692,17 @@ class DashboardController extends AdminControllerBase
         $versionCheck = \Exment::checkLatestVersion();
         if ($versionCheck === SystemVersion::HAS_NEXT) {
             list($latest, $current) = \Exment::getExmentVersion();
-            admin_info(exmtrans("system.version_old") . '(' . $latest . ')', '<a href="'. esc_html(\Exment::versionUpdateUrl()).'">'.exmtrans("system.update_guide").'</a>' . static::adminOnlyNote());
+            // admin_info() shows its title as text and its content as HTML: the values of the content are escaped here
+            $title = exmtrans("system.version_old") . '(' . $latest . ')';
+            if (\Exment::needsManualUpdate()) {
+                // a version that "composer update" cannot reach: the steps of the manual for it
+                $content = esc_html(\Exment::getManualUpdateNotice($latest))
+                    . '<br><a href="' . esc_html(\Exment::getManualUrl(\Exment::getManualUpdatePath($latest))) . '" target="_blank" rel="noopener noreferrer">'
+                    . esc_html(exmtrans('system.version_needs_manual_link')) . '</a>';
+            } else {
+                $content = '<a href="'. esc_html(\Exment::versionUpdateUrl()).'">'.esc_html(exmtrans("system.update_guide")).'</a>';
+            }
+            admin_info($title, $content . static::adminOnlyNote());
         }
     }
 

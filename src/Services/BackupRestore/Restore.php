@@ -83,6 +83,9 @@ class Restore
             // unzip backup file
             $this->unzipFile($file, $tmp);
 
+            // before anything is changed: every file to import has data, and the client connects
+            \ExmentDB::checkRestore($this->diskService->tmpDiskItem()->dirFullPath());
+
             $result = 0;
 
             // the rules of an application before the database is replaced (CoreExtensions::addRestoreRule)
