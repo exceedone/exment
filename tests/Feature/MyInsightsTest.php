@@ -190,7 +190,10 @@ class MyInsightsTest extends FeatureTestBase
         \Exceedone\Exment\Services\UserApiKeys::create(intval($user1->base_user_id), 'anywhere', \Exceedone\Exment\Services\UserApiKeys::readOnlyScopes());
         \Exceedone\Exment\Services\UserApiKeys::create(intval($user1->base_user_id), 'office only', \Exceedone\Exment\Services\UserApiKeys::readOnlyScopes(), null, '192.0.2.0/24');
         $mine = new MyInsights($user1, Carbon::today()->subDays(6), Carbon::today());
-        $keys = collect($mine->api()['keys'])->keyBy('name');
+        $keys = [];
+        foreach ((array)$mine->api()['keys'] as $key) {
+            $keys[strval($key['name'])] = $key;
+        }
         $this->assertContains('any_ip', $keys['anywhere']['marks']);
         $this->assertNotContains('any_ip', $keys['office only']['marks']);
 
