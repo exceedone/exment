@@ -1,3 +1,3 @@
-This page is moved. Please check [here](document/en/Develop.md).  
+This page has moved to [docs/development.md](docs/development.md).  
   
-このページは移動しました。[こちら](document/ja/Develop.md)をご確認ください。
+このページは移動しました。[docs/ja/development.md](docs/ja/development.md) をご確認ください。
