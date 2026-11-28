@@ -958,8 +958,9 @@ class Plugin extends ModelBase
     // @phpstan-ignore-next-line
     public function getCannotReadMessage()
     {
+        // the alerts and the dashboard box print it as html: the name is text
         return exmtrans('plugin.error.cannot_read', [
-            'plugin_view_name' => $this->plugin_view_name
+            'plugin_view_name' => esc_html($this->plugin_view_name)
         ]);
     }
 
