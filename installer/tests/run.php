@@ -88,12 +88,28 @@ exec(escapeshellarg(PHP_BINARY) . ' -l ' . escapeshellarg($lint) . ' 2>&1', $out
 unlink($lint);
 ok($code === 0, 'the index.php made is PHP');
 
-// --- the texts: the same keys in both languages
+// --- the texts: the same keys in every language
 $texts = exi_texts();
-ok(array_keys($texts['ja']) === array_keys($texts['en']), 'ja and en have the same keys');
-foreach (array('db_xserver', 'db_sakura', 'db_other') as $k) {
-    ok(count($texts['ja'][$k]) === count($texts['en'][$k]), $k . ': as many lines');
+ok(array_keys($texts) === array('ja', 'en', 'de', 'es', 'ko', 'vi', 'zh_CN'), '7 languages');
+foreach ($texts as $code => $words) {
+    $mine = array_keys($words);
+    $en = array_keys($texts['en']);
+    sort($mine);
+    sort($en);
+    ok($mine === $en, $code . ': the keys of en');
+    foreach (array('db_xserver', 'db_sakura', 'db_other') as $k) {
+        ok(count($words[$k]) === count($texts['en'][$k]), $code . ' ' . $k . ': as many lines');
+    }
+    foreach ($words as $k => $v) {
+        if (is_string($v) && is_string($texts['en'][$k])) {
+            ok(substr_count($v, '%s') === substr_count($texts['en'][$k], '%s'), $code . ' ' . $k . ': as many %s');
+        }
+    }
 }
+ok(exi_accept_lang('ja,en-US;q=0.9', exi_langs()) === 'ja', 'Accept-Language: ja');
+ok(exi_accept_lang('zh-CN,zh;q=0.9', exi_langs()) === 'zh_CN', 'Accept-Language: zh-CN');
+ok(exi_accept_lang('fr-FR,de;q=0.8', exi_langs()) === 'de', 'Accept-Language: the first the installer has');
+ok(exi_accept_lang('', exi_langs()) === 'en', 'Accept-Language: none');
 
 echo $fail === 0 ? "\nall ok\n" : "\n$fail failed\n";
 exit($fail === 0 ? 0 : 1);
