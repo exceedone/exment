@@ -138,7 +138,9 @@ class UserApiKeyPageTest extends FeatureTestBase
         [$stopped] = UserApiKeys::create($this->baseUserId(TestDefine::TESTDATA_USER_LOGINID_USER1), 'already stopped', UserApiKeys::readOnlyScopes());
         UserApiKeys::revoke($stopped);
         $this->login(TestDefine::TESTDATA_USER_LOGINID_ADMIN);
-        $this->get(admin_url('api_keys'))->assertOk()->assertSee('still active')->assertDontSee('already stopped');
+        $this->get(admin_url('api_keys'))->assertOk()->assertSee('still active')->assertDontSee('already stopped')
+            // the heading of the site's keys, not the one of the user's page
+            ->assertSee(exmtrans('api_key.admin_header'))->assertDontSee(exmtrans('api_key.page_header'));
         $this->get(admin_url('api_keys') . '?status=inactive')->assertOk()->assertSee('already stopped')->assertDontSee('still active');
         $this->get(admin_url('api_keys') . '?status=all')->assertOk()->assertSee('still active')->assertSee('already stopped');
         // a status that is not one: the active keys
