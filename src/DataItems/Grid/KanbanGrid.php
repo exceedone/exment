@@ -186,17 +186,7 @@ class KanbanGrid extends GridBase
             // leaves whole lanes empty when the data is lopsided - and the
             // lane that holds 2,000 finished records would eat the budget of
             // the lanes that hold the work.
-            $keys = $this->keysWithRecords($group_column, $workflow, $hide_keys, $this->getBoardKeys($group_column, $workflow, $hide_keys));
-            // the first rows of every column in one query, where the database can
-            $records = $this->windowedColumnRecords($group_column, $workflow, $hide_keys, $keys, $col_count);
-            if (!isset($records)) {
-                $records = collect();
-                foreach ($keys as $key) {
-                    $records = $records->merge(
-                        $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key)->take($col_count)->get()
-                    );
-                }
-            }
+            $records = $this->firstSlices($group_column, $workflow, $hide_keys, $col_count);
             $over_limit = false;
         } else {
             $query = $this->newBoardQuery($group_column, $workflow, $hide_keys);
@@ -1359,6 +1349,7 @@ class KanbanGrid extends GridBase
         // id settles every tie the same way each time.
         $query->orderBy(getDBTableName($this->custom_table) . '.id');
         $this->applyEmbedFilter($query);
+        $this->applyBoardState($query);
         if (isset($workflow)) {
             // without this every card would run its own query for the status
             $query->with(['workflow_value', 'workflow_value.workflow_status']);
@@ -1450,6 +1441,7 @@ class KanbanGrid extends GridBase
             $this->custom_view->resetSearchService();
             $this->custom_view->filterSortModel($query, ['sort' => false]);
             $this->applyEmbedFilter($query);
+            $this->applyBoardState($query);
             if (!empty($hide_keys)) {
                 $this->applyBoardKeys($query, $group_column, $workflow, $hide_keys, true);
             }
@@ -1626,6 +1618,236 @@ class KanbanGrid extends GridBase
         }
 
         $query->whereRaw($expr . ' = ?', [$lane]);
+    }
+
+
+    /**
+     * What the board is narrowed to on screen - the filter panel, the keyword
+     * and the "only ..." switches - or null for the whole board.
+     *
+     * A board read per column holds the first slice of every column only, so
+     * filtering in the browser could only ever find what had already arrived
+     * (#2185). The same filters are said in sql here instead, and every query
+     * the cards, the paging and the column figures are read from goes through
+     * applyBoardState(). The browser still filters what it is given by its own
+     * rules, so this may be a little wider than the board, never narrower.
+     *
+     * @var array<string, mixed>|null
+     */
+    protected $board_state = null;
+
+    /** @var array<string, mixed>|null what applyBoardState() reads, worked out once per request */
+    protected $board_state_parts = null;
+
+    /**
+     * Narrow every read of this board to what the browser has on screen.
+     *
+     * @param array<string, mixed> $state the shape the board saves a view with:
+     *        filters, keyword and only (group and swimlane are not filters)
+     * @return $this
+     */
+    public function setBoardState(array $state)
+    {
+        $clean = $this->sanitizeState($state);
+        $this->board_state = null;
+        $this->board_state_parts = null;
+        if (!empty($clean['filters']) || $clean['keyword'] !== '' || !empty($clean['only'])) {
+            $this->board_state = [
+                'filters' => $clean['filters'],
+                'keyword' => $clean['keyword'],
+                'only' => $clean['only'],
+            ];
+        }
+
+        return $this;
+    }
+
+    /**
+     * Whether the reads of this board are narrowed, see setBoardState().
+     */
+    public function hasBoardState(): bool
+    {
+        return isset($this->board_state);
+    }
+
+    /**
+     * The board columns and the card columns the filters are read against.
+     *
+     * @return array<string, mixed>
+     */
+    protected function boardStateParts(): array
+    {
+        if (isset($this->board_state_parts)) {
+            return $this->board_state_parts;
+        }
+
+        $group_column = null;
+        $workflow = null;
+        if ($this->getSource() == static::SOURCE_WORKFLOW) {
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        } else {
+            $group_column = $this->getGroupColumn();
+        }
+
+        return $this->board_state_parts = [
+            'group_column' => $group_column,
+            'workflow' => $workflow,
+            'context' => $this->buildCardContext($group_column, $workflow),
+        ];
+    }
+
+    /**
+     * Narrow a board query to the cards the filters on screen let through.
+     *
+     * Each filter is the sql twin of the one visible() runs in the browser. A
+     * filter that cannot match anything there - "only overdue" on a board
+     * without a due date - matches nothing here either.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
+     * @return void
+     */
+    protected function applyBoardState($query)
+    {
+        if (!isset($this->board_state)) {
+            return;
+        }
+        $state = $this->board_state;
+        $parts = $this->boardStateParts();
+        $group_column = $parts['group_column'];
+        $workflow = $parts['workflow'];
+        $context = $parts['context'];
+        $grammar = \DB::connection()->getQueryGrammar();
+
+        // the filter panel, the label strip among it: any value a card holds
+        // in the column is a match
+        foreach ((array)$state['filters'] as $name => $value) {
+            $value = strval($value);
+            if ($name === static::WORKFLOW_KEY) {
+                if (isset($workflow)) {
+                    $this->applyBoardKeys($query, null, $workflow, [$value], false);
+                } else {
+                    $query->whereRaw('1 = 0');
+                }
+                continue;
+            }
+            $custom_column = $this->columnByName(strval($name));
+            if (!isset($custom_column)) {
+                $query->whereRaw('1 = 0');
+                continue;
+            }
+            $this->whereHolds($query, $custom_column, [$value]);
+        }
+
+        if ($state['keyword'] !== '') {
+            $this->applyKeyword($query, $state['keyword'], $this->keywordColumns($context['value_columns']));
+        }
+
+        $only = (array)$state['only'];
+
+        // past the due date and not finished: slaOf() in the browser
+        if (!empty($only['over'])) {
+            $limit_column = $context['limit_column'];
+            if (!isset($limit_column)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $due = $grammar->wrap($this->columnKey($limit_column));
+                $query->whereRaw('(' . $due . ' is not null and ' . $due . " <> '' and " . $due . ' < ' . $this->sqlNow() . ')');
+                $done = $this->getDoneKeys($group_column, $workflow, $context['statuses']);
+                if (!empty($done)) {
+                    $this->applyBoardKeys($query, $group_column, $workflow, $done, true);
+                }
+            }
+        }
+
+        if (!empty($only['unassigned'])) {
+            $assignee_column = $context['assignee_column'];
+            if (!isset($assignee_column)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $who = $grammar->wrap($this->columnKey($assignee_column));
+                $query->whereRaw('(' . $who . ' is null or ' . $who . " = '' or " . $who . " = '[]')");
+            }
+        }
+
+        if (!empty($only['mine'])) {
+            $mine_column = $context['mine_column'];
+            $me = $this->getMyKeys($mine_column);
+            if (!isset($mine_column) || empty($me)) {
+                $query->whereRaw('1 = 0');
+            } else {
+                $this->whereHolds($query, $mine_column, $me);
+            }
+        }
+
+        // a card is blocked, or an interruption, by any of the values set
+        // for it, each in a column of its own
+        foreach (['blocked' => 'kanban_blocked_keys', 'expedite' => 'kanban_expedite_keys'] as $flag => $option_name) {
+            if (empty($only[$flag])) {
+                continue;
+            }
+            $marks = [];
+            foreach ($this->getValueKeyList($option_name) as $mark) {
+                $custom_column = $this->columnByName(strval($mark['column']));
+                if (isset($custom_column)) {
+                    $marks[] = [$custom_column, strval($mark['key'])];
+                }
+            }
+            if (empty($marks)) {
+                $query->whereRaw('1 = 0');
+                continue;
+            }
+            $query->where(function ($q) use ($marks) {
+                foreach ($marks as $mark) {
+                    $q->orWhere(function ($one) use ($mark) {
+                        $this->whereHolds($one, $mark[0], [$mark[1]]);
+                    });
+                }
+            });
+        }
+    }
+
+    /**
+     * Narrow a query to the records holding one of the given values in a column.
+     *
+     * A column of several values is matched against each one it holds, the way
+     * keysOf() reads it in the browser.
+     *
+     * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
+     * @param CustomColumn $custom_column
+     * @param array<int, string> $keys
+     * @return void
+     */
+    protected function whereHolds($query, $custom_column, array $keys)
+    {
+        $keys = array_values(array_unique(array_map('strval', $keys)));
+        if (empty($keys)) {
+            $query->whereRaw('1 = 0');
+            return;
+        }
+
+        $expr = $this->columnKey($custom_column);
+        if (boolval($custom_column->isMultipleEnabled())) {
+            $query->whereInArrayString($expr, $keys);
+            return;
+        }
+        $query->whereIn($expr, $keys);
+    }
+
+    /**
+     * A column of this table, by the name the board calls it.
+     *
+     * @param string $name
+     * @return CustomColumn|null
+     */
+    protected function columnByName(string $name)
+    {
+        foreach ($this->custom_table->custom_columns_cache as $custom_column) {
+            if ($custom_column->column_name === $name) {
+                return $custom_column;
+            }
+        }
+
+        return null;
     }
 
 
@@ -1958,6 +2180,7 @@ class KanbanGrid extends GridBase
         $this->custom_view->resetSearchService();
         $this->custom_view->filterSortModel($query, ['sort' => false]);
         $this->applyEmbedFilter($query);
+        $this->applyBoardState($query);
         if (!empty($hide_keys)) {
             $this->applyBoardKeys($query, $group_column, $workflow, $hide_keys, true);
         }
@@ -2193,7 +2416,7 @@ class KanbanGrid extends GridBase
         $has_more = false;
         foreach ($this->getBoardKeys($group_column, $workflow, $hide_keys) as $key) {
             $query = $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key);
-            $this->applyKeyword($query, $keyword, $context['value_columns']);
+            $this->applyKeyword($query, $keyword, $this->keywordColumns($context['value_columns']));
             $rows = $query->take($col_count + 1)->get();
             if ($rows->count() > $col_count) {
                 $has_more = true;
@@ -2220,6 +2443,42 @@ class KanbanGrid extends GridBase
 
 
     /**
+     * The columns a keyword is looked for in: the ones the cards carry, and the
+     * columns of the record's label, which every card shows as its name and the
+     * browser searches too (visible(): label, title and values). Without them a
+     * keyword typed from a card's name found nothing on the server (#2185).
+     * A label written as a format (expert mode) is not a column and is left out.
+     *
+     * @param array<string, CustomColumn> $value_columns
+     * @return array<string, CustomColumn>
+     */
+    protected function keywordColumns(array $value_columns): array
+    {
+        $label_columns = $this->custom_table->getLabelColumns();
+        if (is_string($label_columns)) {
+            return $value_columns;
+        }
+
+        $columns = [];
+        if (!isset($label_columns) || count($label_columns) == 0) {
+            // the label is then the first column, as CustomValue::getBasicLabel()
+            $columns[] = $this->custom_table->custom_columns_cache->first();
+        } else {
+            foreach ($label_columns as $label_column) {
+                $columns[] = $label_column instanceof CustomColumn ? $label_column : CustomColumn::getEloquent($label_column->table_label_id);
+            }
+        }
+        foreach ($columns as $custom_column) {
+            if ($custom_column instanceof CustomColumn && !isset($value_columns[$custom_column->column_name])) {
+                $value_columns[$custom_column->column_name] = $custom_column;
+            }
+        }
+
+        return $value_columns;
+    }
+
+
+    /**
      * Narrow a query to the records a keyword could match.
      *
      * Deliberately wide: the browser filters the answer again with the rules
@@ -2229,8 +2488,8 @@ class KanbanGrid extends GridBase
      * A choice column stores its key and shows its label, so the label is what
      * the user types - those are turned back into keys. A column that points
      * at another table (user, organisation, relation) stores an id, and its
-     * label lives elsewhere; the browser still finds those among the cards it
-     * holds, but this cannot go looking for them.
+     * label lives in that table: the rows whose name holds the keyword are
+     * looked up there, and their ids matched here.
      *
      * @param \Illuminate\Database\Eloquent\Builder<\Illuminate\Database\Eloquent\Model> $query
      * @param string $keyword
@@ -2248,10 +2507,18 @@ class KanbanGrid extends GridBase
             foreach ($value_columns as $custom_column) {
                 $expr = \DB::raw($grammar->wrap($this->columnKey($custom_column)));
 
-                if (static::isSelectableColumn($custom_column)) {
+                // a person or an organisation is a key too, and its name is
+                // looked up the same way (#2185)
+                if (static::isValueListedColumn($custom_column)) {
                     $keys = $this->keywordKeys($custom_column, $keyword);
                     if (!empty($keys)) {
-                        $q->orWhereIn($expr, $keys);
+                        if (boolval($custom_column->isMultipleEnabled())) {
+                            $q->orWhere(function ($one) use ($custom_column, $keys) {
+                                $this->whereHolds($one, $custom_column, $keys);
+                            });
+                        } else {
+                            $q->orWhereIn($expr, $keys);
+                        }
                         $applied++;
                     }
                     continue;
@@ -2334,6 +2601,86 @@ class KanbanGrid extends GridBase
      * @var array<string, array<int, string>>
      */
     protected $keyword_keys = [];
+
+
+    /**
+     * The first slice of every board column.
+     *
+     * @param CustomColumn|null $group_column
+     * @param Workflow|null $workflow
+     * @param array<int, string> $hide_keys
+     * @param int $col_count
+     * @return \Illuminate\Support\Collection<int, mixed>
+     */
+    protected function firstSlices($group_column, $workflow, array $hide_keys, int $col_count)
+    {
+        $keys = $this->keysWithRecords($group_column, $workflow, $hide_keys, $this->getBoardKeys($group_column, $workflow, $hide_keys));
+        // the first rows of every column in one query, where the database can
+        $records = $this->windowedColumnRecords($group_column, $workflow, $hide_keys, $keys, $col_count);
+        if (isset($records)) {
+            return $records;
+        }
+
+        $records = collect();
+        foreach ($keys as $key) {
+            $records = $records->merge(
+                $this->buildColumnQuery($group_column, $workflow, $hide_keys, $key)->take($col_count)->get()
+            );
+        }
+
+        return $records;
+    }
+
+
+    /**
+     * The board read again under the filters on screen, see setBoardState().
+     *
+     * The first slice of every column and the column figures, the way the page
+     * was drawn - only narrowed. The browser puts these in place of the cards
+     * it holds, so "load more" and the counts go on from the filtered board.
+     *
+     * @return array<string, mixed>
+     */
+    public function filteredBoard()
+    {
+        $empty = ['cards' => [], 'flat' => (object) [], 'lanes' => (object) []];
+
+        $group_column = null;
+        $workflow = null;
+        if ($this->getSource() == static::SOURCE_WORKFLOW) {
+            $workflow = Workflow::getWorkflowByTable($this->custom_table);
+        } else {
+            $group_column = $this->getGroupColumn();
+        }
+        if (!isset($workflow) && !isset($group_column)) {
+            return $empty;
+        }
+        $col_count = $this->getColCount();
+        if ($col_count <= 0) {
+            return $empty;
+        }
+
+        $hide_keys = $this->getHideKeys($group_column, $workflow);
+        $records = $this->firstSlices($group_column, $workflow, $hide_keys, $col_count);
+        $context = $this->buildCardContext($group_column, $workflow);
+        $stats = $this->buildColumnStats($group_column, $workflow, $hide_keys, $context, $this->getSwimlaneColumn());
+
+        return [
+            'cards' => $this->buildCards(
+                $records,
+                $context['value_columns'],
+                $context['card_fields'],
+                $context['title_column'],
+                $workflow,
+                $context['statuses'],
+                $context['cover_column'],
+                $context['labels_column'],
+                $context['writable_columns']
+            ),
+            'flat' => (object) $stats['flat'],
+            'lanes' => (object) $stats['lanes'],
+        ];
+    }
 
 
     /**
@@ -3820,7 +4167,7 @@ class KanbanGrid extends GridBase
      *        limit loads only what is selected in it.
      * @return array<int|string, string>
      */
-    protected static function columnValueOptions($custom_column, array $scope = null, ?array $keys = null)
+    protected static function columnValueOptions($custom_column, ?array $scope = null, ?array $keys = null)
     {
         if (!isset($custom_column)) {
             return [];

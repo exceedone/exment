@@ -487,7 +487,7 @@ class Plugin extends ModelBase
      */
 
     // @phpstan-ignore-next-line
-    protected function initPluginDisk(string $path = null, ?PluginDiskService $diskService = null, array $options = [])
+    protected function initPluginDisk(?string $path = null, ?PluginDiskService $diskService = null, array $options = [])
     {
         $options = array_merge([
             'sync' => false,
@@ -958,8 +958,9 @@ class Plugin extends ModelBase
     // @phpstan-ignore-next-line
     public function getCannotReadMessage()
     {
+        // the alerts and the dashboard box print it as html: the name is text
         return exmtrans('plugin.error.cannot_read', [
-            'plugin_view_name' => $this->plugin_view_name
+            'plugin_view_name' => esc_html($this->plugin_view_name)
         ]);
     }
 

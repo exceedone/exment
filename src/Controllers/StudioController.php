@@ -235,7 +235,7 @@ class StudioController extends AdminControllerBase
         if (count($actions) > 0) {
             ScreenAction::build($form->custom_table, $columnIds, $actions);
         }
-        admin_toastr(sprintf(exmtrans('studio.saved_form'), $screen['table_view_name']));
+        admin_toastr(sprintf(exmtrans('studio.saved_form'), esc_html($screen['table_view_name'])));
         return redirect()->to(admin_urls('studio', 'screens', $form->id, 'edit'));
     }
 
@@ -327,7 +327,7 @@ class StudioController extends AdminControllerBase
         }
         $madeMessage = count($made) > 0
             ? sprintf(exmtrans('studio.bundle_made'), implode(exmtrans('studio.name_separator'), array_map(function ($name) {
-                return sprintf(exmtrans('studio.name_quote'), $name);
+                return sprintf(exmtrans('studio.name_quote'), esc_html($name));
             }, $made)))
             : '';
 
@@ -342,7 +342,7 @@ class StudioController extends AdminControllerBase
             }
             $this->forgetSheet();
 
-            $message = sprintf(exmtrans('studio.created_with_data'), $table->table_view_name, $result['saved']) . $madeMessage;
+            $message = sprintf(exmtrans('studio.created_with_data'), esc_html($table->table_view_name), $result['saved']) . $madeMessage;
             if ($result['cleared'] > 0) {
                 $message .= sprintf(exmtrans('studio.created_cleared'), $result['cleared']);
             }
@@ -350,7 +350,7 @@ class StudioController extends AdminControllerBase
             return redirect()->to(admin_urls('data', $table->table_name));
         }
 
-        admin_toastr(sprintf(exmtrans('studio.created'), $table->table_view_name) . $madeMessage);
+        admin_toastr(sprintf(exmtrans('studio.created'), esc_html($table->table_view_name)) . $madeMessage);
         return redirect()->to(admin_urls('data', $table->table_name, 'create'));
     }
 
@@ -478,7 +478,7 @@ class StudioController extends AdminControllerBase
         });
         $table = CustomTable::getEloquent($form->custom_table_id);
 
-        admin_toastr(sprintf(exmtrans('studio.created_form'), $form->form_view_name, $table->table_view_name));
+        admin_toastr(sprintf(exmtrans('studio.created_form'), esc_html($form->form_view_name), esc_html($table->table_view_name)));
         return redirect()->to(admin_urls('data', $table->table_name, 'create?formid=' . $form->suuid));
     }
 }
