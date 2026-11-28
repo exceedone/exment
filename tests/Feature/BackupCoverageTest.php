@@ -164,15 +164,20 @@ class BackupCoverageTest extends FeatureTestBase
 
     public function testTheBackupScreenShowsAnErrorWhenTheDumpFails(): void
     {
-        $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error' >&2\nexit 2");
+        // the reason holds characters of HTML: the dialog shows the message as HTML
+        $reason = 'mysqldump: Got error: 2026: TLS/SSL error <b>self-signed</b> & more';
+        $this->fakeMysqlBin("echo '{$reason}' >&2\nexit 2");
         System::backup_target([BackupTarget::DATABASE]);
         System::clearCache();
         $before = $this->backupFiles();
 
         $response = $this->post(admin_url('backup/save'))
             ->assertOk()
-            ->assertJson(['result' => false, 'message' => exmtrans('backup.message.backup_error')]);
-        $this->assertStringContainsString('TLS/SSL error', (string) $response->json('swaltext'));
+            ->assertJson(['result' => false]);
+        $message = (string) $response->json('message');
+        $this->assertStringStartsWith(esc_html(exmtrans('backup.message.backup_error')), $message);
+        $this->assertStringContainsString(esc_html($reason), $message);
+        $this->assertStringNotContainsString('<b>', $message);
         $this->assertSame($before, $this->backupFiles(), 'no backup file is written');
     }
 
@@ -183,6 +188,28 @@ class BackupCoverageTest extends FeatureTestBase
             's3cret-pw'
         );
         $this->assertSame('mysqldump: Got error: 1045: Access denied (password ***)', $detail);
+    }
+
+    public function testTotalUpdateStopsWhenTheBackupFails(): void
+    {
+        $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error' >&2\nexit 2");
+
+        // the update is not run after a failed backup; the site is up again
+        $this->runArtisan('exment:total-update', ['--publish' => 0])
+            ->expectsOutputToContain('TLS/SSL error')
+            ->assertExitCode(1)
+            ->run();
+        $this->assertFalse(app()->isDownForMaintenance(), 'the maintenance mode is ended');
+    }
+
+    public function testAShortPasswordIsMaskedOnlyInItsArgument(): void
+    {
+        // a password of a few letters is not replaced in the words: only the argument is masked
+        $detail = \Exceedone\Exment\Database\MySqlConnection::dumpErrorDetail(
+            "mysqldump: Got error: 2026: TLS/SSL error in mysqldump --password='ab' --host=db\n",
+            'ab'
+        );
+        $this->assertSame('mysqldump: Got error: 2026: TLS/SSL error in mysqldump --password=*** --host=db', $detail);
     }
 
     public function testRestoreCommandSaysWhenTheFileIsNotThere(): void

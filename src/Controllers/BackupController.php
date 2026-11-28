@@ -214,13 +214,12 @@ class BackupController extends AdminControllerBase
         try {
             $result = $this->backup->execute($target);
         } catch (BackupFailedException|BackupRestoreCheckException $ex) {
-            // the database dump failed, or no backup file was made: an error, not a success.
-            // "swaltext" is shown as text (its reason, without the password)
+            // the database dump failed, or no backup file was made: an error with its reason
+            // (without the password). The dialog shows the message as HTML: the reason is escaped
             \Log::error($ex);
             return response()->json([
                 'result'  => false,
-                'message' => exmtrans("backup.message.backup_error"),
-                'swaltext' => $ex->getMessage(),
+                'message' => esc_html(exmtrans("backup.message.backup_error") . ' ' . $ex->getMessage()),
             ]);
         }
 
