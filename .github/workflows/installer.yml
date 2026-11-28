@@ -1,0 +1,31 @@
+name: installer
+
+# The one-file installer for rental servers (installer/, ISS02961). Nothing in Exment loads it,
+# and phpstan leaves it out, so this checks it: the syntax on old PHP (it must show what to change
+# instead of a parse error) and on the PHP of Exment, and its own tests.
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/installer.yml'
+      - 'installer/**'
+
+# a newer push to the pull request stops the run of the push before (fewer runs waiting for a runner)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  installer:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: syntax on PHP 5.6 and 8.3
+        run: |
+          for v in 5.6 8.3; do
+            docker run --rm -v "$PWD":/app -w /app php:$v-cli php -l installer/exment-installer.php
+          done
+
+      - name: tests
+        run: docker run --rm -v "$PWD":/app -w /app php:8.3-cli php installer/tests/run.php
