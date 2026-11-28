@@ -5,6 +5,10 @@ on:
     paths:
       - 'composer.json'
       - 'composer.lock'
+      - 'phpstan.neon.dist'
+      - 'phpstan-baseline.neon'
+      - 'phpunit.xml*'
+      - 'installer/**'
       - '.github/workflows/**'
       - 'config/**'
       - 'database/**'
