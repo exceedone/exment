@@ -137,8 +137,11 @@ class BackupCoverageTest extends FeatureTestBase
         $before = $this->backupFiles();
 
         $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
-            ->expectsOutputToContain(strval(exmtrans('backup.message.backup_error')))
-            ->expectsOutputToContain('self-signed certificate')
+            // one line: the error, and the reason mysqldump gave
+            ->expectsOutputToContain(strval(exmtrans('backup.message.backup_error')) . ' ' . strval(exmtrans('backup.message.dump_failed', [
+                'code' => 2,
+                'detail' => 'mysqldump: Got error: 2026: TLS/SSL error: self-signed certificate in certificate chain',
+            ])))
             ->assertExitCode(1)
             ->run();
 
