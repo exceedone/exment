@@ -108,6 +108,8 @@
             data: {
                 labels: labels,
                 datasets: [{
+                    // the one series is the Y item: its name is the legend's text (without it "undefined")
+                    label: @json(strval($chart_axisy ?? '')),
                     data: values,
                     @if($chart_type != 'line')
                     backgroundColor: pointColors(),
