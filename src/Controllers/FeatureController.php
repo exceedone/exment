@@ -215,9 +215,17 @@ class FeatureController extends AdminControllerBase
 
         // the features with a pack that are turned on now, or that are on with their pack not all
         // there (an install that stopped on the way): they install it, below
-        $packsOn = array_values(array_filter(FeaturePacks::keys(), function ($key) use ($values) {
-            return boolval($values[$key]['enabled'] ?? false) && (!Features::setting($key)['enabled'] || FeaturePacks::incomplete($key));
-        }));
+        // [key => true when it is turned on now]
+        $packsOn = [];
+        foreach (FeaturePacks::keys() as $key) {
+            if (!boolval($values[$key]['enabled'] ?? false)) {
+                continue;
+            }
+            $turnedOn = !Features::setting($key)['enabled'];
+            if ($turnedOn || FeaturePacks::incomplete($key)) {
+                $packsOn[$key] = $turnedOn;
+            }
+        }
 
         $pluginInput = (array)$request->input('plugins', []);
         DB::transaction(function () use (&$values, $pluginInput, $definitions) {
@@ -246,15 +254,18 @@ class FeatureController extends AdminControllerBase
         });
 
         // the packs, after the settings are saved: they make tables (outside of a transaction)
-        foreach ($packsOn as $key) {
+        foreach ($packsOn as $key => $turnedOn) {
             try {
                 FeaturePacks::install($key);
                 admin_success(e(Features::label($key)), e(exmtrans('feature.pack_installed', ['name' => Features::label($key)]))
                     . ' <a href="' . e(admin_url('role_group')) . '">' . e(exmtrans('feature.role_group_link')) . '</a>');
             } catch (\Throwable $e) {
                 \Log::error($e);
-                // off again: the next "use" installs it again
-                FeaturePacks::turnOff($key);
+                // turned on now: off again, the next "use" installs it again. Already on (its pack
+                // was not all there): it stays on for its users, the next save tries again
+                if ($turnedOn) {
+                    FeaturePacks::turnOff($key);
+                }
                 admin_toastr(exmtrans('feature.pack_failed', ['name' => esc_html(Features::label($key))]), 'error');
                 return redirect(admin_url('feature'));
             }

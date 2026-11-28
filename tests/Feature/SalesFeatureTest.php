@@ -32,6 +32,7 @@ class SalesFeatureTest extends FeatureTestBase
 {
     protected const TABLES = ['sales_customer', 'sales_customer_contact', 'sales_deal', 'sales_quote', 'sales_quote_detail', 'sales_contract', 'sales_activity'];
     protected const KANBAN = '5a1e5c0a7b3d4e2f9a01';
+    protected const DASHBOARD = 'exment_sales_dashboard';
     protected const MONTHLY = '5a1e5c0a7b3d4e2f9a02';
     protected const ACTIVITIES = '5a1e5c0a7b3d4e2f9a04';
     protected const NOTIFY = 'e5967aaf67c9ae4b4398';
@@ -75,7 +76,7 @@ class SalesFeatureTest extends FeatureTestBase
                 $table->delete();
             });
         }
-        Dashboard::query()->where('dashboard_name', 'sales_dashboard')->get()->each(function ($dashboard) {
+        Dashboard::query()->where('dashboard_name', static::DASHBOARD)->get()->each(function ($dashboard) {
             $dashboard->dashboard_boxes()->delete();
             $dashboard->delete();
         });
@@ -110,8 +111,8 @@ class SalesFeatureTest extends FeatureTestBase
             'columns' => CustomColumn::query()->whereIn('custom_table_id', $tableIds)->count(),
             'labels' => CustomColumnMulti::query()->whereIn('custom_table_id', $tableIds)->count(),
             'views' => CustomView::query()->withoutGlobalScopes()->whereIn('custom_table_id', $tableIds)->count(),
-            'dashboards' => Dashboard::query()->where('dashboard_name', 'sales_dashboard')->count(),
-            'boxes' => Dashboard::query()->where('dashboard_name', 'sales_dashboard')->get()->sum(function ($d) {
+            'dashboards' => Dashboard::query()->where('dashboard_name', static::DASHBOARD)->count(),
+            'boxes' => Dashboard::query()->where('dashboard_name', static::DASHBOARD)->get()->sum(function ($d) {
                 return $d->dashboard_boxes()->count();
             }),
             'menus' => Menu::query()->whereIn('menu_name', array_merge(['sales', 'sales_dashboard'], static::TABLES))->count(),
@@ -184,7 +185,7 @@ class SalesFeatureTest extends FeatureTestBase
         $this->assertSame(strval(CustomColumn::getEloquent('expected_amount', $deal)->id), strval($kanban->getOption('kanban_sum_column_id')));
 
         // the dashboard: the chart of the month, the deals by owner, the activities, the quotes and contracts near their end
-        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        $dashboard = Dashboard::query()->where('dashboard_name', static::DASHBOARD)->firstOrFail();
         $boxes = $dashboard->dashboard_boxes()->get();
         $this->assertCount(5, $boxes);
         $chart = $boxes->firstWhere('dashboard_box_type', 'chart');
@@ -314,7 +315,7 @@ class SalesFeatureTest extends FeatureTestBase
         $this->assertNotNull($first);
         $this->assertGreaterThan(0, intval($item->order), 'order 0 comes last');
         $this->assertSame(intval($item->id), intval($first->id), 'the first item of the menu');
-        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        $dashboard = Dashboard::query()->where('dashboard_name', static::DASHBOARD)->firstOrFail();
         $this->assertSame('?dashboard=' . $dashboard->suuid, strval($item->uri));
         $options = is_array($item->options) ? $item->options : (array) json_decode(strval($item->options), true);
         foreach (['ja', 'en', 'de', 'es', 'ko', 'vi', 'zh_CN'] as $locale) {
@@ -358,7 +359,7 @@ class SalesFeatureTest extends FeatureTestBase
         $this->login();
         $menu = Menu::query()->where('menu_name', 'sales_dashboard')->firstOrFail();
         $html = (string) $this->get(admin_url(strval($menu->uri)))->assertOk()->getContent();
-        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        $dashboard = Dashboard::query()->where('dashboard_name', static::DASHBOARD)->firstOrFail();
         foreach ($dashboard->dashboard_boxes()->get() as $box) {
             $this->assertStringContainsString(e(strval($box->dashboard_box_view_name)), $html);
         }
@@ -371,7 +372,7 @@ class SalesFeatureTest extends FeatureTestBase
     public function testARetryMakesTheMissingPartsOfTheViewsAndTheDashboard(): void
     {
         FeaturePacks::turnOn(Features::SALES);
-        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        $dashboard = Dashboard::query()->where('dashboard_name', static::DASHBOARD)->firstOrFail();
         $view = function (string $suuid): CustomView {
             return CustomView::query()->withoutGlobalScopes()->where('suuid', $suuid)->firstOrFail();
         };
@@ -432,12 +433,27 @@ class SalesFeatureTest extends FeatureTestBase
         $html = (string) $this->get(admin_url('feature'))->assertOk()->getContent();
         $this->assertStringNotContainsString(e(exmtrans('feature.pack_incomplete')), $html);
 
-        // a table missing (stopped on the way): made again by the next save
+        $this->assertNotNull(FeaturePacks::installedAt(Features::SALES), 'the mark of a finished install');
+
+        // installed: a table and the dashboard the site removes do not come back by a save
         CustomTable::getEloquent('sales_activity')->delete();
+        Dashboard::query()->where('dashboard_name', static::DASHBOARD)->get()->each(function ($dashboard) {
+            $dashboard->dashboard_boxes()->delete();
+            $dashboard->delete();
+        });
         System::clearCache();
+        $this->assertFalse(FeaturePacks::incomplete(Features::SALES));
+        $this->postUse(true);
+        $this->assertNull(CustomTable::getEloquent('sales_activity'));
+        $this->assertSame(0, $this->counts()['dashboards']);
+
+        // an install that stopped on the way (no mark): the next save makes what is missing
+        $this->forgetMark();
         $this->assertTrue(FeaturePacks::incomplete(Features::SALES));
         $this->postUse(true);
         $this->assertNotNull(CustomTable::getEloquent('sales_activity'));
+        $this->assertSame(1, $this->counts()['dashboards']);
+        $this->assertNotNull(FeaturePacks::installedAt(Features::SALES));
         $this->assertFalse(FeaturePacks::incomplete(Features::SALES));
 
         // all there: a save does not install again (a view the site removed stays removed)
@@ -447,6 +463,100 @@ class SalesFeatureTest extends FeatureTestBase
         });
         $this->postUse(true);
         $this->assertFalse(CustomView::query()->withoutGlobalScopes()->where('suuid', static::KANBAN)->exists());
+    }
+
+    /**
+     * The setting without the mark of the finished install (as before an install finished).
+     */
+    protected function forgetMark(): void
+    {
+        $settings = Features::settings();
+        unset($settings[FeaturePacks::INSTALLED]);
+        System::features($settings);
+        System::clearCache();
+        Features::reset();
+        $this->assertNull(FeaturePacks::installedAt(Features::SALES));
+    }
+
+    /**
+     * A site that installed the pack before the mark existed: all is there, so it is marked and
+     * does not install again (what it removes later stays removed).
+     */
+    public function testASiteInstalledBeforeTheMarkIsMarked(): void
+    {
+        FeaturePacks::turnOn(Features::SALES);
+        $this->forgetMark();
+        $this->assertFalse(FeaturePacks::incomplete(Features::SALES));
+        $this->assertNotNull(FeaturePacks::installedAt(Features::SALES));
+
+        CustomTable::getEloquent('sales_activity')->delete();
+        System::clearCache();
+        $this->postUse(true);
+        $this->assertNull(CustomTable::getEloquent('sales_activity'));
+    }
+
+    /**
+     * The install of a feature that is on (its pack not all there) fails: the feature stays on
+     * for its users. One turned on now goes back to off.
+     */
+    public function testAFailedRepairKeepsTheFeatureOn(): void
+    {
+        FeaturePacks::turnOn(Features::SALES);
+        $this->forgetMark();
+        CustomTable::getEloquent('sales_activity')->delete();
+        System::clearCache();
+        $this->assertTrue(FeaturePacks::incomplete(Features::SALES));
+
+        $this->app->bind(\Exceedone\Exment\Services\TemplateImportExport\TemplateImporter::class, function () {
+            return new class () extends \Exceedone\Exment\Services\TemplateImportExport\TemplateImporter {
+                // @phpstan-ignore-next-line
+                public function import($json, $system_flg = false, $is_update = false, $fromExcel = false)
+                {
+                    throw new \RuntimeException('the import fails (test)');
+                }
+            };
+        });
+        try {
+            $this->post(admin_url('feature'), ['features' => [Features::SALES => ['present' => '1', 'all' => '1', 'menu' => '1', 'enabled' => '1']], 'complete' => '1'])
+                ->assertRedirect(admin_url('feature'));
+            System::clearCache();
+            Features::reset();
+            $this->assertTrue(Features::enabled(Features::SALES), 'already on: stays on');
+            $this->assertNull(FeaturePacks::installedAt(Features::SALES));
+
+            // turned on now: off again
+            $this->postUse(false);
+            $this->post(admin_url('feature'), ['features' => [Features::SALES => ['present' => '1', 'all' => '1', 'menu' => '1', 'enabled' => '1']], 'complete' => '1'])
+                ->assertRedirect(admin_url('feature'));
+            System::clearCache();
+            Features::reset();
+            $this->assertFalse(Features::enabled(Features::SALES), 'turned on now: off again');
+        } finally {
+            $this->app->offsetUnset(\Exceedone\Exment\Services\TemplateImportExport\TemplateImporter::class);
+        }
+    }
+
+    /**
+     * The dashboard made again (a new suuid): the link of the menu follows it.
+     */
+    public function testTheLinkOfTheMenuFollowsTheDashboardMadeAgain(): void
+    {
+        FeaturePacks::turnOn(Features::SALES);
+        $before = Dashboard::query()->where('dashboard_name', static::DASHBOARD)->firstOrFail();
+        $before->dashboard_boxes()->delete();
+        $before->delete();
+        FeaturePacks::install(Features::SALES);
+        System::clearCache();
+
+        $after = Dashboard::query()->where('dashboard_name', static::DASHBOARD)->firstOrFail();
+        $this->assertNotSame(strval($before->suuid), strval($after->suuid));
+        $this->assertSame('?dashboard=' . $after->suuid, strval(Menu::query()->where('menu_name', 'sales_dashboard')->value('uri')));
+        $this->assertSame(1, Menu::query()->where('menu_name', 'sales_dashboard')->count());
+
+        // a link the site changed to something else stays
+        Menu::query()->where('menu_name', 'sales_dashboard')->update(['uri' => 'data/sales_deal']);
+        FeaturePacks::install(Features::SALES);
+        $this->assertSame('data/sales_deal', strval(Menu::query()->where('menu_name', 'sales_dashboard')->value('uri')));
     }
 
     public function testTheKanbanAndTheDashboardRender(): void
@@ -466,7 +576,7 @@ class SalesFeatureTest extends FeatureTestBase
         $this->assertStringContainsString('提案の案件', $kanban);
         $this->assertStringContainsString('"sum_column":"expected_amount"', $kanban);
 
-        $dashboard = Dashboard::query()->where('dashboard_name', 'sales_dashboard')->firstOrFail();
+        $dashboard = Dashboard::query()->where('dashboard_name', static::DASHBOARD)->firstOrFail();
         $home = (string) $this->get(admin_url('') . '?dashboard=' . $dashboard->suuid)->assertOk()->getContent();
         foreach ($dashboard->dashboard_boxes()->get() as $box) {
             $this->assertStringContainsString(e(strval($box->dashboard_box_view_name)), $home);

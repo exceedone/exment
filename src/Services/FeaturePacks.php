@@ -144,19 +144,35 @@ class FeaturePacks
             })->all();
 
         // true: what is there is left as it is (only what is missing is made)
-        (new TemplateImporter())->import($json, false, true);
+        // (from the container: a test may give one that fails)
+        app(TemplateImporter::class)->import($json, false, true);
 
         static::placeNewMenus($json, $menusBefore);
+        static::refreshDashboardLinks($json);
 
         // an install stopped on the way (an error, a timeout) may have left a view or a dashboard
         // of the pack without its parts: they are made again
         static::repairParts($json);
 
         $newTables = array_values(array_diff($tableNames, $existingTables));
-        if (count($newTables) === 0 || $existingGroups->isEmpty()) {
-            System::clearCache();
-            return;
+        if (count($newTables) > 0 && $existingGroups->isNotEmpty()) {
+            static::addPermissions($roles, $existingGroups, $newTables);
         }
+
+        // all done: the pack is installed (Feature management does not install it again by itself)
+        static::markInstalled($key);
+        System::clearCache();
+    }
+
+    /**
+     * A role group that was there gets the permissions of the tables made now (only those).
+     *
+     * @param array<int, mixed> $roles the role groups of the pack
+     * @param \Illuminate\Support\Collection<string, RoleGroup> $existingGroups
+     * @param string[] $newTables
+     */
+    protected static function addPermissions(array $roles, $existingGroups, array $newTables): void
+    {
         \ExmentDB::transaction(function () use ($roles, $existingGroups, $newTables) {
             foreach ($roles as $role) {
                 $group = $existingGroups->get(array_get($role, 'role_group_name'));
@@ -170,6 +186,64 @@ class FeaturePacks
                 }
             }
         });
+    }
+
+    /**
+     * A menu of the pack that links to a dashboard of the pack (options.menu_target_dashboard_name)
+     * and that is there: its link follows the dashboard when the dashboard was made again (a new
+     * suuid). A link the site changed to something else than a dashboard stays.
+     *
+     * @param array<string, mixed> $json the pack
+     */
+    protected static function refreshDashboardLinks(array $json): void
+    {
+        foreach ((array) array_get($json, 'admin_menu', []) as $item) {
+            $name = is_array($item) ? array_get($item, 'options.menu_target_dashboard_name') : null;
+            if (!is_string($name) || $name === '') {
+                continue;
+            }
+            $dashboard = Dashboard::query()->where('dashboard_name', $name)->first();
+            $menu = Menu::query()->where('menu_type', array_get($item, 'menu_type'))->where('menu_name', array_get($item, 'menu_name'))->first();
+            if (!isset($dashboard) || !isset($menu)) {
+                continue;
+            }
+            $uri = '?dashboard=' . $dashboard->suuid;
+            $current = strval($menu->uri);
+            if ($current !== $uri && ($current === '' || str_starts_with($current, '?dashboard='))) {
+                $menu->uri = $uri;
+                $menu->save();
+            }
+        }
+    }
+
+    /**
+     * The setting of when the packs were installed: {"<feature>": "<date and time>"}, kept in
+     * the setting of Feature management (under "_packs", which the page does not write).
+     */
+    public const INSTALLED = '_packs';
+
+    /**
+     * When the pack of a feature was installed completely (null: not yet, or an install stopped
+     * on the way).
+     */
+    public static function installedAt(string $key): ?string
+    {
+        $installed = array_get(Features::settings(), static::INSTALLED);
+        $at = is_array($installed) ? ($installed[$key] ?? null) : null;
+        return is_string($at) && $at !== '' ? $at : null;
+    }
+
+    /**
+     * Write that the pack of a feature is installed completely.
+     */
+    public static function markInstalled(string $key): void
+    {
+        $settings = Features::settings();
+        $installed = array_get($settings, static::INSTALLED);
+        $installed = is_array($installed) ? $installed : [];
+        $installed[$key] = now()->toDateTimeString();
+        $settings[static::INSTALLED] = $installed;
+        System::features($settings);
         System::clearCache();
     }
 
@@ -273,13 +347,21 @@ class FeaturePacks
     }
 
     /**
-     * Whether the pack of a feature is not all there: a table or a dashboard of the pack is
-     * missing (an install that stopped on the way: the dashboards are made after the tables and
-     * the views). Feature management installs it again when the feature is on and its pack is
-     * not all there. (A view or a menu the site removed does not count: it is the site's choice.)
+     * Whether the pack of a feature is not all there: an install of it has not finished (it
+     * stopped on the way, as by a timeout: no mark of a finished install, FeaturePacks::markInstalled)
+     * and a table or a dashboard of the pack is missing. Feature management installs it again
+     * when the feature is on and its pack is not all there. Once an install has finished, what
+     * the site removes later (a table, the dashboard) is the site's choice: it does not come back
+     * by itself.
+     *
+     * A site that installed the pack before the mark existed has all its tables and dashboards:
+     * the mark is written then, so they too do not come back once removed.
      */
     public static function incomplete(string $key): bool
     {
+        if (static::installedAt($key) !== null) {
+            return false;
+        }
         $path = static::path($key);
         if (!isset($path) || !File::exists("$path/config.json")) {
             return false;
@@ -294,11 +376,17 @@ class FeaturePacks
             }, (array) array_get($json, $list, [])))));
         };
         $tables = $names('custom_tables', 'table_name');
-        if (CustomTable::query()->whereIn('table_name', $tables)->count() < count($tables)) {
-            return true;
-        }
         $dashboards = $names('dashboards', 'dashboard_name');
-        return Dashboard::query()->whereIn('dashboard_name', $dashboards)->count() < count($dashboards);
+        $missing = CustomTable::query()->whereIn('table_name', $tables)->count() < count($tables)
+            || Dashboard::query()->whereIn('dashboard_name', $dashboards)->count() < count($dashboards);
+        if (!$missing && Features::setting($key)['enabled']) {
+            try {
+                static::markInstalled($key);
+            } catch (\Throwable $e) {
+                \Log::warning('[Exment] the mark of the pack of ' . $key . ': ' . $e->getMessage());
+            }
+        }
+        return $missing;
     }
 
     /**

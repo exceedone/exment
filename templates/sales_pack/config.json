@@ -2115,7 +2115,7 @@
     "dashboards": [
         {
             "dashboard_type": "0",
-            "dashboard_name": "sales_dashboard",
+            "dashboard_name": "exment_sales_dashboard",
             "dashboard_view_name": "営業",
             "default_flg": "0",
             "options": {
@@ -2224,7 +2224,7 @@
             "icon": "fa-tachometer",
             "uri": null,
             "options": {
-                "menu_target_dashboard_name": "sales_dashboard",
+                "menu_target_dashboard_name": "exment_sales_dashboard",
                 "name_locale_ja": "営業のダッシュボード",
                 "name_locale_en": "Sales dashboard",
                 "name_locale_de": "Vertriebs-Dashboard",
