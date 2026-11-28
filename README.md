@@ -51,29 +51,15 @@ Password：adminadmin
 Developed by [Kajitori Co., Ltd.](https://exment.net/company/) (Exceed One group)
 
 
-## What's new in v7.0.0
-Released on October 28, 2026. See how work is progressing at a glance. ([What's new](https://exment.net/en/whats-new/))
+## Highlights (7.2 and 7.3)
+- **No-code web database**: make tables, columns, forms and views (list, summary, calendar, kanban, Gantt chart) on the screen
+- **Workflow**: approval flows drawn in a visual designer
+- **Feature management**: new features start turned off; administrators choose what to use, so an update does not change your site
+- **API keys and MCP server**: use Exment from other systems and from AI tools
+- **File sharing**: folders and files with permissions, shared links and versions
+- **Free official plugins, bundled**: Project Management, Groupware and Support Desk, installed only when an administrator turns them on
 
-### Kanban view
-Show records as cards in columns by status or another field, and drag them to move. Works together with workflow. ([Manual](https://exment.net/docs/#/view_kanban)) The screenshot at the top of this page is the kanban view.
-
-### Gantt chart view
-Show each record as a bar on a timeline from start date to due date. Supports colors, progress, milestones and parent-child indentation. ([Manual](https://exment.net/docs/#/view_gantt))
-
-### Visual workflow designer
-Place statuses and actions on a diagram and design your workflow while seeing the whole flow. ([Manual](https://exment.net/docs/#/workflow_design))  
-![Workflow designer](https://exment.net/docs/img/workflow_design/wf_designer.png)
-
-### Cell styles
-Set up presets that change cell colors and text in the data grid and Kanban based on their values. ([Manual](https://exment.net/docs/#/cell_style_preset))  
-![Cell styles](https://exment.net/docs/img/cell_style_preset/preset_grid_result.png)
-
-### Data grid tools
-Show or hide columns, freeze columns, group rows, edit inline, quick preview, bulk actions and more. ([Manual](https://exment.net/docs/#/data_grid_tools))  
-![Data grid tools](https://exment.net/docs/img/data_grid_tools/grid_overview.png)
-
-### Laravel 12 and PHP 8.2+
-The framework is updated to Laravel 12 and the admin UI libraries are refreshed. Please check the notes before updating. ([Update](https://exment.net/docs/#/update))
+Details of each version: [What's new](https://exment.net/en/whats-new/) · [Release notes](https://exment.net/docs/release_note.html)
 
 
 ## Functions

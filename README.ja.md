@@ -51,29 +51,15 @@ Exment（エクスメント）は、プログラミングなしで業務シス�
 開発: [株式会社カジトリ](https://exment.net/company/)（エクシード・ワン グループ）
 
 
-## v7.0.0 の新機能
-2026 年 10 月 28 日リリース。仕事の進み具合がひと目でわかります。（[What's new](https://exment.net/whats-new/)）
+## いまの Exment（7.2・7.3）
+- **ノーコードの Web データベース**：テーブル・列・フォーム・ビュー（一覧・集計・カレンダー・カンバン・ガントチャート）を画面で作れます
+- **ワークフロー**：承認の流れを図で設計できます
+- **機能の管理**：新しい機能は、はじめは「使わない」。使う機能を管理者が選ぶので、更新しただけでサイトが変わりません
+- **API キーと MCP サーバー**：ほかのシステムや AI のツールから Exment を使えます
+- **ファイルの共有**：権限つきのフォルダー・ファイル、共有リンク、前の版
+- **無料の公式プラグインを同梱**：プロジェクト管理・グループウェア・サポートデスク。管理者が「使う」にしたときだけ入ります
 
-### カンバンビュー
-ステータスなどの列ごとにデータをカードで並べ、ドラッグで移動。ワークフローとも連動します。（[マニュアル](https://exment.net/docs/#/ja/view_kanban)）このページの一番上の画像がカンバンビューです。
-
-### ガントチャートビュー
-開始日から期限日までを横棒で時系列に表示。色分け・進捗率・マイルストーン・親子の字下げに対応。（[マニュアル](https://exment.net/docs/#/ja/view_gantt)）
-
-### ワークフローのフロー設計
-ステータスとアクションを図で配置して、ワークフローの流れを見ながら設計できます。（[マニュアル](https://exment.net/docs/#/ja/workflow_design)）  
-![ワークフローのフロー設計](https://exment.net/docs/ja/img/workflow_design/wf_designer.png)
-
-### セルのスタイル
-値に応じてデータ一覧やカンバンのセルの色・文字を変えるプリセットを設定できます。（[マニュアル](https://exment.net/docs/#/ja/cell_style_preset)）  
-![セルのスタイル](https://exment.net/docs/ja/img/cell_style_preset/preset_grid_result.png)
-
-### データ一覧のツール
-表示する列の切り替え、列の固定、グループ化、インライン編集、クイックプレビュー、一括操作など。（[マニュアル](https://exment.net/docs/#/ja/data_grid_tools)）  
-![データ一覧のツール](https://exment.net/docs/ja/img/data_grid_tools/grid_overview.png)
-
-### Laravel 12・PHP 8.2 以上に対応
-フレームワークを Laravel 12 に更新し、管理画面のライブラリも新しくしました。アップデート前に注意点をご確認ください。（[アップデート](https://exment.net/docs/#/ja/update)）
+版ごとのくわしい内容：[What's new](https://exment.net/whats-new/) ・ [リリースノート](https://exment.net/docs/ja/release_note.html)
 
 
 ## 主な機能
