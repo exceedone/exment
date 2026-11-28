@@ -59,8 +59,6 @@ class Backup
 
             // backup database tables
             if (in_array(BackupTarget::DATABASE, $target)) {
-                // the folder first: mysqldump writes its files there (as in 7.3)
-                \Exment::makeDirectoryDisk($this->tmpDisk(), $this->diskService->tmpDiskItem()->dirName());
                 \ExmentDB::backupDatabase($this->diskService->tmpDiskItem()->dirFullPath());
             }
 
