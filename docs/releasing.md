@@ -30,6 +30,17 @@ When you are not sure which version a change belongs to, ask in the issue or the
 - Composer and Packagist read the tags. A release candidate is not installed by `composer update` with the default stability.
 - The installation zip on exment.net is made by a scheduled job on the exment.net server. It skips pre-releases, so a release candidate gets no zip.
 
+### Pre-releases are not installed automatically
+
+A release candidate (`vX.Y.Z-rcN`) is for testing only. Nothing picks it up by itself:
+
+- `composer update` installs stable versions only (Composer's default `minimum-stability` is `stable`).
+- The download zip on exment.net is built from stable releases only.
+- The "new version" notice in Exment and the update scripts look at stable versions only.
+
+To try a release candidate on a test site, require the exact version, for example
+`composer require "exceedone/exment:7.3.0-rc1" "exceedone/exment-admin-core:^2.1.1" -W`, then `php artisan exment:update --force`. Back up first.
+
 ## Who does what
 
 | Step | Who |
