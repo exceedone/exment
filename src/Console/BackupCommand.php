@@ -70,21 +70,32 @@ class BackupCommand extends Command
 
             $result = $this->backup->execute($target, $schedule);
             if ($result !== 0) {
-                $this->error(exmtrans('backup.message.backup_error'));
+                $this->logFailure(strval(exmtrans('backup.message.backup_error')));
                 return 1;
             }
             return 0;
         } catch (BackupFailedException $e) {
             // the database dump failed, or no backup file was made: not a success
-            $this->error(exmtrans('backup.message.backup_error') . ' ' . $e->getMessage());
+            $this->logFailure(strval(exmtrans('backup.message.backup_error')) . ' ' . $e->getMessage());
             return 1;
         } catch (BackupRestoreCheckException $e) {
-            $this->error($e->getMessage());
+            $this->logFailure($e->getMessage());
             return 1;
         } catch (\Exception $e) {
             throw $e;
         } finally {
             $this->backup->diskService()->deleteTmpDirectory();
         }
+    }
+
+    /**
+     * A backup that failed: told, and kept in the log (a scheduled backup has no one to read
+     * its output). The message has no password: the output of the client is masked when it is
+     * read (MySqlClientTrait::dumpErrorDetail()).
+     */
+    protected function logFailure(string $message): void
+    {
+        $this->error($message);
+        \Log::error('[Exment] backup failed: ' . $message);
     }
 }

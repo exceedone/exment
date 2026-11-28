@@ -151,7 +151,7 @@ class BackupCoverageTest extends FeatureTestBase
             ->expectsOutputToContain(strval(exmtrans('backup.message.backup_error')) . ' ' . strval(exmtrans('backup.message.dump_failed', [
                 'code' => 2,
                 'detail' => 'mysqldump: Got error: 2026: TLS/SSL error: self-signed certificate in certificate chain',
-            ])) . ' ' . strval(exmtrans('backup.message.tls_hint')))
+            ])) . ' / ' . strval(exmtrans('backup.message.tls_hint')))
             ->assertExitCode(1)
             ->run();
 
@@ -354,6 +354,34 @@ class BackupCoverageTest extends FeatureTestBase
         }
         $this->restoreFolders[] = $dir;
         return $dir;
+    }
+
+    public function testAFailedAutomaticBackupIsLoggedAndTriedAgain(): void
+    {
+        $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error: self-signed certificate' >&2\nexit 2");
+        System::backup_enable_automatic(true);
+        System::backup_automatic_hour(\Carbon\Carbon::now()->hour);
+        System::backup_target([BackupTarget::DATABASE]);
+        System::backup_automatic_executed(null);
+        System::clearCache();
+        \Log::spy();
+
+        // the backup of the schedule (exment:schedule), called as it does
+        $command = app(\Exceedone\Exment\Console\ScheduleCommand::class);
+        $method = new \ReflectionMethod($command, 'backup');
+        $method->setAccessible(true);
+        $method->invoke($command);
+
+        // not recorded as done: the next run tries it again
+        System::clearCache();
+        $this->assertTrue(is_nullorempty(System::backup_automatic_executed()), 'a failed backup is not recorded as done');
+        // the reason is in the log, and that the automatic backup failed
+        \Log::shouldHaveReceived('error')->withArgs(function ($message) {
+            return is_string($message) && str_contains($message, 'backup failed') && str_contains($message, 'TLS/SSL error');
+        });
+        \Log::shouldHaveReceived('error')->withArgs(function ($message) {
+            return is_string($message) && str_contains($message, 'the automatic backup failed');
+        });
     }
 
     public function testRestoreCommandSaysWhenTheFileIsNotThere(): void

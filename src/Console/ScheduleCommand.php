@@ -95,7 +95,13 @@ class ScheduleCommand extends Command
 
         // get target
         $target = System::backup_target();
-        \Artisan::call('exment:backup', !is_nullorempty($target) ? ['--target' => $target, '--schedule' => 1] : []);
+        $exitCode = \Artisan::call('exment:backup', !is_nullorempty($target) ? ['--target' => $target, '--schedule' => 1] : []);
+
+        // a failed backup is not recorded as done: the next run tries it again
+        if ($exitCode !== 0) {
+            \Log::error('[Exment] the automatic backup failed (exit code ' . $exitCode . '): it is tried again at the next run');
+            return;
+        }
 
         System::backup_automatic_executed($now);
     }
