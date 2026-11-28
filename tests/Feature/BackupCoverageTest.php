@@ -251,6 +251,98 @@ class BackupCoverageTest extends FeatureTestBase
         $this->assertSame('', \Exceedone\Exment\Database\MySqlConnection::clientOptions('restore_options'));
     }
 
+    public function testTheSslCaOfPdoGoesToMysqldump(): void
+    {
+        // the fake mysqldump tells each of its arguments, then fails
+        $this->fakeMysqlBin("for a in \"\$@\"; do printf '[%s] ' \"\$a\" >&2; done\nexit 2");
+        $ca = "/tmp/exment ca/it's-ca.pem";
+        $this->setPdoOptions(['SSL_CA' => $ca]);
+        config(['exment.backup_info.dump_options' => null]);
+
+        $this->assertSame(escapeshellarg('--ssl-ca=' . $ca), \Exceedone\Exment\Database\MySqlConnection::sslOptions());
+        $this->assertSame(escapeshellarg('--ssl-ca=' . $ca), \Exceedone\Exment\Database\MySqlConnection::clientArguments('dump_options'));
+
+        // the path is one argument of mysqldump
+        $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
+            ->expectsOutputToContain("[--ssl-ca={$ca}]")
+            ->assertExitCode(1)
+            ->run();
+    }
+
+    public function testWithoutTheSslCaOfPdoNoTlsOptionIsGiven(): void
+    {
+        $this->fakeMysqlBin("for a in \"\$@\"; do printf '[%s] ' \"\$a\" >&2; done\nexit 2");
+        $this->setPdoOptions([]);
+        config(['exment.backup_info.dump_options' => null, 'exment.backup_info.restore_options' => null]);
+
+        $connection = \Exceedone\Exment\Database\MySqlConnection::class;
+        $this->assertSame('', $connection::sslOptions());
+        $this->assertSame('', $connection::clientArguments('dump_options'));
+        $this->assertSame('', $connection::clientArguments('restore_options'));
+
+        $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
+            ->expectsOutputToContain('[--no-tablespaces]')
+            ->doesntExpectOutputToContain('--ssl-')
+            ->assertExitCode(1)
+            ->run();
+    }
+
+    public function testTheTlsFilesOfPdoAreMapped(): void
+    {
+        $this->setPdoOptions([
+            'SSL_KEY' => '/etc/exment/client-key.pem',
+            'SSL_CERT' => '/etc/exment/client-cert.pem',
+            'SSL_CAPATH' => '/etc/ssl/certs',
+            'SSL_CA' => '/etc/exment/ca.pem',
+        ]);
+        $this->assertSame(implode(' ', [
+            escapeshellarg('--ssl-ca=/etc/exment/ca.pem'),
+            escapeshellarg('--ssl-capath=/etc/ssl/certs'),
+            escapeshellarg('--ssl-cert=/etc/exment/client-cert.pem'),
+            escapeshellarg('--ssl-key=/etc/exment/client-key.pem'),
+        ]), \Exceedone\Exment\Database\MySqlConnection::sslOptions());
+
+        // an empty value is not given
+        $this->setPdoOptions(['SSL_CA' => '', 'SSL_CERT' => '/etc/exment/client-cert.pem']);
+        $this->assertSame(escapeshellarg('--ssl-cert=/etc/exment/client-cert.pem'), \Exceedone\Exment\Database\MySqlConnection::sslOptions());
+    }
+
+    public function testTheOptionsOfEnvComeAfterTheTlsOptionsOfPdo(): void
+    {
+        $this->fakeMysqlBin("for a in \"\$@\"; do printf '[%s] ' \"\$a\" >&2; done\nexit 2");
+        $this->setPdoOptions(['SSL_CA' => '/etc/exment/ca.pem']);
+        config(['exment.backup_info.dump_options' => '--defaults-extra-file=/etc/exment/my.cnf --ssl-ca=/etc/exment/other-ca.pem --ssl-mode=DISABLED']);
+
+        // --defaults-extra-file stays first (mysqldump takes it only there)
+        $this->assertSame(implode(' ', [
+            escapeshellarg('--defaults-extra-file=/etc/exment/my.cnf'),
+            escapeshellarg('--ssl-ca=/etc/exment/ca.pem'),
+            escapeshellarg('--ssl-ca=/etc/exment/other-ca.pem'),
+            escapeshellarg('--ssl-mode=DISABLED'),
+        ]), \Exceedone\Exment\Database\MySqlConnection::clientArguments('dump_options'));
+
+        $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
+            ->expectsOutputToContain('[--defaults-extra-file=/etc/exment/my.cnf] [--ssl-ca=/etc/exment/ca.pem] [--ssl-ca=/etc/exment/other-ca.pem] [--ssl-mode=DISABLED]')
+            ->assertExitCode(1)
+            ->run();
+    }
+
+    public function testTheCheckOfARestoreUsesTheSslCaOfPdo(): void
+    {
+        // the fake mysql tells its arguments and does not connect
+        $this->fakeMysqlBin('exit 0', "for a in \"\$@\"; do printf '[%s] ' \"\$a\" >&2; done\nexit 1");
+        $this->setPdoOptions(['SSL_CA' => '/etc/exment/ca.pem']);
+        config(['exment.backup_info.restore_options' => '--ssl-mode=REQUIRED']);
+        $dir = $this->restoreFolder(['table_definition.sql' => '-- definition', 'custom_tables.sql' => 'INSERT INTO x VALUES (1);']);
+
+        $e = $this->restoreFailure(function () use ($dir) {
+            \ExmentDB::checkRestore($dir);
+        });
+        $this->assertFalse($e->databaseChanged());
+        $this->assertStringContainsString('[--ssl-ca=/etc/exment/ca.pem] [--ssl-mode=REQUIRED] [--default-character-set=', $e->getMessage());
+        $this->assertStringContainsString('[-e] [SELECT 1]', $e->getMessage());
+    }
+
     public function testTheTlsErrorsAreKnown(): void
     {
         $connection = \Exceedone\Exment\Database\MySqlConnection::class;
@@ -541,6 +633,29 @@ class BackupCoverageTest extends FeatureTestBase
         }
         $this->fakeMysqlDir = $dir;
         config(['exment.backup_info.mysql_dir' => $dir]);
+    }
+
+    /**
+     * The TLS options of PDO of the connection (e.g. "SSL_CA" => path), in place of the TLS options
+     * it has. The connection that is open already is not changed.
+     *
+     * @param array<string, string> $files
+     */
+    private function setPdoOptions(array $files): void
+    {
+        $connection = \Exceedone\Exment\Database\MySqlConnection::class;
+        if (is_null($connection::pdoMysqlAttribute('SSL_CA'))) {
+            $this->markTestSkipped('pdo_mysql is not loaded');
+        }
+        $options = config('database.connections.mysql.options');
+        $options = is_array($options) ? $options : [];
+        foreach (['SSL_CA', 'SSL_CAPATH', 'SSL_CERT', 'SSL_KEY'] as $name) {
+            unset($options[intval($connection::pdoMysqlAttribute($name))]);
+        }
+        foreach ($files as $name => $value) {
+            $options[intval($connection::pdoMysqlAttribute($name))] = $value;
+        }
+        config(['database.connections.mysql.options' => $options]);
     }
 
     private function backupDisk(): Filesystem

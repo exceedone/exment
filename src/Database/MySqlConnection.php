@@ -115,8 +115,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $command = sprintf(
             '%s %s %s %s --no-tablespaces --default-character-set=%s -h %s -u %s --password=%s -P %s',
             $mysqldump,
-            // the extra options of .env (EXMENT_DB_DUMP_OPTIONS), e.g. for TLS
-            static::clientOptions('dump_options'),
+            // the TLS options of PDO (e.g. MYSQL_ATTR_SSL_CA), then the extra options of .env
+            // (EXMENT_DB_DUMP_OPTIONS), e.g. for TLS
+            static::clientArguments('dump_options'),
             $column_statistics,
             $set_gtid,
             escapeshellarg($charset),
