@@ -1297,7 +1297,7 @@ return [
             'zip_failed' => '未生成备份文件。',
             'tls_hint' => 'mysqldump/mysql 与数据库服务器的 TLS 设置不一致。MariaDB 客户端请在 my.cnf 的 [client] 中设置 skip-ssl-verify-server-cert（或 ssl-verify-server-cert=0）；MySQL 客户端请设置 ssl-mode（例如 ssl-mode=DISABLED，或指定 CA 文件的 VERIFY_CA）。也可以通过 .env 的 EXMENT_DB_DUMP_OPTIONS 和 EXMENT_DB_RESTORE_OPTIONS 传递选项。',
             'restore_nothing_restored' => '未进行还原：数据库没有变更。:reason',
-            'restore_stopped_midway' => '还原中途停止：数据库可能只还原了一部分。:reason如果用户已丢失、无法使用页面，请在服务器上用命令还原正确的备份：php artisan exment:restore （备份名称）',
+            'restore_stopped_midway' => '还原中途停止：数据库可能只还原了一部分。:reason 如果用户已丢失、无法使用页面，请在服务器上用命令还原正确的备份：php artisan exment:restore （备份名称）',
             'restore_empty_file' => '备份文件 :file 为空。',
             'restore_connect_failed' => 'mysql 客户端无法连接数据库（退出代码 :code）。:detail',
             'restore_import_failed' => ':file 的导入未完成（退出代码 :code）。:detail',
