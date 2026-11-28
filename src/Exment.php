@@ -418,7 +418,6 @@ class Exment
                 if (!is_array($json) || empty($json)) {
                     return [null, null];
                 }
-                // @phpstan-ignore-next-line
                 $packages = array_get($json, 'package.versions');
                 if (!$packages) {
                     return [null, null];
@@ -583,7 +582,7 @@ class Exment
             // a package the latest version requires, whose range in the root does not meet it
             foreach ($latestRequires as $name => $required) {
                 $rootRange = array_get($rootRequire, $name);
-                if (!is_string($rootRange) || $rootRange === '' || !is_string($required) || $required === '' || $required === 'self.version') {
+                if (!is_string($rootRange) || $rootRange === '' || $required === '' || $required === 'self.version') {
                     continue;
                 }
                 if (!\Composer\Semver\Intervals::haveIntersections($parser->parseConstraints($rootRange), $parser->parseConstraints($required))) {
