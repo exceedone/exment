@@ -592,12 +592,16 @@ class DataArchiver
         $done = [];
         foreach (array_keys(Sources::all()) as $source) {
             $days = static::policy($source)['older_days'];
-            if ($days <= 0 || is_null(Sources::table($source))) {
+            if ($days <= 0) {
                 continue;
             }
             $before = static::now()->startOfDay()->subDays($days);
+            $query = Sources::query($source, $before);
+            if (!isset($query)) {
+                continue;
+            }
             try {
-                $count = (clone Sources::query($source, $before))->count();
+                $count = $query->count();
                 if ($count > 0) {
                     $done[$source] = static::archive($source, $before, null, null)->row_count;
                 }

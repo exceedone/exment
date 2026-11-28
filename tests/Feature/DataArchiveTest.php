@@ -209,7 +209,7 @@ class DataArchiveTest extends FeatureTestBase
         $now = Carbon::parse('2030-01-10 04:00');
         DataArchiver::$now = $now->copy();
         DataArchiver::trash($archive, 1);
-        $this->assertSame('2030-02-09', $archive->refresh()->purge_at->format('Y-m-d'));
+        $this->assertSame('2030-02-09', optional($archive->refresh()->purge_at)->format('Y-m-d'));
 
         // 25 days on: told once, nothing purged
         $bells = NotifyNavbar::withoutGlobalScopes()->count();

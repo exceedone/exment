@@ -106,7 +106,11 @@ class DataArchiveCommand extends Command
         if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $before) !== 1) {
             throw new ArchiveException('before');
         }
-        return Carbon::createFromFormat('Y-m-d', $before)->startOfDay();
+        $day = Carbon::createFromFormat('Y-m-d', $before);
+        if (!($day instanceof Carbon)) {
+            throw new ArchiveException('before');
+        }
+        return $day->startOfDay();
     }
 
     protected function archive(): DataArchive
