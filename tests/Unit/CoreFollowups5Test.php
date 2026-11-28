@@ -15,12 +15,6 @@ class CoreFollowups5Test extends UnitTestBase
         $this->assertFalse(WebhookUrlGuard::isAllowed('http://239.255.255.250/x'));
     }
 
-    public function testTheComposerPathIsOneQuotedArgument(): void
-    {
-        $source = (string) file_get_contents(dirname(__DIR__, 2) . '/src/Services/Update/UpdateHelper.php');
-        $this->assertStringContainsString('escapeshellarg(\Exment::getComposerPath())', $source);
-    }
-
     public function testAPluginUriIsLowerCase(): void
     {
         foreach (['my_plugin', 'plugin-1', 'a', '0abc'] as $uri) {

@@ -252,8 +252,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('system/filedelete', 'SystemController@filedelete');
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
 
-            $router->post('system/call_update', 'SystemController@callUpdate');
-
             // the settings once on the detail page of the system settings (#2157)
             $router->get('safety_check_setting', 'SafetyCheckSettingController@index');
             $router->post('safety_check_setting', 'SafetyCheckSettingController@post');

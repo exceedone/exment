@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\LoginUser;
@@ -449,6 +450,14 @@ class BackupController extends AdminControllerBase
 
         try {
             $result = BackupRuns::runBackup($run, $target);
+        } catch (BackupFailedException $e) {
+            // the database dump failed, or no backup file was made: an error with its reason
+            // (without the password). toastr shows the message as HTML: the reason is escaped
+            return response()->json([
+                'result'  => false,
+                'run' => $run->uuid,
+                'message' => esc_html(exmtrans("backup.message.backup_error") . ' ' . $e->getMessage()),
+            ]);
         } catch (BackupRestoreCheckException $e) {
             return response()->json([
                 'result'  => false,

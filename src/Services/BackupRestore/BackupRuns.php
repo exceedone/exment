@@ -3,6 +3,7 @@
 namespace Exceedone\Exment\Services\BackupRestore;
 
 use Carbon\Carbon;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
@@ -636,7 +637,7 @@ class BackupRuns
      */
     public static function reason(\Throwable $e): string
     {
-        if ($e instanceof BackupRestoreCheckException || $e instanceof InvalidZipEntryException || $e instanceof BackupRunLockedException) {
+        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException || $e instanceof InvalidZipEntryException || $e instanceof BackupRunLockedException) {
             return SecretMasker::mask($e->getMessage());
         }
         return SecretMasker::mask(mb_substr(class_basename($e) . ': ' . $e->getMessage(), 0, 500));
@@ -651,7 +652,7 @@ class BackupRuns
         if (str_contains($message, 'no space') || str_contains($message, 'disk full') || str_contains($message, 'disk quota')) {
             return 'disk_full';
         }
-        if ($e instanceof BackupRestoreCheckException) {
+        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException) {
             return 'command';
         }
         if ($e instanceof InvalidZipEntryException) {

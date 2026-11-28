@@ -30,6 +30,9 @@ class BackupCoverageTest extends FeatureTestBase
      */
     private array $createdBackups = [];
 
+    /** the folder of the fake mysqldump (fakeMysqlBin()) */
+    private ?string $fakeMysqlDir = null;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -39,6 +42,13 @@ class BackupCoverageTest extends FeatureTestBase
 
     protected function tearDown(): void
     {
+        if (!is_null($this->fakeMysqlDir)) {
+            foreach (['mysqldump', 'mysql'] as $name) {
+                @unlink("{$this->fakeMysqlDir}/{$name}");
+            }
+            @rmdir($this->fakeMysqlDir);
+            $this->fakeMysqlDir = null;
+        }
         if (!empty($this->createdBackups)) {
             $this->backupDisk()->delete($this->createdBackups);
         }
@@ -120,6 +130,65 @@ class BackupCoverageTest extends FeatureTestBase
         $this->assertZipHoldsThePlugins($this->newBackup($before));
     }
 
+    public function testBackupCommandFailsWhenTheDatabaseDumpFails(): void
+    {
+        // a mysqldump that cannot connect (as with a self-signed certificate of the server)
+        $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error: self-signed certificate in certificate chain' >&2\nexit 2");
+        $before = $this->backupFiles();
+
+        $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
+            ->expectsOutputToContain(strval(exmtrans('backup.message.backup_error')))
+            ->expectsOutputToContain('self-signed certificate')
+            ->assertExitCode(1)
+            ->run();
+
+        $this->assertSame($before, $this->backupFiles(), 'no backup file is written');
+    }
+
+    public function testBackupCommandFailsWhenTheDumpWritesNothing(): void
+    {
+        // a mysqldump that ends with 0 but writes no data
+        $this->fakeMysqlBin('exit 0');
+        $before = $this->backupFiles();
+
+        $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
+            ->expectsOutputToContain(strval(exmtrans('backup.message.dump_empty', ['file' => config('exment.backup_info.def_file', 'table_definition.sql')])))
+            ->assertExitCode(1)
+            ->run();
+
+        $this->assertSame($before, $this->backupFiles(), 'no backup file is written');
+    }
+
+    public function testTheBackupScreenShowsAnErrorWhenTheDumpFails(): void
+    {
+        $this->fakeMysqlBin("echo 'mysqldump: Got error: 2026: TLS/SSL error' >&2\nexit 2");
+        System::backup_target([BackupTarget::DATABASE]);
+        System::clearCache();
+        $before = $this->backupFiles();
+
+        $response = $this->post(admin_url('backup/save'))
+            ->assertOk()
+            ->assertJson(['result' => false]);
+        $message = (string) $response->json('message');
+        $this->assertStringStartsWith(esc_html(exmtrans('backup.message.backup_error')), $message);
+        $this->assertStringContainsString('TLS/SSL error', $message);
+
+        // the run is recorded as failed, not as a success
+        $run = \Exceedone\Exment\Model\BackupRun::where('uuid', $response->json('run'))->first();
+        $this->assertNotNull($run);
+        $this->assertSame(\Exceedone\Exment\Model\BackupRun::STATUS_FAILED, $run->status);
+        $this->assertSame($before, $this->backupFiles(), 'no backup file is written');
+    }
+
+    public function testTheErrorOfTheDumpHasNoPassword(): void
+    {
+        $detail = \Exceedone\Exment\Database\MySqlConnection::dumpErrorDetail(
+            "mysqldump: [Warning] Using a password on the command line interface can be insecure.\nmysqldump: Got error: 1045: Access denied (password s3cret-pw)\n",
+            's3cret-pw'
+        );
+        $this->assertSame('mysqldump: Got error: 1045: Access denied (password ***)', $detail);
+    }
+
     public function testRestoreCommandSaysWhenTheFileIsNotThere(): void
     {
         $before = \Exceedone\Exment\Model\BackupRun::query()->count();
@@ -152,6 +221,30 @@ class BackupCoverageTest extends FeatureTestBase
         $this->assertInstanceOf(PendingCommand::class, $pending);
 
         return $pending;
+    }
+
+    /**
+     * A folder with a fake "mysqldump" and "mysql" (exment.backup_info.mysql_dir): they answer
+     * "--version" and "--help", and run $body for a dump. Removed again in tearDown().
+     */
+    private function fakeMysqlBin(string $body): void
+    {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $this->markTestSkipped('the fake mysqldump is a shell script');
+        }
+        if (!in_array(\DB::connection()->getDriverName(), ['mysql', 'mariadb'], true)) {
+            $this->markTestSkipped('the dump of mysqldump is for MySQL and MariaDB');
+        }
+
+        $dir = sys_get_temp_dir() . '/exment-fake-mysql-' . bin2hex(random_bytes(4));
+        mkdir($dir, 0700);
+        $script = "#!/bin/sh\ncase \"\$1\" in\n  --version) echo 'mysqldump  Ver 8.0.0 (fake)'; exit 0;;\n  --help) echo 'fake'; exit 0;;\nesac\n{$body}\n";
+        foreach (['mysqldump', 'mysql'] as $name) {
+            file_put_contents("{$dir}/{$name}", $script);
+            chmod("{$dir}/{$name}", 0700);
+        }
+        $this->fakeMysqlDir = $dir;
+        config(['exment.backup_info.mysql_dir' => $dir]);
     }
 
     private function backupDisk(): Filesystem

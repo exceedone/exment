@@ -8,6 +8,7 @@ use Exceedone\Exment\Database\Schema\MySqlBuilder;
 use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Illuminate\Database\Grammar;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
@@ -20,6 +21,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
     /** @var bool|null */
     protected static $isContainsSetGtidPurged = null;
+
+    /** The error output of the last dumpDatabase() (dumpErrorDetail()), told when it failed */
+    protected string $lastDumpError = '';
 
     /**
      * Tables of the Laravel skeleton that Exment shares or may also create: never Exment's own,
@@ -129,10 +133,60 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             $command = sprintf('%s -t %s %s > %s', $command, escapeshellarg($database), escapeshellarg($table), escapeshellarg($file));
         }
 
-        // the command holds the password: it is never written to a log
-        exec($command, $output, $exitCode);
+        // the command holds the password: it is never written to a log.
+        // The errors of mysqldump (e.g. a TLS error of the connection) are kept to be told (assertDumped()).
+        $errorFile = $file . '.err';
+        exec(sprintf('%s 2> %s', $command, escapeshellarg($errorFile)), $output, $exitCode);
+        $errors = is_file($errorFile) ? strval(@file_get_contents($errorFile)) : '';
+        @unlink($errorFile);
+        $this->lastDumpError = static::dumpErrorDetail($errors, is_string($password) ? $password : null);
 
         return intval($exitCode);
+    }
+
+    /**
+     * A dump that failed or wrote no file is not a backup: stop it.
+     *
+     * @throws BackupFailedException
+     */
+    protected function assertDumped(int $exitCode, string $file): void
+    {
+        if ($exitCode !== 0) {
+            throw new BackupFailedException(exmtrans('backup.message.dump_failed', [
+                'code' => $exitCode,
+                'detail' => $this->lastDumpError,
+            ]));
+        }
+        clearstatcache(true, $file);
+        if (!is_file($file) || filesize($file) === 0) {
+            throw new BackupFailedException(exmtrans('backup.message.dump_empty', [
+                'file' => basename($file),
+            ]));
+        }
+    }
+
+    /**
+     * The error output of mysqldump to be shown: without the warning about the password on the
+     * command line, without the password itself, and not too long.
+     */
+    public static function dumpErrorDetail(string $errors, ?string $password = null): string
+    {
+        $lines = collect(preg_split('/\r\n|\r|\n/', $errors) ?: [])
+            ->map(function ($line) {
+                return trim((string) $line);
+            })
+            ->filter(function ($line) {
+                return $line !== '' && stripos($line, 'Using a password on the command line') === false;
+            });
+
+        $detail = $lines->implode(' ');
+        if (!is_null($password) && $password !== '') {
+            $detail = str_replace($password, '***', $detail);
+        }
+        if (mb_strlen($detail) > 500) {
+            $detail = mb_substr($detail, 0, 500) . '...';
+        }
+        return $detail;
     }
 
     /**
@@ -233,9 +287,11 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
         // export table definition
         $exitCode = $this->dumpDatabase($tempDir);
+        $path = path_join($tempDir, config('exment.backup_info.def_file', 'table_definition.sql'));
         if (isset($progress)) {
-            $progress(['total' => $total, 'table' => null, 'exit_code' => $exitCode, 'path' => path_join($tempDir, config('exment.backup_info.def_file', 'table_definition.sql'))]);
+            $progress(['total' => $total, 'table' => null, 'exit_code' => $exitCode, 'path' => $path]);
         }
+        $this->assertDumped($exitCode, $path);
 
         // backup each table
         foreach ($tables as $name) {
@@ -250,6 +306,9 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             }
             if (isset($progress)) {
                 $progress($info);
+            }
+            if (stripos($name, 'exm__') !== 0) {
+                $this->assertDumped(intval($info['exit_code']), strval($info['path']));
             }
         }
     }

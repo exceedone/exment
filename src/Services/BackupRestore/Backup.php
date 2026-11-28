@@ -6,6 +6,7 @@ use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\System;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Enums\BackupTarget;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 
 class Backup
@@ -60,6 +61,7 @@ class Backup
      *
      * @return int
      * @throws \Exceedone\Exment\Exceptions\BackupRestoreCheckException
+     * @throws BackupFailedException when the database dump or the backup file fails
      */
     // @phpstan-ignore-next-line
     public function execute($target = null, bool $schedule = false)
@@ -348,7 +350,12 @@ class Backup
             if (!$zip->close()) {
                 throw new \RuntimeException('the zip file could not be written: ' . $zip->getStatusString());
             }
+            clearstatcache(true, $this->diskService->tmpDiskItem()->fileFullPath());
             $size = intval(@filesize($this->diskService->tmpDiskItem()->fileFullPath()));
+            // a backup without its file is not a backup
+            if ($size === 0) {
+                throw new BackupFailedException(exmtrans('backup.message.zip_failed'));
+            }
             // a restore of this file checks it first (BackupDiskService::verify)
             $sha256 = hash_file('sha256', $this->diskService->tmpDiskItem()->fileFullPath());
             $progress->info('zip', ['files' => $count, 'bytes' => $size, 'sha256' => $sha256 === false ? null : $sha256]);
