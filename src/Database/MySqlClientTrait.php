@@ -56,7 +56,7 @@ trait MySqlClientTrait
     protected static function dumpErrorFile(): string
     {
         $file = @tempnam(sys_get_temp_dir(), 'exment-dump-');
-        return is_string($file) && $file !== '' ? $file : path_join(sys_get_temp_dir(), 'exment-dump-' . bin2hex(random_bytes(8)));
+        return is_string($file) ? $file : path_join(sys_get_temp_dir(), 'exment-dump-' . bin2hex(random_bytes(8)));
     }
 
     /**

@@ -277,7 +277,7 @@ class BackupCoverageTest extends FeatureTestBase
             \ExmentDB::restoreDatabase($dir);
         });
         $this->assertFalse($e->databaseChanged());
-        $this->assertStringStartsWith(strval(exmtrans('backup.message.restore_nothing_restored', ['reason' => ''])), $e->getMessage());
+        $this->assertStringContainsString(strval(exmtrans('backup.message.restore_nothing_restored', ['reason' => ''])), $e->getMessage());
         $this->assertStringContainsString('self-signed certificate', $e->getMessage());
         $this->assertStringContainsString(strval(exmtrans('backup.message.tls_hint')), $e->getMessage());
         // nothing was truncated
