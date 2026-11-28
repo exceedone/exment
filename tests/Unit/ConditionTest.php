@@ -1072,7 +1072,7 @@ class ConditionTest extends UnitTestBase
      * @param string|null $tableName
      * @return void
      */
-    protected function _testColumnSelectMulti($target_value, array $values, int $filterOption, bool $result, string $tableName = null)
+    protected function _testColumnSelectMulti($target_value, array $values, int $filterOption, bool $result, ?string $tableName = null)
     {
         $this->__testColumn('select_multiple', $target_value, $values, $filterOption, $result, $tableName);
     }
@@ -2342,7 +2342,7 @@ class ConditionTest extends UnitTestBase
      * @param boolean $result
      * @return void
      */
-    protected function __testColumn(string $column_name, $target_value, array $values, int $filterOption, bool $result, string $tableName = null)
+    protected function __testColumn(string $column_name, $target_value, array $values, int $filterOption, bool $result, ?string $tableName = null)
     {
         $this->initAllTest();
 
