@@ -2,11 +2,6 @@
 
 namespace Exceedone\Exment\Services\Update;
 
-use Composer\Composer;
-use Composer\Config;
-use Composer\IO\NullIO;
-use Composer\Script\Event as ScriptEvent;
-use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Services\BackupRestore\Backup;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupRestoreNotSupportedException;
@@ -36,8 +31,6 @@ class UpdateService
                 static::callBackup();
             }
 
-            static::updateExment();
-
             if (boolval($options['publish'])) {
                 static::callPublish();
             }
@@ -64,42 +57,6 @@ class UpdateService
             $backup->diskService()->deleteTmpDirectory();
         }
     }
-
-    /**
-     * Update exment(and laravel-admin)
-     *
-     * @return void
-     */
-    public static function updateExment(?ScriptEvent $event = null)
-    {
-        if (!$event) {
-            $composer = new Composer();
-            $baseDir = base_path();
-
-            if (file_exists("$baseDir/autoload.php")) {
-                $baseDir .= '/..';
-            }
-
-            $config = new Config(true, $baseDir);
-            $config->merge(['config' => ['archive-dir' => $baseDir]]);
-
-            $composer->setConfig($config);
-            $event = new ScriptEvent(
-                'upgrade-carbon',
-                $composer,
-                new NullIO()
-            );
-        }
-
-        $helper = new UpdateHelper($event);
-
-        $upgrades = array(
-            Define::COMPOSER_PACKAGE_NAME_EXMENT_ADMIN => '*',
-            Define::COMPOSER_PACKAGE_NAME => '*',
-        );
-        $helper->setDependencyVersions($upgrades)->require($upgrades);
-    }
-
 
     // @phpstan-ignore-next-line
     public static function callPublish()

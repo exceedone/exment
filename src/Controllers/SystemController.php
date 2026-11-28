@@ -20,7 +20,6 @@ use Exceedone\Exment\Form\Tools;
 use Exceedone\Exment\Model\CustomTable;
 use Exceedone\Exment\Model\Define;
 use Exceedone\Exment\Model\System;
-use Exceedone\Exment\Services\Update\UpdateService;
 use Exceedone\Exment\Services\Installer\InitializeFormTrait;
 use Exceedone\Exment\Services\DemoMode;
 use Exceedone\Exment\Services\Features;
@@ -417,83 +416,24 @@ class SystemController extends AdminControllerBase
             ->default($message);
 
         if ($updateButton) {
-            //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
-            //if disable update button, showing only update link
-            //if(boolval(config('exment.system_update_display_disabled', false))){
+            // a version that "composer update" cannot reach: the steps of the manual for it
+            $needsManual = \Exment::needsManualUpdate();
+            $manualPath = $needsManual ? \Exment::getManualUpdatePath($latest) : 'update';
+
             $manualUrl = exmtrans('common.message.label_link', [
-                        'label' => exmtrans('system.call_update_howto'),
-                        'link' => \Exment::getManualUrl('update'),
+                        'label' => esc_html(exmtrans('system.call_update_howto')),
+                        'link' => esc_html(\Exment::getManualUrl($manualPath)),
                     ]);
+            if ($needsManual) {
+                $manualUrl = esc_html(\Exment::getManualUpdateNotice($latest)) . '<br />' . $manualUrl;
+            }
             $form->display(exmtrans('system.call_update_howto'))
                         ->displayText($manualUrl)
                         ->escape(false);
-            // } else {
-            //     $this->setUpdatePartialForm($form, $latest);
-            // }
         }
 
         return $form;
     }
-
-
-    //TODO: System update display : Remove comment. Alter update laravel 6.x, Uncomment this.
-    /**
-     * Set UpdatePartialForm
-     *
-     * @param WidgetForm $form
-     * @param string $latest
-     * @return void
-     */
-    // protected function setUpdatePartialForm(WidgetForm $form, $latest)
-    // {
-    //     $form->exmheader(exmtrans('system.call_update_header'))->hr();
-
-    //     // check require. If conatains not OK, showing error message.
-    //     $checkObjs = [new SystemRequire\Composer, new SystemRequire\FilePermissionInstaller, new SystemRequire\TimeoutTime];
-    //     $errorObjs = [];
-    //     foreach ($checkObjs as $checkObj) {
-    //         $checkObj->systemRequireCalledType(SystemRequireCalledType::WEB);
-
-    //         $checkResult = $checkObj->checkResult();
-    //         if (!isMatchString($checkResult, SystemRequireResult::OK)) {
-    //             $errorObjs[] = $checkObj;
-    //         }
-    //     }
-
-    //     // if has error, set button and return
-    //     if (!is_nullorempty($errorObjs)) {
-    //         $form->display(exmtrans('system.call_update_cannot'))->displayText(exmtrans('system.call_update_cannot_description'));
-
-    //         $buttons = collect($errorObjs)->map(function ($errorObj) {
-    //             return view('exment::tools.button-simple', [
-    //                 'href' => $errorObj->getSettingUrl(),
-    //                 'label' => $errorObj->getLabel(),
-    //                 'target' => '_blank',
-    //                 'btn_class' => 'btn-primary',
-    //             ])->render();
-    //         });
-    //         $form->description($buttons->implode(''))->escape(false);
-
-    //         return;
-    //     }
-
-    //     $form->description(exmtrans('system.call_update_description', $latest))->escape(false);;
-
-    //     $manualUrl = exmtrans('common.message.label_link', [
-    //         'label' => exmtrans('system.release_note'),
-    //         'link' => \Exment::getManualUrl('release_note'),
-    //     ]);
-    //     $form->description($manualUrl)->escape(false);
-
-    //     $form->ajaxButton('call_update', exmtrans("system.call_update"))
-    //         ->url(admin_urls('system', 'call_update'))
-    //         ->button_class('btn-sm btn-info')
-    //         ->button_label(exmtrans('system.call_update'))
-    //         ->confirm(true)
-    //         ->confirm_title(trans('admin.confirm'))
-    //         ->confirm_text(exmtrans('system.call_update_modal_confirm', $latest) . exmtrans('common.message.modal_confirm', 'yes'))
-    //         ->confirm_error(exmtrans('custom_table.help.delete_confirm_error'));
-    // }
 
     /**
      * The values of the settings whose change reloads the whole page ('reload' => true in
@@ -612,25 +552,5 @@ class SystemController extends AdminControllerBase
                 'reload' => false,
             ]);
         }
-    }
-
-    /**
-     * call update
-     *
-     * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function callUpdate(Request $request)
-    {
-        UpdateService::update([
-            'backup' => false,
-        ]);
-
-        return getAjaxResponse([
-            'result'  => true,
-            'logoutAsync' => true,
-            'swal' => exmtrans('system.call_update_success'),
-            'swaltext' => exmtrans('system.call_update_success_text'),
-        ]);
     }
 }

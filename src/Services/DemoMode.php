@@ -57,8 +57,8 @@ class DemoMode
         Controllers\BackupController::class => ['*'],
         // template import (the file can contain anything) and template delete. Export stays.
         Controllers\TemplateController::class => ['import', 'delete'],
-        // test mail and the system update (runs composer)
-        Controllers\SystemController::class => ['sendTestMail', 'callUpdate'],
+        // test mail
+        Controllers\SystemController::class => ['sendTestMail'],
         // login settings: SSO / SAML / OAuth / LDAP, 2 factor and the password policy
         Controllers\LoginSettingController::class => [
             'create', 'store', 'edit', 'update', 'destroy', 'show',

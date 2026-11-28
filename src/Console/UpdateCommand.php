@@ -105,6 +105,11 @@ class UpdateCommand extends Command
             // not told
         }
 
+        // a newer version that "composer update" cannot reach with this site's composer.json
+        foreach (\Exment::getManualUpdateNoticeLines() as $line) {
+            $this->warn($line);
+        }
+
         $this->restoreConfigCache($configCached);
 
         return 0;

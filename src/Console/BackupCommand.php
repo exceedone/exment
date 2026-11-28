@@ -7,6 +7,7 @@ use Exceedone\Exment\Enums\BackupTarget;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 
 class BackupCommand extends Command
 {
@@ -67,7 +68,16 @@ class BackupCommand extends Command
 
             $this->backup->initBackupRestore();
 
-            return $this->backup->execute($target, $schedule);
+            $result = $this->backup->execute($target, $schedule);
+            if ($result !== 0) {
+                $this->error(exmtrans('backup.message.backup_error'));
+                return 1;
+            }
+            return 0;
+        } catch (BackupFailedException $e) {
+            // the database dump failed, or no backup file was made: not a success
+            $this->error(exmtrans('backup.message.backup_error') . ' ' . $e->getMessage());
+            return 1;
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
             return 1;

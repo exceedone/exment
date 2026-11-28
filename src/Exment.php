@@ -411,22 +411,11 @@ class Exment
                 }
 
                 //// get latest version
-                $client = new \GuzzleHttp\Client();
-                $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
-                    'http_errors' => false,
-                    'timeout' => 3, // Response timeout
-                    'connect_timeout' => 3, // Connection timeout
-                ]);
+                $json = $this->fetchPackagistJson();
 
                 Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION_EXECUTE, true, Define::CACHE_CLEAR_MINUTE);
 
-                $contents = $response->getBody()->getContents();
-                if ($response->getStatusCode() != 200) {
-                    return [null, null];
-                }
-
-                $json = json_decode_ex($contents, true);
-                if (!$json) {
+                if (!is_array($json) || empty($json)) {
                     return [null, null];
                 }
                 // @phpstan-ignore-next-line
@@ -438,9 +427,17 @@ class Exment
                 // pick the latest STABLE version (semantic compare; skip dev / branch-alias / pre-release)
                 $latest = $this->pickLatestStableVersion($packages);
 
+                // what the latest version requires, and whether "composer update" can reach it
+                // with the ranges of the site's composer.json
+                $latestRequires = $this->pickUpdateRequires(is_null($latest) ? null : array_get($packages, $latest));
+                $needsManual = $this->isUnreachableByComposerUpdate($latest, $latestRequires, $this->getRootComposerJson());
+
                 try {
                     Cache::put(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION, json_encode([
-                        'latest' => $latest, 'current' => $current
+                        'latest' => $latest,
+                        'current' => $current,
+                        'latest_requires' => $latestRequires,
+                        'needs_manual' => $needsManual,
                     ]), Define::CACHE_CLEAR_MINUTE);
                 } catch (\Exception $e) {
                 }
@@ -450,6 +447,254 @@ class Exment
         }
 
         return [$latest ?? null, $current ?? null];
+    }
+
+    /**
+     * fn(): array|null — the decoded packagist JSON of exment, in place of the request (tests).
+     *
+     * @var callable|null
+     */
+    protected static $packagistJsonResolver;
+
+    /**
+     * fn(): array|null — the decoded root composer.json, in place of base_path('composer.json') (tests).
+     *
+     * @var callable|null
+     */
+    protected static $rootComposerJsonResolver;
+
+    public static function packagistJsonUsing(?callable $resolver): void
+    {
+        static::$packagistJsonResolver = $resolver;
+    }
+
+    public static function rootComposerJsonUsing(?callable $resolver): void
+    {
+        static::$rootComposerJsonResolver = $resolver;
+    }
+
+    /**
+     * The packagist JSON of exment (Define::COMPOSER_VERSION_CHECK_URL), decoded.
+     *
+     * @return array<mixed>|null null when the request failed
+     */
+    protected function fetchPackagistJson(): ?array
+    {
+        if (!is_null(static::$packagistJsonResolver)) {
+            $json = call_user_func(static::$packagistJsonResolver);
+            return is_array($json) ? $json : null;
+        }
+
+        $client = new \GuzzleHttp\Client();
+        $response = $client->request('GET', Define::COMPOSER_VERSION_CHECK_URL, [
+            'http_errors' => false,
+            'timeout' => 3, // Response timeout
+            'connect_timeout' => 3, // Connection timeout
+        ]);
+        if ($response->getStatusCode() != 200) {
+            return null;
+        }
+
+        $json = json_decode_ex($response->getBody()->getContents(), true);
+        return is_array($json) ? $json : null;
+    }
+
+    /**
+     * The root composer.json of the site (base_path('composer.json')), decoded.
+     *
+     * @return array<mixed>|null null when it is missing or cannot be read
+     */
+    public function getRootComposerJson(): ?array
+    {
+        if (!is_null(static::$rootComposerJsonResolver)) {
+            $json = call_user_func(static::$rootComposerJsonResolver);
+            return is_array($json) ? $json : null;
+        }
+
+        try {
+            $path = base_path('composer.json');
+            if (!is_file($path) || !is_readable($path)) {
+                return null;
+            }
+            $contents = @file_get_contents($path);
+            if (!is_string($contents) || $contents === '') {
+                return null;
+            }
+            $json = json_decode($contents, true);
+            return is_array($json) ? $json : null;
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    /**
+     * The requirements of a packagist version entry that decide whether "composer update"
+     * can reach it: exceedone/exment-admin-core (and exceedone/exment, when a version names it).
+     *
+     * @param mixed $package one entry of packagist "package.versions"
+     * @return array<string, string>
+     */
+    public function pickUpdateRequires($package): array
+    {
+        $require = is_array($package) ? array_get($package, 'require') : null;
+        if (!is_array($require)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ([Define::COMPOSER_PACKAGE_NAME_EXMENT_ADMIN, Define::COMPOSER_PACKAGE_NAME] as $name) {
+            if (isset($require[$name]) && is_string($require[$name]) && $require[$name] !== '') {
+                $result[$name] = $require[$name];
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * Whether "composer update" cannot reach the version $latest with the ranges the root
+     * composer.json gives exceedone/exment and exceedone/exment-admin-core.
+     * False whenever it cannot be told (no version, no composer.json, a range that is not read).
+     *
+     * @param string|null $latest the version (packagist key, e.g. "v7.3.0")
+     * @param array<string, string> $latestRequires what that version requires (pickUpdateRequires())
+     * @param array<mixed>|null $rootComposer the decoded root composer.json
+     */
+    public function isUnreachableByComposerUpdate(?string $latest, array $latestRequires, ?array $rootComposer): bool
+    {
+        if (is_null($latest) || $latest === '' || !is_array($rootComposer)) {
+            return false;
+        }
+        $rootRequire = array_get($rootComposer, 'require');
+        if (!is_array($rootRequire)) {
+            return false;
+        }
+
+        try {
+            $parser = new \Composer\Semver\VersionParser();
+
+            // the range of exment itself in the root
+            $rootExment = array_get($rootRequire, Define::COMPOSER_PACKAGE_NAME);
+            if (is_string($rootExment) && $rootExment !== '') {
+                if (!\Composer\Semver\Semver::satisfies($latest, $rootExment)) {
+                    return true;
+                }
+            }
+
+            // a package the latest version requires, whose range in the root does not meet it
+            foreach ($latestRequires as $name => $required) {
+                $rootRange = array_get($rootRequire, $name);
+                if (!is_string($rootRange) || $rootRange === '' || !is_string($required) || $required === '' || $required === 'self.version') {
+                    continue;
+                }
+                if (!\Composer\Semver\Intervals::haveIntersections($parser->parseConstraints($rootRange), $parser->parseConstraints($required))) {
+                    return true;
+                }
+            }
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return false;
+    }
+
+    /**
+     * Whether the latest version cannot be installed with "composer update" alone: the site's
+     * composer.json has to be changed by the steps of the manual (getManualUpdatePath()).
+     * Uses the version information of the cache (getExmentVersion()); false when it is not known.
+     *
+     * @param bool $getFromComposer whether packagist may be asked, when the cache has nothing
+     */
+    public function needsManualUpdate(bool $getFromComposer = true): bool
+    {
+        try {
+            if (!is_null(static::$versionResolver)) {
+                $resolved = call_user_func(static::$versionResolver);
+                if (is_array($resolved)) {
+                    return boolval($resolved[2] ?? false);
+                }
+            }
+
+            list($latest, $current) = $this->getExmentVersion($getFromComposer);
+            if (empty($latest)) {
+                return false;
+            }
+
+            $version = json_decode_ex(Cache::get(Define::SYSTEM_KEY_SESSION_SYSTEM_VERSION) ?? '', true);
+            if (!is_array($version) || array_get($version, 'latest') !== $latest) {
+                return false;
+            }
+
+            $latestRequires = array_get($version, 'latest_requires');
+            if (is_array($latestRequires)) {
+                // read the composer.json again: it may have been changed since the cache
+                return $this->isUnreachableByComposerUpdate($latest, $latestRequires, $this->getRootComposerJson());
+            }
+            return boolval(array_get($version, 'needs_manual', false));
+        } catch (\Throwable $e) {
+            return false;
+        }
+    }
+
+    /**
+     * The page of the manual with the steps of the update to $version: "update/v7_3_0" for 7.3.x.
+     *
+     * @param string|null $version
+     */
+    public function getManualUpdatePath(?string $version): string
+    {
+        if (preg_match('/^v?(\d+)\.(\d+)/i', trim((string) $version), $match) === 1) {
+            return 'update/v' . intval($match[1]) . '_' . intval($match[2]) . '_0';
+        }
+        return 'update';
+    }
+
+    /**
+     * The notice that $version cannot be installed with "composer update" alone (plain text).
+     *
+     * @param string|null $version
+     */
+    public function getManualUpdateNotice(?string $version): string
+    {
+        return strval(exmtrans('system.version_needs_manual', ['version' => ltrim((string) $version, 'vV')]));
+    }
+
+    /**
+     * The lines that tell that the newest known version cannot be installed with "composer update"
+     * alone (the notice, and the page of the manual), for the console (exment:update).
+     * Empty when it can, when it is not known (no cache and outside_api off, no network), or on any error.
+     *
+     * @return array<int, string>
+     */
+    public function getManualUpdateNoticeLines(): array
+    {
+        try {
+            // packagist is asked only when the site permits it; otherwise what the cache has
+            $getFromComposer = false;
+            try {
+                $getFromComposer = boolval(System::outside_api());
+            } catch (\Throwable $e) {
+            }
+
+            $latest = $this->getExmentVersion($getFromComposer)[0] ?? null;
+            if (empty($latest)) {
+                return [];
+            }
+            // the installed version, read again: this command runs after "composer update"
+            $installed = $this->getVersionFromComposerLock();
+            if (!is_null($installed) && $this->classifyVersion($latest, $installed) === SystemVersion::LATEST) {
+                return [];
+            }
+            if (!$this->needsManualUpdate(false)) {
+                return [];
+            }
+
+            return [
+                $this->getManualUpdateNotice($latest),
+                $this->getManualUrl($this->getManualUpdatePath($latest)),
+            ];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
 

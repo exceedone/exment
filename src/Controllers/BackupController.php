@@ -14,6 +14,7 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Validator;
 use DB;
 
@@ -210,7 +211,18 @@ class BackupController extends AdminControllerBase
 
         $target = System::backup_target();
 
-        $result = $this->backup->execute($target);
+        try {
+            $result = $this->backup->execute($target);
+        } catch (BackupFailedException|BackupRestoreCheckException $ex) {
+            // the database dump failed, or no backup file was made: an error, not a success.
+            // "swaltext" is shown as text (its reason, without the password)
+            \Log::error($ex);
+            return response()->json([
+                'result'  => false,
+                'message' => exmtrans("backup.message.backup_error"),
+                'swaltext' => $ex->getMessage(),
+            ]);
+        }
 
         if (isset($result) && $result === 0) {
             return response()->json([

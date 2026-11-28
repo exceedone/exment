@@ -8,6 +8,7 @@ use Exceedone\Exment\Database\Schema\MySqlBuilder;
 use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Illuminate\Database\Grammar;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
@@ -104,8 +105,7 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $column_statistics = static::isContainsColumnStatistics() ? '--column-statistics=0' : '';
 
         $mysqldump = static::getMysqlDumpPath();
-        $ls_output = shell_exec($mysqldump . ' --help');
-        // @phpstan-ignore-next-line
+        $ls_output = strval(shell_exec($mysqldump . ' --help'));
         if (strpos($ls_output, '--set-gtid-purged') !== false) {
             $set_gtid = ' --set-gtid-purged=OFF';
         } else {
@@ -131,7 +131,52 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             $command = sprintf('%s -t %s %s > %s', $command, escapeshellarg($database), escapeshellarg($table), escapeshellarg($file));
         }
 
-        exec($command);
+        // the errors of mysqldump (e.g. a TLS error of the connection) are kept to be told
+        $errorFile = $file . '.err';
+        exec(sprintf('%s 2> %s', $command, escapeshellarg($errorFile)), $output, $return_var);
+        $errors = is_file($errorFile) ? strval(@file_get_contents($errorFile)) : '';
+        @unlink($errorFile);
+
+        if ($return_var !== 0) {
+            throw new BackupFailedException(exmtrans('backup.message.dump_failed', [
+                'code' => $return_var,
+                'detail' => static::dumpErrorDetail($errors, $password),
+            ]));
+        }
+        clearstatcache(true, $file);
+        if (!is_file($file) || filesize($file) === 0) {
+            throw new BackupFailedException(exmtrans('backup.message.dump_empty', [
+                'file' => basename($file),
+            ]));
+        }
+    }
+
+    /**
+     * The error output of mysqldump to be shown: without the warning about the password on the
+     * command line, without the password itself, and not too long.
+     *
+     * @param string $errors
+     * @param string|null $password
+     * @return string
+     */
+    public static function dumpErrorDetail(string $errors, ?string $password = null): string
+    {
+        $lines = collect(preg_split('/\r\n|\r|\n/', $errors) ?: [])
+            ->map(function ($line) {
+                return trim((string) $line);
+            })
+            ->filter(function ($line) {
+                return $line !== '' && stripos($line, 'Using a password on the command line') === false;
+            });
+
+        $detail = $lines->implode(' ');
+        if (!is_null($password) && $password !== '') {
+            $detail = str_replace($password, '***', $detail);
+        }
+        if (mb_strlen($detail) > 500) {
+            $detail = mb_substr($detail, 0, 500) . '...';
+        }
+        return $detail;
     }
 
     /**
