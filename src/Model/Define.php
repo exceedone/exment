@@ -126,6 +126,9 @@ class Define
         'scheduled_job_alerted' => ['type' => 'json', 'default' => []],
         // the counts of the data for the tuning page, made every night (Services\SystemRequire\Tuning\DataStats)
         'tuning_data_stats' => ['type' => 'json', 'default' => []],
+        // the data archive (ISS02970): per source, the days the rows are kept and the days an archive stays in the trash
+        'data_archive_policies' => ['type' => 'json', 'default' => []],
+        'data_archive_driver' => ['default' => 'local'],
         // the columns whose index the tuning page is adding: column id => since when (AddColumnIndexJob)
         'tuning_index_pending' => ['type' => 'json', 'default' => []],
         'recaptcha_type' => ['type' => 'string', 'group' => 'advanced'],

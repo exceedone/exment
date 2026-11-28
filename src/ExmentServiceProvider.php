@@ -114,6 +114,7 @@ class ExmentServiceProvider extends ServiceProvider
         \Exceedone\Exment\Console\LogMaintenanceCommand::class,
         \Exceedone\Exment\Console\LogDbCommand::class,
         \Exceedone\Exment\Console\TrashPurgeCommand::class,
+        \Exceedone\Exment\Console\DataArchiveCommand::class,
         \Exceedone\Exment\Console\QueueHeartbeatCommand::class,
         \Exceedone\Exment\Console\TuningDataCommand::class,
         \Exceedone\Exment\Console\DataKeyCommand::class,
@@ -755,6 +756,9 @@ class ExmentServiceProvider extends ServiceProvider
 
         // the deleted data past the days of its table: archived, then deleted for good (ISS00147)
         $schedule->command('exment:trash-purge')->dailyAt('03:50')->withoutOverlapping(120);
+        // the data archive (ISS02970): the sources with a policy, then the purge of its trash (only
+        // while the feature is used)
+        $schedule->command('exment:data-archive schedule')->dailyAt('04:00')->withoutOverlapping(180);
         // the IT audit report of the month or the quarter before, when it is set (ISS02840)
         $schedule->command('exment:audit-report')->dailyAt('04:10')->withoutOverlapping(60);
         // the counts of the data for the tuning page (ISS02927)
