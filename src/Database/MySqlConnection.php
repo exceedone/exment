@@ -127,16 +127,18 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
         if ($table == null) {
             $file = path_join($tempDir, config('exment.backup_info.def_file', 'table_definition.sql'));
-            $command = sprintf('%s -d %s > %s', $command, escapeshellarg($database), escapeshellarg($file));
+            $command = sprintf('%s -d %s', $command, escapeshellarg($database));
         } else {
             $file = sprintf('%s.sql', path_join($tempDir, $table));
-            $command = sprintf('%s -t %s %s > %s', $command, escapeshellarg($database), escapeshellarg($table), escapeshellarg($file));
+            $command = sprintf('%s -t %s %s', $command, escapeshellarg($database), escapeshellarg($table));
         }
 
         // the command holds the password: it is never written to a log.
         // The errors of mysqldump (e.g. a TLS error of the connection) are kept to be told (assertDumped()).
-        $errorFile = $file . '.err';
-        exec(sprintf('%s 2> %s', $command, escapeshellarg($errorFile)), $output, $exitCode);
+        // The error file is outside the backup folder, and redirected first: the error of the shell
+        // when the dump file cannot be opened is kept too.
+        $errorFile = static::dumpErrorFile();
+        exec(sprintf('%s 2> %s > %s', $command, escapeshellarg($errorFile), escapeshellarg($file)), $output, $exitCode);
         $errors = is_file($errorFile) ? strval(@file_get_contents($errorFile)) : '';
         @unlink($errorFile);
         $this->lastDumpError = static::dumpErrorDetail($errors, is_string($password) ? $password : null);
@@ -166,6 +168,15 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     }
 
     /**
+     * A new file for the error output of a dump, in the temporary folder of the system.
+     */
+    protected static function dumpErrorFile(): string
+    {
+        $file = @tempnam(sys_get_temp_dir(), 'exment-dump-');
+        return is_string($file) && $file !== '' ? $file : path_join(sys_get_temp_dir(), 'exment-dump-' . bin2hex(random_bytes(8)));
+    }
+
+    /**
      * The error output of mysqldump to be shown: without the warning about the password on the
      * command line, without the password itself, and not too long.
      */
@@ -180,7 +191,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             });
 
         $detail = $lines->implode(' ');
-        if (!is_null($password) && $password !== '') {
+        // the argument of the password, as the command gives it
+        $detail = (string) preg_replace('/--password=(\'[^\']*\'|"[^"]*"|\S*)/', '--password=***', $detail);
+        // the password itself: a short one would also hide the words that hold its letters
+        if (!is_null($password) && mb_strlen($password) >= 4) {
             $detail = str_replace($password, '***', $detail);
         }
         if (mb_strlen($detail) > 500) {
