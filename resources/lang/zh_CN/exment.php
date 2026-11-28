@@ -1295,7 +1295,7 @@ return [
             'dump_failed' => '数据库转储未完成（退出代码 :code）。:detail',
             'dump_empty' => '数据库转储未生成文件（:file）。',
             'zip_failed' => '未生成备份文件。',
-            'tls_hint' => 'mysqldump/mysql 与数据库服务器的 TLS 设置不一致。MariaDB 客户端请在 my.cnf 的 [client] 中设置 skip-ssl-verify-server-cert（或 ssl-verify-server-cert=0）；MySQL 客户端请设置 ssl-mode（例如 ssl-mode=DISABLED，或指定 CA 文件的 VERIFY_CA）。也可以通过 .env 的 EXMENT_DB_DUMP_OPTIONS 和 EXMENT_DB_RESTORE_OPTIONS 传递选项。',
+            'tls_hint' => 'mysqldump/mysql 与数据库服务器的 TLS 设置不一致。请首先指定数据库服务器的 CA：在 .env 中设置 MYSQL_ATTR_SSL_CA（Exment 会自动向 mysqldump/mysql 传递 --ssl-ca=/path/to/ca.pem），或在 EXMENT_DB_DUMP_OPTIONS / EXMENT_DB_RESTORE_OPTIONS 中添加 --ssl-ca=/path/to/ca.pem。仅在万不得已时，才在客户端关闭服务器证书验证：MariaDB 客户端在 my.cnf 的 [client] 中设置 ssl-verify-server-cert=0（或使用 --skip-ssl-verify-server-cert）；MySQL 客户端使用 --ssl-mode=REQUIRED。这样将无法防御中间人攻击。',
             'restore_nothing_restored' => '未进行还原：数据库没有变更。:reason',
             'restore_stopped_midway' => '还原中途停止：数据库可能只还原了一部分。:reason 如果用户已丢失、无法使用页面，请在服务器上用命令还原正确的备份：php artisan exment:restore （备份名称）',
             'restore_empty_file' => '备份文件 :file 为空。',
