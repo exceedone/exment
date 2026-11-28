@@ -5435,6 +5435,8 @@ Si no fue usted, cambie su contraseña y avise a los administradores.",
         'pack_install_header' => 'Funciones',
         'pack_install_question' => '¿Usar :name?',
         'pack_install_help' => 'También puede activarlo más tarde en la gestión de funciones.',
+        'pack_install_label' => 'Usar desde el principio',
+        'pack_incomplete' => 'Falta parte de lo que añade (una tabla o el panel). Al guardar, se añade lo que falta.',
         'menu_pack' => 'El menú que añade se puede mover o quitar en la página de menús.',
         'menu_pack_link' => 'Página de menús',
         'features' => [

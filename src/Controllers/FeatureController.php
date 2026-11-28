@@ -213,10 +213,19 @@ class FeatureController extends AdminControllerBase
             ];
         }
 
-        // the features with a pack that are turned on now (they install it, below)
-        $packsOn = array_values(array_filter(FeaturePacks::keys(), function ($key) use ($values) {
-            return boolval($values[$key]['enabled'] ?? false) && !Features::setting($key)['enabled'];
-        }));
+        // the features with a pack that are turned on now, or that are on with their pack not all
+        // there (an install that stopped on the way): they install it, below
+        // [key => true when it is turned on now]
+        $packsOn = [];
+        foreach (FeaturePacks::keys() as $key) {
+            if (!boolval($values[$key]['enabled'] ?? false)) {
+                continue;
+            }
+            $turnedOn = !Features::setting($key)['enabled'];
+            if ($turnedOn || FeaturePacks::incomplete($key)) {
+                $packsOn[$key] = $turnedOn;
+            }
+        }
 
         $pluginInput = (array)$request->input('plugins', []);
         DB::transaction(function () use (&$values, $pluginInput, $definitions) {
@@ -245,15 +254,18 @@ class FeatureController extends AdminControllerBase
         });
 
         // the packs, after the settings are saved: they make tables (outside of a transaction)
-        foreach ($packsOn as $key) {
+        foreach ($packsOn as $key => $turnedOn) {
             try {
                 FeaturePacks::install($key);
                 admin_success(e(Features::label($key)), e(exmtrans('feature.pack_installed', ['name' => Features::label($key)]))
                     . ' <a href="' . e(admin_url('role_group')) . '">' . e(exmtrans('feature.role_group_link')) . '</a>');
             } catch (\Throwable $e) {
                 \Log::error($e);
-                // off again: the next "use" installs it again
-                FeaturePacks::turnOff($key);
+                // turned on now: off again, the next "use" installs it again. Already on (its pack
+                // was not all there): it stays on for its users, the next save tries again
+                if ($turnedOn) {
+                    FeaturePacks::turnOff($key);
+                }
                 admin_toastr(exmtrans('feature.pack_failed', ['name' => esc_html(Features::label($key))]), 'error');
                 return redirect(admin_url('feature'));
             }
@@ -285,12 +297,29 @@ class FeatureController extends AdminControllerBase
             'requires' => isset($requires) && Features::exists($requires) ? Features::label($requires) : null,
             'has_menu' => isset($definition['menu']),
             'menu_exists' => isset($definition['menu']) && $this->systemMenuExists(strval($definition['menu'])),
-            'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : (isset($definition['pack']) ? exmtrans('feature.pack_note') : null),
+            'note' => $key === Features::STUDIO ? exmtrans('feature.studio_note') : (isset($definition['pack']) ? $this->packNote($key) : null),
             'manual_url' => Features::manualUrl($key),
             // a feature that installs tables, menus... (FeaturePacks)
             'pack' => isset($definition['pack']),
             'action' => Features::action($key),
         ];
+    }
+
+    /**
+     * The note of a feature that installs a pack, and what to do when it is on with its pack not
+     * all there (saving installs what is missing).
+     */
+    protected function packNote(string $key): string
+    {
+        $note = strval(exmtrans('feature.pack_note'));
+        try {
+            if (Features::setting($key)['enabled'] && FeaturePacks::incomplete($key)) {
+                $note .= ' ' . strval(exmtrans('feature.pack_incomplete'));
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('[Exment] the pack of ' . $key . ': ' . $e->getMessage());
+        }
+        return $note;
     }
 
     /**

@@ -5435,6 +5435,8 @@ IP 地址: :ip
         'pack_install_header' => '功能',
         'pack_install_question' => '使用:name吗？',
         'pack_install_help' => '之后也可以在「功能管理」中启用。',
+        'pack_install_label' => '从一开始就使用的功能',
+        'pack_incomplete' => '添加的内容有一部分（表或仪表板）不存在。保存时会添加缺少的内容。',
         'menu_pack' => '添加的菜单可以在菜单页面中移动或移除。',
         'menu_pack_link' => '菜单页面',
         'features' => [
