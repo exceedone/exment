@@ -146,7 +146,7 @@ trait TestTrait
      * @return void
      * @throws \Exception
      */
-    protected function skipTempTestIfTrue($skipMatch, string $messsage = null)
+    protected function skipTempTestIfTrue($skipMatch, ?string $messsage = null)
     {
         $result = null;
         if ($skipMatch instanceof \Closure) {
@@ -168,7 +168,7 @@ trait TestTrait
      * @param string $messsage showing message why this test is skipped.
      * @return void
      */
-    protected function skipTempTest(string $messsage = null)
+    protected function skipTempTest(?string $messsage = null)
     {
         $this->markTestSkipped('This function is temporarily skipped. ' . $messsage);
     }

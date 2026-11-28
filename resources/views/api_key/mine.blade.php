@@ -13,11 +13,14 @@
         </div>
     @endif
 
-    <div class="callout callout-info"><p>{{ exmtrans('api_key.help') }}</p></div>
+    <div class="callout callout-info">
+        <p>{{ exmtrans('api_key.mcp_intro') }} <a href="#exm-api-key-mcp">{{ exmtrans('api_key.mcp_intro_link') }}</a></p>
+        <p>{{ exmtrans('api_key.help') }}</p>
+    </div>
 
     {{-- The MCP server (ISS02879): the settings of Claude Code / Claude Desktop. With the key
          only on the answer that made it (shown once, as the key). --}}
-    <div class="box card exm-api-key-mcp">
+    <div class="box card exm-api-key-mcp" id="exm-api-key-mcp">
         <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('api_key.mcp.header') }}</h3></div>
         <div class="box-body">
             @if (!$mcp['allowed'])

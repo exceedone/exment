@@ -231,8 +231,6 @@ class RouteServiceProvider extends ServiceProvider
             $router->put('system/filedelete', 'SystemController@filedelete');
             $router->post('system/send_testmail', 'SystemController@sendTestMail');
 
-            $router->post('system/call_update', 'SystemController@callUpdate');
-
             // Tuning: what would make the site faster (ISS00414)
             $router->get('tuning', 'TuningController@index');
             $router->post('tuning/action', 'TuningController@action');

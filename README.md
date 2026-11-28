@@ -1,5 +1,5 @@
 <p align="center">
-<b>English</b> | <a href="ReadMe.ja.md">日本語</a> | <a href="ReadMe.vi.md">Tiếng Việt</a>
+<b>English</b> | <a href="README.ja.md">日本語</a> | <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
 <p align="center">
@@ -43,37 +43,20 @@ It comes with everything business teams need: workflow, Kanban, Gantt charts, SS
 | Docs | [Manual](https://exment.net/docs/#/) |
 | Contact | [Contact us](https://exment.net/en/inquiry/) |
 
-<a href="https://demo.exment.net/admin" target="_blank">Demo site</a>  
-Then please enter  
-Usercode：admin  
-Password：adminadmin
+[Demo sites](https://exment.net/en/demo-env/): try Exment in your browser (the page shows the login).
 
 Developed by [Kajitori Co., Ltd.](https://exment.net/company/) (Exceed One group)
 
 
-## What's new in v7.0.0
-Released on October 28, 2026. See how work is progressing at a glance. ([What's new](https://exment.net/en/whats-new/))
+## Highlights (7.2 and 7.3)
+- **No-code web database**: make tables, columns, forms and views (list, summary, calendar, kanban, Gantt chart) on the screen
+- **Workflow**: approval flows drawn in a visual designer
+- **Feature management**: new features start turned off; administrators choose what to use, so an update does not change your site
+- **API keys and MCP server**: use Exment from other systems and from AI tools
+- **File sharing**: folders and files with permissions, shared links and versions
+- **Free official plugins, bundled**: Project Management, Groupware and Support Desk, installed only when an administrator turns them on
 
-### Kanban view
-Show records as cards in columns by status or another field, and drag them to move. Works together with workflow. ([Manual](https://exment.net/docs/#/view_kanban)) The screenshot at the top of this page is the kanban view.
-
-### Gantt chart view
-Show each record as a bar on a timeline from start date to due date. Supports colors, progress, milestones and parent-child indentation. ([Manual](https://exment.net/docs/#/view_gantt))
-
-### Visual workflow designer
-Place statuses and actions on a diagram and design your workflow while seeing the whole flow. ([Manual](https://exment.net/docs/#/workflow_design))  
-![Workflow designer](https://exment.net/docs/img/workflow_design/wf_designer.png)
-
-### Cell styles
-Set up presets that change cell colors and text in the data grid and Kanban based on their values. ([Manual](https://exment.net/docs/#/cell_style_preset))  
-![Cell styles](https://exment.net/docs/img/cell_style_preset/preset_grid_result.png)
-
-### Data grid tools
-Show or hide columns, freeze columns, group rows, edit inline, quick preview, bulk actions and more. ([Manual](https://exment.net/docs/#/data_grid_tools))  
-![Data grid tools](https://exment.net/docs/img/data_grid_tools/grid_overview.png)
-
-### Laravel 12 and PHP 8.2+
-The framework is updated to Laravel 12 and the admin UI libraries are refreshed. Please check the notes before updating. ([Update](https://exment.net/docs/#/update))
+Details of each version: [What's new](https://exment.net/en/whats-new/) · [Release notes](https://exment.net/docs/release_note.html)
 
 
 ## Functions
@@ -195,33 +178,20 @@ php artisan serve
 # Security
 If you find a security vulnerability, please do not open a public issue. Report it privately as described in [SECURITY.md](SECURITY.md).
 
+# For developers
+Pull requests are welcome. Implementing a feature is even better than requesting it.
+
+- [CONTRIBUTING.md](CONTRIBUTING.md): how to send a pull request (which branch, tests, coding style)
+- [docs/development.md](docs/development.md): set up a development environment
+- [docs/releasing.md](docs/releasing.md): branches, versions and how a release is made
+- [document/en/Test.md](document/en/Test.md): run the tests
+- [Manual](https://exment.net/docs/) · [Release notes](https://exment.net/docs/release_note.html) · [Supported versions](https://exment.net/docs/support_policy.html)
+
+To install Exment, use a released version (for example `composer require exceedone/exment`), not a `-dev` branch.
+
 # Community
-Exment does not currently have a community forum. I am taking advantage of issues. However, we may use some other platform in the future. If you have detailed knowledge, I would be grateful if you could give me a recommendation.
-
-## Pull Request
-Pull Requests are always welcome. Currently, I'd be happy if you actually implemented the function rather than requesting a new function.
-
-## Branches
-| Branch | Packagist | What it is |
-|---|---|---|
-| `master` | `dev-master` | **The next version. Send every pull request here**, new features and fixes alike |
-| `7.1` | `7.1.x-dev` | Maintenance of 7.1 (7.1.1, 7.1.2 ...) |
-| `7.0` | `7.0.x-dev` | Maintenance of 7.0 (7.0.4, 7.0.5 ...) |
-| `6.2` | `6.2.x-dev` | Maintenance of 6.2 (6.2.16, 6.2.17 ...) |
-
-A fix that a released version also needs goes to `master` first. Add the label `backport-7.1` / `backport-7.0` / `backport-6.2` to the pull request, and the maintainers pick it into that branch. How a release is cut: [Develop.md](document/en/Develop.md).
-
-To install Exment, use a released version (for example `composer require exceedone/exment`), not a `-dev` one. Details: [Develop.md](document/en/Develop.md)
-
-
-# Other pages
-Setup for Develop [En](document/en/Develop.md) / [日本語](document/ja/Develop.md)  
-Setup for Test [En](document/en/Test.md) / [日本語](document/ja/Test.md)  
-
-
-# issues
-Please write issues using English or Japanese.  
-Security vulnerabilities: see [SECURITY.md](SECURITY.md).
+Exment does not have a community forum yet; please use GitHub issues. Write issues in English or Japanese.  
+Everyone taking part follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 
 # Other repositories

@@ -8,12 +8,14 @@ use Exceedone\Exment\Database\Schema\MySqlBuilder;
 use Exceedone\Exment\Database\Query\Processors\MySqlProcessor;
 use Exceedone\Exment\Enums\SystemTableName;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
 use Illuminate\Database\Grammar;
 use Illuminate\Database\MySqlConnection as BaseConnection;
 
 class MySqlConnection extends BaseConnection implements ConnectionInterface
 {
     use ConnectionTrait;
+    use MySqlClientTrait;
 
     // @phpstan-ignore-next-line
     protected static $isContainsColumnStatistics = null;
@@ -104,16 +106,17 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
         $column_statistics = static::isContainsColumnStatistics() ? '--column-statistics=0' : '';
 
         $mysqldump = static::getMysqlDumpPath();
-        $ls_output = shell_exec($mysqldump . ' --help');
-        // @phpstan-ignore-next-line
+        $ls_output = strval(shell_exec($mysqldump . ' --help'));
         if (strpos($ls_output, '--set-gtid-purged') !== false) {
             $set_gtid = ' --set-gtid-purged=OFF';
         } else {
             $set_gtid = '';
         }
         $command = sprintf(
-            '%s %s %s --no-tablespaces --default-character-set=%s -h %s -u %s --password=%s -P %s',
+            '%s %s %s %s --no-tablespaces --default-character-set=%s -h %s -u %s --password=%s -P %s',
             $mysqldump,
+            // the extra options of .env (EXMENT_DB_DUMP_OPTIONS), e.g. for TLS
+            static::clientOptions('dump_options'),
             $column_statistics,
             $set_gtid,
             escapeshellarg($charset),
@@ -125,13 +128,27 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
 
         if ($table == null) {
             $file = path_join($tempDir, config('exment.backup_info.def_file', 'table_definition.sql'));
-            $command = sprintf('%s -d %s > %s', $command, escapeshellarg($database), escapeshellarg($file));
+            $command = sprintf('%s -d %s', $command, escapeshellarg($database));
         } else {
             $file = sprintf('%s.sql', path_join($tempDir, $table));
-            $command = sprintf('%s -t %s %s > %s', $command, escapeshellarg($database), escapeshellarg($table), escapeshellarg($file));
+            $command = sprintf('%s -t %s %s', $command, escapeshellarg($database), escapeshellarg($table));
         }
 
-        exec($command);
+        // the errors of mysqldump (e.g. a TLS error of the connection) are kept to be told
+        $return_var = static::execClient($command, '> ' . escapeshellarg($file), $errors, strval($password));
+
+        if ($return_var !== 0) {
+            throw new BackupFailedException(static::withTlsHint(strval(exmtrans('backup.message.dump_failed', [
+                'code' => $return_var,
+                'detail' => $errors,
+            ])), strval($errors)));
+        }
+        clearstatcache(true, $file);
+        if (!is_file($file) || filesize($file) === 0) {
+            throw new BackupFailedException(exmtrans('backup.message.dump_empty', [
+                'file' => basename($file),
+            ]));
+        }
     }
 
     /**
@@ -267,46 +284,35 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Restore database
      *
+     * Checked first (checkRestore()): an empty .sql file, or a mysql client that cannot connect,
+     * stops the restore before the database is changed. An import that fails afterwards stops it
+     * midway, and says so.
+     *
      * @param string $dirFullPath contains dir path
      * @return void
+     * @throws \Exceedone\Exment\Exceptions\RestoreFailedException
      */
     public function restoreDatabase($dirFullPath)
     {
+        // nothing is changed when the files or the client are not right
+        $this->checkRestore($dirFullPath);
+
         try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-            // get table connect info
-            $host = config('database.connections.mysql.host', '');
-            $username = config('database.connections.mysql.username', '');
-            $password = config('database.connections.mysql.password', '');
-            $database = config('database.connections.mysql.database', '');
-            $dbport = config('database.connections.mysql.port', '');
-            $charset = config('database.connections.mysql.charset', 'utf8mb4');
-
-            $mysqlcmd = sprintf(
-                '%s --default-character-set=%s -h %s -u %s --password=%s -P %s %s',
-                static::getMysqlPath(),
-                escapeshellarg($charset),
-                escapeshellarg($host),
-                escapeshellarg($username),
-                escapeshellarg($password),
-                escapeshellarg($dbport),
-                escapeshellarg($database)
-            );
+            // the mysql command, with the options of .env (EXMENT_DB_RESTORE_OPTIONS)
+            [$mysqlcmd, $password] = static::restoreClientCommand();
 
             // restore table definition
             $def = path_join($dirFullPath, config('exment.backup_info.def_file'));
             if (\File::exists($def)) {
                 $backupTables = $this->getDefinitionTables($def);
 
-                $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($def));
-                exec($command, $output, $return_var);
+                // a definition that did not load leaves the database half replaced: stopped here
+                static::importSqlFile($mysqlcmd, $def, $password);
                 \File::delete($def);
 
-                // a definition that did not load leaves the database half replaced: keep the rest as it is
-                if ($return_var == 0) {
-                    $this->dropTablesNotInBackup($backupTables);
-                }
+                $this->dropTablesNotInBackup($backupTables);
             }
 
             // get insert sql file for each tables
@@ -317,14 +323,12 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             });
 
             foreach ($files as $file) {
-                $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($file->getRealPath()));
-
                 $table = $file->getBasename('.' . $file->getExtension());
                 if (\Schema::hasTable($table)) {
                     \DB::table($table)->truncate();
                 }
 
-                exec($command);
+                static::importSqlFile($mysqlcmd, strval($file->getRealPath()), $password);
             }
         } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
@@ -505,7 +509,8 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                     parent_id = nullif(parent_id, 0)
 __EOT__;
                 $query = sprintf($cmd, addslashes($file->getPathName()), $table, $charset);
-                $cnt = \DB::connection()->getpdo()->exec($query);
+                // a failure (e.g. local_infile is off) after the table was emptied: stopped midway
+                $cnt = $this->loadTsvFile($query, $file->getPathName());
 
                 //return $cnt;
             }

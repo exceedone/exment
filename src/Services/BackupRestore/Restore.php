@@ -83,6 +83,9 @@ class Restore
             // unzip backup file
             $this->unzipFile($file, $tmp);
 
+            // before anything is changed: every file to import has data, and the client connects
+            \ExmentDB::checkRestore($this->diskService->tmpDiskItem()->dirFullPath());
+
             $result = 0;
 
             // the rules of an application before the database is replaced (CoreExtensions::addRestoreRule)
@@ -473,6 +476,11 @@ class Restore
                 // would find an empty folder, restore nothing, still return 0, and the
                 // screen would answer "restore succeeded" and log the user out.
                 throw new InvalidZipEntryException(strval(exmtrans('backup.message.restore_file_error')));
+            }
+            // an empty file (0 bytes, or no entries) opens too: nothing would be restored
+            if ($zip->numFiles === 0) {
+                $zip->close();
+                throw \Exceedone\Exment\Exceptions\RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_zip_empty')));
             }
 
             $zipEntryError = ZipService::validateZipEntries($zip);

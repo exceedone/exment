@@ -7,6 +7,7 @@ use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Services\Installer\EnvTrait;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
+use Exceedone\Exment\Exceptions\RestoreFailedException;
 
 class RestoreCommand extends Command
 {
@@ -79,6 +80,12 @@ class RestoreCommand extends Command
             }
         } catch (BackupRestoreCheckException $e) {
             $this->error($e->getMessage());
+            return 1;
+        } catch (RestoreFailedException $e) {
+            // stopped: before the database was changed (nothing was restored), or midway.
+            // The message has no password (the output of the client is masked when it is read)
+            $this->error($e->getMessage());
+            \Log::error('[Exment] restore failed: ' . $e->getMessage());
             return 1;
         } catch (InvalidZipEntryException $e) {
             // a refused backup zip is a bad input file, not a crash: say so and stop.

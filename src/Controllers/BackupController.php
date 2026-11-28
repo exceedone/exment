@@ -14,6 +14,8 @@ use Exceedone\Exment\Enums;
 use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
+use Exceedone\Exment\Exceptions\BackupFailedException;
+use Exceedone\Exment\Exceptions\RestoreFailedException;
 use Validator;
 use DB;
 
@@ -210,7 +212,17 @@ class BackupController extends AdminControllerBase
 
         $target = System::backup_target();
 
-        $result = $this->backup->execute($target);
+        try {
+            $result = $this->backup->execute($target);
+        } catch (BackupFailedException|BackupRestoreCheckException $ex) {
+            // the database dump failed, or no backup file was made: an error with its reason
+            // (without the password). The dialog shows the message as HTML: the reason is escaped
+            \Log::error($ex);
+            return response()->json([
+                'result'  => false,
+                'message' => esc_html(exmtrans("backup.message.backup_error") . ' ' . $ex->getMessage()),
+            ]);
+        }
 
         if (isset($result) && $result === 0) {
             return response()->json([
@@ -346,21 +358,26 @@ class BackupController extends AdminControllerBase
             ]);
         }
 
-        if ($request->has('restore_zipfile')) {
-            $filename = $request->get('restore_zipfile');
-            try {
+        try {
+            if ($request->has('restore_zipfile')) {
+                $filename = $request->get('restore_zipfile');
                 $result = $this->restore->execute($filename);
-            } finally {
-            }
-        } elseif ($request->has('upload_zipfile')) {
-            // get upload file
-            $file = $request->file('upload_zipfile');
-            // store uploaded file
-            $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
-            try {
+            } elseif ($request->has('upload_zipfile')) {
+                // get upload file
+                $file = $request->file('upload_zipfile');
+                // store uploaded file
+                $filename = $file->storeAs('', $file->getClientOriginalName(), Define::DISKNAME_ADMIN_TMP);
                 $result = $this->restore->execute($filename, true);
-            } finally {
             }
+        } catch (RestoreFailedException $e) {
+            // stopped: before the database was changed (nothing was restored), or midway.
+            // toastr shows the message as HTML: it is escaped
+            \Log::error($e);
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => esc_html($e->getMessage()),
+                'errors' => [],
+            ]);
         }
 
         if (isset($result) && $result === 0) {
@@ -416,7 +433,13 @@ class BackupController extends AdminControllerBase
         if ($validator->passes()) {
             try {
                 $result = $this->restore->execute($data['file']);
-            } finally {
+            } catch (RestoreFailedException $e) {
+                // stopped: before the database was changed (nothing was restored), or midway
+                \Log::error($e);
+                return response()->json([
+                    'result'  => false,
+                    'toastr' => esc_html($e->getMessage()),
+                ]);
             }
         }
 
