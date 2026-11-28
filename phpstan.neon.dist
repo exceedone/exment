@@ -11,6 +11,9 @@ parameters:
         - vendor/exceedone/exment/tests/fixtures/EditorClipboardImageEnvironment.php
         # the scripts that measure the API (ISS02880): run by hand with php, outside the application
         - vendor/exceedone/exment/tests/perf
+        # the one-file installer for rental servers (ISS02961): runs alone, written for old PHP too,
+        # nothing in Exment loads it. It has its own tests (php installer/tests/run.php).
+        - vendor/exceedone/exment/installer
         # Calls the QR code through the global alias \QrCode. After PHPStan reads such a call, it
         # reads the facade behind it (src/Facades/QrCodeFacade.php) wrongly: "return statement is
         # missing" in getFacadeAccessor(), when the same worker read this file first (CI, now and then).

@@ -257,8 +257,9 @@ class FeatureController extends AdminControllerBase
         foreach ($packsOn as $key => $turnedOn) {
             try {
                 FeaturePacks::install($key);
-                admin_success(e(Features::label($key)), e(exmtrans('feature.pack_installed', ['name' => Features::label($key)]))
-                    . ' <a href="' . e(admin_url('role_group')) . '">' . e(exmtrans('feature.role_group_link')) . '</a>');
+                // the link: HTML, with the text escaped (exment-admin-core shows the other messages as text)
+                admin_success(Features::label($key), admin_html_message(e(exmtrans('feature.pack_installed', ['name' => Features::label($key)]))
+                    . ' <a href="' . e(admin_url('role_group')) . '">' . e(exmtrans('feature.role_group_link')) . '</a>'));
             } catch (\Throwable $e) {
                 \Log::error($e);
                 // turned on now: off again, the next "use" installs it again. Already on (its pack
