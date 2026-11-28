@@ -46,6 +46,10 @@
         .exm-insights h3.exm-in-section { font-size: 16px; margin: 18px 0 8px; font-weight: bold; }
         .exm-insights .exm-in-feature { display: inline-block; margin: 0 4px 4px 0; padding: 1px 8px; border-radius: 10px; font-size: 12px; border: 1px solid rgba(0,0,0,.15); color: #888; }
         .exm-insights .exm-in-feature.is-on { border-color: #22c55e; color: #15803d; background: rgba(34,197,94,.08); }
+        .exm-insights .exm-in-light { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; background: #94a3b8; }
+        .exm-insights .exm-in-light.is-ok { background: #22c55e; }
+        .exm-insights .exm-in-light.is-warning { background: #f59e0b; }
+        .exm-insights .exm-in-light.is-ng { background: #ef4444; }
         @media (max-width: 560px) { .exm-insights .exm-in-grid { grid-template-columns: 1fr; } }
     </style>
 
@@ -215,6 +219,138 @@
                     @endforeach
                     </tbody></table>
                 @endif
+            </div>
+        </div>
+    </div>
+
+    {{-- the security: what Exment checks and keeps (InsightSecurity); no secret is shown --}}
+    <h3 class="exm-in-section">{{ exmtrans('insights.sections.security') }}</h3>
+    <div class="exm-in-grid">
+        <div class="box card exm-in-card">
+            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.checks') }}</h3><a class="exm-in-source" href="{{ admin_url('security_check') }}">{{ exmtrans('insights.sec.open_check') }}</a></div>
+            <div class="box-body">
+                <table class="exm-in-table"><tbody>
+                @forelse ($sec['checks'] as $c)
+                    <tr><td style="width:18px"><span class="exm-in-light is-{{ $c['result'] }}" title="{{ exmtrans('insights.sec.light_' . $c['result']) }}"></span></td>
+                        <td>{{ $c['label'] }}@if ($c['message'])<div class="exm-in-help" style="margin:0">{{ $c['message'] }}</div>@endif</td>
+                        <td class="num">@if ($c['result'] !== 'ok' && $c['url'])<a href="{{ $c['url'] }}">{{ exmtrans('insights.sec.fix') }}</a>@endif</td></tr>
+                @empty
+                    <tr><td colspan="3" class="exm-in-empty">{{ exmtrans('insights.empty') }}</td></tr>
+                @endforelse
+                </tbody></table>
+            </div>
+        </div>
+        <div class="box card exm-in-card">
+            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.logins') }}</h3><a class="exm-in-source" href="{{ $sec['logins']['url'] }}">{{ exmtrans('insights.source') }}</a></div>
+            <div class="box-body">
+                <table class="exm-in-table"><tbody>
+                    <tr><td>{{ exmtrans('insights.login_failure') }}</td><td class="num">{{ number_format($sec['logins']['failures']) }}</td></tr>
+                    <tr><td>{{ exmtrans('insights.login_lockout') }}</td><td class="num" style="{{ $sec['logins']['lockouts'] > 0 ? 'color:#d97706;font-weight:bold' : '' }}">{{ number_format($sec['logins']['lockouts']) }}</td></tr>
+                    <tr><td>{{ exmtrans('insights.sec.failure_ips') }}</td><td class="num">{{ number_format($sec['logins']['ips']) }}</td></tr>
+                    <tr><td>{{ exmtrans('insights.sec.new_places') }}</td><td class="num">{{ number_format($sec['logins']['new_places']) }}</td></tr>
+                </tbody></table>
+                @if ($perPerson && count($sec['logins']['names']) > 0)
+                    <table class="exm-in-table" style="margin-top:8px"><thead><tr><th>{{ exmtrans('insights.sec.names_tried') }}</th><th class="num">{{ exmtrans('insights.failures') }}</th></tr></thead><tbody>
+                    @foreach ($sec['logins']['names'] as $name => $count)
+                        <tr><td>{{ $name }}</td><td class="num">{{ number_format($count) }}</td></tr>
+                    @endforeach
+                    </tbody></table>
+                @endif
+                @if ($perPerson && count($sec['logins']['new_place_rows']) > 0)
+                    <table class="exm-in-table" style="margin-top:8px"><thead><tr><th>{{ exmtrans('insights.sec.new_places') }}</th><th>{{ exmtrans('insights.person') }}</th><th>IP</th></tr></thead><tbody>
+                    @foreach ($sec['logins']['new_place_rows'] as $r)
+                        <tr><td>{{ $r['created_at'] ?? '' }}</td><td>{{ $r['user_name'] ?? '' }}</td><td><code>{{ $r['ip'] ?? '' }}</code></td></tr>
+                    @endforeach
+                    </tbody></table>
+                @endif
+            </div>
+        </div>
+        <div class="box card exm-in-card">
+            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.admins') }}</h3><a class="exm-in-source" href="{{ $sec['admins']['audit_url'] }}">{{ exmtrans('insights.source') }}</a></div>
+            <div class="box-body">
+                <table class="exm-in-table"><tbody>
+                    <tr><td><a href="{{ $sec['admins']['url'] }}">{{ exmtrans('insights.sec.admin_count') }}</a></td><td class="num">{{ number_format($sec['admins']['count']) }}</td></tr>
+                    <tr><td>{{ exmtrans('insights.sec.admin_changes') }}</td><td class="num" style="{{ $sec['admins']['changes'] > 0 ? 'color:#d97706;font-weight:bold' : '' }}">{{ number_format($sec['admins']['changes']) }}</td></tr>
+                </tbody></table>
+                @if ($perPerson && count($sec['admins']['change_rows']) > 0)
+                    <table class="exm-in-table" style="margin-top:8px"><thead><tr><th>{{ exmtrans('insights.sec.when') }}</th><th>{{ exmtrans('insights.sec.by') }}</th><th>{{ exmtrans('insights.sec.role_group') }}</th></tr></thead><tbody>
+                    @foreach ($sec['admins']['change_rows'] as $r)
+                        <tr><td>{{ $r['created_at'] ?? '' }}</td><td>{{ $r['changed_user'] ?? '' }}</td><td>{{ $r['role_group'] ?? '' }} <span class="exm-in-help">{{ $r['change'] ?? '' }}</span></td></tr>
+                    @endforeach
+                    </tbody></table>
+                @endif
+            </div>
+        </div>
+        <div class="box card exm-in-card">
+            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.accounts') }}</h3><a class="exm-in-source" href="{{ $sec['accounts']['url'] }}">{{ exmtrans('insights.sec.settings') }}</a></div>
+            <div class="box-body">
+                <table class="exm-in-table"><tbody>
+                    <tr><td>{{ exmtrans('insights.sec.two_factor') }}</td><td class="num"><span class="exm-in-light is-{{ $sec['accounts']['two_factor'] ? 'ok' : 'warning' }}"></span> {{ $sec['accounts']['two_factor'] ? exmtrans('insights.sec.on') : exmtrans('insights.sec.off') }}</td></tr>
+                    @foreach ($sec['accounts']['mfa'] as $text => $count)
+                        <tr><td style="padding-left:18px">{{ $text }}</td><td class="num">{{ number_format($count) }}</td></tr>
+                    @endforeach
+                    <tr><td>{{ exmtrans('insights.sec.never_changed') }}</td><td class="num">{{ number_format($sec['accounts']['never_changed']) }} / {{ number_format($sec['accounts']['password_users']) }}</td></tr>
+                    @if ($sec['accounts']['expiration_days'] > 0)
+                        <tr><td>{{ exmtrans('insights.sec.expired', $sec['accounts']['expiration_days']) }}</td><td class="num" style="{{ $sec['accounts']['expired'] > 0 ? 'color:#d97706;font-weight:bold' : '' }}">{{ number_format($sec['accounts']['expired']) }}</td></tr>
+                    @else
+                        <tr><td colspan="2" class="exm-in-help">{{ exmtrans('insights.sec.no_expiration') }}</td></tr>
+                    @endif
+                </tbody></table>
+            </div>
+        </div>
+        <div class="box card exm-in-card">
+            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.api') }}</h3><a class="exm-in-source" href="{{ $sec['api']['url'] }}">{{ exmtrans('insights.sec.settings') }}</a></div>
+            <div class="box-body">
+                <table class="exm-in-table"><tbody>
+                    <tr><td>{{ exmtrans('insights.sec.keys_active') }}</td><td class="num">{{ number_format($sec['api']['active']) }}</td></tr>
+                    <tr><td style="padding-left:18px">{{ exmtrans('insights.sec.keys_long') }}</td><td class="num">{{ number_format($sec['api']['marks']['long_expiry']) }}</td></tr>
+                    <tr><td style="padding-left:18px">{{ exmtrans('insights.sec.keys_any_ip') }}</td><td class="num">{{ number_format($sec['api']['marks']['any_ip']) }}</td></tr>
+                    <tr><td style="padding-left:18px">{{ exmtrans('insights.sec.keys_unused', \Exceedone\Exment\Services\Insights\InsightSecurity::UNUSED_DAYS) }}</td><td class="num">{{ number_format($sec['api']['marks']['unused']) }}</td></tr>
+                    <tr><td>{{ exmtrans('insights.api_key_refused') }}</td><td class="num">{{ number_format($sum($api['api_key_refused'])) }}</td></tr>
+                    <tr><td>{{ exmtrans('insights.sec.mcp_refused') }}</td><td class="num">{{ number_format($sec['api']['mcp_refused']) }}</td></tr>
+                    <tr><td>{{ exmtrans('insights.webhook_failed') }}</td><td class="num">{{ number_format($sum($delivery['webhook_failed'])) }}</td></tr>
+                </tbody></table>
+            </div>
+        </div>
+        <div class="box card exm-in-card">
+            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.backup') }}</h3><a class="exm-in-source" href="{{ $sec['backup']['url'] }}">{{ exmtrans('insights.sec.settings') }}</a></div>
+            <div class="box-body">
+                @php $b = $sec['backup']['last']; @endphp
+                <table class="exm-in-table"><tbody>
+                    @if ($b)
+                        <tr><td>{{ exmtrans('insights.sec.backup_last') }}</td><td class="num"><span class="exm-in-light is-{{ $b['days'] !== null && $b['days'] > 7 ? 'warning' : 'ok' }}"></span> {{ $b['at'] }}</td></tr>
+                        <tr><td>{{ exmtrans('insights.sec.backup_db') }}</td><td class="num"><span class="exm-in-light is-{{ $b['database'] === null ? 'warning' : ($b['database'] ? 'ok' : 'ng') }}"></span>
+                            {{ $b['database'] === null ? exmtrans('insights.sec.unknown') : ($b['database'] ? exmtrans('insights.sec.yes') : exmtrans('insights.sec.no')) }}</td></tr>
+                        @if (!is_null($b['size']))<tr><td>{{ exmtrans('insights.sec.size') }}</td><td class="num" data-size="{{ $b['size'] }}">{{ number_format($b['size'] / 1048576, 1) }} MB</td></tr>@endif
+                    @else
+                        <tr><td colspan="2"><span class="exm-in-light is-ng"></span> {{ exmtrans('insights.sec.backup_none') }}</td></tr>
+                    @endif
+                    @if ($sec['backup']['failed'])
+                        <tr><td>{{ exmtrans('insights.sec.backup_failed') }}</td><td class="num" style="color:#b91c1c">{{ $sec['backup']['failed']['at'] }}</td></tr>
+                        <tr><td colspan="2" class="exm-in-help">{{ $sec['backup']['failed']['message'] }}</td></tr>
+                    @endif
+                </tbody></table>
+                @if ($b && $b['database'] === false)
+                    <p class="exm-in-help" style="color:#b91c1c">{{ exmtrans('insights.sec.backup_db_help') }}</p>
+                @endif
+            </div>
+        </div>
+        <div class="box card exm-in-card">
+            <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.plugins_keys') }}</h3><a class="exm-in-source" href="{{ $sec['plugins']['url'] }}">{{ exmtrans('insights.plugin') }}</a></div>
+            <div class="box-body">
+                <table class="exm-in-table"><tbody>
+                    <tr><td>{{ exmtrans('insights.sec.manual_plugins') }}</td><td class="num">{{ number_format(count($sec['plugins']['manual'])) }}</td></tr>
+                    @foreach (array_slice($sec['plugins']['manual'], 0, 8) as $p)
+                        <tr style="{{ $p['active'] ? '' : 'opacity:.55' }}"><td style="padding-left:18px" colspan="2">{{ $p['label'] }}</td></tr>
+                    @endforeach
+                    <tr><td><a href="{{ $sec['encryption']['url'] }}">{{ exmtrans('insights.sec.data_keys') }}</a></td>
+                        <td class="num"><span class="exm-in-light is-{{ !$sec['encryption']['configured'] ? 'warning' : ($sec['encryption']['unavailable'] ? 'ng' : 'ok') }}"></span>
+                        {{ !$sec['encryption']['configured'] ? exmtrans('insights.sec.keys_not_set') : exmtrans('insights.sec.keys_count', $sec['encryption']['keys']) }}</td></tr>
+                    @if ($sec['encryption']['keys'] > 1)
+                        <tr><td colspan="2" class="exm-in-help">{{ exmtrans('insights.sec.rotation') }}</td></tr>
+                    @endif
+                </tbody></table>
+                <p class="exm-in-help">{{ exmtrans('insights.sec.manual_plugins_help') }}</p>
             </div>
         </div>
     </div>

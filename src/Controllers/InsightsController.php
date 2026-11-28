@@ -62,6 +62,8 @@ class InsightsController extends AdminControllerBase
             'browser' => $report->browser(),
             'health' => $report->health(),
             'features' => $report->features(),
+            // the security: from the checks and the records Exment keeps (no secret)
+            'sec' => (new \Exceedone\Exment\Services\Insights\InsightSecurity($report->from, $report->to, $report->perPerson))->cards(),
             'perPerson' => $report->perPerson,
             'periods' => InsightReport::PERIODS,
             'days' => intval($request->query('days', 0)),
