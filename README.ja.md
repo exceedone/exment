@@ -1,5 +1,5 @@
 <p align="center">
-<a href="ReadMe.md">English</a> | <b>日本語</b> | <a href="ReadMe.vi.md">Tiếng Việt</a>
+<a href="README.md">English</a> | <b>日本語</b> | <a href="README.vi.md">Tiếng Việt</a>
 </p>
 
 <p align="center">
@@ -193,35 +193,22 @@ php artisan serve
 ~~~
 
 # セキュリティ
-脆弱性を見つけた場合は、公開の issue には書かず、[SECURITY.md](SECURITY.md) の方法で非公開でご報告ください。
+脆弱性を見つけたときは、公開の issue に書かず、[SECURITY.md](SECURITY.md) の方法で非公開でご報告ください。
+
+# 開発する人へ
+Pull Request を歓迎します。機能の要望より、実際に作っていただけるとさらにうれしいです。
+
+- [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md)：Pull Request の出し方（どのブランチへ・テスト・書き方）
+- [docs/ja/development.md](docs/ja/development.md)：開発の環境の作り方
+- [docs/ja/releasing.md](docs/ja/releasing.md)：ブランチ・版の番号・リリースのしかた
+- [document/ja/Test.md](document/ja/Test.md)：テストの動かし方
+- [マニュアル](https://exment.net/docs/ja/) ・ [リリースノート](https://exment.net/docs/ja/release_note.html) ・ [保守の期間](https://exment.net/docs/ja/support_policy.html)
+
+Exment を入れるときは、`-dev` のブランチではなく、リリースした版を使ってください（例: `composer require exceedone/exment`）。
 
 # コミュニティ
-現在、Exment ではコミュニティ・フォーラムを用意していません。issue を活用しています。ただし、将来的にほかのプラットフォームを使うかもしれません。詳しい知見をお持ちの方は、おすすめを教えてください。
-
-## Pull Request
-Pull Request はいつでも大歓迎です。現在は、新しい機能の要望よりも、その機能を実際に実装していただけると嬉しいです。
-
-## ブランチ
-| ブランチ | Packagist | 中身 |
-|---|---|---|
-| `master` | `dev-master` | **次の版の開発。Pull Request はすべてここに出してください**（新しい機能も、不具合の直しも） |
-| `7.1` | `7.1.x-dev` | 7.1 系の保守（7.1.1、7.1.2 …） |
-| `7.0` | `7.0.x-dev` | 7.0 系の保守（7.0.4、7.0.5 …） |
-| `6.2` | `6.2.x-dev` | 6.2 系の保守（6.2.16、6.2.17 …） |
-
-出した版にも入れたい直しは、まず `master` に出し、Pull Request にラベル `backport-7.1`・`backport-7.0`・`backport-6.2` を付けてください。まとめ役がそのブランチに入れます。リリースの流れ（入れたくないものの扱いなど）は [Develop.md](document/ja/Develop.md) に書いてあります。
-
-Exment を入れるときは、`-dev` ではなく、リリースした版を使ってください（例: `composer require exceedone/exment`）。詳しくは [Develop.md](document/ja/Develop.md)
-
-
-# そのほかのページ
-開発方法 [日本語](document/ja/Develop.md) / [English](document/en/Develop.md)  
-テスト実行方法 [日本語](document/ja/Test.md) / [English](document/en/Test.md)  
-
-
-# issues
-issues には、英語または日本語で記載してください。  
-脆弱性は [SECURITY.md](SECURITY.md) をご覧ください。
+いまはフォーラムがないので、GitHub の issue をお使いください。issue は日本語か英語で書いてください。  
+参加する人は、みな [行動規範（Code of Conduct）](CODE_OF_CONDUCT.md) を守ります。
 
 
 # 関連するリポジトリ
