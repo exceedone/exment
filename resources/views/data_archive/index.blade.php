@@ -1,6 +1,9 @@
 {{-- The data archive (ISS02970): DataArchiveController --}}
 @php
-    $mb = function ($bytes) { return number_format(max(0, intval($bytes)) / 1048576, 1) . ' MB'; };
+    $mb = function ($bytes) {
+        $bytes = max(0, intval($bytes));
+        return $bytes < 1048576 ? number_format(max(1, intval(ceil($bytes / 1024)))) . ' KB' : number_format($bytes / 1048576, 1) . ' MB';
+    };
     $tabUrl = function ($tab) use ($url) { return $url . '?tab=' . $tab; };
     $statusClass = ['writing' => 'label-default', 'verified' => 'label-info', 'completed' => 'label-success', 'restored' => 'label-primary', 'failed' => 'label-danger'];
 @endphp
@@ -90,7 +93,7 @@
             @if($isSystem)
             <div class="form-inline">
                 <label>{{ exmtrans('data_archive.driver') }}</label>
-                <select name="driver" class="form-control input-sm">
+                <select name="driver" class="form-control input-sm" style="display:inline-block;width:auto;margin:0 8px">
                     @foreach(\Exceedone\Exment\Services\DataArchive\ArchiveStore::DRIVERS as $d)
                     <option value="{{ $d }}" @if($driver === $d) selected @endif>{{ exmtrans('data_archive.drivers.' . $d) }}</option>
                     @endforeach
