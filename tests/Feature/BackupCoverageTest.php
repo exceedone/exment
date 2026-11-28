@@ -258,15 +258,13 @@ class BackupCoverageTest extends FeatureTestBase
         $this->fakeMysqlBin('exit 0');
         $dir = $this->restoreFolder(['table_definition.sql' => '', 'custom_tables.sql' => 'INSERT INTO x VALUES (1);']);
 
-        try {
+        $e = $this->restoreFailure(function () use ($dir) {
             \ExmentDB::checkRestore($dir);
-            $this->fail('an empty file is refused');
-        } catch (\Exceedone\Exment\Exceptions\RestoreFailedException $e) {
-            $this->assertFalse($e->databaseChanged());
-            $this->assertSame(strval(exmtrans('backup.message.restore_nothing_restored', [
-                'reason' => exmtrans('backup.message.restore_empty_file', ['file' => 'table_definition.sql']),
-            ])), $e->getMessage());
-        }
+        });
+        $this->assertFalse($e->databaseChanged());
+        $this->assertSame(strval(exmtrans('backup.message.restore_nothing_restored', [
+            'reason' => exmtrans('backup.message.restore_empty_file', ['file' => 'table_definition.sql']),
+        ])), $e->getMessage());
     }
 
     public function testARestoreWhoseClientCannotConnectChangesNothing(): void
@@ -275,15 +273,13 @@ class BackupCoverageTest extends FeatureTestBase
         $dir = $this->restoreFolder(['table_definition.sql' => '-- definition', 'custom_tables.sql' => 'INSERT INTO x VALUES (1);']);
         $count = \DB::table('custom_tables')->count();
 
-        try {
+        $e = $this->restoreFailure(function () use ($dir) {
             \ExmentDB::restoreDatabase($dir);
-            $this->fail('the client that cannot connect is refused');
-        } catch (\Exceedone\Exment\Exceptions\RestoreFailedException $e) {
-            $this->assertFalse($e->databaseChanged());
-            $this->assertStringStartsWith(strval(exmtrans('backup.message.restore_nothing_restored', ['reason' => ''])), $e->getMessage());
-            $this->assertStringContainsString('self-signed certificate', $e->getMessage());
-            $this->assertStringContainsString(strval(exmtrans('backup.message.tls_hint')), $e->getMessage());
-        }
+        });
+        $this->assertFalse($e->databaseChanged());
+        $this->assertStringStartsWith(strval(exmtrans('backup.message.restore_nothing_restored', ['reason' => ''])), $e->getMessage());
+        $this->assertStringContainsString('self-signed certificate', $e->getMessage());
+        $this->assertStringContainsString(strval(exmtrans('backup.message.tls_hint')), $e->getMessage());
         // nothing was truncated
         $this->assertSame($count, \DB::table('custom_tables')->count());
     }
@@ -294,15 +290,13 @@ class BackupCoverageTest extends FeatureTestBase
         $this->fakeMysqlBin('exit 0', "for a in \"\$@\"; do [ \"\$a\" = '-e' ] && exit 0; done\necho 'ERROR 1064 (42000): syntax error' >&2\nexit 1");
         $dir = $this->restoreFolder(['table_definition.sql' => '-- definition']);
 
-        try {
+        $e = $this->restoreFailure(function () use ($dir) {
             \ExmentDB::restoreDatabase($dir);
-            $this->fail('a failed import is told');
-        } catch (\Exceedone\Exment\Exceptions\RestoreFailedException $e) {
-            $this->assertTrue($e->databaseChanged());
-            $this->assertSame(strval(exmtrans('backup.message.restore_stopped_midway', [
-                'reason' => exmtrans('backup.message.restore_import_failed', ['file' => 'table_definition.sql', 'code' => 1, 'detail' => 'ERROR 1064 (42000): syntax error']),
-            ])), $e->getMessage());
-        }
+        });
+        $this->assertTrue($e->databaseChanged());
+        $this->assertSame(strval(exmtrans('backup.message.restore_stopped_midway', [
+            'reason' => exmtrans('backup.message.restore_import_failed', ['file' => 'table_definition.sql', 'code' => 1, 'detail' => 'ERROR 1064 (42000): syntax error']),
+        ])), $e->getMessage());
     }
 
     public function testRestoreCommandSaysNothingWasRestored(): void
@@ -328,6 +322,22 @@ class BackupCoverageTest extends FeatureTestBase
 
         $this->assertSame($count, \DB::table('custom_tables')->count());
         $this->assertFalse(app()->isDownForMaintenance(), 'the site is up again');
+    }
+
+    /**
+     * The failure of a restore that $call makes (the test fails when it does not fail).
+     */
+    private function restoreFailure(callable $call): \Exceedone\Exment\Exceptions\RestoreFailedException
+    {
+        try {
+            $call();
+        } catch (\Throwable $e) {
+            if ($e instanceof \Exceedone\Exment\Exceptions\RestoreFailedException) {
+                return $e;
+            }
+            throw $e;
+        }
+        $this->fail('the restore did not stop');
     }
 
     /**

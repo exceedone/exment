@@ -23,9 +23,7 @@ trait MySqlClientTrait
         if (!is_string($value) || trim($value) === '') {
             return '';
         }
-        $options = array_filter(preg_split('/\s+/', trim($value)) ?: [], function ($option) {
-            return $option !== '';
-        });
+        $options = preg_split('/\s+/', trim($value)) ?: [];
         return implode(' ', array_map('escapeshellarg', $options));
     }
 
