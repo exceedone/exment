@@ -293,6 +293,12 @@ class RouteServiceProvider extends ServiceProvider
             $router->post('log_management/audit/verify', 'AuditReportController@verify');
             $router->post('log_management/audit/setting', 'AuditReportController@postSetting');
             $router->post('scheduled_jobs/run', 'ScheduledJobController@run');
+            // the data archive (ISS02970)
+            $router->get('data_archive', 'DataArchiveController@index');
+            $router->post('data_archive/run', 'DataArchiveController@run');
+            $router->post('data_archive/policies', 'DataArchiveController@policies');
+            $router->post('data_archive/{id}/restore', 'DataArchiveController@restore')->where('id', '[0-9]+');
+            $router->post('data_archive/{id}/action', 'DataArchiveController@action')->where('id', '[0-9]+');
             // temporary raises of the API rate limit (ISS00442)
             $router->get('api_rate_raises', 'ApiRateRaiseController@index');
             $router->post('api_rate_raises', 'ApiRateRaiseController@store');

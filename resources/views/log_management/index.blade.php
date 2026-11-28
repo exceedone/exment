@@ -4,6 +4,9 @@
 @endif
 <p>
     <a href="{{ admin_urls('log_management', 'audit') }}" class="btn btn-default btn-sm" id="log-management-audit-report"><i class="fa fa-clipboard" aria-hidden="true"></i> {{ exmtrans('audit_report.header') }}</a>
+    @if(\Exceedone\Exment\Services\Features::allowed(\Exceedone\Exment\Services\DataArchive\DataArchiver::FEATURE))
+    <a href="{{ admin_url('data_archive') }}" class="btn btn-default btn-sm" id="log-management-data-archive"><i class="fa fa-archive" aria-hidden="true"></i> {{ exmtrans('data_archive.header') }}</a>
+    @endif
 </p>
 <div class="box box-default" id="log-management-types">
     <div class="box-header with-border">

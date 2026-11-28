@@ -149,6 +149,8 @@ use Cache;
  * @method static string|null|void comment_markdown_start($arg = null)
  * @method static bool|void publicform_available($arg = null)
  * @method static mixed features($arg = null)
+ * @method static mixed data_archive_policies($arg = null)
+ * @method static string|null|void data_archive_driver($arg = null)
  * @method static mixed menu_arrange_backup($arg = null)
  * @method static mixed maintenance($arg = null)
  * @method static mixed maintenance_missed_schedule($arg = null)

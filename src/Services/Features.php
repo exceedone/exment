@@ -251,6 +251,15 @@ class Features
             'manual' => 'log_management',
             'who' => false,
         ]);
+        // the data archive (ISS02970): old rows to files, deleted once the files are checked; off
+        // until it is turned on; the system administrators (the role groups with "Audit" see it)
+        $core[\Exceedone\Exment\Services\DataArchive\DataArchiver::FEATURE] = static::definition([
+            'label' => 'exment::exment.feature.features.data_archive',
+            'description' => 'exment::exment.feature.features.data_archive_help',
+            'endpoints' => ['data_archive'],
+            'manual' => 'log_management',
+            'who' => false,
+        ]);
         // mail with OAuth 2.0 (ISS02913): Microsoft 365, Google; off until a system administrator
         // turns it on and sets the application
         $core[static::MAIL_OAUTH] = static::definition([
