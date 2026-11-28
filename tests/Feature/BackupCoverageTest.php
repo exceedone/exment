@@ -330,6 +330,33 @@ class BackupCoverageTest extends FeatureTestBase
             ->run();
     }
 
+    public function testTheLoginPathOfEnvStaysFirst(): void
+    {
+        $this->fakeMysqlBin("for a in \"\$@\"; do printf '[%s] ' \"\$a\" >&2; done\nexit 2");
+        $this->setPdoOptions(['SSL_CA' => '/etc/exment/ca.pem']);
+        $connection = \Exceedone\Exment\Database\MySqlConnection::class;
+
+        // mysql and mysqldump take --login-path and --no-login-paths only as the first options
+        config(['exment.backup_info.dump_options' => '--login-path=exment --ssl-mode=VERIFY_CA']);
+        $this->assertSame(implode(' ', [
+            escapeshellarg('--login-path=exment'),
+            escapeshellarg('--ssl-ca=/etc/exment/ca.pem'),
+            escapeshellarg('--ssl-mode=VERIFY_CA'),
+        ]), $connection::clientArguments('dump_options'));
+
+        config(['exment.backup_info.restore_options' => '--no-defaults --no-login-paths']);
+        $this->assertSame(implode(' ', [
+            escapeshellarg('--no-defaults'),
+            escapeshellarg('--no-login-paths'),
+            escapeshellarg('--ssl-ca=/etc/exment/ca.pem'),
+        ]), $connection::clientArguments('restore_options'));
+
+        $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
+            ->expectsOutputToContain('[--login-path=exment] [--ssl-ca=/etc/exment/ca.pem] [--ssl-mode=VERIFY_CA]')
+            ->assertExitCode(1)
+            ->run();
+    }
+
     public function testTheCheckOfARestoreUsesTheSslCaOfPdo(): void
     {
         // the fake mysql tells its arguments and does not connect
