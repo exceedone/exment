@@ -230,10 +230,10 @@
             <div class="box-header with-border"><h3 class="box-title">{{ exmtrans('insights.sec.checks') }}</h3><a class="exm-in-source" href="{{ admin_url('security_check') }}">{{ exmtrans('insights.sec.open_check') }}</a></div>
             <div class="box-body">
                 <table class="exm-in-table"><tbody>
-                @forelse ($sec['checks'] as $c)
-                    <tr><td style="width:18px"><span class="exm-in-light is-{{ $c['result'] }}" title="{{ exmtrans('insights.sec.light_' . $c['result']) }}"></span></td>
-                        <td>{{ $c['label'] }}@if ($c['message'])<div class="exm-in-help" style="margin:0">{{ $c['message'] }}</div>@endif</td>
-                        <td class="num">@if ($c['result'] !== 'ok' && $c['url'])<a href="{{ $c['url'] }}">{{ exmtrans('insights.sec.fix') }}</a>@endif</td></tr>
+                @forelse ($sec['checks'] as $chk)
+                    <tr><td style="width:18px"><span class="exm-in-light is-{{ $chk['result'] }}" title="{{ exmtrans('insights.sec.light_' . $chk['result']) }}"></span></td>
+                        <td>{{ $chk['label'] }}@if ($chk['message'])<div class="exm-in-help" style="margin:0">{{ $chk['message'] }}</div>@endif</td>
+                        <td class="num">@if ($chk['result'] !== 'ok' && $chk['url'])<a href="{{ $chk['url'] }}">{{ exmtrans('insights.sec.fix') }}</a>@endif</td></tr>
                 @empty
                     <tr><td colspan="3" class="exm-in-empty">{{ exmtrans('insights.empty') }}</td></tr>
                 @endforelse
