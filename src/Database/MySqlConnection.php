@@ -15,6 +15,7 @@ use Illuminate\Database\MySqlConnection as BaseConnection;
 class MySqlConnection extends BaseConnection implements ConnectionInterface
 {
     use ConnectionTrait;
+    use MySqlClientTrait;
 
     // @phpstan-ignore-next-line
     protected static $isContainsColumnStatistics = null;
@@ -112,8 +113,10 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             $set_gtid = '';
         }
         $command = sprintf(
-            '%s %s %s --no-tablespaces --default-character-set=%s -h %s -u %s --password=%s -P %s',
+            '%s %s %s %s --no-tablespaces --default-character-set=%s -h %s -u %s --password=%s -P %s',
             $mysqldump,
+            // the extra options of .env (EXMENT_DB_DUMP_OPTIONS), e.g. for TLS
+            static::clientOptions('dump_options'),
             $column_statistics,
             $set_gtid,
             escapeshellarg($charset),
@@ -131,19 +134,14 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             $command = sprintf('%s -t %s %s', $command, escapeshellarg($database), escapeshellarg($table));
         }
 
-        // the errors of mysqldump (e.g. a TLS error of the connection) are kept to be told. The
-        // error file is outside the backup folder, and redirected first: the error of the shell
-        // when the dump file cannot be opened is kept too
-        $errorFile = static::dumpErrorFile();
-        exec(sprintf('%s 2> %s > %s', $command, escapeshellarg($errorFile), escapeshellarg($file)), $output, $return_var);
-        $errors = is_file($errorFile) ? strval(@file_get_contents($errorFile)) : '';
-        @unlink($errorFile);
+        // the errors of mysqldump (e.g. a TLS error of the connection) are kept to be told
+        $return_var = static::execClient($command, '> ' . escapeshellarg($file), $errors, strval($password));
 
         if ($return_var !== 0) {
-            throw new BackupFailedException(exmtrans('backup.message.dump_failed', [
+            throw new BackupFailedException(static::withTlsHint(strval(exmtrans('backup.message.dump_failed', [
                 'code' => $return_var,
-                'detail' => static::dumpErrorDetail($errors, $password),
-            ]));
+                'detail' => $errors,
+            ])), strval($errors)));
         }
         clearstatcache(true, $file);
         if (!is_file($file) || filesize($file) === 0) {
@@ -151,46 +149,6 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
                 'file' => basename($file),
             ]));
         }
-    }
-
-    /**
-     * A new file for the error output of a dump, in the temporary folder of the system.
-     */
-    protected static function dumpErrorFile(): string
-    {
-        $file = @tempnam(sys_get_temp_dir(), 'exment-dump-');
-        return is_string($file) && $file !== '' ? $file : path_join(sys_get_temp_dir(), 'exment-dump-' . bin2hex(random_bytes(8)));
-    }
-
-    /**
-     * The error output of mysqldump to be shown: without the warning about the password on the
-     * command line, without the password itself, and not too long.
-     *
-     * @param string $errors
-     * @param string|null $password
-     * @return string
-     */
-    public static function dumpErrorDetail(string $errors, ?string $password = null): string
-    {
-        $lines = collect(preg_split('/\r\n|\r|\n/', $errors) ?: [])
-            ->map(function ($line) {
-                return trim((string) $line);
-            })
-            ->filter(function ($line) {
-                return $line !== '' && stripos($line, 'Using a password on the command line') === false;
-            });
-
-        $detail = $lines->implode(' ');
-        // the argument of the password, as the command gives it
-        $detail = (string) preg_replace('/--password=(\'[^\']*\'|"[^"]*"|\S*)/', '--password=***', $detail);
-        // the password itself: a short one would also hide the words that hold its letters
-        if (!is_null($password) && mb_strlen($password) >= 4) {
-            $detail = str_replace($password, '***', $detail);
-        }
-        if (mb_strlen($detail) > 500) {
-            $detail = mb_substr($detail, 0, 500) . '...';
-        }
-        return $detail;
     }
 
     /**
@@ -326,46 +284,35 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
     /**
      * Restore database
      *
+     * Checked first (checkRestore()): an empty .sql file, or a mysql client that cannot connect,
+     * stops the restore before the database is changed. An import that fails afterwards stops it
+     * midway, and says so.
+     *
      * @param string $dirFullPath contains dir path
      * @return void
+     * @throws \Exceedone\Exment\Exceptions\RestoreFailedException
      */
     public function restoreDatabase($dirFullPath)
     {
+        // nothing is changed when the files or the client are not right
+        $this->checkRestore($dirFullPath);
+
         try {
             \DB::statement('SET FOREIGN_KEY_CHECKS=0;');
 
-            // get table connect info
-            $host = config('database.connections.mysql.host', '');
-            $username = config('database.connections.mysql.username', '');
-            $password = config('database.connections.mysql.password', '');
-            $database = config('database.connections.mysql.database', '');
-            $dbport = config('database.connections.mysql.port', '');
-            $charset = config('database.connections.mysql.charset', 'utf8mb4');
-
-            $mysqlcmd = sprintf(
-                '%s --default-character-set=%s -h %s -u %s --password=%s -P %s %s',
-                static::getMysqlPath(),
-                escapeshellarg($charset),
-                escapeshellarg($host),
-                escapeshellarg($username),
-                escapeshellarg($password),
-                escapeshellarg($dbport),
-                escapeshellarg($database)
-            );
+            // the mysql command, with the options of .env (EXMENT_DB_RESTORE_OPTIONS)
+            [$mysqlcmd, $password] = static::restoreClientCommand();
 
             // restore table definition
             $def = path_join($dirFullPath, config('exment.backup_info.def_file'));
             if (\File::exists($def)) {
                 $backupTables = $this->getDefinitionTables($def);
 
-                $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($def));
-                exec($command, $output, $return_var);
+                // a definition that did not load leaves the database half replaced: stopped here
+                static::importSqlFile($mysqlcmd, $def, $password);
                 \File::delete($def);
 
-                // a definition that did not load leaves the database half replaced: keep the rest as it is
-                if ($return_var == 0) {
-                    $this->dropTablesNotInBackup($backupTables);
-                }
+                $this->dropTablesNotInBackup($backupTables);
             }
 
             // get insert sql file for each tables
@@ -376,14 +323,12 @@ class MySqlConnection extends BaseConnection implements ConnectionInterface
             });
 
             foreach ($files as $file) {
-                $command = sprintf('%s < %s', $mysqlcmd, escapeshellarg($file->getRealPath()));
-
                 $table = $file->getBasename('.' . $file->getExtension());
                 if (\Schema::hasTable($table)) {
                     \DB::table($table)->truncate();
                 }
 
-                exec($command);
+                static::importSqlFile($mysqlcmd, strval($file->getRealPath()), $password);
             }
         } finally {
             \DB::statement('SET FOREIGN_KEY_CHECKS=1;');
