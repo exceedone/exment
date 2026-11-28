@@ -1544,7 +1544,7 @@ return [
             'zip_failed' => 'バックアップのファイルができませんでした。',
             'tls_hint' => 'mysqldump・mysql とデータベースのサーバーで、TLS の設定が合っていません。MariaDB のクライアントなら、my.cnf の [client] に skip-ssl-verify-server-cert（または ssl-verify-server-cert=0）を書いてください。MySQL のクライアントなら、ssl-mode（例: ssl-mode=DISABLED、または CA のファイルを指定して VERIFY_CA）を設定してください。.env の EXMENT_DB_DUMP_OPTIONS・EXMENT_DB_RESTORE_OPTIONS でオプションを渡すこともできます。',
             'restore_nothing_restored' => 'リストアはしていません。データベースは変わっていません。:reason',
-            'restore_stopped_midway' => 'リストアが途中で止まりました。データベースは一部だけリストアされているかもしれません。:reasonユーザーが消えて画面が使えないときは、サーバーで正しいバックアップをコマンドでリストアしてください: php artisan exment:restore （バックアップの名前）',
+            'restore_stopped_midway' => 'リストアが途中で止まりました。データベースは一部だけリストアされているかもしれません。:reason ユーザーが消えて画面が使えないときは、サーバーで正しいバックアップをコマンドでリストアしてください: php artisan exment:restore （バックアップの名前）',
             'restore_empty_file' => 'バックアップのファイル :file が空です。',
             'restore_connect_failed' => 'mysql クライアントがデータベースにつながりませんでした（終了コード :code）。:detail',
             'restore_import_failed' => ':file の読み込みが完了しませんでした（終了コード :code）。:detail',
