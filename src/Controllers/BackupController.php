@@ -15,6 +15,7 @@ use Exceedone\Exment\Form\Widgets\ModalForm;
 use Exceedone\Exment\Services\BackupRestore;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupFailedException;
+use Exceedone\Exment\Exceptions\RestoreFailedException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\LoginUser;
@@ -651,6 +652,14 @@ class BackupController extends AdminControllerBase
                 'toastr' => $e->getMessage(),
                 'errors' => [],
             ]);
+        } catch (RestoreFailedException $e) {
+            // stopped: before the database was changed (nothing was restored), or midway.
+            // toastr shows the message as HTML: it is escaped
+            return getAjaxResponse([
+                'result' => false,
+                'toastr' => esc_html($e->getMessage()),
+                'errors' => [],
+            ]);
         }
 
         if (isset($result) && $result === 0) {
@@ -711,6 +720,12 @@ class BackupController extends AdminControllerBase
                 return response()->json([
                     'result'  => false,
                     'toastr' => $e->getMessage(),
+                ]);
+            } catch (RestoreFailedException $e) {
+                // stopped: before the database was changed (nothing was restored), or midway
+                return response()->json([
+                    'result'  => false,
+                    'toastr' => esc_html($e->getMessage()),
                 ]);
             }
             if ($result instanceof BackupRun) {

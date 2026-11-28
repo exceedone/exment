@@ -33,6 +33,9 @@ class BackupCoverageTest extends FeatureTestBase
     /** the folder of the fake mysqldump (fakeMysqlBin()) */
     private ?string $fakeMysqlDir = null;
 
+    /** @var array<int, string> the folders of restoreFolder() */
+    private array $restoreFolders = [];
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -42,6 +45,13 @@ class BackupCoverageTest extends FeatureTestBase
 
     protected function tearDown(): void
     {
+        foreach ($this->restoreFolders as $dir) {
+            foreach (glob("{$dir}/*") ?: [] as $file) {
+                @unlink($file);
+            }
+            @rmdir($dir);
+        }
+        $this->restoreFolders = [];
         if (!is_null($this->fakeMysqlDir)) {
             foreach (['mysqldump', 'mysql'] as $name) {
                 @unlink("{$this->fakeMysqlDir}/{$name}");
@@ -138,7 +148,8 @@ class BackupCoverageTest extends FeatureTestBase
 
         $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
             ->expectsOutputToContain(strval(exmtrans('backup.message.backup_error')))
-            ->expectsOutputToContain('self-signed certificate')
+            // the hint about TLS
+            ->expectsOutputToContain(strval(exmtrans('backup.message.tls_hint')))
             ->assertExitCode(1)
             ->run();
 
@@ -214,6 +225,130 @@ class BackupCoverageTest extends FeatureTestBase
         $this->assertSame('mysqldump: Got error: 2026: TLS/SSL error in mysqldump --password=*** --host=db', $detail);
     }
 
+    public function testTheOptionsOfEnvGoToMysqldump(): void
+    {
+        // the fake mysqldump tells its arguments, then fails
+        $this->fakeMysqlBin("echo \"args: \$*\" >&2\nexit 2");
+        config(['exment.backup_info.dump_options' => '--ssl-mode=DISABLED  --skip-ssl-verify-server-cert']);
+
+        $this->runArtisan('exment:backup', ['--target' => BackupTarget::DATABASE])
+            ->expectsOutputToContain('--ssl-mode=DISABLED --skip-ssl-verify-server-cert')
+            ->assertExitCode(1)
+            ->run();
+    }
+
+    public function testTheOptionsOfEnvAreEscaped(): void
+    {
+        config(['exment.backup_info.restore_options' => "--ssl-mode=DISABLED ;rm\t--x=\$(id)"]);
+        $this->assertSame(
+            implode(' ', [escapeshellarg('--ssl-mode=DISABLED'), escapeshellarg(';rm'), escapeshellarg('--x=$(id)')]),
+            \Exceedone\Exment\Database\MySqlConnection::clientOptions('restore_options')
+        );
+        config(['exment.backup_info.restore_options' => null]);
+        $this->assertSame('', \Exceedone\Exment\Database\MySqlConnection::clientOptions('restore_options'));
+    }
+
+    public function testTheTlsErrorsAreKnown(): void
+    {
+        $connection = \Exceedone\Exment\Database\MySqlConnection::class;
+        $this->assertTrue($connection::isTlsError('ERROR 2026 (HY000): TLS/SSL error: self-signed certificate in certificate chain'));
+        $this->assertTrue($connection::isTlsError('mysqldump: Got error: 2026: TLS/SSL error: SSL is required, but the server does not support it'));
+        $this->assertFalse($connection::isTlsError('mysqldump: Got error: 1045: Access denied for user'));
+    }
+
+    public function testARestoreWithAnEmptyFileChangesNothing(): void
+    {
+        $this->fakeMysqlBin('exit 0');
+        $dir = $this->restoreFolder(['table_definition.sql' => '', 'custom_tables.sql' => 'INSERT INTO x VALUES (1);']);
+
+        try {
+            \ExmentDB::checkRestore($dir);
+            $this->fail('an empty file is refused');
+        } catch (\Exceedone\Exment\Exceptions\RestoreFailedException $e) {
+            $this->assertFalse($e->databaseChanged());
+            $this->assertSame(strval(exmtrans('backup.message.restore_nothing_restored', [
+                'reason' => exmtrans('backup.message.restore_empty_file', ['file' => 'table_definition.sql']),
+            ])), $e->getMessage());
+        }
+    }
+
+    public function testARestoreWhoseClientCannotConnectChangesNothing(): void
+    {
+        $this->fakeMysqlBin('exit 0', "echo 'ERROR 2026 (HY000): TLS/SSL error: self-signed certificate in certificate chain' >&2\nexit 1");
+        $dir = $this->restoreFolder(['table_definition.sql' => '-- definition', 'custom_tables.sql' => 'INSERT INTO x VALUES (1);']);
+        $count = \DB::table('custom_tables')->count();
+
+        try {
+            \ExmentDB::restoreDatabase($dir);
+            $this->fail('the client that cannot connect is refused');
+        } catch (\Exceedone\Exment\Exceptions\RestoreFailedException $e) {
+            $this->assertFalse($e->databaseChanged());
+            $this->assertStringStartsWith(strval(exmtrans('backup.message.restore_nothing_restored', ['reason' => ''])), $e->getMessage());
+            $this->assertStringContainsString('self-signed certificate', $e->getMessage());
+            $this->assertStringContainsString(strval(exmtrans('backup.message.tls_hint')), $e->getMessage());
+        }
+        // nothing was truncated
+        $this->assertSame($count, \DB::table('custom_tables')->count());
+    }
+
+    public function testARestoreWhoseImportFailsSaysItStoppedMidway(): void
+    {
+        // SELECT 1 is answered; the import of a file fails
+        $this->fakeMysqlBin('exit 0', "for a in \"\$@\"; do [ \"\$a\" = '-e' ] && exit 0; done\necho 'ERROR 1064 (42000): syntax error' >&2\nexit 1");
+        $dir = $this->restoreFolder(['table_definition.sql' => '-- definition']);
+
+        try {
+            \ExmentDB::restoreDatabase($dir);
+            $this->fail('a failed import is told');
+        } catch (\Exceedone\Exment\Exceptions\RestoreFailedException $e) {
+            $this->assertTrue($e->databaseChanged());
+            $this->assertSame(strval(exmtrans('backup.message.restore_stopped_midway', [
+                'reason' => exmtrans('backup.message.restore_import_failed', ['file' => 'table_definition.sql', 'code' => 1, 'detail' => 'ERROR 1064 (42000): syntax error']),
+            ])), $e->getMessage());
+        }
+    }
+
+    public function testRestoreCommandSaysNothingWasRestored(): void
+    {
+        $this->fakeMysqlBin('exit 0', "echo 'ERROR 2026 (HY000): SSL is required, but the server does not support it' >&2\nexit 1");
+
+        // a backup of the plugin folder, and a definition in it (zip made here)
+        $name = 'claudenothing' . substr(md5(uniqid('', true)), 0, 8);
+        $zipPath = tempnam(sys_get_temp_dir(), 'exment-zip-');
+        $zip = new \ZipArchive();
+        $zip->open($zipPath, \ZipArchive::OVERWRITE);
+        $zip->addFromString('table_definition.sql', '-- definition');
+        $zip->close();
+        $this->backupDisk()->put("list/{$name}.zip", (string) file_get_contents($zipPath));
+        @unlink($zipPath);
+        $this->createdBackups[] = "list/{$name}.zip";
+        $count = \DB::table('custom_tables')->count();
+
+        $this->runArtisan('exment:restore', ['file' => $name, '--yes' => true])
+            ->expectsOutputToContain(strval(exmtrans('backup.message.restore_nothing_restored', ['reason' => ''])))
+            ->assertExitCode(1)
+            ->run();
+
+        $this->assertSame($count, \DB::table('custom_tables')->count());
+        $this->assertFalse(app()->isDownForMaintenance(), 'the site is up again');
+    }
+
+    /**
+     * A folder of an unzipped backup with the files given; removed again in tearDown().
+     *
+     * @param array<string, string> $files name => contents
+     */
+    private function restoreFolder(array $files): string
+    {
+        $dir = sys_get_temp_dir() . '/exment-restore-' . bin2hex(random_bytes(4));
+        mkdir($dir, 0700);
+        foreach ($files as $name => $contents) {
+            file_put_contents("{$dir}/{$name}", $contents);
+        }
+        $this->restoreFolders[] = $dir;
+        return $dir;
+    }
+
     public function testRestoreCommandSaysWhenTheFileIsNotThere(): void
     {
         $before = \Exceedone\Exment\Model\BackupRun::query()->count();
@@ -252,7 +387,7 @@ class BackupCoverageTest extends FeatureTestBase
      * A folder with a fake "mysqldump" and "mysql" (exment.backup_info.mysql_dir): they answer
      * "--version" and "--help", and run $body for a dump. Removed again in tearDown().
      */
-    private function fakeMysqlBin(string $body): void
+    private function fakeMysqlBin(string $body, ?string $mysqlBody = null): void
     {
         if (DIRECTORY_SEPARATOR === '\\') {
             $this->markTestSkipped('the fake mysqldump is a shell script');
@@ -263,8 +398,8 @@ class BackupCoverageTest extends FeatureTestBase
 
         $dir = sys_get_temp_dir() . '/exment-fake-mysql-' . bin2hex(random_bytes(4));
         mkdir($dir, 0700);
-        $script = "#!/bin/sh\ncase \"\$1\" in\n  --version) echo 'mysqldump  Ver 8.0.0 (fake)'; exit 0;;\n  --help) echo 'fake'; exit 0;;\nesac\n{$body}\n";
-        foreach (['mysqldump', 'mysql'] as $name) {
+        foreach (['mysqldump' => $body, 'mysql' => $mysqlBody ?? $body] as $name => $run) {
+            $script = "#!/bin/sh\ncase \"\$1\" in\n  --version) echo '{$name}  Ver 8.0.0 (fake)'; exit 0;;\n  --help) echo 'fake'; exit 0;;\nesac\n{$run}\n";
             file_put_contents("{$dir}/{$name}", $script);
             chmod("{$dir}/{$name}", 0700);
         }

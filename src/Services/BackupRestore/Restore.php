@@ -100,6 +100,9 @@ class Restore
             // unzip backup file (the stage "extract" starts when the file is checked)
             $this->unzipFile($file, $tmp);
 
+            // before anything is changed: every file to import has data, and the client connects
+            \ExmentDB::checkRestore($this->diskService->tmpDiskItem()->dirFullPath());
+
             $result = 0;
 
             $progress->stage('load', $this->countDatabaseFiles());

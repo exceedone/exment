@@ -7,6 +7,7 @@ use Exceedone\Exment\Exceptions\BackupFailedException;
 use Exceedone\Exment\Exceptions\BackupRestoreCheckException;
 use Exceedone\Exment\Exceptions\BackupRunLockedException;
 use Exceedone\Exment\Exceptions\InvalidZipEntryException;
+use Exceedone\Exment\Exceptions\RestoreFailedException;
 use Exceedone\Exment\Jobs\BackupRunJob;
 use Exceedone\Exment\Model\BackupRun;
 use Exceedone\Exment\Model\NotifyNavbar;
@@ -524,11 +525,20 @@ class BackupRuns
         $progress->begin();
 
         $restore->setProgress($progress);
+        $safety = null;
         try {
             if ($backupFirst) {
-                static::backupBeforeRestore($progress, $output);
+                $safety = static::backupBeforeRestore($progress, $output);
             }
-            $result = $restore->execute($file, $tmp);
+            try {
+                $result = $restore->execute($file, $tmp);
+            } catch (RestoreFailedException $e) {
+                // stopped midway: the backup made before the restore brings the data back
+                if ($e->databaseChanged() && !is_null($safety)) {
+                    throw $e->withNote(strval(exmtrans('backup.message.restore_safety_backup', ['name' => $safety])));
+                }
+                throw $e;
+            }
             if ($restore->isConfigSkipped()) {
                 $progress->warn(strval(exmtrans('backup.message.restore_config_skipped')));
             }
@@ -637,7 +647,7 @@ class BackupRuns
      */
     public static function reason(\Throwable $e): string
     {
-        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException || $e instanceof InvalidZipEntryException || $e instanceof BackupRunLockedException) {
+        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException || $e instanceof RestoreFailedException || $e instanceof InvalidZipEntryException || $e instanceof BackupRunLockedException) {
             return SecretMasker::mask($e->getMessage());
         }
         return SecretMasker::mask(mb_substr(class_basename($e) . ': ' . $e->getMessage(), 0, 500));
@@ -652,7 +662,7 @@ class BackupRuns
         if (str_contains($message, 'no space') || str_contains($message, 'disk full') || str_contains($message, 'disk quota')) {
             return 'disk_full';
         }
-        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException) {
+        if ($e instanceof BackupRestoreCheckException || $e instanceof BackupFailedException || $e instanceof RestoreFailedException) {
             return 'command';
         }
         if ($e instanceof InvalidZipEntryException) {
