@@ -477,6 +477,11 @@ class Restore
                 // screen would answer "restore succeeded" and log the user out.
                 throw new InvalidZipEntryException(strval(exmtrans('backup.message.restore_file_error')));
             }
+            // an empty file (0 bytes, or no entries) opens too: nothing would be restored
+            if ($zip->numFiles === 0) {
+                $zip->close();
+                throw \Exceedone\Exment\Exceptions\RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_zip_empty')));
+            }
 
             $zipEntryError = ZipService::validateZipEntries($zip);
             if ($zipEntryError !== null) {

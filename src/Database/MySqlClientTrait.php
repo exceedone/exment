@@ -159,8 +159,84 @@ trait MySqlClientTrait
     }
 
     /**
-     * Check a restore before the database is changed: every .sql file to import has data, and
-     * the mysql client connects (SELECT 1, with the options of the restore).
+     * fn(): array{0: bool, 1: bool}|null — whether LOAD DATA LOCAL INFILE is allowed on the server
+     * and on the client, in place of asking the database (tests).
+     *
+     * @var callable|null
+     */
+    protected static $localInfileResolver = null;
+
+    public static function localInfileUsing(?callable $resolver): void
+    {
+        static::$localInfileResolver = $resolver;
+    }
+
+    /**
+     * Whether LOAD DATA LOCAL INFILE (the data of the custom tables, importTsv()) is allowed:
+     * on the server (@@local_infile) and on the client (PDO::MYSQL_ATTR_LOCAL_INFILE).
+     *
+     * @return array{0: bool, 1: bool} [server, client]
+     */
+    protected function localInfileEnabled(): array
+    {
+        if (!is_null(static::$localInfileResolver)) {
+            $resolved = call_user_func(static::$localInfileResolver);
+            if (is_array($resolved)) {
+                return [boolval($resolved[0] ?? false), boolval($resolved[1] ?? false)];
+            }
+        }
+
+        $server = false;
+        try {
+            $row = (array) $this->selectOne('SELECT @@local_infile AS local_infile');
+            $value = strtolower(strval(array_values($row)[0] ?? ''));
+            $server = in_array($value, ['1', 'on', 'true'], true);
+        } catch (\Throwable $e) {
+            $server = false;
+        }
+
+        // the option of PDO (off by default; Exment turns it on, Initialize::initializeConfig()):
+        // of this connection, or of the settings of the connection
+        $client = false;
+        if (defined('PDO::MYSQL_ATTR_LOCAL_INFILE')) {
+            foreach ([$this->getConfig('options'), config('database.connections.' . $this->getName() . '.options')] as $options) {
+                if (is_array($options) && boolval($options[\PDO::MYSQL_ATTR_LOCAL_INFILE] ?? false)) {
+                    $client = true;
+                }
+            }
+        }
+
+        return [$server, $client];
+    }
+
+    /**
+     * Whether an error of the database is about LOAD DATA LOCAL INFILE not being allowed.
+     */
+    public static function isLocalInfileError(string $message): bool
+    {
+        return preg_match('/\b3948\b|\b2068\b|local data is disabled|local_infile|LOAD DATA LOCAL INFILE file request rejected/i', $message) === 1;
+    }
+
+    /**
+     * The message, and the hint about local_infile when the error is about it.
+     */
+    public static function withLocalInfileHint(string $message, string $error): string
+    {
+        if (!static::isLocalInfileError($error)) {
+            return $message;
+        }
+        return $message . ' / ' . strval(exmtrans('backup.message.local_infile_hint'));
+    }
+
+    /**
+     * Check a restore before the database is changed:
+     * - the backup has something to restore, and a definition of the tables with its data
+     * - every .sql file to import has data
+     * - the mysql client connects (SELECT 1, with the options of the restore)
+     * - LOAD DATA LOCAL INFILE is allowed, when there are data of the custom tables (.tsv)
+     *
+     * A backup of the files only (no data of the database) does not change the database: it is
+     * not refused.
      *
      * @param string $dirFullPath the folder of the unzipped backup
      * @return void
@@ -168,7 +244,27 @@ trait MySqlClientTrait
      */
     public function checkRestore($dirFullPath)
     {
-        foreach (static::restoreSqlFiles($dirFullPath) as $file) {
+        $def = path_join($dirFullPath, config('exment.backup_info.def_file', 'table_definition.sql'));
+        $contents = array_filter(\File::exists($dirFullPath) ? \File::allFiles($dirFullPath, true) : [], function ($file) {
+            return $file->getFilename() !== \Exceedone\Exment\Model\Define::BACKUP_VERSION_FILE;
+        });
+        if (count($contents) === 0) {
+            throw RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_backup_empty')));
+        }
+
+        $sqlFiles = static::restoreSqlFiles($dirFullPath);
+        $tsvFiles = array_filter(\File::files($dirFullPath), function ($file) {
+            return preg_match('/.+\.tsv$/i', $file->getFilename()) === 1;
+        });
+        if (count($sqlFiles) === 0 && count($tsvFiles) === 0) {
+            // the files only: the database is not changed
+            return;
+        }
+        if (!\File::exists($def)) {
+            throw RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_no_definition', ['file' => basename($def)])));
+        }
+
+        foreach ($sqlFiles as $file) {
             clearstatcache(true, $file);
             if (!is_file($file) || filesize($file) === 0) {
                 throw RestoreFailedException::nothingChanged(strval(exmtrans('backup.message.restore_empty_file', ['file' => basename($file)])));
@@ -183,6 +279,34 @@ trait MySqlClientTrait
                 'code' => $exitCode,
                 'detail' => $errors,
             ])), strval($errors)));
+        }
+
+        // the data of the custom tables are loaded with LOAD DATA LOCAL INFILE
+        if (count($tsvFiles) > 0) {
+            [$server, $client] = $this->localInfileEnabled();
+            if (!$server || !$client) {
+                $reason = strval(exmtrans($server ? 'backup.message.restore_local_infile_client' : 'backup.message.restore_local_infile_off'));
+                throw RestoreFailedException::nothingChanged($reason . ' / ' . strval(exmtrans('backup.message.local_infile_hint')));
+            }
+        }
+    }
+
+    /**
+     * Load one .tsv file with LOAD DATA LOCAL INFILE.
+     *
+     * @return int the rows loaded
+     * @throws RestoreFailedException the database is changed already (midway)
+     */
+    protected function loadTsvFile(string $query, string $file): int
+    {
+        try {
+            return intval($this->getPdo()->exec($query));
+        } catch (\Throwable $e) {
+            $error = static::dumpErrorDetail($e->getMessage(), strval(config('database.connections.mysql.password', '')));
+            throw RestoreFailedException::midway(static::withLocalInfileHint(strval(exmtrans('backup.message.restore_load_failed', [
+                'file' => basename($file),
+                'detail' => $error,
+            ])), $error));
         }
     }
 
