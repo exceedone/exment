@@ -19,12 +19,94 @@ trait MySqlClientTrait
      */
     public static function clientOptions(string $key): string
     {
+        return implode(' ', array_map('escapeshellarg', static::clientOptionList($key)));
+    }
+
+    /**
+     * The extra options of a client command from .env, not escaped.
+     *
+     * @param string $key "dump_options" or "restore_options"
+     * @return array<int, string>
+     */
+    protected static function clientOptionList(string $key): array
+    {
         $value = config('exment.backup_info.' . $key);
         if (!is_string($value) || trim($value) === '') {
+            return [];
+        }
+        return preg_split('/\s+/', trim($value)) ?: [];
+    }
+
+    /**
+     * The TLS options of PDO (config database.connections.mysql.options, e.g. MYSQL_ATTR_SSL_CA of
+     * .env) as the options of the client commands, each one escaped: the client checks the
+     * server in the same way as PDO.
+     *
+     * - MYSQL_ATTR_SSL_CA: --ssl-ca
+     * - MYSQL_ATTR_SSL_CAPATH: --ssl-capath
+     * - MYSQL_ATTR_SSL_CERT: --ssl-cert
+     * - MYSQL_ATTR_SSL_KEY: --ssl-key
+     *
+     * MYSQL_ATTR_SSL_VERIFY_SERVER_CERT is not passed: the options of .env
+     * (EXMENT_DB_DUMP_OPTIONS, EXMENT_DB_RESTORE_OPTIONS) can do it.
+     */
+    public static function sslOptions(): string
+    {
+        $options = config('database.connections.mysql.options');
+        if (!is_array($options)) {
             return '';
         }
-        $options = preg_split('/\s+/', trim($value)) ?: [];
-        return implode(' ', array_map('escapeshellarg', $options));
+
+        $arguments = [];
+        foreach (['SSL_CA' => '--ssl-ca', 'SSL_CAPATH' => '--ssl-capath', 'SSL_CERT' => '--ssl-cert', 'SSL_KEY' => '--ssl-key'] as $name => $option) {
+            $attribute = static::pdoMysqlAttribute($name);
+            if (is_null($attribute)) {
+                continue;
+            }
+            $value = $options[$attribute] ?? null;
+            if (!is_string($value) || trim($value) === '') {
+                continue;
+            }
+            $arguments[] = escapeshellarg($option . '=' . $value);
+        }
+        return implode(' ', $arguments);
+    }
+
+    /**
+     * The attribute of PDO for MySQL, e.g. "SSL_CA": Pdo\Mysql::ATTR_SSL_CA (PHP 8.4 or later)
+     * or PDO::MYSQL_ATTR_SSL_CA. null when pdo_mysql is not loaded.
+     */
+    public static function pdoMysqlAttribute(string $name): ?int
+    {
+        foreach (['Pdo\\Mysql::ATTR_' . $name, 'PDO::MYSQL_ATTR_' . $name] as $constant) {
+            if (defined($constant)) {
+                return intval(constant($constant));
+            }
+        }
+        return null;
+    }
+
+    /**
+     * All the options of a client command, each one escaped: the TLS options of PDO
+     * (sslOptions()), then the options of .env (clientOptions()), so that .env can change them.
+     *
+     * The options that mysql and mysqldump take only as the first ones (--defaults-file,
+     * --defaults-extra-file, --no-defaults, ...) stay first.
+     *
+     * @param string $key "dump_options" or "restore_options"
+     */
+    public static function clientArguments(string $key): string
+    {
+        $first = [];
+        $rest = static::clientOptionList($key);
+        while (count($rest) > 0 && preg_match('/^--(?:no-defaults$|print-defaults$|defaults-file=|defaults-extra-file=|defaults-group-suffix=)/', $rest[0]) === 1) {
+            $first[] = array_shift($rest);
+        }
+
+        $arguments = array_merge(array_map('escapeshellarg', $first), [static::sslOptions()], array_map('escapeshellarg', $rest));
+        return implode(' ', array_filter($arguments, function ($argument) {
+            return $argument !== '';
+        }));
     }
 
     /**
@@ -108,7 +190,8 @@ trait MySqlClientTrait
     }
 
     /**
-     * The mysql command of the restore (with EXMENT_DB_RESTORE_OPTIONS), and its password.
+     * The mysql command of the restore (with the TLS options of PDO and EXMENT_DB_RESTORE_OPTIONS,
+     * clientArguments()), and its password. The check of the connection (checkRestore()) uses it too.
      *
      * @return array{0: string, 1: string}
      */
@@ -121,7 +204,7 @@ trait MySqlClientTrait
         $dbport = config('database.connections.mysql.port', '');
         $charset = config('database.connections.mysql.charset', 'utf8mb4');
 
-        $options = static::clientOptions('restore_options');
+        $options = static::clientArguments('restore_options');
         $command = sprintf(
             '%s%s --default-character-set=%s -h %s -u %s --password=%s -P %s %s',
             static::getMysqlPath(),

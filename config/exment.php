@@ -433,7 +433,12 @@ return [
     'backup_info' => [
         'mysql_dir' => env('EXMENT_MYSQL_BIN_DIR'),
         // extra options of the client commands, separated by spaces (each one is escaped), e.g.
-        // "--ssl-mode=DISABLED" (MySQL client) or "--skip-ssl-verify-server-cert" (MariaDB client)
+        // "--ssl-mode=DISABLED" (MySQL client) or "--skip-ssl-verify-server-cert" (MariaDB client).
+        // The TLS files of the PDO options of the connection (MYSQL_ATTR_SSL_CA of .env, and
+        // MYSQL_ATTR_SSL_CAPATH / _CERT / _KEY of config/database.php) are given to the commands
+        // first, as --ssl-ca / --ssl-capath / --ssl-cert / --ssl-key; these options come after
+        // them and can change them. MYSQL_ATTR_SSL_VERIFY_SERVER_CERT=false is not given: add
+        // e.g. "--skip-ssl-verify-server-cert" or "--ssl-mode=REQUIRED" here for that.
         'dump_options' => env('EXMENT_DB_DUMP_OPTIONS'),
         'restore_options' => env('EXMENT_DB_RESTORE_OPTIONS'),
         'def_file' => 'table_definition.sql',
