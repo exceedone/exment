@@ -253,7 +253,7 @@ class DataArchiveTest extends FeatureTestBase
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_USER1));
         System::clearRequestSession();
         $this->get(admin_url('data_archive'), $ajax)->assertStatus(403);
-        $this->post(admin_urls('data_archive', 'run'), ['source' => 'revisions', 'before' => static::BEFORE, 'expected' => 27])->assertStatus(403);
+        $this->post(admin_urls('data_archive', 'run'), ['source' => 'revisions', 'before' => static::BEFORE, 'expected' => 27], $ajax)->assertStatus(403);
         $this->assertSame(30, $this->ours()->count());
 
         $this->be(LoginUser::findOrFail(TestDefine::TESTDATA_USER_LOGINID_ADMIN));
@@ -262,14 +262,14 @@ class DataArchiveTest extends FeatureTestBase
             ->assertSee(exmtrans('data_archive.sources.revisions'))->assertSee('data-source="revisions"', false);
         $this->get(admin_url('data_archive') . '?tab=sources&preview=revisions&before=' . static::BEFORE, $ajax)->assertOk()
             ->assertSee('id="data-archive-run"', false)->assertSee('name="expected" value="27"', false);
-        $this->post(admin_urls('data_archive', 'run'), ['source' => 'revisions', 'before' => static::BEFORE, 'expected' => 27])->assertRedirect();
+        $this->post(admin_urls('data_archive', 'run'), ['source' => 'revisions', 'before' => static::BEFORE, 'expected' => 27], $ajax)->assertRedirect();
         $this->assertSame(3, $this->ours()->count());
         $archive = DataArchive::query()->firstOrFail();
         $this->get(admin_url('data_archive') . '?tab=archives&restore=' . $archive->id, $ajax)->assertOk()
             ->assertSee('id="data-archive-restore"', false);
-        $this->post(admin_urls('data_archive', $archive->id, 'restore'))->assertRedirect();
+        $this->post(admin_urls('data_archive', $archive->id, 'restore'), [], $ajax)->assertRedirect();
         $this->assertSame(30, $this->ours()->count());
-        $this->post(admin_urls('data_archive', $archive->id, 'action'), ['do' => 'trash'])->assertRedirect();
+        $this->post(admin_urls('data_archive', $archive->id, 'action'), ['do' => 'trash'], $ajax)->assertRedirect();
         $this->get(admin_url('data_archive') . '?tab=trash', $ajax)->assertOk()->assertSee('data-archive="' . $archive->id . '"', false);
         $this->get(admin_url('data_archive') . '?tab=events', $ajax)->assertOk()->assertSee('data-event="trash"', false);
     }
